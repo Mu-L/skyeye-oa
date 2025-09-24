@@ -23,8 +23,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum Platform implements SkyeyeEnumClass {
 
-    ANDROID("android", "Android", true, true),
-    IOS("ios", "IOS", true, false);
+    ANDROID("android", "Android系统", true, true),
+    IOS("ios", "IOS系统", true, false);
 
     private String key;
 
