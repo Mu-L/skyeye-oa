@@ -4,6 +4,7 @@
 
 package com.skyeye.app.enums;
 
+import cn.hutool.core.util.StrUtil;
 import com.skyeye.common.base.classenum.SkyeyeEnumClass;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -17,10 +18,10 @@ import lombok.NoArgsConstructor;
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  * 待发布 → 已提交 → 审核中 → 审核通过 → 已发布
- *   ↓       ↓       ↓        ↓        ↓
- *  取消    取消     取消      失败      下架
- *   ↓       ↓       ↓        ↓        ↓
- *  取消    取消     取消     重新提交   待发布
+ * ↓       ↓       ↓        ↓        ↓
+ * 取消    取消     取消      失败      下架
+ * ↓       ↓       ↓        ↓        ↓
+ * 取消    取消     取消     重新提交   提交
  */
 @Getter
 @NoArgsConstructor
@@ -57,6 +58,15 @@ public enum AppReleaseStatusEnum implements SkyeyeEnumClass {
             }
         }
         return null;
+    }
+
+    public static String getNameByKey(String key) {
+        for (AppReleaseStatusEnum status : values()) {
+            if (status.getKey().equals(key)) {
+                return status.getValue();
+            }
+        }
+        return StrUtil.EMPTY;
     }
 
     /**
@@ -125,15 +135,15 @@ public enum AppReleaseStatusEnum implements SkyeyeEnumClass {
             case "approved":
                 return new AppReleaseStatusEnum[]{PUBLISHED, FAILED};
             case "rejected":
-                return new AppReleaseStatusEnum[]{PENDING, CANCELLED};
+                return new AppReleaseStatusEnum[]{PENDING, CANCELLED, SUBMITTED};
             case "published":
                 return new AppReleaseStatusEnum[]{REMOVED};
             case "failed":
                 return new AppReleaseStatusEnum[]{SUBMITTED, CANCELLED};
             case "cancelled":
-                return new AppReleaseStatusEnum[]{PENDING};
+                return new AppReleaseStatusEnum[]{PENDING, SUBMITTED};
             case "removed":
-                return new AppReleaseStatusEnum[]{PENDING};
+                return new AppReleaseStatusEnum[]{PENDING, SUBMITTED};
             default:
                 return new AppReleaseStatusEnum[]{};
         }

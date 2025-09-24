@@ -32,7 +32,7 @@ public class AppVersionController {
     @Autowired
     private AppVersionService appVersionService;
 
-    @ApiOperation(id = "queryAppVersionList", value = "查询项目版本列表", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryAppVersionList", value = "查询项目版本列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/AppVersionController/queryAppVersionList")
     public void queryAppVersionList(InputObject inputObject, OutputObject outputObject) {

@@ -17,6 +17,7 @@ import com.skyeye.app.service.AppReleaseService;
 import com.skyeye.app.service.AppVersionService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
@@ -49,6 +50,14 @@ public class AppVersionServiceImpl extends SkyeyeBusinessServiceImpl<AppVersionD
 
     @Autowired
     private AppReleaseService appReleaseService;
+
+    @Override
+    protected QueryWrapper<AppVersion> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<AppVersion> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AppVersion::getProjectId), commonPageInfo.getObjectId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AppVersion::getPlatform), commonPageInfo.getType());
+        return queryWrapper;
+    }
 
     @Override
     protected void validatorEntity(AppVersion entity) {

@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.app.enums.Platform;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
@@ -43,7 +44,7 @@ public class AppVersion extends BaseGeneralInfo {
     private Integer versionCode;
 
     @TableField("file_size")
-    @ApiModelProperty(value = "文件大小")
+    @Property(value = "文件大小")
     private String fileSize;
 
     @TableField("file_path")

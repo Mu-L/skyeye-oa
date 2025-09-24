@@ -174,4 +174,8 @@ public class DsFormPageContent extends OperatorUserInfo {
     @ApiModelProperty(value = "数据回显完之后执行的脚本")
     private String dataEchoAfterScript;
 
+    @TableField("config")
+    @ApiModelProperty(value = "其他配置信息，一般为json字符串")
+    private String config;
+
 }

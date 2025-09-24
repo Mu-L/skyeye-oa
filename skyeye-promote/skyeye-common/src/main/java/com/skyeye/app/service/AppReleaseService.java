@@ -6,6 +6,8 @@ package com.skyeye.app.service;
 
 import com.skyeye.app.entity.AppRelease;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 
 import java.util.List;
 
@@ -23,4 +25,5 @@ public interface AppReleaseService extends SkyeyeBusinessService<AppRelease> {
 
     List<AppRelease> selectByVersionIdAndProjectId(String versionId, String projectId);
 
+    void updateAppReleaseStateById(InputObject inputObject, OutputObject outputObject);
 }

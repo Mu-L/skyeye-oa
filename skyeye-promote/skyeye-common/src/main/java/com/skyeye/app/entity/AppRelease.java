@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.app.enums.AppReleaseStatusEnum;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
@@ -34,6 +35,10 @@ public class AppRelease extends OperatorUserInfo {
     @ApiModelProperty(value = "版本ID", required = "required")
     private String versionId;
 
+    @TableField(exist = false)
+    @Property(value = "版本信息")
+    private AppVersion versionMation;
+
     @TableField("project_id")
     @ApiModelProperty(value = "项目ID", required = "required")
     private String projectId;
@@ -45,6 +50,10 @@ public class AppRelease extends OperatorUserInfo {
     @TableField("store_id")
     @ApiModelProperty(value = "应用商店id", required = "required")
     private String storeId;
+
+    @TableField(exist = false)
+    @Property(value = "应用商店信息")
+    private AppStore storeMation;
 
     @TableField("status")
     @ApiModelProperty(value = "发布状态", enumClass = AppReleaseStatusEnum.class, required = "required")
