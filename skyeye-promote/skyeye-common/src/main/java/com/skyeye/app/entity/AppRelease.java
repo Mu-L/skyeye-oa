@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.app.enums.AppReleaseStatusEnum;
+import com.skyeye.app.enums.Platform;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
@@ -44,7 +45,7 @@ public class AppRelease extends OperatorUserInfo {
     private String projectId;
 
     @TableField("platform")
-    @ApiModelProperty(value = "平台类型", required = "required")
+    @ApiModelProperty(value = "平台类型", enumClass = Platform.class, required = "required")
     private String platform;
 
     @TableField("store_id")

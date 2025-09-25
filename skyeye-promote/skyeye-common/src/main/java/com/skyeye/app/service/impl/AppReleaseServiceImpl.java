@@ -9,12 +9,15 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.app.dao.AppReleaseDao;
+import com.skyeye.app.entity.AppProject;
 import com.skyeye.app.entity.AppRelease;
 import com.skyeye.app.entity.AppStore;
 import com.skyeye.app.entity.AppVersion;
 import com.skyeye.app.enums.AppReleaseStatusEnum;
+import com.skyeye.app.service.AppProjectService;
 import com.skyeye.app.service.AppReleaseService;
 import com.skyeye.app.service.AppStoreService;
 import com.skyeye.app.service.AppVersionService;
@@ -32,6 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -53,6 +57,9 @@ public class AppReleaseServiceImpl extends SkyeyeBusinessServiceImpl<AppReleaseD
 
     @Autowired
     private AppStoreService appStoreService;
+
+    @Autowired
+    private AppProjectService appProjectService;
 
     @Autowired
     private AppStoreServiceManager appStoreServiceManager;
@@ -86,11 +93,19 @@ public class AppReleaseServiceImpl extends SkyeyeBusinessServiceImpl<AppReleaseD
     }
 
     @Override
-    public List<AppRelease> selectByVersionIdAndProjectId(String versionId, String projectId) {
-        QueryWrapper<AppRelease> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(AppRelease::getProjectId), projectId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(AppRelease::getVersionId), versionId);
-        List<AppRelease> list = list(queryWrapper);
+    public List<AppRelease> selectByVersionIdAndProjectId(String versionId, String projectId, String storeKey, String status) {
+        MPJLambdaWrapper<AppRelease> mpjLambdaWrapper = new MPJLambdaWrapper<>();
+        if (StrUtil.isNotEmpty(storeKey)) {
+            mpjLambdaWrapper.innerJoin(AppStore.class, AppStore::getId, AppRelease::getStoreId);
+            mpjLambdaWrapper.eq(AppStore::getStoreKey, storeKey);
+        }
+        if (StrUtil.isNotEmpty(status)) {
+            mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(AppRelease::getStatus), status);
+        }
+        mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(AppRelease::getProjectId), projectId);
+        mpjLambdaWrapper.eq(MybatisPlusUtil.toColumns(AppRelease::getVersionId), versionId);
+
+        List<AppRelease> list = skyeyeBaseMapper.selectJoinList(AppRelease.class, mpjLambdaWrapper);
         return list;
     }
 
@@ -100,6 +115,32 @@ public class AppReleaseServiceImpl extends SkyeyeBusinessServiceImpl<AppReleaseD
         String id = params.get("id").toString();
         String state = params.get("state").toString();
         updateReleaseStatus(id, state);
+    }
+
+    @Override
+    public void getLatestVersion(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String projectKey = params.get("projectKey").toString();
+        String platform = params.get("platform").toString();
+        String storeKey = params.get("storeKey").toString();
+
+        AppProject appProject = appProjectService.selectByKey(projectKey);
+        if (ObjectUtil.isEmpty(appProject) || StrUtil.isBlank(appProject.getId())) {
+            log.warn("项目不存在，请检查项目ID是否正确");
+            return;
+        }
+        // 获取指定项目、平台和应用商店的最新版本
+        AppVersion latestVersion = appVersionService.getLatestVersionByProjectAndPlatform(appProject.getId(), platform, storeKey);
+
+        if (ObjectUtil.isEmpty(latestVersion)) {
+            log.warn("该项目没有发布过新版本，请等待管理员发布版本");
+            return;
+        }
+
+        // 构建返回数据
+        Map<String, Object> result = new HashMap<>();
+        result.put("versionInfo", latestVersion);
+        outputObject.setBean(result);
     }
 
     /**

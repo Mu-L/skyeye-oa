@@ -47,4 +47,14 @@ public class AppReleaseController {
         appReleaseService.updateAppReleaseStateById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "getLatestVersion", value = "获取项目最新版本信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "projectKey", name = "projectKey", value = "项目唯一标识", required = "required"),
+        @ApiImplicitParam(id = "platform", name = "platform", value = "平台类型", required = "required"),
+        @ApiImplicitParam(id = "storeKey", name = "storeKey", value = "商店唯一标识", required = "required")})
+    @RequestMapping("/post/AppReleaseController/getLatestVersion")
+    public void getLatestVersion(InputObject inputObject, OutputObject outputObject) {
+        appReleaseService.getLatestVersion(inputObject, outputObject);
+    }
+
 }

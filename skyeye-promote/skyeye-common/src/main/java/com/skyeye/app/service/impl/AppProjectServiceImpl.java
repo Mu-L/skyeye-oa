@@ -12,6 +12,7 @@ import com.skyeye.app.entity.AppProject;
 import com.skyeye.app.service.AppProjectService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
@@ -42,5 +43,13 @@ public class AppProjectServiceImpl extends SkyeyeBusinessServiceImpl<AppProjectD
         if (ObjectUtil.isNotEmpty(appProject)) {
             throw new CustomException("项目标识已存在，请重新输入！");
         }
+    }
+
+    @Override
+    public AppProject selectByKey(String projectKey) {
+        QueryWrapper<AppProject> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AppProject::getProjectKey), projectKey);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AppProject::getEnabled), EnableEnum.ENABLE_USING.getKey());
+        return getOne(queryWrapper, false);
     }
 }

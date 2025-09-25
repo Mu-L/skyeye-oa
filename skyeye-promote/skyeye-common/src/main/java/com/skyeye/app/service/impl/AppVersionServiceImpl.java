@@ -14,6 +14,7 @@ import com.skyeye.app.entity.AppRelease;
 import com.skyeye.app.entity.AppVersion;
 import com.skyeye.app.enums.AppReleaseStatusEnum;
 import com.skyeye.app.service.AppReleaseService;
+import com.skyeye.app.service.AppStoreService;
 import com.skyeye.app.service.AppVersionService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
@@ -50,6 +51,9 @@ public class AppVersionServiceImpl extends SkyeyeBusinessServiceImpl<AppVersionD
 
     @Autowired
     private AppReleaseService appReleaseService;
+
+    @Autowired
+    private AppStoreService appStoreService;
 
     @Override
     protected QueryWrapper<AppVersion> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -92,10 +96,31 @@ public class AppVersionServiceImpl extends SkyeyeBusinessServiceImpl<AppVersionD
         AppVersion appVersion = super.selectById(id);
         // 获取现有的发布记录
         List<AppRelease> existingReleases = appReleaseService.selectByVersionIdAndProjectId(
-            appVersion.getId(), appVersion.getProjectId());
+            appVersion.getId(), appVersion.getProjectId(), StrUtil.EMPTY, StrUtil.EMPTY);
         List<String> storeIdList = existingReleases.stream().map(AppRelease::getStoreId).collect(Collectors.toList());
         appVersion.setStoreIdList(storeIdList);
         return appVersion;
+    }
+
+    @Override
+    public AppVersion getLatestVersionByProjectAndPlatform(String projectId, String platform, String storeKey) {
+        QueryWrapper<AppVersion> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AppVersion::getProjectId), projectId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AppVersion::getPlatform), platform);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(AppVersion::getLastUpdateTime));
+        queryWrapper.last("LIMIT 1");
+
+        AppVersion latestVersion = getOne(queryWrapper);
+        if (ObjectUtil.isEmpty(latestVersion)) {
+            return null;
+        }
+        // 获取现有的发布记录
+        List<AppRelease> existingReleases = appReleaseService.selectByVersionIdAndProjectId(
+            latestVersion.getId(), latestVersion.getProjectId(), storeKey, AppReleaseStatusEnum.PUBLISHED.getKey());
+        if (CollectionUtil.isEmpty(existingReleases)) {
+            return null;
+        }
+        return latestVersion;
     }
 
     /**
@@ -115,7 +140,7 @@ public class AppVersionServiceImpl extends SkyeyeBusinessServiceImpl<AppVersionD
 
             // 获取现有的发布记录
             List<AppRelease> existingReleases = appReleaseService.selectByVersionIdAndProjectId(
-                entity.getId(), entity.getProjectId());
+                entity.getId(), entity.getProjectId(), StrUtil.EMPTY, StrUtil.EMPTY);
 
             // 获取现有记录中的应用商店ID列表
             List<String> existingStoreIds = existingReleases.stream()

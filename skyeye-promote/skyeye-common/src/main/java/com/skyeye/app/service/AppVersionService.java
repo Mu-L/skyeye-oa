@@ -6,8 +6,6 @@ package com.skyeye.app.service;
 
 import com.skyeye.app.entity.AppVersion;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
 
 /**
  * @ClassName: AppVersionService
@@ -18,5 +16,7 @@ import com.skyeye.common.object.OutputObject;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface AppVersionService extends SkyeyeBusinessService<AppVersion> {
+
+    AppVersion getLatestVersionByProjectAndPlatform(String projectId, String platform, String storeKey);
 
 }

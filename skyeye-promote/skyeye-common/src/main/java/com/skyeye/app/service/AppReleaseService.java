@@ -23,7 +23,9 @@ public interface AppReleaseService extends SkyeyeBusinessService<AppRelease> {
 
     void saveList(String versionId, String projectId, List<AppRelease> beans);
 
-    List<AppRelease> selectByVersionIdAndProjectId(String versionId, String projectId);
+    List<AppRelease> selectByVersionIdAndProjectId(String versionId, String projectId, String storeKey, String status);
 
     void updateAppReleaseStateById(InputObject inputObject, OutputObject outputObject);
+
+    void getLatestVersion(InputObject inputObject, OutputObject outputObject);
 }

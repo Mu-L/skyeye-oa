@@ -17,4 +17,6 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
  */
 public interface AppProjectService extends SkyeyeBusinessService<AppProject> {
 
+    AppProject selectByKey(String projectKey);
+
 }
