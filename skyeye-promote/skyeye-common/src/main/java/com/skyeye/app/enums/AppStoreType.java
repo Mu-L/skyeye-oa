@@ -23,10 +23,44 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum AppStoreType implements SkyeyeEnumClass {
 
-    XIAOMI_APP_STORE("xiaomi", "小米", true, true),
-    HUAWEI_APP_STORE("huawei", "华为", true, true),
-    OPPO_APP_STORE("oppo", "OPPO", true, true),
-    VIVO_APP_STORE("vivo", "VIVO", true, true);
+    TEST_APP_STORE("test", "测试", true, true,
+        "{}"),
+
+    XIAOMI_APP_STORE("xiaomi", "小米", true, true,
+        "{\n" +
+            "  \"clientId\": \"小米开发者账号ID\",\n" +
+            "  \"clientSecret\": \"小米开发者账号密钥\",\n" +
+            "  \"appId\": \"应用ID\",\n" +
+            "  \"apiUrl\": \"API基础URL（可选，默认：https://api.developer.xiaomi.com）\",\n" +
+            "  \"authUrl\": \"认证URL（可选，默认：https://account.xiaomi.com/oauth2/authorize）\"\n" +
+            "}"),
+
+    HUAWEI_APP_STORE("huawei", "华为", true, true,
+        "{\n" +
+            "  \"clientId\": \"华为开发者账号ID\",\n" +
+            "  \"clientSecret\": \"华为开发者账号密钥\",\n" +
+            "  \"appId\": \"应用ID\",\n" +
+            "  \"apiUrl\": \"API基础URL（可选，默认：https://connect-api.cloud.huawei.com/api）\",\n" +
+            "  \"authUrl\": \"认证URL（可选，默认：https://oauth-login.cloud.huawei.com/oauth2/v3/token）\"\n" +
+            "}"),
+
+    OPPO_APP_STORE("oppo", "OPPO", true, true,
+        "{\n" +
+            "  \"clientId\": \"OPPO开发者账号ID\",\n" +
+            "  \"clientSecret\": \"OPPO开发者账号密钥\",\n" +
+            "  \"appId\": \"应用ID\",\n" +
+            "  \"apiUrl\": \"API基础URL（可选，默认：https://api.oppo.com）\",\n" +
+            "  \"authUrl\": \"认证URL（可选，默认：https://api.oppo.com/oauth2/token）\"\n" +
+            "}"),
+
+    VIVO_APP_STORE("vivo", "VIVO", true, true,
+        "{\n" +
+            "  \"clientId\": \"VIVO开发者账号ID\",\n" +
+            "  \"clientSecret\": \"VIVO开发者账号密钥\",\n" +
+            "  \"appId\": \"应用ID\",\n" +
+            "  \"apiUrl\": \"API基础URL（可选，默认：https://developer.vivo.com.cn/api）\",\n" +
+            "  \"authUrl\": \"认证URL（可选，默认：https://developer.vivo.com.cn/oauth2/token）\"\n" +
+            "}");
 
     private String key;
 
@@ -36,6 +70,8 @@ public enum AppStoreType implements SkyeyeEnumClass {
 
     private Boolean isDefault;
 
+    private String requiredFields;
+
     public static String getName(String key) {
         for (AppStoreType bean : AppStoreType.values()) {
             if (StrUtil.equals(key, bean.getKey())) {
@@ -43,6 +79,36 @@ public enum AppStoreType implements SkyeyeEnumClass {
             }
         }
         return StrUtil.EMPTY;
+    }
+
+    /**
+     * 根据应用商店标识获取必须字段的JSON字符串
+     *
+     * @param key 应用商店标识
+     * @return 必须字段的JSON字符串
+     */
+    public static String getRequiredFields(String key) {
+        for (AppStoreType bean : AppStoreType.values()) {
+            if (StrUtil.equals(key, bean.getKey())) {
+                return bean.getRequiredFields();
+            }
+        }
+        return StrUtil.EMPTY;
+    }
+
+    /**
+     * 根据应用商店标识获取应用商店类型枚举
+     *
+     * @param key 应用商店标识
+     * @return 应用商店类型枚举
+     */
+    public static AppStoreType getByKey(String key) {
+        for (AppStoreType bean : AppStoreType.values()) {
+            if (StrUtil.equals(key, bean.getKey())) {
+                return bean;
+            }
+        }
+        return null;
     }
 
 }
