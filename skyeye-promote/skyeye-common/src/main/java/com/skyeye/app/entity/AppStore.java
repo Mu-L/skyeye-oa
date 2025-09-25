@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.app.enums.AppStoreType;
 import com.skyeye.app.enums.Platform;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.common.enumeration.EnableEnum;
@@ -29,7 +30,7 @@ import lombok.Data;
 public class AppStore extends BaseGeneralInfo {
 
     @TableField("store_key")
-    @ApiModelProperty(value = "商店标识", required = "required")
+    @ApiModelProperty(value = "商店标识", enumClass = AppStoreType.class, required = "required")
     private String storeKey;
 
     @TableField("platform")
