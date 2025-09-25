@@ -32,12 +32,6 @@ public class FarmStaffController {
     @Autowired
     private FarmStaffService farmStaffService;
 
-    /**
-     * 获取车间下的员工信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryFarmStaffList", value = "获取车间下的员工信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/FarmStaffController/queryFarmStaffList")
@@ -45,24 +39,6 @@ public class FarmStaffController {
         farmStaffService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 不分页获取全部车间下的员工信息（远程调用）
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryAllFarmStaffList", value = "获取全部车间下的员工信息", method = "POST", allUse = "2")
-    @RequestMapping("/post/FarmStaffController/queryAllFarmStaffList")
-    public void queryAllFarmStaffList(InputObject inputObject, OutputObject outputObject) {
-        farmStaffService.queryAllFarmStaffList(inputObject, outputObject);
-    }
-
-    /**
-     * 删除车间下的员工信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteFarmStaffById", value = "删除车间下的员工信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "车间与员工的关系表主键id", required = "required")})
@@ -71,12 +47,6 @@ public class FarmStaffController {
         farmStaffService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 新增车间下的员工信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertFarmStaff", value = "新增车间下的员工信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = FarmStaffVO.class)
     @RequestMapping("/post/FarmStaffController/insertFarmStaff")
@@ -84,24 +54,12 @@ public class FarmStaffController {
         farmStaffService.insertFarmStaff(inputObject, outputObject);
     }
 
-    /**
-     * 获取当前登陆用户所属的车间列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryStaffBelongFarmList", value = "获取当前登陆用户所属的车间列表", method = "GET", allUse = "2")
     @RequestMapping("/post/FarmStaffController/queryStaffBelongFarmList")
     public void queryStaffBelongFarmList(InputObject inputObject, OutputObject outputObject) {
         farmStaffService.queryStaffBelongFarmList(inputObject, outputObject);
     }
 
-    /**
-     * 根据员工id删除所有的所属车间信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteFarmStaffByStaffId", value = "根据员工id删除所有的所属车间信息", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "员工id", required = "required")})
@@ -110,12 +68,6 @@ public class FarmStaffController {
         farmStaffService.deleteFarmStaffByStaffId(inputObject, outputObject);
     }
 
-    /**
-     * 根据车间id获取临时工
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryStaffByFarmId", value = "根据车间id获取临时工", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "farmId", name = "farmId", value = "车间id", required = "required")})

@@ -39,16 +39,11 @@ public class AppStore extends BaseGeneralInfo {
 
     @TableField("api_config")
     @ApiModelProperty(value = "API配置信息", exampleDefault = "{\n" +
-        "  \"storeName\": \"华为应用市场\",\n" +
-        "  \"storeKey\": \"huawei\",\n" +
-        "  \"platform\": \"android\",\n" +
-        "  \"apiConfig\": {\n" +
-        "    \"clientId\": \"your_client_id\",\n" +
-        "    \"clientSecret\": \"your_client_secret\",\n" +
-        "    \"appId\": \"your_app_id\",\n" +
-        "    \"apiUrl\": \"https://connect-api.cloud.huawei.com/api\",\n" +
-        "    \"authUrl\": \"https://oauth-login.cloud.huawei.com/oauth2/v3/token\"\n" +
-        "  }\n" +
+        "  \"clientId\": \"小米开发者账号ID\",\n" +
+        "  \"clientSecret\": \"小米开发者账号密钥\",\n" +
+        "  \"appId\": \"应用ID\",\n" +
+        "  \"apiUrl\": \"API基础URL（可选，默认：https://api.developer.xiaomi.com）\",\n" +
+        "  \"authUrl\": \"认证URL（可选，默认：https://account.xiaomi.com/oauth2/authorize）\"\n" +
         "}", required = "required,json")
     private String apiConfig;
 

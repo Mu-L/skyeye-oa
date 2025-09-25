@@ -12,10 +12,13 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.app.dao.AppReleaseDao;
 import com.skyeye.app.entity.AppRelease;
+import com.skyeye.app.entity.AppStore;
+import com.skyeye.app.entity.AppVersion;
 import com.skyeye.app.enums.AppReleaseStatusEnum;
 import com.skyeye.app.service.AppReleaseService;
 import com.skyeye.app.service.AppStoreService;
 import com.skyeye.app.service.AppVersionService;
+import com.skyeye.app.store.AppStoreServiceManager;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -50,6 +53,9 @@ public class AppReleaseServiceImpl extends SkyeyeBusinessServiceImpl<AppReleaseD
 
     @Autowired
     private AppStoreService appStoreService;
+
+    @Autowired
+    private AppStoreServiceManager appStoreServiceManager;
 
     @Override
     public void saveList(String versionId, String projectId, List<AppRelease> beans) {
@@ -134,6 +140,20 @@ public class AppReleaseServiceImpl extends SkyeyeBusinessServiceImpl<AppReleaseD
             boolean result = update(updateWrapper);
 
             if (result) {
+                if (StrUtil.equals(AppReleaseStatusEnum.SUBMITTED.getKey(), newStatus)) {
+                    // 提交
+//                    AppVersion appVersion = appVersionService.selectById(appRelease.getVersionId());
+//                    AppStore appStore = appStoreService.selectById(appRelease.getStoreId());
+//                    appStoreServiceManager.submitApp(appStore.getStoreKey(), appVersion, appRelease, appStore);
+                } else if (StrUtil.equals(AppReleaseStatusEnum.CANCELLED.getKey(), newStatus)) {
+                    // 取消
+//                    AppStore appStore = appStoreService.selectById(appRelease.getStoreId());
+//                    appStoreServiceManager.cancelApp(appStore.getStoreKey(), appRelease, appStore);
+                } else if (StrUtil.equals(AppReleaseStatusEnum.REMOVED.getKey(), newStatus)) {
+                    // 下架
+//                    AppStore appStore = appStoreService.selectById(appRelease.getStoreId());
+//                    appStoreServiceManager.removeApp(appStore.getStoreKey(), appRelease, appStore);
+                }
                 log.info("发布记录[{}]状态修改成功：{} -> {}", releaseId, currentStatus, newStatus);
             } else {
                 log.error("发布记录[{}]状态修改失败", releaseId);

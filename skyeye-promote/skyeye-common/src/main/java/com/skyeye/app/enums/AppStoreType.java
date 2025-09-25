@@ -23,10 +23,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum AppStoreType implements SkyeyeEnumClass {
 
-    TEST_APP_STORE("test", "测试", true, true,
+    TEST_APP_STORE("test", "测试", true, false,
         "{}"),
 
-    XIAOMI_APP_STORE("xiaomi", "小米", true, true,
+    XIAOMI_APP_STORE("xiaomi", "小米", true, false,
         "{\n" +
             "  \"clientId\": \"小米开发者账号ID\",\n" +
             "  \"clientSecret\": \"小米开发者账号密钥\",\n" +
@@ -35,7 +35,7 @@ public enum AppStoreType implements SkyeyeEnumClass {
             "  \"authUrl\": \"认证URL（可选，默认：https://account.xiaomi.com/oauth2/authorize）\"\n" +
             "}"),
 
-    HUAWEI_APP_STORE("huawei", "华为", true, true,
+    HUAWEI_APP_STORE("huawei", "华为", true, false,
         "{\n" +
             "  \"clientId\": \"华为开发者账号ID\",\n" +
             "  \"clientSecret\": \"华为开发者账号密钥\",\n" +
@@ -44,7 +44,7 @@ public enum AppStoreType implements SkyeyeEnumClass {
             "  \"authUrl\": \"认证URL（可选，默认：https://oauth-login.cloud.huawei.com/oauth2/v3/token）\"\n" +
             "}"),
 
-    OPPO_APP_STORE("oppo", "OPPO", true, true,
+    OPPO_APP_STORE("oppo", "OPPO", true, false,
         "{\n" +
             "  \"clientId\": \"OPPO开发者账号ID\",\n" +
             "  \"clientSecret\": \"OPPO开发者账号密钥\",\n" +
@@ -53,7 +53,7 @@ public enum AppStoreType implements SkyeyeEnumClass {
             "  \"authUrl\": \"认证URL（可选，默认：https://api.oppo.com/oauth2/token）\"\n" +
             "}"),
 
-    VIVO_APP_STORE("vivo", "VIVO", true, true,
+    VIVO_APP_STORE("vivo", "VIVO", true, false,
         "{\n" +
             "  \"clientId\": \"VIVO开发者账号ID\",\n" +
             "  \"clientSecret\": \"VIVO开发者账号密钥\",\n" +
