@@ -70,7 +70,7 @@ public class VivoConfig {
     /**
      * 应用版本代码
      */
-    private Integer versionCode;
+    private String versionCode;
 
     /**
      * 应用文件路径

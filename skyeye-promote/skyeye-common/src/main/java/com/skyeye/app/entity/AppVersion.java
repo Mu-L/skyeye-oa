@@ -41,7 +41,7 @@ public class AppVersion extends BaseGeneralInfo {
 
     @TableField("version_code")
     @ApiModelProperty(value = "版本代码", required = "required")
-    private Integer versionCode;
+    private String versionCode;
 
     @TableField("file_size")
     @Property(value = "文件大小")

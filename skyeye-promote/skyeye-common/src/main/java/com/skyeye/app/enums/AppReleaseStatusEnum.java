@@ -129,7 +129,7 @@ public enum AppReleaseStatusEnum implements SkyeyeEnumClass {
             case "pending":
                 return new AppReleaseStatusEnum[]{SUBMITTED, CANCELLED};
             case "submitted":
-                return new AppReleaseStatusEnum[]{REVIEWING, REJECTED, CANCELLED};
+                return new AppReleaseStatusEnum[]{REVIEWING, REJECTED, CANCELLED, PUBLISHED};
             case "reviewing":
                 return new AppReleaseStatusEnum[]{APPROVED, REJECTED, CANCELLED};
             case "approved":

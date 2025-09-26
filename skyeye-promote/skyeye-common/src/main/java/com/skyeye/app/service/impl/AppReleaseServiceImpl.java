@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.app.dao.AppReleaseDao;
 import com.skyeye.app.entity.AppProject;
 import com.skyeye.app.entity.AppRelease;
@@ -80,6 +81,7 @@ public class AppReleaseServiceImpl extends SkyeyeBusinessServiceImpl<AppReleaseD
     protected QueryWrapper<AppRelease> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<AppRelease> queryWrapper = super.getQueryWrapper(commonPageInfo);
         queryWrapper.eq(MybatisPlusUtil.toColumns(AppRelease::getProjectId), commonPageInfo.getObjectId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AppRelease::getVersionId), commonPageInfo.getHolderId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(AppRelease::getPlatform), commonPageInfo.getType());
         return queryWrapper;
     }
@@ -93,6 +95,7 @@ public class AppReleaseServiceImpl extends SkyeyeBusinessServiceImpl<AppReleaseD
     }
 
     @Override
+    @IgnoreTenant
     public List<AppRelease> selectByVersionIdAndProjectId(String versionId, String projectId, String storeKey, String status) {
         MPJLambdaWrapper<AppRelease> mpjLambdaWrapper = new MPJLambdaWrapper<>();
         if (StrUtil.isNotEmpty(storeKey)) {
