@@ -9,6 +9,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.app.dao.AppVersionDao;
 import com.skyeye.app.entity.AppRelease;
 import com.skyeye.app.entity.AppVersion;
@@ -103,6 +104,7 @@ public class AppVersionServiceImpl extends SkyeyeBusinessServiceImpl<AppVersionD
     }
 
     @Override
+    @IgnoreTenant
     public AppVersion getLatestVersionByProjectAndPlatform(String projectId, String platform, String storeKey) {
         QueryWrapper<AppVersion> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(AppVersion::getProjectId), projectId);

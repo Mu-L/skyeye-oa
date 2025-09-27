@@ -7,6 +7,7 @@ package com.skyeye.app.service.impl;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.app.dao.AppProjectDao;
 import com.skyeye.app.entity.AppProject;
 import com.skyeye.app.service.AppProjectService;
@@ -46,6 +47,7 @@ public class AppProjectServiceImpl extends SkyeyeBusinessServiceImpl<AppProjectD
     }
 
     @Override
+    @IgnoreTenant
     public AppProject selectByKey(String projectKey) {
         QueryWrapper<AppProject> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(AppProject::getProjectKey), projectKey);
