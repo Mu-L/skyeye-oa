@@ -5,10 +5,12 @@
 package com.skyeye.team.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.IsUsedEnum;
 import com.skyeye.common.object.InputObject;
@@ -39,6 +41,15 @@ public class TeamTemplateServiceImpl extends AbstractTeamServiceImpl<TeamTemplat
 
     @Autowired
     private ICodeRuleService iCodeRuleService;
+
+    @Override
+    protected QueryWrapper<TeamTemplate> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<TeamTemplate> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectKey())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(TeamTemplate::getObjectType), commonPageInfo.getObjectKey());
+        }
+        return queryWrapper;
+    }
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {

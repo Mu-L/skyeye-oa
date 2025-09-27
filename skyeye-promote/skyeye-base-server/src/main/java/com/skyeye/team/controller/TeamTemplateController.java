@@ -32,12 +32,6 @@ public class TeamTemplateController {
     @Autowired
     private TeamTemplateService teamTemplateService;
 
-    /**
-     * 查询团队模板列表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryTeamTemplate", value = "查询团队模板列表信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/TeamTemplateController/queryTeamTemplate")
@@ -45,12 +39,6 @@ public class TeamTemplateController {
         teamTemplateService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑团队模板信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeTeamTemplate", value = "新增/编辑团队模板信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = TeamTemplate.class)
     @RequestMapping("/post/TeamTemplateController/writeTeamTemplate")
@@ -58,12 +46,6 @@ public class TeamTemplateController {
         teamTemplateService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除团队模板信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteTeamTemplateById", value = "删除团队模板信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "团队模板id", required = "required")})
@@ -72,12 +54,6 @@ public class TeamTemplateController {
         teamTemplateService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 查询团队模板详情信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryTeamTemplateById", value = "查询团队模板详情信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "团队模板id", required = "required")})
@@ -86,12 +62,6 @@ public class TeamTemplateController {
         teamTemplateService.queryTeamMation(inputObject, outputObject);
     }
 
-    /**
-     * 根据受用对象查询已启用的团队模板列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryEnableTeamTemplateList", value = "根据受用对象查询已启用的团队模板列表", method = "GET", allUse = "2")
     @RequestMapping("/post/TeamTemplateController/queryEnableTeamTemplateList")
     @ApiImplicitParams({
