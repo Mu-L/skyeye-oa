@@ -11,8 +11,11 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.unique.UniqueField;
+import com.skyeye.attr.classenum.Alignment;
 import com.skyeye.attr.entity.AttrDefinition;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.dsform.classenum.FixedType;
 import lombok.Data;
 
 /**
@@ -46,15 +49,19 @@ public class TableColumn extends OperatorUserInfo {
     private String width;
 
     @TableField("align")
-    @ApiModelProperty(value = "对其方式，参考#Alignment", required = "required")
+    @ApiModelProperty(value = "对其方式", enumClass = Alignment.class, required = "required")
     private String align;
 
     @TableField("fixed")
-    @ApiModelProperty(value = "固定位置，参考#FixedType")
+    @ApiModelProperty(value = "固定位置", enumClass = FixedType.class)
     private String fixed;
 
+    @TableField("parent_id")
+    @ApiModelProperty(value = "父节点id")
+    private String parentId;
+
     @TableField("hide")
-    @ApiModelProperty(value = "是否初始隐藏，参考#WhetherEnum")
+    @ApiModelProperty(value = "是否初始隐藏", enumClass = WhetherEnum.class)
     private Integer hide;
 
     @TableField("templet")
