@@ -8,7 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
-import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.lifecycle.entity.LifecycleState;
@@ -26,31 +26,22 @@ import org.springframework.web.bind.annotation.RestController;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @RestController
-@Api(value = "生命周期状态管理", tags = "生命周期状态管理", modelName = "生命周期")
+@Api(value = "生命周期状态管理", tags = "生命周期状态管理", modelName = "生命周期管理")
 public class LifecycleStateController {
 
     @Autowired
     private LifecycleStateService lifecycleStateService;
 
-    /**
-     * 获取状态列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryLifecycleStateList", value = "获取状态列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "className", name = "className", value = "service的className", required = "required"),
+        @ApiImplicitParam(id = "appId", name = "appId", value = "服务的appId", required = "required"),
+        @ApiImplicitParam(id = "enabled", name = "enabled", value = "启用状态", enumClass = EnableEnum.class)})
     @RequestMapping("/post/LifecycleStateController/queryLifecycleStateList")
     public void queryLifecycleStateList(InputObject inputObject, OutputObject outputObject) {
-        lifecycleStateService.queryPageList(inputObject, outputObject);
+        lifecycleStateService.queryLifecycleStateList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑状态信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeLifecycleState", value = "新增/编辑状态信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = LifecycleState.class)
     @RequestMapping("/post/LifecycleStateController/writeLifecycleState")
@@ -58,12 +49,6 @@ public class LifecycleStateController {
         lifecycleStateService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取状态信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryLifecycleStateById", value = "根据id获取状态信息", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,30 +57,12 @@ public class LifecycleStateController {
         lifecycleStateService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除状态信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteLifecycleStateById", value = "根据id删除状态信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/LifecycleStateController/deleteLifecycleStateById")
     public void deleteLifecycleStateById(InputObject inputObject, OutputObject outputObject) {
         lifecycleStateService.deleteById(inputObject, outputObject);
-    }
-
-    /**
-     * 获取所有启用的状态列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryAllLifecycleStateList", value = "获取所有的状态列表", method = "GET", allUse = "2")
-    @RequestMapping("/post/LifecycleStateController/queryAllLifecycleStateList")
-    public void queryAllLifecycleStateList(InputObject inputObject, OutputObject outputObject) {
-        lifecycleStateService.queryAllLifecycleStateList(inputObject, outputObject);
     }
 
 }

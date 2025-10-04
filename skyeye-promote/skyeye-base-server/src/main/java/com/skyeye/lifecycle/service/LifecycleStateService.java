@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.lifecycle.entity.LifecycleState;
 
+import java.util.List;
+
 /**
  * @ClassName: LifecycleStateService
  * @Description: 生命周期状态管理服务接口层
@@ -19,6 +21,9 @@ import com.skyeye.lifecycle.entity.LifecycleState;
  */
 public interface LifecycleStateService extends SkyeyeBusinessService<LifecycleState> {
 
-    void queryAllLifecycleStateList(InputObject inputObject, OutputObject outputObject);
+    void queryLifecycleStateList(InputObject inputObject, OutputObject outputObject);
 
+    void setUsed(String id);
+
+    void setUsed(List<String> id);
 }

@@ -5,15 +5,16 @@
 package com.skyeye.lifecycle.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
-import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.constans.RedisConstants;
-import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.common.enumeration.IsUsedEnum;
 import lombok.Data;
 
 /**
@@ -25,36 +26,33 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField(value = {"numCode"})
-@RedisCacheField(name = CacheConstants.LIFECYCLE_STATE_CACHE_KEY, cacheTime = RedisConstants.A_YEAR_SECONDS)
+@RedisCacheField(name = CacheConstants.LIFECYCLE_STATE_CACHE_KEY)
 @TableName(value = "lifecycle_state")
 @ApiModel("生命周期状态实体类")
-public class LifecycleState extends OperatorUserInfo {
-
-    @TableId("id")
-    @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
-    private String id;
+public class LifecycleState extends BaseGeneralInfo {
 
     @TableField("num_code")
     @ApiModelProperty(value = "编码", required = "required")
     private String numCode;
 
-    @TableField("`name`")
-    @ApiModelProperty(value = "名称", required = "required")
-    private String name;
-
-    @TableField("remark")
-    @ApiModelProperty(value = "描述")
-    private String remark;
-
     @TableField("enabled")
-    @ApiModelProperty(value = "状态，参考#EnableEnum枚举类", required = "required,num")
+    @ApiModelProperty(value = "状态", enumClass = EnableEnum.class, required = "required,num")
     private Integer enabled;
 
-    /**
-     * 是否删除，参考#DeleteFlagEnum枚举类
-     */
-    @TableField(value = "delete_flag")
-    private Integer deleteFlag;
+    @TableField(value = "color")
+    @ApiModelProperty(value = "颜色")
+    private String color;
+
+    @TableField("is_used")
+    @Property(value = "是否使用", enumClass = IsUsedEnum.class)
+    private Integer isUsed;
+
+    @TableField(value = "app_id")
+    @ApiModelProperty(value = "应用的appId", required = "required")
+    private String appId;
+
+    @TableField("class_name")
+    @ApiModelProperty(value = "服务类的className", required = "required")
+    private String className;
 
 }
