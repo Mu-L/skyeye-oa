@@ -15,6 +15,8 @@ import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.Version;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @ClassName: LifecycleTemplate
  * @Description: 生命周期模板实体类
@@ -32,5 +34,13 @@ public class LifecycleTemplate extends Version {
     @TableField(value = "master_id", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "生命周期模板主表id", required = "required")
     private String masterId;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "节点数据", required = "required,json")
+    private List<LifecycleTemplateNode> nodes;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "连线数据", required = "required,json")
+    private List<LifecycleTemplateEdges> edges;
 
 }

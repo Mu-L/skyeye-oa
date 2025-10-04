@@ -78,4 +78,8 @@ public class LifecycleTemplateEdges extends OperatorUserInfo {
     @ApiModelProperty(value = "标签背景样式")
     private Map<String, Object> labelBgStyle;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "节点数据")
+    private LifecycleTemplateEdgesData data;
+
 }

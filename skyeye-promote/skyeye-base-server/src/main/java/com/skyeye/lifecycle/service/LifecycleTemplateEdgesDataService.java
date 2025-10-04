@@ -7,6 +7,9 @@ package com.skyeye.lifecycle.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.lifecycle.entity.LifecycleTemplateEdgesData;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: LifecycleTemplateEdgesDataService
  * @Description: 生命周期模板连线数据服务接口层
@@ -16,5 +19,15 @@ import com.skyeye.lifecycle.entity.LifecycleTemplateEdgesData;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 public interface LifecycleTemplateEdgesDataService extends SkyeyeBusinessService<LifecycleTemplateEdgesData> {
+
+    void saveList(String templateId, List<LifecycleTemplateEdgesData> beans);
+
+    void deleteByTemplateId(String templateId);
+
+    List<LifecycleTemplateEdgesData> selectByTemplateId(String templateId);
+
+    Map<String, LifecycleTemplateEdgesData> selectMapByTemplateId(String templateId);
+
+    Map<String, Map<String, LifecycleTemplateEdgesData>> selectMapByTemplateId(List<String> templateId);
 
 }

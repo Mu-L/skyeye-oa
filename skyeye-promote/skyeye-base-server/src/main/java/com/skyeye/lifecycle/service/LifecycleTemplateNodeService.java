@@ -7,6 +7,9 @@ package com.skyeye.lifecycle.service;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.lifecycle.entity.LifecycleTemplateNode;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: LifecycleTemplateNodeService
  * @Description: 生命周期模板节点服务接口
@@ -17,4 +20,11 @@ import com.skyeye.lifecycle.entity.LifecycleTemplateNode;
  */
 public interface LifecycleTemplateNodeService extends SkyeyeBusinessService<LifecycleTemplateNode> {
 
+    void saveList(String templateId, List<LifecycleTemplateNode> beans);
+
+    void deleteByTemplateId(String templateId);
+
+    List<LifecycleTemplateNode> selectByTemplateId(String templateId);
+
+    Map<String, List<LifecycleTemplateNode>> selectByTemplateId(List<String> templateId);
 }

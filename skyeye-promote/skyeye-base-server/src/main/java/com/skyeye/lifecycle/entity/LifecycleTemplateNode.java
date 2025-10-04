@@ -53,4 +53,8 @@ public class LifecycleTemplateNode extends OperatorUserInfo {
     @ApiModelProperty(value = "样式")
     private Map<String, Object> style;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "节点数据")
+    private LifecycleTemplateNodeData data;
+
 }

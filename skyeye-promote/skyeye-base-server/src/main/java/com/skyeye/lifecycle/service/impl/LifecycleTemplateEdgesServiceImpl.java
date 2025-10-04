@@ -4,13 +4,22 @@
 
 package com.skyeye.lifecycle.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.enumeration.TenantEnum;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.lifecycle.dao.LifecycleTemplateEdgesDao;
 import com.skyeye.lifecycle.entity.LifecycleTemplateEdges;
 import com.skyeye.lifecycle.service.LifecycleTemplateEdgesService;
 import org.springframework.stereotype.Service;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: LifecycleTemplateEdgesServiceImpl
@@ -24,4 +33,45 @@ import org.springframework.stereotype.Service;
 @SkyeyeService(name = "生命周期模板连线管理", groupName = "生命周期管理", tenant = TenantEnum.PLATE)
 public class LifecycleTemplateEdgesServiceImpl extends SkyeyeBusinessServiceImpl<LifecycleTemplateEdgesDao, LifecycleTemplateEdges> implements LifecycleTemplateEdgesService {
 
+    @Override
+    public void saveList(String templateId, List<LifecycleTemplateEdges> beans) {
+        deleteByTemplateId(templateId);
+        if (CollectionUtil.isNotEmpty(beans)) {
+            for (LifecycleTemplateEdges lifecycleTemplateEdges : beans) {
+                lifecycleTemplateEdges.setTemplateId(templateId);
+            }
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            createEntity(beans, userId);
+        }
+    }
+
+    @Override
+    public void deleteByTemplateId(String templateId) {
+        QueryWrapper<LifecycleTemplateEdges> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplateEdges::getTemplateId), templateId);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public List<LifecycleTemplateEdges> selectByTemplateId(String templateId) {
+        QueryWrapper<LifecycleTemplateEdges> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplateEdges::getTemplateId), templateId);
+        List<LifecycleTemplateEdges> list = list(queryWrapper);
+        return list;
+    }
+
+    @Override
+    public Map<String, List<LifecycleTemplateEdges>> selectByTemplateId(List<String> templateId) {
+        if (CollectionUtil.isEmpty(templateId)) {
+            return Collections.emptyMap();
+        }
+        QueryWrapper<LifecycleTemplateEdges> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(LifecycleTemplateEdges::getTemplateId), templateId);
+        List<LifecycleTemplateEdges> list = list(queryWrapper);
+        if (CollectionUtil.isNotEmpty(list)) {
+            return list.stream()
+                .collect(Collectors.groupingBy(LifecycleTemplateEdges::getTemplateId));
+        }
+        return Collections.emptyMap();
+    }
 }
