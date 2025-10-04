@@ -32,12 +32,6 @@ public class BomController {
     @Autowired
     private BomService bomService;
 
-    /**
-     * 查询bom表列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "erpbom001", value = "查询bom表列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/BomController/queryBomList")
@@ -45,12 +39,6 @@ public class BomController {
         bomService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑bom表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeBom", value = "新增/编辑bom表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Bom.class)
     @RequestMapping("/post/BomController/writeBom")
@@ -58,12 +46,6 @@ public class BomController {
         bomService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询bom表详情
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryBomById", value = "根据id查询bom表详情", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "方案id", required = "required")})
@@ -72,12 +54,6 @@ public class BomController {
         bomService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据ids批量查询bom表详情
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryBomByIds", value = "根据ids批量查询bom表详情", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "ids", name = "ids", value = "方案id集合", required = "required")})
@@ -86,12 +62,6 @@ public class BomController {
         bomService.selectByIds(inputObject, outputObject);
     }
 
-    /**
-     * 根据ID删除bom表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteBomById", value = "根据ID删除bom表信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -100,12 +70,6 @@ public class BomController {
         bomService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据规格id获取方案列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryBomListByNormsId", value = "根据规格id获取方案列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "normsId", name = "normsId", value = "规格id")})
@@ -114,12 +78,6 @@ public class BomController {
         bomService.queryBomListByNormsId(inputObject, outputObject);
     }
 
-    /**
-     * 根据商品信息以及bom方案信息获取商品树---用于生产模块
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "material015", value = "根据商品信息以及bom方案信息获取商品树---用于生产模块", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "proList", name = "proList", value = "商品信息列表json串，需要包含materialId,normsId,bomId", required = "required,json")})
@@ -128,12 +86,6 @@ public class BomController {
         bomService.queryMaterialBomChildsToProduceByJson(inputObject, outputObject);
     }
 
-    /**
-     * 根据id发布bom
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "publishBomVersionById", value = "根据id发布bom", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "方案id", required = "required")})

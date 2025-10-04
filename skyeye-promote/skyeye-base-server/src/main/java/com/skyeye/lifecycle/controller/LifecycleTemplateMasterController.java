@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 @RestController
-@Api(value = "生命周期状态管理", tags = "生命周期状态管理", modelName = "生命周期管理")
+@Api(value = "生命周期模板主表管理", tags = "生命周期模板主表管理", modelName = "生命周期管理")
 public class LifecycleTemplateMasterController {
 
     @Autowired
@@ -33,7 +33,7 @@ public class LifecycleTemplateMasterController {
 
     @ApiOperation(id = "writeLifecycleTemplateMaster", value = "新增/编辑生命周期模板主表信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = LifecycleTemplateMaster.class)
-    @RequestMapping("/post/LifecycleStateController/writeLifecycleTemplateMaster")
+    @RequestMapping("/post/LifecycleTemplateMasterController/writeLifecycleTemplateMaster")
     public void writeLifecycleTemplateMaster(InputObject inputObject, OutputObject outputObject) {
         lifecycleTemplateMasterService.saveOrUpdateEntity(inputObject, outputObject);
     }
@@ -42,7 +42,7 @@ public class LifecycleTemplateMasterController {
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "appId", name = "appId", value = "应用得appId", required = "required"),
         @ApiImplicitParam(id = "className", name = "className", value = "服务类的className", required = "required")})
-    @RequestMapping("/post/LifecycleStateController/queryLifecycleTemplateMaster")
+    @RequestMapping("/post/LifecycleTemplateMasterController/queryLifecycleTemplateMaster")
     public void queryLifecycleTemplateMaster(InputObject inputObject, OutputObject outputObject) {
         lifecycleTemplateMasterService.queryLifecycleTemplateMaster(inputObject, outputObject);
     }

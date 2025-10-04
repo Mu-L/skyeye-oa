@@ -4,6 +4,7 @@
 
 package com.skyeye.lifecycle.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
@@ -11,7 +12,6 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.CacheConstants;
-import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.IsUsedEnum;
@@ -31,7 +31,7 @@ import lombok.Data;
 @ApiModel("生命周期状态实体类")
 public class LifecycleState extends BaseGeneralInfo {
 
-    @TableField("num_code")
+    @TableField(value = "num_code", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "编码", required = "required")
     private String numCode;
 
@@ -47,11 +47,11 @@ public class LifecycleState extends BaseGeneralInfo {
     @Property(value = "是否使用", enumClass = IsUsedEnum.class)
     private Integer isUsed;
 
-    @TableField(value = "app_id")
+    @TableField(value = "app_id", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "应用的appId", required = "required")
     private String appId;
 
-    @TableField("class_name")
+    @TableField(value = "class_name", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "服务类的className", required = "required")
     private String className;
 

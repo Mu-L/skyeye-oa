@@ -4,6 +4,7 @@
 
 package com.skyeye.lifecycle.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -41,11 +42,11 @@ public class LifecycleTemplateMaster extends OperatorUserInfo {
     @ApiModelProperty(value = "状态", enumClass = EnableEnum.class, required = "required,num")
     private Integer enabled;
 
-    @TableField(value = "app_id")
+    @TableField(value = "app_id", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "应用的appId", required = "required")
     private String appId;
 
-    @TableField("class_name")
+    @TableField(value = "class_name", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "服务类的className", required = "required")
     private String className;
 
