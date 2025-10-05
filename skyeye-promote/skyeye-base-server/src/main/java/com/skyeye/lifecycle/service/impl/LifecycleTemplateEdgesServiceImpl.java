@@ -5,6 +5,7 @@
 package com.skyeye.lifecycle.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -13,7 +14,10 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.lifecycle.dao.LifecycleTemplateEdgesDao;
 import com.skyeye.lifecycle.entity.LifecycleTemplateEdges;
+import com.skyeye.lifecycle.entity.LifecycleTemplateEdgesData;
+import com.skyeye.lifecycle.service.LifecycleTemplateEdgesDataService;
 import com.skyeye.lifecycle.service.LifecycleTemplateEdgesService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -33,6 +37,9 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "生命周期模板连线管理", groupName = "生命周期管理", tenant = TenantEnum.PLATE)
 public class LifecycleTemplateEdgesServiceImpl extends SkyeyeBusinessServiceImpl<LifecycleTemplateEdgesDao, LifecycleTemplateEdges> implements LifecycleTemplateEdgesService {
 
+    @Autowired
+    private LifecycleTemplateEdgesDataService lifecycleTemplateEdgesDataService;
+
     @Override
     public void saveList(String templateId, List<LifecycleTemplateEdges> beans) {
         deleteByTemplateId(templateId);
@@ -42,6 +49,16 @@ public class LifecycleTemplateEdgesServiceImpl extends SkyeyeBusinessServiceImpl
             }
             String userId = InputObject.getLogParamsStatic().get("id").toString();
             createEntity(beans, userId);
+            // 保存节点数据
+            List<LifecycleTemplateEdgesData> lifecycleTemplateEdgesDataList = beans.stream()
+                .filter(bean -> ObjectUtil.isNotEmpty(bean.getData()))
+                .map(bean -> {
+                    LifecycleTemplateEdgesData lifecycleTemplateEdgesData = bean.getData();
+                    lifecycleTemplateEdgesData.setEdgesId(bean.getEdgesId());
+                    return lifecycleTemplateEdgesData;
+                }).collect(Collectors.toList());
+            lifecycleTemplateEdgesDataService.saveList(templateId, lifecycleTemplateEdgesDataList);
+
         }
     }
 
@@ -50,6 +67,7 @@ public class LifecycleTemplateEdgesServiceImpl extends SkyeyeBusinessServiceImpl
         QueryWrapper<LifecycleTemplateEdges> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplateEdges::getTemplateId), templateId);
         remove(queryWrapper);
+        lifecycleTemplateEdgesDataService.deleteByTemplateId(templateId);
     }
 
     @Override
@@ -57,6 +75,16 @@ public class LifecycleTemplateEdgesServiceImpl extends SkyeyeBusinessServiceImpl
         QueryWrapper<LifecycleTemplateEdges> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplateEdges::getTemplateId), templateId);
         List<LifecycleTemplateEdges> list = list(queryWrapper);
+        if (CollectionUtil.isEmpty(list)) {
+            return Collections.emptyList();
+        }
+        Map<String, LifecycleTemplateEdgesData> lifecycleTemplateEdgesDataMap = lifecycleTemplateEdgesDataService.selectMapByTemplateId(templateId);
+        for (LifecycleTemplateEdges lifecycleTemplateEdges : list) {
+            LifecycleTemplateEdgesData lifecycleTemplateEdgesData = lifecycleTemplateEdgesDataMap.get(lifecycleTemplateEdges.getEdgesId());
+            if (ObjectUtil.isNotEmpty(lifecycleTemplateEdgesData)) {
+                lifecycleTemplateEdges.setData(lifecycleTemplateEdgesData);
+            }
+        }
         return list;
     }
 
@@ -69,6 +97,16 @@ public class LifecycleTemplateEdgesServiceImpl extends SkyeyeBusinessServiceImpl
         queryWrapper.in(MybatisPlusUtil.toColumns(LifecycleTemplateEdges::getTemplateId), templateId);
         List<LifecycleTemplateEdges> list = list(queryWrapper);
         if (CollectionUtil.isNotEmpty(list)) {
+            Map<String, Map<String, LifecycleTemplateEdgesData>> dataMap = lifecycleTemplateEdgesDataService.selectMapByTemplateId(templateId);
+            for (LifecycleTemplateEdges lifecycleTemplateEdges : list) {
+                Map<String, LifecycleTemplateEdgesData> edgesDataMap = dataMap.get(lifecycleTemplateEdges.getTemplateId());
+                if (ObjectUtil.isNotEmpty(edgesDataMap)) {
+                    LifecycleTemplateEdgesData lifecycleTemplateEdgesData = edgesDataMap.get(lifecycleTemplateEdges.getEdgesId());
+                    if (ObjectUtil.isNotEmpty(lifecycleTemplateEdgesData)) {
+                        lifecycleTemplateEdges.setData(lifecycleTemplateEdgesData);
+                    }
+                }
+            }
             return list.stream()
                 .collect(Collectors.groupingBy(LifecycleTemplateEdges::getTemplateId));
         }

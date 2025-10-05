@@ -36,11 +36,11 @@ public class LifecycleTemplate extends Version {
     private String masterId;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "节点数据", required = "required,json")
+    @ApiModelProperty(value = "节点数据", required = "json")
     private List<LifecycleTemplateNode> nodes;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "连线数据", required = "required,json")
+    @ApiModelProperty(value = "连线数据", required = "json")
     private List<LifecycleTemplateEdges> edges;
 
 }

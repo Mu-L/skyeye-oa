@@ -50,9 +50,13 @@ public class LifecycleTemplateNodeData extends OperatorUserInfo {
     @ApiModelProperty(value = "描述")
     private String description;
 
-    @TableField(value = "state_type")
-    @ApiModelProperty(value = "状态类型")
-    private String stateType;
+    @TableField(value = "state")
+    @ApiModelProperty(value = "状态")
+    private String state;
+
+    @TableField(exist = false)
+    @Property(value = "状态信息")
+    private LifecycleState stateMation;
 
     @TableField(value = "process_type")
     @ApiModelProperty(value = "流程类型")
