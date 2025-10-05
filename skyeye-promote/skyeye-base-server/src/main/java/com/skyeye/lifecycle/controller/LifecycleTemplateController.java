@@ -54,7 +54,7 @@ public class LifecycleTemplateController {
         lifecycleTemplateService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryCurrentLifecycleTemplateByMasterId", value = "根据主表id查询当前发布得生命周期模板详情", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryCurrentLifecycleTemplateByMasterId", value = "根据主表id查询当前发布得最新得生命周期模板详情", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "masterId", name = "masterId", value = "主表id", required = "required")})
     @RequestMapping("/post/LifecycleTemplateController/queryCurrentLifecycleTemplateByMasterId")

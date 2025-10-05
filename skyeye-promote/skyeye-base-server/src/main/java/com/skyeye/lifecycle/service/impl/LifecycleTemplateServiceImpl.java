@@ -64,6 +64,14 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
     }
 
     @Override
+    protected void createPrepose(LifecycleTemplate entity) {
+        if (StrUtil.isNotEmpty(entity.getId())) {
+            // 如果id不为空，说明可能是创建新版本或者编辑已有版本，要清空缓存，防止创建新版本情况下，老版本数据缓存
+            clearCache(entity.getId());
+        }
+    }
+
+    @Override
     public String createEntity(LifecycleTemplate entity, String userId) {
         entity.setStartSmallVersion(false);
         return super.createEntity(entity, userId);
@@ -193,8 +201,9 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
         String masterId = params.get("masterId").toString();
         // 查询当前生效的生命周期模板
         QueryWrapper<LifecycleTemplate> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplate::getWhetherLast), WhetherEnum.ENABLE_USING.getKey());
         queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplate::getWhetherPublish), WhetherEnum.ENABLE_USING.getKey());
+        // largeVersion最大得模板
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(LifecycleTemplate::getLargeVersion));
         queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplate::getMasterId), masterId);
         LifecycleTemplate lifecycleTemplate = getOne(queryWrapper, false);
         if (lifecycleTemplate == null) {

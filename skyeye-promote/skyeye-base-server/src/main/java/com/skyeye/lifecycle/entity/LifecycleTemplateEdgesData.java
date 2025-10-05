@@ -12,10 +12,9 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
-import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * @ClassName: LifecycleTemplateEdgesData
@@ -35,47 +34,22 @@ public class LifecycleTemplateEdgesData extends OperatorUserInfo {
     private String id;
 
     @TableField(value = "edges_id")
-    @ApiModelProperty(value = "连线id", required = "required")
+    @Property(value = "连线id")
     private String edgesId;
-
-    @TableField(value = "source")
-    @ApiModelProperty(value = "起始节点id")
-    private String source;
-
-    @TableField(value = "target")
-    @ApiModelProperty(value = "目标节点id")
-    private String target;
-
-    @TableField(value = "type")
-    @ApiModelProperty(value = "节点类型", required = "required")
-    private String type;
-
-    @TableField(value = "animated")
-    @ApiModelProperty(value = "是否开启动画效果", enumClass = WhetherEnum.class)
-    private Integer animated;
 
     @TableField(value = "template_id")
     @Property(value = "模板id")
     private String templateId;
 
-    @TableField(value = "marker_end", typeHandler = JacksonTypeHandler.class)
-    @ApiModelProperty(value = "结束箭头样式")
-    private Map<String, Object> markerEnd;
+    @TableField(value = "action_name")
+    @ApiModelProperty(value = "连线名称")
+    private String actionName;
 
-    @TableField(value = "style", typeHandler = JacksonTypeHandler.class)
-    @ApiModelProperty(value = "样式")
-    private Map<String, Object> style;
+    @TableField(value = "`condition`")
+    @ApiModelProperty(value = "流转条件")
+    private String condition;
 
-    @TableField(value = "label")
-    @ApiModelProperty(value = "名称")
-    private String label;
-
-    @TableField(value = "label_style", typeHandler = JacksonTypeHandler.class)
-    @ApiModelProperty(value = "标签样式")
-    private Map<String, Object> labelStyle;
-
-    @TableField(value = "label_bg_style", typeHandler = JacksonTypeHandler.class)
-    @ApiModelProperty(value = "标签背景样式")
-    private Map<String, Object> labelBgStyle;
-
+    @TableField(value = "action_id_list", typeHandler = JacksonTypeHandler.class)
+    @ApiModelProperty(value = "操作id集合", required = "json")
+    private List<String> actionIdList;
 }
