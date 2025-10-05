@@ -20,4 +20,6 @@ import com.skyeye.lifecycle.entity.LifecycleTemplateMaster;
 public interface LifecycleTemplateMasterService extends SkyeyeBusinessService<LifecycleTemplateMaster> {
 
     void queryLifecycleTemplateMaster(InputObject inputObject, OutputObject outputObject);
+
+    void editLifecycleTemplateMasterEnabled(InputObject inputObject, OutputObject outputObject);
 }

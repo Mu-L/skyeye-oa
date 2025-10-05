@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.lifecycle.entity.LifecycleTemplateMaster;
@@ -45,6 +46,15 @@ public class LifecycleTemplateMasterController {
     @RequestMapping("/post/LifecycleTemplateMasterController/queryLifecycleTemplateMaster")
     public void queryLifecycleTemplateMaster(InputObject inputObject, OutputObject outputObject) {
         lifecycleTemplateMasterService.queryLifecycleTemplateMaster(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "editLifecycleTemplateMasterEnabled", value = "编辑生命周期模板主表状态", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "enabled", name = "enabled", value = "状态", enumClass = EnableEnum.class, required = "required")})
+    @RequestMapping("/post/LifecycleTemplateMasterController/editLifecycleTemplateMasterEnabled")
+    public void editLifecycleTemplateMasterEnabled(InputObject inputObject, OutputObject outputObject) {
+        lifecycleTemplateMasterService.editLifecycleTemplateMasterEnabled(inputObject, outputObject);
     }
 
 }
