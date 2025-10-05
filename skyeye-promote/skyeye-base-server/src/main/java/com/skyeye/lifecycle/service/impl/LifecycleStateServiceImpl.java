@@ -5,6 +5,7 @@
 package com.skyeye.lifecycle.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -20,6 +21,7 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.lifecycle.dao.LifecycleStateDao;
 import com.skyeye.lifecycle.entity.LifecycleState;
 import com.skyeye.lifecycle.service.LifecycleStateService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,6 +39,22 @@ import java.util.stream.Collectors;
 @Service
 @SkyeyeService(name = "生命周期状态管理", groupName = "生命周期管理", tenant = TenantEnum.PLATE)
 public class LifecycleStateServiceImpl extends SkyeyeBusinessServiceImpl<LifecycleStateDao, LifecycleState> implements LifecycleStateService {
+
+    @Override
+    protected void validatorEntity(LifecycleState entity) {
+        super.validatorEntity(entity);
+        QueryWrapper<LifecycleState> queryWrapper = new QueryWrapper<>();
+        queryWrapper.and(wrapper ->
+            wrapper.eq(MybatisPlusUtil.toColumns(LifecycleState::getName), entity.getName())
+                .or().eq(MybatisPlusUtil.toColumns(LifecycleState::getNumCode), entity.getNumCode()));
+        if (StringUtils.isNotEmpty(entity.getId())) {
+            queryWrapper.ne(CommonConstants.ID, entity.getId());
+        }
+        LifecycleState lifecycleState = getOne(queryWrapper, false);
+        if (ObjectUtil.isNotEmpty(lifecycleState)) {
+            throw new CustomException("名称或编码已存在.");
+        }
+    }
 
     @Override
     protected void createPrepose(LifecycleState entity) {

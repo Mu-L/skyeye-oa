@@ -31,7 +31,7 @@ import lombok.Data;
 @ApiModel("生命周期状态实体类")
 public class LifecycleState extends BaseGeneralInfo {
 
-    @TableField(value = "num_code", updateStrategy = FieldStrategy.NEVER)
+    @TableField(value = "num_code")
     @ApiModelProperty(value = "编码", required = "required")
     private String numCode;
 
