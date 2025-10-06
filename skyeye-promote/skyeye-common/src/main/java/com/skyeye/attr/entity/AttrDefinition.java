@@ -13,6 +13,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.attr.classenum.AttrDefinitionAttrType;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.enumeration.ServiceBeanType;
 import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
@@ -67,7 +68,7 @@ public class AttrDefinition extends CommonInfo {
     private Integer whetherInputParams;
 
     @TableField("enum_class_str")
-    @ApiModelProperty(value = "属性对应的枚举类地址，skyeye-pro#com.skyeye.app.enums.AppReleaseStatusEnum")
+    @ApiModelProperty(value = "属性对应的枚举类地址，例如：skyeye-pro#com.skyeye.app.enums.AppReleaseStatusEnum")
     private String enumClassStr;
 
     @TableField("required")
@@ -78,6 +79,30 @@ public class AttrDefinition extends CommonInfo {
     @ApiModelProperty(value = "是否是模型属性", enumClass = WhetherEnum.class, required = "required")
     private Integer modelAttribute;
 
+    @TableField("db_field_name")
+    @ApiModelProperty(value = "对应得数据库表得字段名")
+    private String dbFieldName;
+
+    @TableField("field_type")
+    @ApiModelProperty(value = "对应得数据库表得字段类型")
+    private String fieldType;
+
+    @TableField("field_length")
+    @ApiModelProperty(value = "对应得数据库表得字段长度")
+    private String fieldLength;
+
+    @TableField("decimal_places")
+    @ApiModelProperty(value = "对应得数据库表得字段小数位数")
+    private String decimalPlaces;
+
+    @TableField("db_default_value")
+    @ApiModelProperty(value = "对应得数据库表得字段默认值")
+    private String dbDefaultValue;
+
+    @TableField("is_primary_key")
+    @ApiModelProperty(value = "是否是主键", enumClass = WhetherEnum.class)
+    private String isPrimaryKey;
+
     @Property("创建时间")
     @TableField(value = "create_time", updateStrategy = FieldStrategy.NEVER)
     private String createTime;
@@ -85,5 +110,9 @@ public class AttrDefinition extends CommonInfo {
     @Property("最后更新日期")
     @TableField(value = "last_update_time")
     private String lastUpdateTime;
+
+    @TableField("`type`")
+    @ApiModelProperty(value = "业务对象类型", enumClass = ServiceBeanType.class)
+    private Integer type;
 
 }

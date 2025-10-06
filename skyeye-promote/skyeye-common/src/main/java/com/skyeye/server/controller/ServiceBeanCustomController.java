@@ -31,12 +31,6 @@ public class ServiceBeanCustomController {
     @Autowired
     private ServiceBeanCustomService serviceBeanCustomService;
 
-    /**
-     * 获取服务信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryServiceBeanCustom", value = "获取服务信息", method = "GET", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "className", name = "className", value = "service的className", required = "required"),
@@ -46,12 +40,6 @@ public class ServiceBeanCustomController {
         serviceBeanCustomService.queryServiceBeanCustom(inputObject, outputObject);
     }
 
-    /**
-     * 保存自定义服务信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "saveServiceBeanCustom", value = "保存自定义服务信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ServiceBeanCustom.class)
     @RequestMapping("/post/ServiceBeanCustomController/saveServiceBeanCustom")

@@ -16,6 +16,7 @@ import com.skyeye.attr.service.AttrDefinitionCustomService;
 import com.skyeye.attr.service.AttrDefinitionService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.enumeration.ServiceBeanType;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
@@ -108,7 +109,10 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
         // 获取数据库中的数据
         QueryWrapper<AttrDefinition> wrapper = new QueryWrapper<>();
         wrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getAppId), appId);
+        // 必须是模型属性
         wrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getModelAttribute), WhetherEnum.ENABLE_USING.getKey());
+        // 必须是物理模型
+        wrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getType), ServiceBeanType.PHYSICAL_MODEL.getKey());
         List<AttrDefinition> oldList = super.list(wrapper);
         List<String> oldKeys = oldList.stream().map(bean -> getKey(bean)).collect(Collectors.toList());
 
@@ -163,7 +167,8 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
     }
 
     private String getKey(AttrDefinition attrDefinition) {
-        return String.format(Locale.ROOT, "%s:%s", attrDefinition.getClassName(), attrDefinition.getAttrKey());
+        return String.format(Locale.ROOT, "%s:%s:%s:%s", attrDefinition.getClassName(), attrDefinition.getAttrKey(), attrDefinition.getAttrType(),
+            attrDefinition.getDbFieldName());
     }
 
     @Override

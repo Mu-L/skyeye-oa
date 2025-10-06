@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.attr.entity.AttrDefinition;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.enumeration.ServiceBeanType;
 import lombok.Data;
 
 import java.util.List;
@@ -63,6 +64,10 @@ public class ServiceBean extends CommonInfo {
     @ApiModelProperty(value = "所属分组")
     private String groupName;
 
+    @TableField("table_name")
+    @ApiModelProperty(value = "表名称")
+    private String tableName;
+
     @TableField("tenant")
     @ApiModelProperty(value = "租户类型")
     private String tenant;
@@ -86,5 +91,9 @@ public class ServiceBean extends CommonInfo {
     @TableField("team_auth")
     @ApiModelProperty(value = "是否开启团队权限管理", required = "required")
     private Boolean teamAuth;
+
+    @TableField("`type`")
+    @ApiModelProperty(value = "业务对象类型", enumClass = ServiceBeanType.class)
+    private Integer type;
 
 }

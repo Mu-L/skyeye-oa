@@ -17,6 +17,7 @@ import com.skyeye.attr.entity.AttrDefinition;
 import com.skyeye.attr.service.AttrDefinitionService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.ServiceBeanType;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -78,6 +79,8 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
         // 获取数据库中的数据
         QueryWrapper<ServiceBean> wrapper = new QueryWrapper<>();
         wrapper.eq(MybatisPlusUtil.toColumns(ServiceBean::getSpringApplicationName), serviceBeanApi.getSpringApplicationName());
+        // 只查询物理模型
+        wrapper.eq(MybatisPlusUtil.toColumns(ServiceBean::getType), ServiceBeanType.PHYSICAL_MODEL.getKey());
         List<ServiceBean> oldList = super.list(wrapper);
         List<String> oldKeys = oldList.stream().map(bean -> getKey(bean)).collect(Collectors.toList());
 
@@ -103,6 +106,9 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
         // (新数据 - 旧数据) 添加到数据库
         List<ServiceBean> addBeans = classNameList.stream().filter(item -> !oldKeys.contains(getKey(item))).collect(Collectors.toList());
         if (!CollectionUtils.isEmpty(addBeans)) {
+            addBeans.forEach(bean -> {
+                bean.setType(ServiceBeanType.PHYSICAL_MODEL.getKey());
+            });
             createEntity(addBeans, StringUtils.EMPTY);
         }
 
@@ -111,8 +117,8 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
     }
 
     private String getKey(ServiceBean bean) {
-        return String.format(Locale.ROOT, "%s_%s_%s_%s_%s_%s_%s_%s", bean.getAppId(), bean.getClassName(), bean.getManageShow(),
-            bean.getTeamAuth(), bean.getTenant(), bean.getFlowable(), bean.getName(), bean.getGroupName());
+        return String.format(Locale.ROOT, "%s_%s_%s_%s_%s_%s_%s_%s_%s_%s", bean.getAppId(), bean.getClassName(), bean.getManageShow(),
+            bean.getTeamAuth(), bean.getTenant(), bean.getFlowable(), bean.getName(), bean.getGroupName(), bean.getTableName(), bean.getType());
     }
 
     private void saveAttrDefinition(String appId, List<ServiceBean> classNameList) {
