@@ -68,16 +68,8 @@ public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<Dynam
         List<DynamicAttrValue> dynamicAttrValueList = dynamicAttrValueApi.getDynamicAttrValueList();
         String currentTime = DateUtil.getTimeAndToString();
 
-        // 批量删除
-        QueryWrapper<DynamicAttrValue> deleteWrapper = new QueryWrapper<>();
-        deleteWrapper.or(wrapper -> {
-            for (DynamicAttrValue dynamicAttrValue : dynamicAttrValueList) {
-                wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectAppId), dynamicAttrValue.getObjectAppId());
-                wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectId), dynamicAttrValue.getObjectId());
-                wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectKey), dynamicAttrValue.getObjectKey());
-            }
-        });
-        remove(deleteWrapper);
+        // 分批删除，避免SQL过长
+        batchDeleteDynamicAttrValues(dynamicAttrValueList);
 
         for (DynamicAttrValue dynamicAttrValue : dynamicAttrValueList) {
             dynamicAttrValue.setCreateTime(currentTime);
@@ -136,15 +128,90 @@ public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<Dynam
     public void deleteBatchDynamicAttrValue(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         List<Map<String, Object>> list = JSONUtil.toList(params.get("list").toString(), null);
-        // 批量删除
-        QueryWrapper<DynamicAttrValue> deleteWrapper = new QueryWrapper<>();
-        deleteWrapper.or(wrapper -> {
-            for (Map<String, Object> dynamicAttrValue : list) {
-                wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectAppId), dynamicAttrValue.get("objectAppId").toString());
-                wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectId), dynamicAttrValue.get("objectId").toString());
-                wrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectKey), dynamicAttrValue.get("objectKey").toString());
+
+        // 分批删除，避免SQL过长
+        batchDeleteDynamicAttrValuesFromMap(list);
+    }
+
+    /**
+     * 分批删除动态属性值，避免SQL过长导致性能问题
+     * 优化策略：按ObjectAppId和ObjectKey分组，ObjectId使用IN查询
+     *
+     * @param dynamicAttrValueList 要删除的动态属性值列表
+     */
+    private void batchDeleteDynamicAttrValues(List<DynamicAttrValue> dynamicAttrValueList) {
+        if (CollectionUtil.isEmpty(dynamicAttrValueList)) {
+            return;
+        }
+
+        // 按ObjectAppId和ObjectKey分组，收集ObjectId列表
+        Map<String, List<String>> groupedData = dynamicAttrValueList.stream()
+            .collect(Collectors.groupingBy(
+                item -> item.getObjectAppId() + "|" + item.getObjectKey(),
+                Collectors.mapping(DynamicAttrValue::getObjectId, Collectors.toList())
+            ));
+
+        // 分批处理每个分组
+        for (Map.Entry<String, List<String>> entry : groupedData.entrySet()) {
+            String[] keyParts = entry.getKey().split("\\|");
+            String objectAppId = keyParts[0];
+            String objectKey = keyParts[1];
+            List<String> objectIdList = entry.getValue();
+
+            // 对ObjectId列表进行分批处理
+            for (int i = 0; i < objectIdList.size(); i += BATCH_SIZE) {
+                int endIndex = Math.min(i + BATCH_SIZE, objectIdList.size());
+                List<String> batchObjectIds = objectIdList.subList(i, endIndex);
+
+                QueryWrapper<DynamicAttrValue> deleteWrapper = new QueryWrapper<>();
+                deleteWrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectAppId), objectAppId);
+                deleteWrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectKey), objectKey);
+                deleteWrapper.in(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectId), batchObjectIds);
+
+                remove(deleteWrapper);
+                log.info("批量删除动态属性值，分组: {}-{}, ObjectId数量: {}", objectAppId + "-" + objectKey, batchObjectIds.size());
             }
-        });
-        remove(deleteWrapper);
+        }
+    }
+
+    /**
+     * 分批删除动态属性值（从Map列表），避免SQL过长导致性能问题
+     * 优化策略：按ObjectAppId和ObjectKey分组，ObjectId使用IN查询
+     *
+     * @param list 要删除的动态属性值Map列表
+     */
+    private void batchDeleteDynamicAttrValuesFromMap(List<Map<String, Object>> list) {
+        if (CollectionUtil.isEmpty(list)) {
+            return;
+        }
+
+        // 按ObjectAppId和ObjectKey分组，收集ObjectId列表
+        Map<String, List<String>> groupedData = list.stream()
+            .collect(Collectors.groupingBy(
+                item -> item.get("objectAppId").toString() + "|" + item.get("objectKey").toString(),
+                Collectors.mapping(item -> item.get("objectId").toString(), Collectors.toList())
+            ));
+
+        // 分批处理每个分组
+        for (Map.Entry<String, List<String>> entry : groupedData.entrySet()) {
+            String[] keyParts = entry.getKey().split("\\|");
+            String objectAppId = keyParts[0];
+            String objectKey = keyParts[1];
+            List<String> objectIdList = entry.getValue();
+
+            // 对ObjectId列表进行分批处理
+            for (int i = 0; i < objectIdList.size(); i += BATCH_SIZE) {
+                int endIndex = Math.min(i + BATCH_SIZE, objectIdList.size());
+                List<String> batchObjectIds = objectIdList.subList(i, endIndex);
+
+                QueryWrapper<DynamicAttrValue> deleteWrapper = new QueryWrapper<>();
+                deleteWrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectAppId), objectAppId);
+                deleteWrapper.eq(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectKey), objectKey);
+                deleteWrapper.in(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectId), batchObjectIds);
+
+                remove(deleteWrapper);
+                log.info("批量删除动态属性值，分组: {}-{}, ObjectId数量: {}", objectAppId + "-" + objectKey, batchObjectIds.size());
+            }
+        }
     }
 }
