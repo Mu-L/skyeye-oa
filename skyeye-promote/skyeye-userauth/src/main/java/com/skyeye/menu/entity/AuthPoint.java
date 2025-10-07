@@ -13,6 +13,9 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.ApiType;
+import com.skyeye.common.enumeration.UnifiedInterface;
+import com.skyeye.menu.classenum.MenuPointType;
 import lombok.Data;
 
 /**
@@ -46,7 +49,7 @@ public class AuthPoint extends OperatorUserInfo {
     private String name;
 
     @TableField("auth_menu")
-    @ApiModelProperty(value = "接口id/分组标识/数据权限表达式", required = "required")
+    @ApiModelProperty(value = "接口id/分组标识/数据权限表达式")
     private String authMenu;
 
     @TableField(value = "order_by")
@@ -62,7 +65,23 @@ public class AuthPoint extends OperatorUserInfo {
     private String parentId;
 
     @TableField(value = "type", updateStrategy = FieldStrategy.NEVER)
-    @ApiModelProperty(value = "类型  1.权限点  2.数据分组(父级为1)  3.数据分组下的数据类型(父级为2)【不可修改】，参考#MenuPointType", required = "required,num")
+    @ApiModelProperty(value = "类型  1.权限点  2.数据分组(父级为1)  3.数据分组下的数据类型(父级为2)【不可修改】", enumClass = MenuPointType.class, required = "required,num")
     private String type;
+
+    @TableField(value = "app_id")
+    @ApiModelProperty(value = "权限点适用对象得所属应用id")
+    private String appId;
+
+    @TableField(value = "class_name")
+    @ApiModelProperty(value = "权限点适用对象")
+    private String className;
+
+    @TableField(value = "api_id")
+    @ApiModelProperty(value = "统一接口id", enumClass = UnifiedInterface.class)
+    private String apiId;
+
+    @TableField(value = "api_type")
+    @ApiModelProperty(value = "权限接口类型", enumClass = ApiType.class)
+    private Integer apiType;
 
 }
