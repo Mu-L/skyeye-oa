@@ -169,7 +169,7 @@ public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<Dynam
                 deleteWrapper.in(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectId), batchObjectIds);
 
                 remove(deleteWrapper);
-                log.info("批量删除动态属性值，分组: {}-{}, ObjectId数量: {}", objectAppId + "-" + objectKey, batchObjectIds.size());
+                log.info("批量删除动态属性值，分组: {}-{}, ObjectId数量: {}", objectAppId, objectKey, batchObjectIds.size());
             }
         }
     }
@@ -210,7 +210,7 @@ public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<Dynam
                 deleteWrapper.in(MybatisPlusUtil.toColumns(DynamicAttrValue::getObjectId), batchObjectIds);
 
                 remove(deleteWrapper);
-                log.info("批量删除动态属性值，分组: {}-{}, ObjectId数量: {}", objectAppId + "-" + objectKey, batchObjectIds.size());
+                log.info("批量删除动态属性值，分组: {}-{}, ObjectId数量: {}", objectAppId, objectKey, batchObjectIds.size());
             }
         }
     }
