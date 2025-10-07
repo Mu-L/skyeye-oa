@@ -40,6 +40,8 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "动态属性值管理", groupName = "动态属性值管理", tenant = TenantEnum.NO_ISOLATION)
 public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<DynamicAttrValueDao, DynamicAttrValue> implements DynamicAttrValueService {
 
+    private static final String EMPTY_ATTR_VALUE = "{}";
+
     @Override
     public void writeDynamicAttrValue(InputObject inputObject, OutputObject outputObject) {
         DynamicAttrValue dynamicAttrValue = inputObject.getParams(DynamicAttrValue.class);
@@ -49,6 +51,13 @@ public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<Dynam
 
         remove(dynamicAttrValue.getObjectAppId(), dynamicAttrValue.getObjectId(), dynamicAttrValue.getObjectKey());
 
+        if (EMPTY_ATTR_VALUE.equals(dynamicAttrValue.getAttrValue())) {
+            return;
+        }
+        Map<String, Object> attrValueMap = JSONUtil.toBean(dynamicAttrValue.getAttrValue(), null);
+        if (CollectionUtil.isEmpty(attrValueMap)) {
+            return;
+        }
         DataCommonUtil.setId(dynamicAttrValue);
         save(dynamicAttrValue);
     }
@@ -71,6 +80,21 @@ public class DynamicAttrValueServiceImpl extends SkyeyeBusinessServiceImpl<Dynam
         // 分批删除，避免SQL过长
         batchDeleteDynamicAttrValues(dynamicAttrValueList);
 
+        // 过滤空值和非法值
+        dynamicAttrValueList = dynamicAttrValueList.stream()
+            .filter(dynamicAttrValue -> {
+                if (EMPTY_ATTR_VALUE.equals(dynamicAttrValue.getAttrValue())) {
+                    return false;
+                }
+                Map<String, Object> attrValueMap = JSONUtil.toBean(dynamicAttrValue.getAttrValue(), null);
+                if (CollectionUtil.isEmpty(attrValueMap)) {
+                    return false;
+                }
+                return true;
+            }).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(dynamicAttrValueList)) {
+            return;
+        }
         for (DynamicAttrValue dynamicAttrValue : dynamicAttrValueList) {
             dynamicAttrValue.setCreateTime(currentTime);
             dynamicAttrValue.setLastUpdateTime(currentTime);
