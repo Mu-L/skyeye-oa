@@ -54,6 +54,16 @@ public class OperateOpenPageServiceImpl extends SkyeyeBusinessServiceImpl<Operat
     }
 
     @Override
+    public void deleteByOperateId(List<String> operateId) {
+        if (CollectionUtil.isEmpty(operateId)) {
+            return;
+        }
+        QueryWrapper<OperateOpenPage> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(OperateOpenPage::getOperateId), operateId);
+        remove(queryWrapper);
+    }
+
+    @Override
     public OperateOpenPage selectByOperateId(String operateId) {
         QueryWrapper<OperateOpenPage> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(OperateOpenPage::getOperateId), operateId);

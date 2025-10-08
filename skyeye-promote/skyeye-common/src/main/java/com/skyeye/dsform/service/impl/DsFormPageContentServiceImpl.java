@@ -93,6 +93,20 @@ public class DsFormPageContentServiceImpl extends SkyeyeBusinessServiceImpl<DsFo
         });
     }
 
+    @Override
+    public void deleteDsFormContentByPageId(List<String> pageId) {
+        if (CollectionUtil.isEmpty(pageId)) {
+            return;
+        }
+        QueryWrapper<DsFormPageContent> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(DsFormPageContent::getPageId), pageId);
+        remove(queryWrapper);
+        pageId.forEach(id -> {
+            String cacheKey = getCacheKeyByPageId(id);
+            jedisClientService.del(cacheKey);
+        });
+    }
+
     private String getCacheKeyByPageId(String pageId) {
         return String.format(Locale.ROOT, "skyeye:pageContent:pageId:%s", pageId);
     }

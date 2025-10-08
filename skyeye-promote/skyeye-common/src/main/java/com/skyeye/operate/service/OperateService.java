@@ -25,4 +25,5 @@ public interface OperateService extends SkyeyeBusinessService<Operate> {
 
     List<Operate> getOperatesByClassName(String appId, String className);
 
+    void deleteOperate(String appId, String className);
 }

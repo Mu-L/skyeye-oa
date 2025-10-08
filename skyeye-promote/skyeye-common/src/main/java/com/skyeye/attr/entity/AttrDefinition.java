@@ -13,6 +13,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.attr.classenum.AttrDefinitionAttrType;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.enumeration.FieldType;
 import com.skyeye.common.enumeration.ServiceBeanType;
 import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
@@ -84,16 +85,16 @@ public class AttrDefinition extends CommonInfo {
     private String dbFieldName;
 
     @TableField("field_type")
-    @ApiModelProperty(value = "对应得数据库表得字段类型")
+    @ApiModelProperty(value = "对应得数据库表得字段类型", enumClass = FieldType.class)
     private String fieldType;
 
     @TableField("field_length")
     @ApiModelProperty(value = "对应得数据库表得字段长度")
-    private String fieldLength;
+    private Integer fieldLength;
 
     @TableField("decimal_places")
     @ApiModelProperty(value = "对应得数据库表得字段小数位数")
-    private String decimalPlaces;
+    private Integer decimalPlaces;
 
     @TableField("db_default_value")
     @ApiModelProperty(value = "对应得数据库表得字段默认值")
@@ -101,7 +102,7 @@ public class AttrDefinition extends CommonInfo {
 
     @TableField("is_primary_key")
     @ApiModelProperty(value = "是否是主键", enumClass = WhetherEnum.class)
-    private String isPrimaryKey;
+    private Integer isPrimaryKey;
 
     @Property("创建时间")
     @TableField(value = "create_time", updateStrategy = FieldStrategy.NEVER)

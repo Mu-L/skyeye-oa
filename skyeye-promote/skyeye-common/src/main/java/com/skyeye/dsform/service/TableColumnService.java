@@ -23,7 +23,8 @@ public interface TableColumnService extends SkyeyeBusinessService<TableColumn> {
 
     void createList(List<TableColumn> entitys, String userId, String pageId, String pageKey);
 
-
     void deleteByPageId(String pageId, String pageKey);
+
+    void deleteByPageId(List<String> pageIds, String pageKey);
 
 }

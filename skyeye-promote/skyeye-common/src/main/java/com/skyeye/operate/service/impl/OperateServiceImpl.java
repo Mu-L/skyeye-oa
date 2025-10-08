@@ -190,6 +190,25 @@ public class OperateServiceImpl extends SkyeyeBusinessServiceImpl<OperateDao, Op
         jedisClientService.del(cacheKey);
     }
 
+    @Override
+    public void deleteOperate(String appId, String className) {
+        QueryWrapper<Operate> wrapper = new QueryWrapper<>();
+        wrapper.eq(MybatisPlusUtil.toColumns(Operate::getAppId), appId);
+        wrapper.eq(MybatisPlusUtil.toColumns(Operate::getClassName), className);
+        List<Operate> list = list(wrapper);
+        if (CollectionUtil.isNotEmpty(list)) {
+            return;
+        }
+        remove(wrapper);
+        // 清空缓存
+        String cacheKey = getCacheKeyByClassName(appId, className);
+        jedisClientService.del(cacheKey);
+        // 删除的时候不用区分事件类型，直接每张表都删除一次
+        List<String> ids = list.stream().map(Operate::getId).collect(Collectors.toList());
+        businessApiService.deleteByObjectId(ids);
+        operateOpenPageService.deleteByOperateId(ids);
+    }
+
     private String getCacheKeyByClassName(String appId, String className) {
         return String.format(Locale.ROOT, "skyeye:operate:className:%s:%s", appId, className);
     }

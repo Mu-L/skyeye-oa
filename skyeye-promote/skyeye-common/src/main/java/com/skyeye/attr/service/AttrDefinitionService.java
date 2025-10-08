@@ -30,6 +30,8 @@ public interface AttrDefinitionService extends SkyeyeBusinessService<AttrDefinit
      */
     void saveBarchAttrDefinition(String appId, List<AttrDefinition> attrDefinitionList);
 
+    void saveBarchAttrDefinition(List<AttrDefinition> attrDefinitionList);
+
     void queryAttrDefinitionList(InputObject inputObject, OutputObject outputObject);
 
     void queryChildAttrDefinitionList(InputObject inputObject, OutputObject outputObject);
@@ -48,4 +50,6 @@ public interface AttrDefinitionService extends SkyeyeBusinessService<AttrDefinit
     AttrDefinition queryAttrDefinition(String appId, String className, String attrKey);
 
     Map<String, List<AttrDefinition>> queryAttrDefinitionList(List<String> classNameList);
+
+    void deleteAttrDefinition(String appId, String className);
 }

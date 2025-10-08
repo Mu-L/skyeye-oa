@@ -24,7 +24,7 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField(value = {"className"})
+@UniqueField(value = {"appId", "className"})
 @TableName(value = "skyeye_class_service_bean_custom", autoResultMap = true)
 @ApiModel("自定义服务信息实体类")
 public class ServiceBeanCustom extends OperatorUserInfo {

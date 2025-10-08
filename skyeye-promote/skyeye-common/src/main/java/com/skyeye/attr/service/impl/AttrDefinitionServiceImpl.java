@@ -166,6 +166,21 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
         }
     }
 
+    @Override
+    public void saveBarchAttrDefinition(List<AttrDefinition> attrDefinitionList) {
+        if (CollectionUtil.isEmpty(attrDefinitionList)) {
+            return;
+        }
+        String currentTime = DateUtil.getTimeAndToString();
+        attrDefinitionList.forEach(attrDefinition -> {
+            attrDefinition.setModelAttribute(WhetherEnum.DISABLE_USING.getKey());
+            attrDefinition.setCreateTime(currentTime);
+            attrDefinition.setLastUpdateTime(currentTime);
+        });
+        // 新增模型属性
+        createEntity(attrDefinitionList, StrUtil.EMPTY);
+    }
+
     private String getKey(AttrDefinition attrDefinition) {
         return String.format(Locale.ROOT, "%s:%s:%s:%s", attrDefinition.getClassName(), attrDefinition.getAttrKey(), attrDefinition.getAttrType(),
             attrDefinition.getDbFieldName());
@@ -291,6 +306,14 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
         List<AttrDefinition> list = list(wrapper);
         Map<String, List<AttrDefinition>> map = list.stream().collect(Collectors.groupingBy(AttrDefinition::getClassName));
         return map;
+    }
+
+    @Override
+    public void deleteAttrDefinition(String appId, String className) {
+        QueryWrapper<AttrDefinition> wrapper = new QueryWrapper<>();
+        wrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getAppId), appId);
+        wrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getClassName), className);
+        remove(wrapper);
     }
 
 }

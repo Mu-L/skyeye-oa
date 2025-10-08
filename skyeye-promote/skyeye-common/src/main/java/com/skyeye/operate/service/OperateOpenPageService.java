@@ -22,6 +22,8 @@ public interface OperateOpenPageService extends SkyeyeBusinessService<OperateOpe
 
     void deleteByOperateId(String operateId);
 
+    void deleteByOperateId(List<String> operateId);
+
     OperateOpenPage selectByOperateId(String operateId);
 
     Map<String, OperateOpenPage> selectByOperateIds(List<String> operateIds);

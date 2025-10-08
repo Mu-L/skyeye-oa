@@ -28,7 +28,7 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField(value = {"className", "attrKey"})
+@UniqueField(value = {"appId", "className", "attrKey"})
 @TableName(value = "skyeye_attr_definition_custom", autoResultMap = true)
 @ApiModel("用户自定义服务类属性实体类")
 public class AttrDefinitionCustom extends OperatorUserInfo {

@@ -24,4 +24,6 @@ public interface DsFormPageService extends SkyeyeBusinessService<DsFormPage> {
     void queryDsFormPageForProcess(InputObject inputObject, OutputObject outputObject);
 
     List<DsFormPage> queryDsFormPageList(String appId, String serviceClassName);
+
+    void deleteDsFormPage(String appId, String className);
 }

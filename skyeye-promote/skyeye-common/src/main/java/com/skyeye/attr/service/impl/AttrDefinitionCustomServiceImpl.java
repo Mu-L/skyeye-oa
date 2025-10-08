@@ -233,4 +233,12 @@ public class AttrDefinitionCustomServiceImpl extends SkyeyeBusinessServiceImpl<A
         outputObject.setBeans(attrDefinitionCustoms);
         outputObject.settotal(attrDefinitionCustoms.size());
     }
+
+    @Override
+    public void deleteAttrDefinitionCustom(String appId, String className) {
+        QueryWrapper<AttrDefinitionCustom> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AttrDefinitionCustom::getAppId), appId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AttrDefinitionCustom::getClassName), className);
+        remove(queryWrapper);
+    }
 }

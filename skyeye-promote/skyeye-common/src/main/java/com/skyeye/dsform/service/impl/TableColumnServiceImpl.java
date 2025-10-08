@@ -85,6 +85,19 @@ public class TableColumnServiceImpl extends SkyeyeBusinessServiceImpl<TableColum
         jedisClientService.del(cacheKey);
     }
 
+    @Override
+    public void deleteByPageId(List<String> pageIds, String pageKey) {
+        QueryWrapper<TableColumn> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(TableColumn::getPageId), pageIds);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TableColumn::getPageKey), pageKey);
+        remove(queryWrapper);
+        pageIds.forEach(pageId -> {
+            // 清空缓存
+            String cacheKey = getCacheKeyByPageId(pageId, pageKey);
+            jedisClientService.del(cacheKey);
+        });
+    }
+
     private String getCacheKeyByPageId(String pageId, String pageKey) {
         return String.format(Locale.ROOT, "skyeye:tableColumn:pageId:%s:%s", pageKey, pageId);
     }

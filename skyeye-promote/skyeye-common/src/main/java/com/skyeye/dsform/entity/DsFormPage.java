@@ -16,6 +16,7 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.business.entity.BusinessApi;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.dsform.classenum.DsFormPageType;
 import com.skyeye.operate.entity.Operate;
 import com.skyeye.server.entity.ServiceBeanCustom;
 import lombok.Data;
@@ -31,7 +32,7 @@ import java.util.List;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField({"name", "className"})
+@UniqueField({"name", "appId", "className"})
 @RedisCacheField(name = "dsForm:page", value = {"id", "numCode"}, cacheTime = RedisConstants.A_YEAR_SECONDS)
 @TableName(value = "ds_form_page", autoResultMap = true)
 @ApiModel("表单布局实体类")
@@ -54,7 +55,7 @@ public class DsFormPage extends OperatorUserInfo {
     private String numCode;
 
     @TableField("`type`")
-    @ApiModelProperty(value = "表单布局的类型，可以参考#DsFormPageType", required = "required")
+    @ApiModelProperty(value = "表单布局的类型", enumClass = DsFormPageType.class, required = "required")
     private String type;
 
     @TableField(value = "app_id")

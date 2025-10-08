@@ -102,6 +102,7 @@ public class DsFormPageServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageD
         if (entity.getType().equals(DsFormPageType.PROCESS_ATTR.getKey())) {
             // 流程属性布局，每一个业务对象只能绑定一个
             QueryWrapper<DsFormPage> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getAppId), entity.getAppId());
             queryWrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getClassName), entity.getClassName());
             queryWrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getType), entity.getType());
             if (StringUtils.isNotEmpty(entity.getId())) {
@@ -133,7 +134,7 @@ public class DsFormPageServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageD
 
     @Override
     public void deletePostpose(DsFormPage dsFormPage) {
-        if (StrUtil.equals(dsFormPage.getType(), DsFormPageType.SIMPLE_TABLE.getKey())) {
+        if (!StrUtil.equals(dsFormPage.getType(), DsFormPageType.SIMPLE_TABLE.getKey())) {
             // 删除页面内容项信息
             dsFormPageContentService.deleteDsFormContentByPageId(dsFormPage.getId());
         } else {
@@ -282,5 +283,32 @@ public class DsFormPageServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageD
         queryWrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getAppId), appId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getClassName), serviceClassName);
         return list(queryWrapper);
+    }
+
+    @Override
+    public void deleteDsFormPage(String appId, String className) {
+        QueryWrapper<DsFormPage> wrapper = new QueryWrapper<>();
+        wrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getClassName), className);
+        wrapper.eq(MybatisPlusUtil.toColumns(DsFormPage::getAppId), appId);
+        List<DsFormPage> list = list(wrapper);
+        if (CollectionUtil.isEmpty(list)) {
+            return;
+        }
+        // 表格布局id集合
+        List<String> tableIds = list.stream()
+            .filter(dsFormPage -> StrUtil.equals(dsFormPage.getType(), DsFormPageType.SIMPLE_TABLE.getKey()))
+            .map(DsFormPage::getId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(tableIds)) {
+            // 删除表格布局关联的列信息
+            tableColumnService.deleteByPageId(tableIds, getServiceClassName());
+        }
+        // 其他布局id集合
+        List<String> otherIds = list.stream()
+            .filter(dsFormPage -> !StrUtil.equals(dsFormPage.getType(), DsFormPageType.SIMPLE_TABLE.getKey()))
+            .map(DsFormPage::getId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(otherIds)) {
+            // 删除其他布局关联的组件信息
+            dsFormPageContentService.deleteDsFormContentByPageId(otherIds);
+        }
     }
 }

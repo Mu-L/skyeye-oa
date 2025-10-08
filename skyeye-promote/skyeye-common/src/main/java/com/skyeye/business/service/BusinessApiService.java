@@ -22,6 +22,8 @@ public interface BusinessApiService extends SkyeyeBusinessService<BusinessApi> {
 
     void deleteByObjectId(String objectId);
 
+    void deleteByObjectId(List<String> objectId);
+
     BusinessApi selectByObjectId(String objectId);
 
     Map<String, BusinessApi> selectByObjectIds(List<String> objectIds);

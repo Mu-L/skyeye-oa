@@ -74,6 +74,14 @@ public class ServiceBeanCustomServiceImpl extends SkyeyeBusinessServiceImpl<Serv
     }
 
     @Override
+    public void deleteServiceBeanCustom(String appId, String className) {
+        QueryWrapper<ServiceBeanCustom> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ServiceBeanCustom::getAppId), appId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ServiceBeanCustom::getClassName), className);
+        remove(queryWrapper);
+    }
+
+    @Override
     public void builderByHandler(ServiceBeanCustom bean) {
         if (bean != null) {
             super.builderByHandler(bean);

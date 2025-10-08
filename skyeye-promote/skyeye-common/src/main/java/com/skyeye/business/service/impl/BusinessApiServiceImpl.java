@@ -54,6 +54,16 @@ public class BusinessApiServiceImpl extends SkyeyeBusinessServiceImpl<BusinessAp
     }
 
     @Override
+    public void deleteByObjectId(List<String> objectId) {
+        if (CollectionUtil.isEmpty(objectId)) {
+            return;
+        }
+        QueryWrapper<BusinessApi> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(BusinessApi::getObjectId), objectId);
+        remove(queryWrapper);
+    }
+
+    @Override
     public BusinessApi selectByObjectId(String objectId) {
         QueryWrapper<BusinessApi> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(BusinessApi::getObjectId), objectId);

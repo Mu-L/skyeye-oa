@@ -15,21 +15,30 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.application.service.ApplicationService;
 import com.skyeye.attr.entity.AttrDefinition;
+import com.skyeye.attr.service.AttrDefinitionCustomService;
 import com.skyeye.attr.service.AttrDefinitionService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.ServiceBeanType;
 import com.skyeye.common.enumeration.TenantEnum;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.dsform.service.DsFormPageService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.operate.service.OperateService;
 import com.skyeye.server.dao.ServiceBeanDao;
 import com.skyeye.server.entity.ServiceBean;
 import com.skyeye.server.entity.ServiceBeanApi;
+import com.skyeye.server.service.ServiceBeanCustomService;
 import com.skyeye.server.service.ServiceBeanService;
+import com.skyeye.table.entity.TableFieldInfo;
+import com.skyeye.table.entity.TableInfo;
+import com.skyeye.table.sdk.service.TableApiService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -51,6 +60,7 @@ import java.util.stream.Collectors;
  * @Copyright: 2022 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
+@Slf4j
 @Service
 @SkyeyeService(name = "服务类注册", groupName = "系统公共模块", tenant = TenantEnum.NO_ISOLATION)
 public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBeanDao, ServiceBean> implements ServiceBeanService {
@@ -63,6 +73,21 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
 
     @Autowired
     private AttrDefinitionService attrDefinitionService;
+
+    @Autowired
+    private AttrDefinitionCustomService attrDefinitionCustomService;
+
+    @Autowired
+    private ServiceBeanCustomService serviceBeanCustomService;
+
+    @Autowired
+    private DsFormPageService dsFormPageService;
+
+    @Autowired
+    private OperateService operateService;
+
+    @Autowired
+    private TableApiService tableApiService;
 
     @Value("${spring.profiles.active}")
     private String springProfilesActive;
@@ -95,6 +120,28 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
             attr.setAppId(entity.getAppId());
             attr.setClassName(entity.getClassName());
         });
+        // 保存属性信息
+        attrDefinitionService.saveBarchAttrDefinition(entity.getAttrDefinitionList());
+        // 创建表
+        TableInfo tableInfo = new TableInfo();
+        tableInfo.setTableName(entity.getTableName());
+        tableInfo.setTableComment(entity.getName());
+        List<TableFieldInfo> fieldList = new ArrayList<>();
+        entity.getAttrDefinitionList().forEach(attr -> {
+            TableFieldInfo fieldInfo = new TableFieldInfo();
+            fieldInfo.setTableName(entity.getTableName());
+            fieldInfo.setFieldName(attr.getDbFieldName());
+            fieldInfo.setFieldComment(attr.getName());
+            fieldInfo.setFieldType(attr.getFieldType());
+            fieldInfo.setFieldLength(attr.getFieldLength());
+            fieldInfo.setDecimalPlaces(attr.getDecimalPlaces());
+            fieldInfo.setDefaultValue(attr.getDbDefaultValue());
+            fieldInfo.setIsPrimaryKey(attr.getIsPrimaryKey());
+            fieldInfo.setIsNotNull(attr.getIsPrimaryKey() == WhetherEnum.ENABLE_USING.getKey() ? WhetherEnum.ENABLE_USING.getKey() : WhetherEnum.DISABLE_USING.getKey());
+            fieldList.add(fieldInfo);
+        });
+        tableInfo.setFieldList(fieldList);
+        tableApiService.createTable(entity.getSpringApplicationName(), tableInfo);
     }
 
     @Override
@@ -320,11 +367,31 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
         Map<String, Object> params = inputObject.getParams();
         String appId = params.get("appId").toString();
         String className = params.get("className").toString();
+        ServiceBean serviceBean = queryServiceClass(appId, className);
+        if (serviceBean.getType().equals(ServiceBeanType.PHYSICAL_MODEL.getKey())) {
+            throw new CustomException("物理模型不能删除.");
+        }
+        // 删除表
+        try {
+            tableApiService.dropTable(serviceBean.getSpringApplicationName(), serviceBean.getTableName());
+        } catch (Exception e) {
+            log.error("删除表失败", e);
+        }
+        // 删除虚拟模型
         QueryWrapper<ServiceBean> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ServiceBean::getAppId), appId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ServiceBean::getClassName), className);
         queryWrapper.likeLeft(MybatisPlusUtil.toColumns(ServiceBean::getSpringApplicationName), springProfilesActive);
         remove(queryWrapper);
+        // 删除自定义配置信息
+        serviceBeanCustomService.deleteServiceBeanCustom(appId, className);
+        // 删除属性信息
+        attrDefinitionService.deleteAttrDefinition(appId, className);
+        attrDefinitionCustomService.deleteAttrDefinitionCustom(appId, className);
+        // 删除布局信息
+        dsFormPageService.deleteDsFormPage(appId, className);
+        // 删除操作信息
+        operateService.deleteOperate(appId, className);
     }
 
 }

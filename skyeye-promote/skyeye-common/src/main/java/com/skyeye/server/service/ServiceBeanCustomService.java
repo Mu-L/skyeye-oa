@@ -23,4 +23,6 @@ public interface ServiceBeanCustomService extends SkyeyeBusinessService<ServiceB
 
     ServiceBeanCustom selectServiceBeanCustom(String appId, String className);
 
+    void deleteServiceBeanCustom(String appId, String className);
+
 }
