@@ -9,6 +9,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.core.lang.tree.TreeNodeConfig;
 import cn.hutool.core.lang.tree.TreeUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -16,6 +17,7 @@ import com.skyeye.application.service.ApplicationService;
 import com.skyeye.attr.entity.AttrDefinition;
 import com.skyeye.attr.service.AttrDefinitionService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.ServiceBeanType;
 import com.skyeye.common.enumeration.TenantEnum;
@@ -65,12 +67,36 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
     @Value("${spring.profiles.active}")
     private String springProfilesActive;
 
-    /**
-     * 服务类注册
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
+    @Override
+    protected void validatorEntity(ServiceBean entity) {
+        super.validatorEntity(entity);
+        QueryWrapper<ServiceBean> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ServiceBean::getSpringApplicationName), entity.getSpringApplicationName());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ServiceBean::getAppId), entity.getAppId());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ServiceBean::getClassName), entity.getClassName());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ServiceBean::getTableName), entity.getTableName());
+
+        if (StringUtils.isNotEmpty(entity.getId())) {
+            queryWrapper.ne(CommonConstants.ID, entity.getId());
+        }
+        ServiceBean serviceBean = getOne(queryWrapper);
+        if (ObjectUtil.isNotEmpty(serviceBean)) {
+            throw new CustomException("该版本名称或版本号已存在，请重新输入！");
+        }
+        entity.setManageShow(true);
+        entity.setRemark(entity.getName());
+        entity.setType(ServiceBeanType.VIRTUAL_MODEL.getKey());
+    }
+
+    @Override
+    protected void createPostpose(ServiceBean entity, String userId) {
+        super.createPostpose(entity, userId);
+        entity.getAttrDefinitionList().forEach(attr -> {
+            attr.setAppId(entity.getAppId());
+            attr.setClassName(entity.getClassName());
+        });
+    }
+
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void registerServiceBean(InputObject inputObject, OutputObject outputObject) {
@@ -160,7 +186,9 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
             .stream().map(bean -> BeanUtil.beanToMap(bean)).collect(Collectors.toList());
         List<Map<String, Object>> result = buildResult(serviceClass);
         applications.forEach(application -> {
-            result.add(getResultMap(application.get("appId").toString(), application.get("appName").toString(), "0", true));
+            Map<String, Object> resultMap = getResultMap(application.get("appId").toString(), application.get("appName").toString(), "0", true);
+            resultMap.put("springApplicationName", application.get("springApplicationName"));
+            result.add(resultMap);
         });
         // 转为树
         List<Tree<String>> treeNodes = TreeUtil.build(result, String.valueOf(CommonNumConstants.NUM_ZERO), new TreeNodeConfig(),

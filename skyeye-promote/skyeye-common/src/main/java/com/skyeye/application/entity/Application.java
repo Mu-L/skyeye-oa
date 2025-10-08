@@ -4,6 +4,7 @@
 
 package com.skyeye.application.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -37,5 +38,9 @@ public class Application extends CommonInfo {
     @TableField("app_name")
     @ApiModelProperty(value = "应用名称", required = "required")
     private String appName;
+
+    @TableField(value = "spring_application_name", updateStrategy = FieldStrategy.NEVER)
+    @ApiModelProperty("服务名")
+    private String springApplicationName;
 
 }

@@ -30,12 +30,6 @@ public class ApplicationController {
     @Autowired
     private ApplicationService applicationService;
 
-    /**
-     * 应用注册
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "registerApplication", value = "应用注册", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = Application.class)
     @RequestMapping("/post/SkyeyeClassServiceBeanController/registerApplication")

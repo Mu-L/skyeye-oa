@@ -4,6 +4,7 @@
 
 package com.skyeye.server.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -13,6 +14,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.attr.entity.AttrDefinition;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.enumeration.ServiceBeanType;
+import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
 import java.util.List;
@@ -34,18 +36,16 @@ public class ServiceBean extends CommonInfo {
     @Property("主键id")
     private String id;
 
-    /**
-     * 服务名
-     */
-    @TableField(value = "spring_application_name")
+    @TableField(value = "spring_application_name", updateStrategy = FieldStrategy.NEVER)
+    @ApiModelProperty("服务名")
     private String springApplicationName;
 
     @TableField(exist = false)
     @Property("服务名(中文名称)")
     private String applicationName;
 
-    @TableField(value = "app_id")
-    @Property("应用的appId")
+    @TableField(value = "app_id", updateStrategy = FieldStrategy.NEVER)
+    @ApiModelProperty("应用的appId")
     private String appId;
 
     @TableField("class_name")
@@ -77,7 +77,7 @@ public class ServiceBean extends CommonInfo {
     private Boolean manageShow;
 
     @TableField("entity_class_name")
-    @ApiModelProperty(value = "实体类的className", required = "required")
+    @ApiModelProperty(value = "实体类的className")
     private String entityClassName;
 
     @TableField(exist = false)
@@ -85,14 +85,22 @@ public class ServiceBean extends CommonInfo {
     private List<AttrDefinition> attrDefinitionList;
 
     @TableField("flowable")
-    @ApiModelProperty(value = "是否开启流程", required = "required")
+    @ApiModelProperty(value = "是否开启流程", enumClass = WhetherEnum.class, required = "required")
     private Boolean flowable;
 
     @TableField("team_auth")
-    @ApiModelProperty(value = "是否开启团队权限管理", required = "required")
+    @ApiModelProperty(value = "是否开启团队权限管理", enumClass = WhetherEnum.class, required = "required")
     private Boolean teamAuth;
 
-    @TableField("`type`")
+    @TableField("operator_user_info")
+    @ApiModelProperty(value = "是否具备操作信息", enumClass = WhetherEnum.class)
+    private Boolean operatorUserInfo;
+
+    @TableField("base_general_info")
+    @ApiModelProperty(value = "是否具备公共信息", enumClass = WhetherEnum.class)
+    private Boolean baseGeneralInfo;
+
+    @TableField(value = "`type`", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "业务对象类型", enumClass = ServiceBeanType.class)
     private Integer type;
 

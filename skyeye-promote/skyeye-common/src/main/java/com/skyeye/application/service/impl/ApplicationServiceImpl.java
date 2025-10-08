@@ -17,6 +17,7 @@ import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -36,6 +37,9 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "应用管理", groupName = "系统公共模块", tenant = TenantEnum.NO_ISOLATION)
 public class ApplicationServiceImpl extends SkyeyeBusinessServiceImpl<ApplicationDao, Application> implements ApplicationService {
 
+    @Value("${spring.profiles.active}")
+    private String springProfilesActive;
+
     @Override
     public void registerApplication(InputObject inputObject, OutputObject outputObject) {
         Application application = inputObject.getParams(Application.class);
@@ -52,6 +56,7 @@ public class ApplicationServiceImpl extends SkyeyeBusinessServiceImpl<Applicatio
     @Override
     public List<Map<String, Object>> queryApplicationList() {
         QueryWrapper<Application> wrapper = new QueryWrapper<>();
+        wrapper.likeLeft(MybatisPlusUtil.toColumns(Application::getSpringApplicationName), springProfilesActive);
         wrapper.orderByDesc(MybatisPlusUtil.toColumns(Application::getAppId));
         List<Application> applicationList = super.list(wrapper);
         if (CollectionUtil.isEmpty(applicationList)) {
