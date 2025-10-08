@@ -81,7 +81,7 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
         }
         ServiceBean serviceBean = getOne(queryWrapper);
         if (ObjectUtil.isNotEmpty(serviceBean)) {
-            throw new CustomException("该版本名称或版本号已存在，请重新输入！");
+            throw new CustomException("该服务名、应用ID、类名、表名已存在，请重新输入！");
         }
         entity.setManageShow(true);
         entity.setRemark(entity.getName());
@@ -201,6 +201,7 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
                 tree.putExtra("disabled", treeNode.get("disabled"));
                 tree.putExtra("nocheck", treeNode.get("nocheck"));
                 tree.putExtra("classMation", treeNode.get("classMation"));
+                tree.putExtra("springApplicationName", treeNode.get("springApplicationName"));
             });
         outputObject.setBeans(treeNodes);
         outputObject.settotal(treeNodes.size());
@@ -302,6 +303,28 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
         QueryWrapper<ServiceBean> wrapper = new QueryWrapper<>();
         wrapper.eq(MybatisPlusUtil.toColumns(ServiceBean::getEntityClassName), entityClassName);
         return getOne(wrapper);
+    }
+
+    @Override
+    public void queryServiceBeanByAppIdAndClassName(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String appId = params.get("appId").toString();
+        String className = params.get("className").toString();
+        ServiceBean serviceBean = queryServiceClass(appId, className);
+        outputObject.setBean(serviceBean);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public void deleteServiceBeanByAppIdAndClassName(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String appId = params.get("appId").toString();
+        String className = params.get("className").toString();
+        QueryWrapper<ServiceBean> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ServiceBean::getAppId), appId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ServiceBean::getClassName), className);
+        queryWrapper.likeLeft(MybatisPlusUtil.toColumns(ServiceBean::getSpringApplicationName), springProfilesActive);
+        remove(queryWrapper);
     }
 
 }

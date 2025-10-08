@@ -34,4 +34,8 @@ public interface ServiceBeanService extends SkyeyeBusinessService<ServiceBean> {
     Map<String, ServiceBean> queryServiceClass(List<String> classNames);
 
     ServiceBean getByEntityClassName(String entityClassName);
+
+    void queryServiceBeanByAppIdAndClassName(InputObject inputObject, OutputObject outputObject);
+
+    void deleteServiceBeanByAppIdAndClassName(InputObject inputObject, OutputObject outputObject);
 }

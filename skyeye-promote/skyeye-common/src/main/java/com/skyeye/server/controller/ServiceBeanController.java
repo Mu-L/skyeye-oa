@@ -5,6 +5,7 @@
 package com.skyeye.server.controller;
 
 import com.skyeye.annotation.api.Api;
+import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
@@ -49,6 +50,24 @@ public class ServiceBeanController {
     @RequestMapping("/post/ServiceBeanController/queryServiceClassForTree")
     public void queryServiceClassForTree(InputObject inputObject, OutputObject outputObject) {
         serviceBeanService.queryServiceClassForTree(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryServiceBeanByAppIdAndClassName", value = "根据appId和className查询服务类信息", method = "GET", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "appId", name = "appId", value = "应用得appId", required = "required"),
+        @ApiImplicitParam(id = "className", name = "className", value = "服务类的className", required = "required")})
+    @RequestMapping("/post/ServiceBeanController/queryServiceBeanByAppIdAndClassName")
+    public void queryServiceBeanByAppIdAndClassName(InputObject inputObject, OutputObject outputObject) {
+        serviceBeanService.queryServiceBeanByAppIdAndClassName(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "deleteServiceBeanByAppIdAndClassName", value = "根据appId和className删除服务类信息", method = "DELETE", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "appId", name = "appId", value = "应用得appId", required = "required"),
+        @ApiImplicitParam(id = "className", name = "className", value = "服务类的className", required = "required")})
+    @RequestMapping("/post/ServiceBeanController/deleteServiceBeanByAppIdAndClassName")
+    public void deleteServiceBeanByAppIdAndClassName(InputObject inputObject, OutputObject outputObject) {
+        serviceBeanService.deleteServiceBeanByAppIdAndClassName(inputObject, outputObject);
     }
 
 }

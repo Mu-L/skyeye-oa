@@ -33,7 +33,7 @@ import java.util.List;
 public class ServiceBean extends CommonInfo {
 
     @TableId("id")
-    @Property("主键id")
+    @ApiModelProperty("主键id")
     private String id;
 
     @TableField(value = "spring_application_name", updateStrategy = FieldStrategy.NEVER)
