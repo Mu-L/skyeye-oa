@@ -29,6 +29,8 @@ import com.skyeye.dsform.service.DsFormPageService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.server.entity.ServiceBean;
 import com.skyeye.server.service.ServiceBeanService;
+import com.skyeye.table.entity.TableFieldInfo;
+import com.skyeye.table.sdk.service.TableApiService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -54,7 +56,7 @@ import java.util.stream.Collectors;
 public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDefinitionDao, AttrDefinition> implements AttrDefinitionService {
 
     @Autowired
-    private ServiceBeanService skyeyeClassServiceBeanService;
+    private ServiceBeanService serviceBeanService;
 
     @Autowired
     private AttrDefinitionCustomService attrDefinitionCustomService;
@@ -64,6 +66,9 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
 
     @Autowired
     private DsFormPageContentService dsFormPageContentService;
+
+    @Autowired
+    private TableApiService tableApiService;
 
     @Override
     protected void validatorEntity(AttrDefinition entity) {
@@ -79,10 +84,54 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
             throw new CustomException("该属性键已存在.");
         }
 
+        if (entity.getType() == ServiceBeanType.VIRTUAL_MODEL.getKey()) {
+            if (StrUtil.isEmpty(entity.getApplicationName()) || StrUtil.isEmpty(entity.getTableName())
+                || StrUtil.isEmpty(entity.getDbFieldName()) || StrUtil.isEmpty(entity.getFieldType())
+                || entity.getFieldLength() == null || entity.getDecimalPlaces() == null) {
+                throw new CustomException("虚拟模型属性缺少必要字段.");
+            }
+        }
+
         entity.setWhetherInputParams(WhetherEnum.ENABLE_USING.getKey());
         entity.setModelAttribute(WhetherEnum.DISABLE_USING.getKey());
         entity.setCreateTime(DateUtil.getTimeAndToString());
         entity.setLastUpdateTime(DateUtil.getTimeAndToString());
+    }
+
+    @Override
+    protected void createPostpose(AttrDefinition entity, String userId) {
+        if (entity.getType() == ServiceBeanType.VIRTUAL_MODEL.getKey()) {
+            // 创建字段
+            TableFieldInfo fieldInfo = new TableFieldInfo();
+            fieldInfo.setTableName(entity.getTableName());
+            fieldInfo.setFieldName(entity.getDbFieldName());
+            fieldInfo.setFieldComment(entity.getName());
+            fieldInfo.setFieldType(entity.getFieldType());
+            fieldInfo.setFieldLength(entity.getFieldLength());
+            fieldInfo.setDecimalPlaces(entity.getDecimalPlaces());
+            fieldInfo.setDefaultValue(entity.getDbDefaultValue());
+            fieldInfo.setIsPrimaryKey(entity.getIsPrimaryKey());
+            fieldInfo.setIsNotNull(entity.getIsPrimaryKey() == WhetherEnum.ENABLE_USING.getKey() ? WhetherEnum.ENABLE_USING.getKey() : WhetherEnum.DISABLE_USING.getKey());
+            tableApiService.addField(entity.getApplicationName(), fieldInfo);
+        }
+    }
+
+    @Override
+    protected void updatePostpose(AttrDefinition entity, String userId) {
+        if (entity.getType() == ServiceBeanType.VIRTUAL_MODEL.getKey()) {
+            // 修改字段
+            TableFieldInfo fieldInfo = new TableFieldInfo();
+            fieldInfo.setTableName(entity.getTableName());
+            fieldInfo.setFieldName(entity.getDbFieldName());
+            fieldInfo.setFieldComment(entity.getName());
+            fieldInfo.setFieldType(entity.getFieldType());
+            fieldInfo.setFieldLength(entity.getFieldLength());
+            fieldInfo.setDecimalPlaces(entity.getDecimalPlaces());
+            fieldInfo.setDefaultValue(entity.getDbDefaultValue());
+            fieldInfo.setIsPrimaryKey(entity.getIsPrimaryKey());
+            fieldInfo.setIsNotNull(entity.getIsPrimaryKey() == WhetherEnum.ENABLE_USING.getKey() ? WhetherEnum.ENABLE_USING.getKey() : WhetherEnum.DISABLE_USING.getKey());
+            tableApiService.modifyField(entity.getApplicationName(), fieldInfo);
+        }
     }
 
     @Override
@@ -95,6 +144,10 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
     @Override
     protected void deletePostpose(AttrDefinition entity) {
         List<DsFormPage> dsFormPageList = dsFormPageService.queryDsFormPageList(entity.getAppId(), entity.getClassName());
+        if (entity.getType() == ServiceBeanType.VIRTUAL_MODEL.getKey()) {
+            ServiceBean serviceBean = serviceBeanService.queryServiceClass(entity.getAppId(), entity.getClassName());
+            tableApiService.dropField(serviceBean.getSpringApplicationName(), serviceBean.getTableName(), entity.getDbFieldName());
+        }
         if (CollectionUtil.isEmpty(dsFormPageList)) {
             return;
         }
@@ -234,7 +287,7 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
             return;
         }
 
-        ServiceBean service = skyeyeClassServiceBeanService.getByEntityClassName(attrDefinition.getAttrType());
+        ServiceBean service = serviceBeanService.getByEntityClassName(attrDefinition.getAttrType());
         if (service == null) {
             return;
         }

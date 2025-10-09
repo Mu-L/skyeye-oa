@@ -116,4 +116,12 @@ public class AttrDefinition extends CommonInfo {
     @ApiModelProperty(value = "业务对象类型", enumClass = ServiceBeanType.class)
     private Integer type;
 
+    @TableField(exist = false)
+    @ApiModelProperty("服务名(中文名称)")
+    private String applicationName;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "表名称")
+    private String tableName;
+
 }

@@ -40,7 +40,7 @@ public class AttrDefinitionController {
         attrDefinitionService.queryAttrDefinitionList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "writeAttrDefinition", value = "动态新增属性信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "writeAttrDefinition", value = "新增/编辑【物理模型/虚拟模型】的属性信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = AttrDefinition.class)
     @RequestMapping("/post/AttrDefinitionController/writeAttrDefinition")
     public void writeAttrDefinition(InputObject inputObject, OutputObject outputObject) {
