@@ -90,7 +90,7 @@ public class AttrDefinition extends CommonInfo {
 
     @TableField("field_length")
     @ApiModelProperty(value = "对应得数据库表得字段长度")
-    private Integer fieldLength;
+    private String fieldLength;
 
     @TableField("decimal_places")
     @ApiModelProperty(value = "对应得数据库表得字段小数位数")
