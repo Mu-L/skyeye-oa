@@ -127,6 +127,7 @@ public class ActFlowServiceImpl extends SkyeyeBusinessServiceImpl<ActFlowDao, Ac
         }
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
         QueryWrapper<ActFlowMation> queryWrapper = super.getQueryWrapper(pageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ActFlowMation::getApplyAppId), pageInfo.getServiceAppId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ActFlowMation::getApplyServiceClassName), pageInfo.getServiceClassName());
         List<ActFlowMation> list = list(queryWrapper);
         List<Map<String, Object>> beans = JSONUtil.toList(JSONUtil.toJsonStr(list), null);
@@ -144,8 +145,13 @@ public class ActFlowServiceImpl extends SkyeyeBusinessServiceImpl<ActFlowDao, Ac
 
     @Override
     public void queryAllActFlowListByClassName(InputObject inputObject, OutputObject outputObject) {
-        String serviceClassName = inputObject.getParams().get("serviceClassName").toString();
+        Map<String, Object> params = inputObject.getParams();
+        String serviceClassName = params.get("serviceClassName").toString();
+        String appId = params.get("appId").toString();
         QueryWrapper<ActFlowMation> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(appId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ActFlowMation::getApplyAppId), appId);
+        }
         queryWrapper.eq(MybatisPlusUtil.toColumns(ActFlowMation::getApplyServiceClassName), serviceClassName);
         List<ActFlowMation> list = list(queryWrapper);
         outputObject.setBeans(list);

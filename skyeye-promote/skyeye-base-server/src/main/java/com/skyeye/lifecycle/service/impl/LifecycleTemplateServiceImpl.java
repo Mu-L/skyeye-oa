@@ -22,10 +22,7 @@ import com.skyeye.lifecycle.entity.LifecycleState;
 import com.skyeye.lifecycle.entity.LifecycleTemplate;
 import com.skyeye.lifecycle.entity.LifecycleTemplateEdges;
 import com.skyeye.lifecycle.entity.LifecycleTemplateNode;
-import com.skyeye.lifecycle.service.LifecycleStateService;
-import com.skyeye.lifecycle.service.LifecycleTemplateEdgesService;
-import com.skyeye.lifecycle.service.LifecycleTemplateNodeService;
-import com.skyeye.lifecycle.service.LifecycleTemplateService;
+import com.skyeye.lifecycle.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -54,6 +51,9 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
 
     @Autowired
     private LifecycleStateService lifecycleStateService;
+
+    @Autowired
+    private LifecycleTemplateMasterService lifecycleTemplateMasterService;
 
     @Override
     public QueryWrapper<LifecycleTemplate> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -144,6 +144,7 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
                 }
             }
         }
+        lifecycleTemplateMasterService.setDataMation(lifecycleTemplate, LifecycleTemplate::getMasterId);
         return lifecycleTemplate;
     }
 

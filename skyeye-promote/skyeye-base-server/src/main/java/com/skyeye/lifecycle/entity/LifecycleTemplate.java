@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.constans.RedisConstants;
@@ -34,6 +35,10 @@ public class LifecycleTemplate extends Version {
     @TableField(value = "master_id", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "生命周期模板主表id", required = "required")
     private String masterId;
+
+    @TableField(exist = false)
+    @Property("生命周期模板主表需不需")
+    private LifecycleTemplateMaster masterMation;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "节点数据", required = "json")

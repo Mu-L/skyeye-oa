@@ -71,6 +71,7 @@ public class ActFlowController {
 
     @ApiOperation(id = "queryAllActFlowListByClassName", value = "根据适用对象获取流程模型列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
+        @ApiImplicitParam(id = "appId", name = "appId", value = "业务对象所属的appId"),
         @ApiImplicitParam(id = "serviceClassName", name = "serviceClassName", value = "业务对象信息", required = "required")})
     @RequestMapping("/post/ActFlowController/queryAllActFlowListByClassName")
     public void queryAllActFlowListByClassName(InputObject inputObject, OutputObject outputObject) {
