@@ -100,6 +100,14 @@ public class ServiceBean extends CommonInfo {
     @ApiModelProperty(value = "是否具备公共信息", enumClass = WhetherEnum.class)
     private Boolean baseGeneralInfo;
 
+//    @TableField("has_version_control")
+//    @ApiModelProperty(value = "是否开启版本控制", enumClass = WhetherEnum.class)
+//    private Boolean hasVersionControl;
+
+//    @TableField("has_delete_flag")
+//    @ApiModelProperty(value = "是否开启逻辑删除", enumClass = WhetherEnum.class)
+//    private Boolean hasDeleteFlag;
+
     @TableField(value = "`type`", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "业务对象类型", enumClass = ServiceBeanType.class)
     private Integer type;
