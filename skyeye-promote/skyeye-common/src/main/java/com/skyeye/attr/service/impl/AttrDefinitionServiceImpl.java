@@ -315,6 +315,15 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
         return attrDefinitionList;
     }
 
+    @Override
+    public List<AttrDefinition> queryAttrDefinitionList(String appId, String className) {
+        QueryWrapper<AttrDefinition> wrapper = new QueryWrapper<>();
+        wrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getAppId), appId);
+        wrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getClassName), className);
+        List<AttrDefinition> attrDefinitionList = list(wrapper);
+        return attrDefinitionList;
+    }
+
     /**
      * 批量获取业务对象指定的属性信息
      *

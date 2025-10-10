@@ -28,6 +28,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.dsform.service.DsFormPageService;
+import com.skyeye.eve.service.IServiceBeanToEntityHelperService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.operate.service.OperateService;
 import com.skyeye.server.dao.ServiceBeanDao;
@@ -91,6 +92,9 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
 
     @Value("${spring.profiles.active}")
     private String springProfilesActive;
+
+    @Autowired
+    private IServiceBeanToEntityHelperService iServiceBeanToEntityHelperService;
 
     @Override
     protected void validatorEntity(ServiceBean entity) {
@@ -357,7 +361,12 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
         Map<String, Object> params = inputObject.getParams();
         String appId = params.get("appId").toString();
         String className = params.get("className").toString();
+        Integer needAttr = Integer.parseInt(params.get("needAttr").toString());
         ServiceBean serviceBean = queryServiceClass(appId, className);
+        if (needAttr == WhetherEnum.ENABLE_USING.getKey()) {
+            // 需要查询属性信息
+            serviceBean.setAttrDefinitionList(attrDefinitionService.queryAttrDefinitionList(serviceBean.getAppId(), serviceBean.getClassName()));
+        }
         outputObject.setBean(serviceBean);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -371,6 +380,9 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
         if (serviceBean.getType().equals(ServiceBeanType.PHYSICAL_MODEL.getKey())) {
             throw new CustomException("物理模型不能删除.");
         }
+        // 删除微服务的一级缓存
+        iServiceBeanToEntityHelperService.removeServiceBeanToEntityHelper(serviceBean.getSpringApplicationName(),
+            serviceBean.getAppId(), serviceBean.getClassName());
         // 删除表
         try {
             tableApiService.dropTable(serviceBean.getSpringApplicationName(), serviceBean.getTableName());

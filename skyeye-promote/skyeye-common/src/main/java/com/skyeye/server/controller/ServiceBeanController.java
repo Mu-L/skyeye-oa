@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.server.entity.ServiceBean;
@@ -55,7 +56,8 @@ public class ServiceBeanController {
     @ApiOperation(id = "queryServiceBeanByAppIdAndClassName", value = "根据appId和className查询服务类信息", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "appId", name = "appId", value = "应用得appId", required = "required"),
-        @ApiImplicitParam(id = "className", name = "className", value = "服务类的className", required = "required")})
+        @ApiImplicitParam(id = "className", name = "className", value = "服务类的className", required = "required"),
+        @ApiImplicitParam(id = "needAttr", name = "needAttr", value = "是否需要查询属性信息", enumClass = WhetherEnum.class, defaultValue = "0")})
     @RequestMapping("/post/ServiceBeanController/queryServiceBeanByAppIdAndClassName")
     public void queryServiceBeanByAppIdAndClassName(InputObject inputObject, OutputObject outputObject) {
         serviceBeanService.queryServiceBeanByAppIdAndClassName(inputObject, outputObject);
