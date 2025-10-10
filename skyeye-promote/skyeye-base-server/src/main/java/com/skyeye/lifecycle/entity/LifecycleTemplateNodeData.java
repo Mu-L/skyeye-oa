@@ -66,4 +66,8 @@ public class LifecycleTemplateNodeData extends OperatorUserInfo {
     @ApiModelProperty(value = "流程id")
     private String processId;
 
+    @TableField(value = "action_id")
+    @ApiModelProperty(value = "操作id", required = "json")
+    private String actionId;
+
 }

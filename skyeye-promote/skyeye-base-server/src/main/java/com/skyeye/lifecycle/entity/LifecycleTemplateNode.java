@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.LifecycleTemplateNodeType;
 import lombok.Data;
 
 import java.util.Map;
@@ -38,7 +39,7 @@ public class LifecycleTemplateNode extends OperatorUserInfo {
     private String nodeId;
 
     @TableField(value = "type")
-    @ApiModelProperty(value = "节点类型", required = "required")
+    @ApiModelProperty(value = "节点类型", enumClass = LifecycleTemplateNodeType.class, required = "required")
     private String type;
 
     @TableField(value = "template_id")

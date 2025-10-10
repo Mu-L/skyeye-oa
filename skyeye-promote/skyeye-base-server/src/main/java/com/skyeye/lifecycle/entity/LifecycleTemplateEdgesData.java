@@ -49,7 +49,7 @@ public class LifecycleTemplateEdgesData extends OperatorUserInfo {
     @ApiModelProperty(value = "流转条件")
     private String condition;
 
-    @TableField(value = "action_id_list", typeHandler = JacksonTypeHandler.class)
-    @ApiModelProperty(value = "操作id集合", required = "json")
-    private List<String> actionIdList;
+    @TableField(value = "action_id")
+    @ApiModelProperty(value = "操作id", required = "json")
+    private String actionId;
 }
