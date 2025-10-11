@@ -76,6 +76,10 @@ public class AttrDefinition extends CommonInfo {
     @ApiModelProperty(value = "是否唯一", enumClass = WhetherEnum.class, defaultValue = "0")
     private Integer isUniqueField;
 
+    @TableField("is_fuzzy_like")
+    @ApiModelProperty(value = "是否模糊匹配", enumClass = WhetherEnum.class, defaultValue = "0")
+    private Integer isFuzzyLike;
+
     @TableField("required")
     @ApiModelProperty(value = "属性限制条件")
     private String required;
