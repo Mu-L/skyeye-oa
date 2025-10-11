@@ -20,11 +20,13 @@ import com.skyeye.attr.service.AttrDefinitionService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.FieldType;
 import com.skyeye.common.enumeration.ServiceBeanType;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.TenantTypeEnum;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.dsform.service.DsFormPageService;
@@ -144,8 +146,24 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
             fieldInfo.setIsNotNull(attr.getIsPrimaryKey() == WhetherEnum.ENABLE_USING.getKey() ? WhetherEnum.ENABLE_USING.getKey() : WhetherEnum.DISABLE_USING.getKey());
             fieldList.add(fieldInfo);
         });
+        // 添加租户字段
+        fieldList.add(getTenantTableFieldInfo(entity));
         tableInfo.setFieldList(fieldList);
         tableApiService.createTable(entity.getSpringApplicationName(), tableInfo);
+    }
+
+    private TableFieldInfo getTenantTableFieldInfo(ServiceBean entity) {
+        TableFieldInfo fieldInfo = new TableFieldInfo();
+        fieldInfo.setTableName(entity.getTableName());
+        fieldInfo.setFieldName(CommonConstants.TENANT_ID_FIELD);
+        fieldInfo.setFieldComment("租户ID");
+        fieldInfo.setFieldType(FieldType.VARCHAR.getKey());
+        fieldInfo.setFieldLength("32");
+        fieldInfo.setDecimalPlaces(CommonNumConstants.NUM_ZERO);
+        fieldInfo.setDefaultValue(TenantTypeEnum.PLATFORM.getCode());
+        fieldInfo.setIsPrimaryKey(WhetherEnum.DISABLE_USING.getKey());
+        fieldInfo.setIsNotNull(WhetherEnum.DISABLE_USING.getKey());
+        return fieldInfo;
     }
 
     @Override
