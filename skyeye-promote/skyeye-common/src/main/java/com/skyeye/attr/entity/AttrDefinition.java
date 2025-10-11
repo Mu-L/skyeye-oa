@@ -72,6 +72,10 @@ public class AttrDefinition extends CommonInfo {
     @ApiModelProperty(value = "属性对应的枚举类地址，例如：skyeye-pro#com.skyeye.app.enums.AppReleaseStatusEnum")
     private String enumClassStr;
 
+    @TableField("is_unique_field")
+    @ApiModelProperty(value = "是否唯一", enumClass = WhetherEnum.class, defaultValue = "0")
+    private Integer isUniqueField;
+
     @TableField("required")
     @ApiModelProperty(value = "属性限制条件")
     private String required;
