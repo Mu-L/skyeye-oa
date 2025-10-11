@@ -72,6 +72,9 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
 
     @Override
     protected void validatorEntity(AttrDefinition entity) {
+        if (StrUtil.equals(CommonConstants.TENANT_ID_FIELD, entity.getDbFieldName())) {
+            throw new CustomException("租户字段默认存在，不可新增/编辑。");
+        }
         QueryWrapper<AttrDefinition> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getAppId), entity.getAppId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getClassName), entity.getClassName());

@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
@@ -100,13 +101,29 @@ public class ServiceBean extends CommonInfo {
     @ApiModelProperty(value = "是否具备公共信息", enumClass = WhetherEnum.class)
     private Boolean baseGeneralInfo;
 
-//    @TableField("has_version_control")
-//    @ApiModelProperty(value = "是否开启版本控制", enumClass = WhetherEnum.class)
-//    private Boolean hasVersionControl;
+    @TableField("has_version_control")
+    @ApiModelProperty(value = "是否开启版本控制", enumClass = WhetherEnum.class)
+    private Boolean hasVersionControl;
 
-//    @TableField("has_delete_flag")
-//    @ApiModelProperty(value = "是否开启逻辑删除", enumClass = WhetherEnum.class)
-//    private Boolean hasDeleteFlag;
+    @TableField("has_delete_flag")
+    @ApiModelProperty(value = "是否开启逻辑删除", enumClass = WhetherEnum.class)
+    private Boolean hasDeleteFlag;
+
+    @TableField("has_redis_cache")
+    @ApiModelProperty(value = "是否开启Redis缓存", enumClass = WhetherEnum.class)
+    private Boolean hasRedisCache;
+
+    @TableField("redis_cache_name")
+    @ApiModelProperty(value = "redis缓存名称")
+    private String redisCacheName;
+
+    @TableField("redis_cache_time")
+    @ApiModelProperty(value = "redis缓存时间，单位秒，-1代表永久缓存")
+    private String redisCacheTime;
+
+    @TableField(value = "redis_cache_value", typeHandler = JacksonTypeHandler.class)
+    @ApiModelProperty(value = "redis缓存的键", defaultValue = "id")
+    private List<String> redisCacheValue;
 
     @TableField(value = "`type`", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "业务对象类型", enumClass = ServiceBeanType.class)
