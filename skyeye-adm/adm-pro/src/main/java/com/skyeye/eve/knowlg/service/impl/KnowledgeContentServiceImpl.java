@@ -130,6 +130,9 @@ public class KnowledgeContentServiceImpl extends SkyeyeBusinessServiceImpl<Knowl
         iAuthUserService.setNameForMap(beans, "createId", "createName");
         iSysDictDataService.setNameForMap(beans, "typeId", "typeName");
         iAuthUserService.setMationForMap(beans, "examineId", "examineMation");
+        beans.forEach(bean -> {
+            bean.put("serviceClassName", getServiceClassName());
+        });
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
