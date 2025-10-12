@@ -35,8 +35,12 @@ public class LifecycleTemplateMaster extends OperatorUserInfo {
     private String id;
 
     @TableField("attr_key")
-    @ApiModelProperty(value = "字段名", required = "required")
+    @ApiModelProperty(value = "字段名，状态存储的字段名", required = "required")
     private String attrKey;
+
+    @TableField("lifecycle_template_id_attr_key")
+    @ApiModelProperty(value = "生命周期模板id存储的字段名", required = "required")
+    private String lifecycleTemplateIdAttrKey;
 
     @TableField("enabled")
     @ApiModelProperty(value = "状态", enumClass = EnableEnum.class, required = "required,num")
