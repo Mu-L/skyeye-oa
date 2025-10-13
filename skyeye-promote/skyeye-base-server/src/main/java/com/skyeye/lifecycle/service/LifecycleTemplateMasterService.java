@@ -22,4 +22,6 @@ public interface LifecycleTemplateMasterService extends SkyeyeBusinessService<Li
     void queryLifecycleTemplateMaster(InputObject inputObject, OutputObject outputObject);
 
     void editLifecycleTemplateMasterEnabled(InputObject inputObject, OutputObject outputObject);
+
+    LifecycleTemplateMaster queryLifecycleTemplateMaster(String appId, String className);
 }

@@ -18,10 +18,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.lifecycle.dao.LifecycleTemplateDao;
-import com.skyeye.lifecycle.entity.LifecycleState;
-import com.skyeye.lifecycle.entity.LifecycleTemplate;
-import com.skyeye.lifecycle.entity.LifecycleTemplateEdges;
-import com.skyeye.lifecycle.entity.LifecycleTemplateNode;
+import com.skyeye.lifecycle.entity.*;
 import com.skyeye.lifecycle.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -132,15 +129,18 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
             if (CollectionUtil.isNotEmpty(stateIdList)) {
                 Map<String, LifecycleState> stateMap = lifecycleStateService.selectMapByIds(stateIdList);
                 for (LifecycleTemplateNode lifecycleTemplateNode : lifecycleTemplate.getNodes()) {
-                    if (ObjectUtil.isNotEmpty(lifecycleTemplateNode.getData())) {
-                        String stateId = lifecycleTemplateNode.getData().getState();
-                        if (StrUtil.isNotBlank(stateId)) {
-                            LifecycleState lifecycleState = stateMap.get(stateId);
-                            if (ObjectUtil.isNotEmpty(lifecycleState)) {
-                                lifecycleTemplateNode.getData().setStateMation(lifecycleState);
-                            }
-                        }
+                    if (ObjectUtil.isEmpty(lifecycleTemplateNode.getData())) {
+                        continue;
                     }
+                    String stateId = lifecycleTemplateNode.getData().getState();
+                    if (StrUtil.isBlank(stateId)) {
+                        continue;
+                    }
+                    LifecycleState lifecycleState = stateMap.get(stateId);
+                    if (ObjectUtil.isEmpty(lifecycleState)) {
+                        continue;
+                    }
+                    lifecycleTemplateNode.getData().setStateMation(lifecycleState);
                 }
             }
         }
@@ -169,18 +169,22 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
 
         // 为每个模板的节点设置状态信息
         for (LifecycleTemplate lifecycleTemplate : lifecycleTemplates) {
-            if (CollectionUtil.isNotEmpty(lifecycleTemplate.getNodes())) {
-                for (LifecycleTemplateNode lifecycleTemplateNode : lifecycleTemplate.getNodes()) {
-                    if (ObjectUtil.isNotEmpty(lifecycleTemplateNode.getData())) {
-                        String stateId = lifecycleTemplateNode.getData().getState();
-                        if (StrUtil.isNotBlank(stateId)) {
-                            LifecycleState lifecycleState = stateMap.get(stateId);
-                            if (ObjectUtil.isNotEmpty(lifecycleState)) {
-                                lifecycleTemplateNode.getData().setStateMation(lifecycleState);
-                            }
-                        }
-                    }
+            if (CollectionUtil.isEmpty(lifecycleTemplate.getNodes())) {
+                continue;
+            }
+            for (LifecycleTemplateNode lifecycleTemplateNode : lifecycleTemplate.getNodes()) {
+                if (ObjectUtil.isEmpty(lifecycleTemplateNode.getData())) {
+                    continue;
                 }
+                String stateId = lifecycleTemplateNode.getData().getState();
+                if (StrUtil.isBlank(stateId)) {
+                    continue;
+                }
+                LifecycleState lifecycleState = stateMap.get(stateId);
+                if (ObjectUtil.isEmpty(lifecycleState)) {
+                    continue;
+                }
+                lifecycleTemplateNode.getData().setStateMation(lifecycleState);
             }
         }
 
@@ -200,6 +204,12 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
     public void queryCurrentLifecycleTemplateByMasterId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String masterId = params.get("masterId").toString();
+        LifecycleTemplate lifecycleTemplate = querCurrentLifecycleTemplateByMasterId(masterId);
+        outputObject.setBean(lifecycleTemplate);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    private LifecycleTemplate querCurrentLifecycleTemplateByMasterId(String masterId) {
         // 查询当前生效的生命周期模板
         QueryWrapper<LifecycleTemplate> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplate::getWhetherPublish), WhetherEnum.ENABLE_USING.getKey());
@@ -208,9 +218,22 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
         queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplate::getMasterId), masterId);
         LifecycleTemplate lifecycleTemplate = getOne(queryWrapper, false);
         if (lifecycleTemplate == null) {
-            return;
+            return null;
         }
         lifecycleTemplate = selectById(lifecycleTemplate.getId());
+        return lifecycleTemplate;
+    }
+
+    @Override
+    public void queryCurrentLifecycleTemplateByAppIdAndClassName(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String appId = params.get("appId").toString();
+        String className = params.get("className").toString();
+        LifecycleTemplateMaster lifecycleTemplateMaster = lifecycleTemplateMasterService.queryLifecycleTemplateMaster(appId, className);
+        if (lifecycleTemplateMaster == null) {
+            return;
+        }
+        LifecycleTemplate lifecycleTemplate = querCurrentLifecycleTemplateByMasterId(lifecycleTemplateMaster.getId());
         outputObject.setBean(lifecycleTemplate);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

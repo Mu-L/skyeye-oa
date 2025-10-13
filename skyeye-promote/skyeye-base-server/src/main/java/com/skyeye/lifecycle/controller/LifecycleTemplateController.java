@@ -54,12 +54,29 @@ public class LifecycleTemplateController {
         lifecycleTemplateService.selectById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryLifecycleTemplateByIds", value = "根据id批量查询生命周期模板详情", method = "post", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "ids", name = "ids", value = "生命周期模板id，多个用逗号隔开", required = "required")})
+    @RequestMapping("/post/LifecycleTemplateController/queryLifecycleTemplateByIds")
+    public void queryLifecycleTemplateByIds(InputObject inputObject, OutputObject outputObject) {
+        lifecycleTemplateService.selectByIds(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "queryCurrentLifecycleTemplateByMasterId", value = "根据主表id查询当前发布得最新得生命周期模板详情", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "masterId", name = "masterId", value = "主表id", required = "required")})
     @RequestMapping("/post/LifecycleTemplateController/queryCurrentLifecycleTemplateByMasterId")
     public void queryCurrentLifecycleTemplateByMasterId(InputObject inputObject, OutputObject outputObject) {
         lifecycleTemplateService.queryCurrentLifecycleTemplateByMasterId(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryCurrentLifecycleTemplateByAppIdAndClassName", value = "根据AppId和className查询当前发布得最新得生命周期模板详情", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "appId", name = "appId", value = "应用得appId", required = "required"),
+        @ApiImplicitParam(id = "className", name = "className", value = "服务类的className", required = "required")})
+    @RequestMapping("/post/LifecycleTemplateController/queryCurrentLifecycleTemplateByAppIdAndClassName")
+    public void queryCurrentLifecycleTemplateByAppIdAndClassName(InputObject inputObject, OutputObject outputObject) {
+        lifecycleTemplateService.queryCurrentLifecycleTemplateByAppIdAndClassName(inputObject, outputObject);
     }
 
     @ApiOperation(id = "deleteLifecycleTemplateById", value = "根据ID删除生命周期模板信息", method = "DELETE", allUse = "2")

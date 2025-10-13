@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.LifecycleTemplateEdgesType;
 import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
@@ -47,8 +48,12 @@ public class LifecycleTemplateEdges extends OperatorUserInfo {
     private String target;
 
     @TableField(value = "type")
-    @ApiModelProperty(value = "节点类型", required = "required")
+    @ApiModelProperty(value = "设计器默认的连线类型", required = "required")
     private String type;
+
+    @TableField(value = "edge_type")
+    @ApiModelProperty(value = "后端存储的连线类型", enumClass = LifecycleTemplateEdgesType.class, required = "required")
+    private String edgeType;
 
     @TableField(value = "animated")
     @ApiModelProperty(value = "是否开启动画效果", enumClass = WhetherEnum.class)

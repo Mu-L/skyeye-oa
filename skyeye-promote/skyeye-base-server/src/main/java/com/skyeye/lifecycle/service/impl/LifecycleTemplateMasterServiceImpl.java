@@ -57,10 +57,7 @@ public class LifecycleTemplateMasterServiceImpl extends SkyeyeBusinessServiceImp
         String appId = map.get("appId").toString();
         String className = map.get("className").toString();
 
-        QueryWrapper<LifecycleTemplateMaster> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplateMaster::getAppId), appId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplateMaster::getClassName), className);
-        LifecycleTemplateMaster lifecycleTemplateMaster = getOne(queryWrapper, false);
+        LifecycleTemplateMaster lifecycleTemplateMaster = queryLifecycleTemplateMaster(appId, className);
         outputObject.setBean(lifecycleTemplateMaster);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -75,5 +72,14 @@ public class LifecycleTemplateMasterServiceImpl extends SkyeyeBusinessServiceImp
         updateWrapper.set(MybatisPlusUtil.toColumns(LifecycleTemplateMaster::getEnabled), enabled);
         update(updateWrapper);
         refreshCache(id);
+    }
+
+    @Override
+    public LifecycleTemplateMaster queryLifecycleTemplateMaster(String appId, String className) {
+        QueryWrapper<LifecycleTemplateMaster> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplateMaster::getAppId), appId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplateMaster::getClassName), className);
+        LifecycleTemplateMaster lifecycleTemplateMaster = getOne(queryWrapper, false);
+        return lifecycleTemplateMaster;
     }
 }

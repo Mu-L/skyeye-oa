@@ -50,6 +50,6 @@ public class LifecycleTemplateEdgesData extends OperatorUserInfo {
     private String condition;
 
     @TableField(value = "action_id")
-    @ApiModelProperty(value = "操作id", required = "json")
+    @ApiModelProperty(value = "操作id")
     private String actionId;
 }
