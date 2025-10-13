@@ -135,12 +135,53 @@ public class OperateServiceImpl extends SkyeyeBusinessServiceImpl<OperateDao, Op
         jedisClientService.del(cacheKey);
     }
 
-    /**
-     * 根据id查询数据
-     *
-     * @param id
-     * @return
-     */
+    @Override
+    public Operate getDataFromDb(String id) {
+        Operate operate = super.getDataFromDb(id);
+        if (StrUtil.equals(operate.getEventType(), EventType.AJAX.getKey())) {
+            // 查询请求事件
+            BusinessApi businessApi = businessApiService.selectByObjectId(id);
+            operate.setBusinessApi(businessApi);
+        } else if (StrUtil.equals(operate.getEventType(), EventType.OPEN_PAGE.getKey())) {
+            // 查询新开页面事件
+            OperateOpenPage operateOpenPage = operateOpenPageService.selectByOperateId(id);
+            operate.setOperateOpenPage(operateOpenPage);
+        }
+        return operate;
+    }
+
+    @Override
+    protected List<Operate> getDataFromDb(List<String> idList) {
+        List<Operate> operateList = super.getDataFromDb(idList);
+        // 查询请求事件
+        List<String> ids = operateList.stream()
+            .filter(operate -> StrUtil.equals(operate.getEventType(), EventType.AJAX.getKey()))
+            .map(Operate::getId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(ids)) {
+            // 查询接口配置信息
+            Map<String, BusinessApi> businessApiMap = businessApiService.selectByObjectIds(ids);
+            operateList.forEach(operate -> {
+                if (StrUtil.equals(operate.getEventType(), EventType.AJAX.getKey())) {
+                    operate.setBusinessApi(businessApiMap.get(operate.getId()));
+                }
+            });
+        }
+        // 查询新开页面事件
+        ids = operateList.stream()
+            .filter(operate -> StrUtil.equals(operate.getEventType(), EventType.OPEN_PAGE.getKey()))
+            .map(Operate::getId).collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(ids)) {
+            // 查询新开页面配置信息
+            Map<String, OperateOpenPage> operateOpenPageMap = operateOpenPageService.selectByOperateIds(ids);
+            operateList.forEach(operate -> {
+                if (StrUtil.equals(operate.getEventType(), EventType.OPEN_PAGE.getKey())) {
+                    operate.setOperateOpenPage(operateOpenPageMap.get(operate.getId()));
+                }
+            });
+        }
+        return operateList;
+    }
+
     @Override
     public Operate selectById(String id) {
         Operate operate = super.selectById(id);
@@ -161,21 +202,6 @@ public class OperateServiceImpl extends SkyeyeBusinessServiceImpl<OperateDao, Op
                 // 报表页面
                 operateOpenPage.setReportPage(iReportPageService.queryDataMationById(operateOpenPage.getPageUrl()));
             }
-        }
-        return operate;
-    }
-
-    @Override
-    public Operate getDataFromDb(String id) {
-        Operate operate = super.getDataFromDb(id);
-        if (StrUtil.equals(operate.getEventType(), EventType.AJAX.getKey())) {
-            // 查询请求事件
-            BusinessApi businessApi = businessApiService.selectByObjectId(id);
-            operate.setBusinessApi(businessApi);
-        } else if (StrUtil.equals(operate.getEventType(), EventType.OPEN_PAGE.getKey())) {
-            // 查询新开页面事件
-            OperateOpenPage operateOpenPage = operateOpenPageService.selectByOperateId(id);
-            operate.setOperateOpenPage(operateOpenPage);
         }
         return operate;
     }

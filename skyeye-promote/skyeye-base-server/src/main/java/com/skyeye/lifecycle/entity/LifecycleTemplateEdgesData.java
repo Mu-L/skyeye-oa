@@ -7,14 +7,12 @@ package com.skyeye.lifecycle.entity;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.operate.entity.Operate;
 import lombok.Data;
-
-import java.util.List;
 
 /**
  * @ClassName: LifecycleTemplateEdgesData
@@ -52,4 +50,8 @@ public class LifecycleTemplateEdgesData extends OperatorUserInfo {
     @TableField(value = "action_id")
     @ApiModelProperty(value = "操作id")
     private String actionId;
+
+    @TableField(exist = false)
+    @Property("操作信息")
+    private Operate actionMation;
 }

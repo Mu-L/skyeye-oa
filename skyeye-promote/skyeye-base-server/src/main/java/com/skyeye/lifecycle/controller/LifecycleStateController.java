@@ -57,6 +57,14 @@ public class LifecycleStateController {
         lifecycleStateService.selectById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryLifecycleStateByIds", value = "根据id批量获取状态信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "ids", name = "ids", value = "主键id，多个id用英文逗号分隔", required = "required")})
+    @RequestMapping("/post/LifecycleStateController/queryLifecycleStateByIds")
+    public void queryLifecycleStateByIds(InputObject inputObject, OutputObject outputObject) {
+        lifecycleStateService.selectByIds(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "deleteLifecycleStateById", value = "根据id删除状态信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

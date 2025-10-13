@@ -9,8 +9,12 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.attr.classenum.ButtonColorType;
 import com.skyeye.business.entity.BusinessApi;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.operate.classenum.EventType;
+import com.skyeye.operate.classenum.OperatePosition;
+import com.skyeye.operate.classenum.PageOpenType;
 import lombok.Data;
 
 import java.util.List;
@@ -30,11 +34,11 @@ import java.util.List;
 public class Operate extends BaseGeneralInfo {
 
     @TableField("position")
-    @ApiModelProperty(value = "展示位置，参考#OperatePosition", required = "required")
+    @ApiModelProperty(value = "展示位置", enumClass = OperatePosition.class, required = "required")
     private String position;
 
     @TableField("color")
-    @ApiModelProperty(value = "操作按钮的颜色，展示位置为操作栏时必填，参考#ButtonColorType")
+    @ApiModelProperty(value = "操作按钮的颜色，展示位置为操作栏时必填", enumClass = ButtonColorType.class)
     private String color;
 
     @TableField("auth_point_num")
@@ -42,7 +46,7 @@ public class Operate extends BaseGeneralInfo {
     private String authPointNum;
 
     @TableField("event_type")
-    @ApiModelProperty(value = "事件类型，参考#EventType", required = "required")
+    @ApiModelProperty(value = "事件类型", enumClass = EventType.class, required = "required")
     private String eventType;
 
     @TableField(value = "order_by")
@@ -62,7 +66,7 @@ public class Operate extends BaseGeneralInfo {
     private BusinessApi businessApi;
 
     @TableField(value = "open_type")
-    @ApiModelProperty(value = "页面布局打开方式，参考#PageOpenType")
+    @ApiModelProperty(value = "页面布局打开方式", enumClass = PageOpenType.class)
     private Integer openType;
 
     @TableField(exist = false)

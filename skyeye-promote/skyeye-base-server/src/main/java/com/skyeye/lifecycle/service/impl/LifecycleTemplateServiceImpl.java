@@ -20,6 +20,8 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.lifecycle.dao.LifecycleTemplateDao;
 import com.skyeye.lifecycle.entity.*;
 import com.skyeye.lifecycle.service.*;
+import com.skyeye.operate.entity.Operate;
+import com.skyeye.operate.service.OperateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +53,9 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
 
     @Autowired
     private LifecycleTemplateMasterService lifecycleTemplateMasterService;
+
+    @Autowired
+    private OperateService operateService;
 
     @Override
     public QueryWrapper<LifecycleTemplate> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -144,6 +149,30 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
                 }
             }
         }
+        if (CollectionUtil.isNotEmpty(lifecycleTemplate.getEdges())) {
+            // 查询连线操作信息
+            List<String> operateIdList = lifecycleTemplate.getEdges().stream()
+                .filter(lifecycleTemplateEdges -> ObjectUtil.isNotEmpty(lifecycleTemplateEdges.getData()))
+                .map(lifecycleTemplateEdges -> lifecycleTemplateEdges.getData().getActionId())
+                .filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+            if (CollectionUtil.isNotEmpty(operateIdList)) {
+                Map<String, Operate> operateMap = operateService.selectMapByIds(operateIdList);
+                for (LifecycleTemplateEdges lifecycleTemplateEdges : lifecycleTemplate.getEdges()) {
+                    if (ObjectUtil.isEmpty(lifecycleTemplateEdges.getData())) {
+                        continue;
+                    }
+                    String actionId = lifecycleTemplateEdges.getData().getActionId();
+                    if (StrUtil.isBlank(actionId)) {
+                        continue;
+                    }
+                    Operate operate = operateMap.get(actionId);
+                    if (ObjectUtil.isEmpty(operate)) {
+                        continue;
+                    }
+                    lifecycleTemplateEdges.getData().setActionMation(operate);
+                }
+            }
+        }
         lifecycleTemplateMasterService.setDataMation(lifecycleTemplate, LifecycleTemplate::getMasterId);
         return lifecycleTemplate;
     }
@@ -152,6 +181,14 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
     public List<LifecycleTemplate> selectByIds(String... ids) {
         List<LifecycleTemplate> lifecycleTemplates = super.selectByIds(ids);
 
+        setStateMation(lifecycleTemplates);
+
+        setActionMation(lifecycleTemplates);
+
+        return lifecycleTemplates;
+    }
+
+    private void setStateMation(List<LifecycleTemplate> lifecycleTemplates) {
         // 收集所有模板中的所有状态ID
         List<String> allStateIdList = lifecycleTemplates.stream()
             .filter(lifecycleTemplate -> CollectionUtil.isNotEmpty(lifecycleTemplate.getNodes()))
@@ -187,8 +224,39 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
                 lifecycleTemplateNode.getData().setStateMation(lifecycleState);
             }
         }
+    }
 
-        return lifecycleTemplates;
+    private void setActionMation(List<LifecycleTemplate> lifecycleTemplates) {
+        // 收集所有模板中的所有操作ID
+        List<String> allOperateIdList = lifecycleTemplates.stream()
+            .filter(lifecycleTemplate -> CollectionUtil.isNotEmpty(lifecycleTemplate.getEdges()))
+            .flatMap(lifecycleTemplate -> lifecycleTemplate.getEdges().stream())
+            .filter(lifecycleTemplateEdges -> ObjectUtil.isNotEmpty(lifecycleTemplateEdges.getData()))
+            .map(lifecycleTemplateEdges -> lifecycleTemplateEdges.getData().getActionId())
+            .filter(StrUtil::isNotBlank)
+            .distinct()
+            .collect(Collectors.toList());
+        // 一次性批量查询所有操作信息
+        Map<String, Operate> operateMap = operateService.selectMapByIds(allOperateIdList);
+        for (LifecycleTemplate lifecycleTemplate : lifecycleTemplates) {
+            if (CollectionUtil.isNotEmpty(lifecycleTemplate.getEdges())) {
+                continue;
+            }
+            for (LifecycleTemplateEdges lifecycleTemplateEdges : lifecycleTemplate.getEdges()) {
+                if (ObjectUtil.isNotEmpty(lifecycleTemplateEdges.getData())) {
+                    continue;
+                }
+                String actionId = lifecycleTemplateEdges.getData().getActionId();
+                if (StrUtil.isBlank(actionId)) {
+                    continue;
+                }
+                Operate operate = operateMap.get(actionId);
+                if (ObjectUtil.isEmpty(operate)) {
+                    continue;
+                }
+                lifecycleTemplateEdges.getData().setActionMation(operate);
+            }
+        }
     }
 
     @Override
@@ -236,5 +304,20 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
         LifecycleTemplate lifecycleTemplate = querCurrentLifecycleTemplateByMasterId(lifecycleTemplateMaster.getId());
         outputObject.setBean(lifecycleTemplate);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public void publishVersionById(InputObject inputObject, OutputObject outputObject) {
+        super.publishVersionById(inputObject, outputObject);
+        String id = inputObject.getParams().get("id").toString();
+        LifecycleTemplate lifecycleTemplate = selectById(id);
+        List<String> stateIdList = lifecycleTemplate.getNodes().stream()
+            .filter(lifecycleTemplateNode -> ObjectUtil.isNotEmpty(lifecycleTemplateNode.getData()))
+            .map(lifecycleTemplateNode -> lifecycleTemplateNode.getData().getState())
+            .filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(stateIdList)) {
+            // 修改状态为使用中
+            lifecycleStateService.setUsed(stateIdList);
+        }
     }
 }
