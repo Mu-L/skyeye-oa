@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.operate.entity.Operate;
 import lombok.Data;
 
 /**
@@ -69,5 +70,9 @@ public class LifecycleTemplateNodeData extends OperatorUserInfo {
     @TableField(value = "action_id")
     @ApiModelProperty(value = "操作id", required = "json")
     private String actionId;
+
+    @TableField(exist = false)
+    @Property("操作信息")
+    private Operate actionMation;
 
 }

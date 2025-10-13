@@ -12,6 +12,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.LifecycleTemplateNodeType;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
@@ -149,14 +150,27 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
                 }
             }
         }
-        if (CollectionUtil.isNotEmpty(lifecycleTemplate.getEdges())) {
-            // 查询连线操作信息
-            List<String> operateIdList = lifecycleTemplate.getEdges().stream()
-                .filter(lifecycleTemplateEdges -> ObjectUtil.isNotEmpty(lifecycleTemplateEdges.getData()))
-                .map(lifecycleTemplateEdges -> lifecycleTemplateEdges.getData().getActionId())
-                .filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
-            if (CollectionUtil.isNotEmpty(operateIdList)) {
-                Map<String, Operate> operateMap = operateService.selectMapByIds(operateIdList);
+        // 收集连线与节点中的操作ID，统一查询并回填操作信息
+        List<String> edgeOperateIdList = CollectionUtil.isNotEmpty(lifecycleTemplate.getEdges())
+            ? lifecycleTemplate.getEdges().stream()
+            .filter(lifecycleTemplateEdges -> ObjectUtil.isNotEmpty(lifecycleTemplateEdges.getData()))
+            .map(lifecycleTemplateEdges -> lifecycleTemplateEdges.getData().getActionId())
+            .filter(StrUtil::isNotBlank)
+            .collect(Collectors.toList())
+            : java.util.Collections.emptyList();
+        List<String> nodeOperateIdList = CollectionUtil.isNotEmpty(lifecycleTemplate.getNodes())
+            ? lifecycleTemplate.getNodes().stream()
+            .filter(lifecycleTemplateNode -> ObjectUtil.isNotEmpty(lifecycleTemplateNode.getData())
+                && StrUtil.equals(lifecycleTemplateNode.getType(), LifecycleTemplateNodeType.ACTION_NODE.getKey()))
+            .map(lifecycleTemplateNode -> lifecycleTemplateNode.getData().getActionId())
+            .filter(StrUtil::isNotBlank)
+            .collect(Collectors.toList())
+            : java.util.Collections.emptyList();
+        List<String> operateIdList = java.util.stream.Stream.concat(edgeOperateIdList.stream(), nodeOperateIdList.stream())
+            .distinct().collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(operateIdList)) {
+            Map<String, Operate> operateMap = operateService.selectMapByIds(operateIdList);
+            if (CollectionUtil.isNotEmpty(lifecycleTemplate.getEdges())) {
                 for (LifecycleTemplateEdges lifecycleTemplateEdges : lifecycleTemplate.getEdges()) {
                     if (ObjectUtil.isEmpty(lifecycleTemplateEdges.getData())) {
                         continue;
@@ -170,6 +184,22 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
                         continue;
                     }
                     lifecycleTemplateEdges.getData().setActionMation(operate);
+                }
+            }
+            if (CollectionUtil.isNotEmpty(lifecycleTemplate.getNodes())) {
+                for (LifecycleTemplateNode lifecycleTemplateNode : lifecycleTemplate.getNodes()) {
+                    if (ObjectUtil.isEmpty(lifecycleTemplateNode.getData())) {
+                        continue;
+                    }
+                    String actionId = lifecycleTemplateNode.getData().getActionId();
+                    if (StrUtil.isBlank(actionId)) {
+                        continue;
+                    }
+                    Operate operate = operateMap.get(actionId);
+                    if (ObjectUtil.isEmpty(operate)) {
+                        continue;
+                    }
+                    lifecycleTemplateNode.getData().setActionMation(operate);
                 }
             }
         }
@@ -227,34 +257,63 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
     }
 
     private void setActionMation(List<LifecycleTemplate> lifecycleTemplates) {
-        // 收集所有模板中的所有操作ID
-        List<String> allOperateIdList = lifecycleTemplates.stream()
+        // 收集所有模板中的操作ID（连线 + 节点）
+        List<String> edgeOperateIdList = lifecycleTemplates.stream()
             .filter(lifecycleTemplate -> CollectionUtil.isNotEmpty(lifecycleTemplate.getEdges()))
             .flatMap(lifecycleTemplate -> lifecycleTemplate.getEdges().stream())
             .filter(lifecycleTemplateEdges -> ObjectUtil.isNotEmpty(lifecycleTemplateEdges.getData()))
             .map(lifecycleTemplateEdges -> lifecycleTemplateEdges.getData().getActionId())
             .filter(StrUtil::isNotBlank)
-            .distinct()
             .collect(Collectors.toList());
+        List<String> nodeOperateIdList = lifecycleTemplates.stream()
+            .filter(lifecycleTemplate -> CollectionUtil.isNotEmpty(lifecycleTemplate.getNodes()))
+            .flatMap(lifecycleTemplate -> lifecycleTemplate.getNodes().stream())
+            .filter(lifecycleTemplateNode -> ObjectUtil.isNotEmpty(lifecycleTemplateNode.getData())
+                && StrUtil.equals(lifecycleTemplateNode.getType(), LifecycleTemplateNodeType.ACTION_NODE.getKey()))
+            .map(lifecycleTemplateNode -> lifecycleTemplateNode.getData().getActionId())
+            .filter(StrUtil::isNotBlank)
+            .collect(Collectors.toList());
+        List<String> allOperateIdList = java.util.stream.Stream.concat(edgeOperateIdList.stream(), nodeOperateIdList.stream())
+            .distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(allOperateIdList)) {
+            return;
+        }
         // 一次性批量查询所有操作信息
         Map<String, Operate> operateMap = operateService.selectMapByIds(allOperateIdList);
+        // 回填连线的操作信息
         for (LifecycleTemplate lifecycleTemplate : lifecycleTemplates) {
             if (CollectionUtil.isNotEmpty(lifecycleTemplate.getEdges())) {
-                continue;
+                for (LifecycleTemplateEdges lifecycleTemplateEdges : lifecycleTemplate.getEdges()) {
+                    if (ObjectUtil.isEmpty(lifecycleTemplateEdges.getData())) {
+                        continue;
+                    }
+                    String actionId = lifecycleTemplateEdges.getData().getActionId();
+                    if (StrUtil.isBlank(actionId)) {
+                        continue;
+                    }
+                    Operate operate = operateMap.get(actionId);
+                    if (ObjectUtil.isEmpty(operate)) {
+                        continue;
+                    }
+                    lifecycleTemplateEdges.getData().setActionMation(operate);
+                }
             }
-            for (LifecycleTemplateEdges lifecycleTemplateEdges : lifecycleTemplate.getEdges()) {
-                if (ObjectUtil.isNotEmpty(lifecycleTemplateEdges.getData())) {
-                    continue;
+            // 回填操作节点上的操作信息
+            if (CollectionUtil.isNotEmpty(lifecycleTemplate.getNodes())) {
+                for (LifecycleTemplateNode lifecycleTemplateNode : lifecycleTemplate.getNodes()) {
+                    if (ObjectUtil.isEmpty(lifecycleTemplateNode.getData())) {
+                        continue;
+                    }
+                    String actionId = lifecycleTemplateNode.getData().getActionId();
+                    if (StrUtil.isBlank(actionId)) {
+                        continue;
+                    }
+                    Operate operate = operateMap.get(actionId);
+                    if (ObjectUtil.isEmpty(operate)) {
+                        continue;
+                    }
+                    lifecycleTemplateNode.getData().setActionMation(operate);
                 }
-                String actionId = lifecycleTemplateEdges.getData().getActionId();
-                if (StrUtil.isBlank(actionId)) {
-                    continue;
-                }
-                Operate operate = operateMap.get(actionId);
-                if (ObjectUtil.isEmpty(operate)) {
-                    continue;
-                }
-                lifecycleTemplateEdges.getData().setActionMation(operate);
             }
         }
     }
