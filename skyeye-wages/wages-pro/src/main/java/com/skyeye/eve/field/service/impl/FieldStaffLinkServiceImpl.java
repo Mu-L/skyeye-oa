@@ -121,6 +121,9 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
         String fieldStr = map.get("fieldStr").toString();
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         List<Map<String, Object>> wagesModelFieldMation = JSONUtil.toList(JSONUtil.parseArray(fieldStr), null);
+        wagesModelFieldMation.forEach(bean -> {
+            bean.put("staffId", staffId);
+        });
         // 保存薪资要素字段信息
         skyeyeBaseMapper.saveStaffWagesModelFieldMation(wagesModelFieldMation, tenantId);
         // 保存员工月标准薪资信息以及设定状态
