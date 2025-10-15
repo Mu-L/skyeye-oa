@@ -55,4 +55,8 @@ public class LifecycleState extends BaseGeneralInfo {
     @ApiModelProperty(value = "服务类的className", required = "required")
     private String className;
 
+    @TableField(value = "tenant_id", updateStrategy = FieldStrategy.NEVER)
+    @Property(value = "租户id")
+    private String tenantId;
+
 }

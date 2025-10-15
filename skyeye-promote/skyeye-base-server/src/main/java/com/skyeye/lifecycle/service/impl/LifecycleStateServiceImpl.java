@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "生命周期状态管理", groupName = "生命周期管理", tenant = TenantEnum.PLATE)
+@SkyeyeService(name = "生命周期状态管理", groupName = "生命周期管理", tenant = TenantEnum.WEAK_ISOLATION)
 public class LifecycleStateServiceImpl extends SkyeyeBusinessServiceImpl<LifecycleStateDao, LifecycleState> implements LifecycleStateService {
 
     @Override

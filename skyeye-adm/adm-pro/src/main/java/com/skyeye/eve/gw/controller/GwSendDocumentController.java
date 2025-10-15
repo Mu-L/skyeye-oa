@@ -33,12 +33,6 @@ public class GwSendDocumentController {
     @Autowired
     private GwSendDocumentService gwSendDocumentService;
 
-    /**
-     * 获取公文发文列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryGwSendDocumentList", value = "获取公文发文列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/GwSendDocumentController/queryGwSendDocumentList")
@@ -46,12 +40,6 @@ public class GwSendDocumentController {
         gwSendDocumentService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑公文发文
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeGwSendDocument", value = "新增/编辑公文发文", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = GwSendDocument.class)
     @RequestMapping("/post/GwSendDocumentController/writeGwSendDocument")
@@ -59,12 +47,6 @@ public class GwSendDocumentController {
         gwSendDocumentService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 公文发文提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "submitGwSendDocumentToApproval", value = "公文发文提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/GwSendDocumentController/submitToApproval")
@@ -72,12 +54,6 @@ public class GwSendDocumentController {
         gwSendDocumentService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 公文发文详情
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryGwSendDocumentById", value = "公文发文详情", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,12 +62,6 @@ public class GwSendDocumentController {
         gwSendDocumentService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 作废公文发文
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "invalidGwSendDocument", value = "作废公文发文", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -100,12 +70,6 @@ public class GwSendDocumentController {
         gwSendDocumentService.invalid(inputObject, outputObject);
     }
 
-    /**
-     * 撤销公文发文
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokeGwSendDocument", value = "撤销公文发文", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})

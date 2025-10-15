@@ -33,7 +33,7 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 @Service
-@SkyeyeService(name = "生命周期模板主表管理", groupName = "生命周期管理", tenant = TenantEnum.PLATE)
+@SkyeyeService(name = "生命周期模板主表管理", groupName = "生命周期管理", tenant = TenantEnum.WEAK_ISOLATION)
 public class LifecycleTemplateMasterServiceImpl extends SkyeyeBusinessServiceImpl<LifecycleTemplateMasterDao, LifecycleTemplateMaster> implements LifecycleTemplateMasterService {
 
     @Override
