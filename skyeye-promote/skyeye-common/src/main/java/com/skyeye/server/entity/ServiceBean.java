@@ -122,7 +122,7 @@ public class ServiceBean extends CommonInfo {
     private String redisCacheTime;
 
     @TableField(value = "redis_cache_value", typeHandler = JacksonTypeHandler.class)
-    @ApiModelProperty(value = "redis缓存的键", defaultValue = "id")
+    @ApiModelProperty(value = "redis缓存的键", defaultValue = "[\"id\"]")
     private List<String> redisCacheValue;
 
     @TableField(value = "`type`", updateStrategy = FieldStrategy.NEVER)
