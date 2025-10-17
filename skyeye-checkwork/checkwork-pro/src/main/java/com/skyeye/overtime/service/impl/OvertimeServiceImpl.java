@@ -7,7 +7,7 @@ package com.skyeye.overtime.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "加班申请", groupName = "加班申请", flowable = true)
-public class OvertimeServiceImpl extends SkyeyeFlowableServiceImpl<OvertimeDao, OverTime> implements OvertimeService {
+public class OvertimeServiceImpl extends SkyeyeBusinessServiceImpl<OvertimeDao, OverTime> implements OvertimeService {
 
     @Autowired
     private OverTimeSlotService overTimeSlotService;
@@ -58,7 +58,7 @@ public class OvertimeServiceImpl extends SkyeyeFlowableServiceImpl<OvertimeDao, 
     private SysEveUserService sysEveUserService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
         if (tenantEnable) {
@@ -74,12 +74,12 @@ public class OvertimeServiceImpl extends SkyeyeFlowableServiceImpl<OvertimeDao, 
     }
 
     @Override
-    public void writeChild(OverTime entity, String userId) {
+    public void writePostpose(OverTime entity, String userId) {
         entity.getOverTimeSlotList().forEach(overTimeSlot -> {
             overTimeSlot.setSettleState(OvertimeSoltSettleState.WAIT_STATISTICS.getKey());
         });
         overTimeSlotService.saveLinkList(entity.getId(), entity.getOverTimeSlotList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     private void chectOrderItem(List<OverTimeSlot> overTimeSlots) {

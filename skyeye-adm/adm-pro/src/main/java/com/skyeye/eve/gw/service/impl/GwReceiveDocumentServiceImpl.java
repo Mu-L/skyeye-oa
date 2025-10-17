@@ -6,7 +6,7 @@ package com.skyeye.eve.gw.service.impl;
 
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.eve.gw.dao.GwReceiveDocumentDao;
 import com.skyeye.eve.gw.entity.GwReceiveDocument;
@@ -28,7 +28,7 @@ import java.util.Map;
  */
 @Service
 @SkyeyeService(name = "公文收文管理", groupName = "公文收文管理", flowable = true)
-public class GwReceiveDocumentServiceImpl extends SkyeyeFlowableServiceImpl<GwReceiveDocumentDao, GwReceiveDocument> implements GwReceiveDocumentService {
+public class GwReceiveDocumentServiceImpl extends SkyeyeBusinessServiceImpl<GwReceiveDocumentDao, GwReceiveDocument> implements GwReceiveDocumentService {
 
     @Autowired
     private IDepmentService iDepmentService;

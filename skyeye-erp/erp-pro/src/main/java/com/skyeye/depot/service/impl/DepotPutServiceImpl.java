@@ -146,8 +146,8 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
     }
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         if (!StrUtil.equals(commonPageInfo.getType(), "AllWait") && !StrUtil.equals(commonPageInfo.getType(), "AllComplate")) {
             // 查询仓库入库单
@@ -217,10 +217,10 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
     }
 
     @Override
-    public void writeChild(DepotPut entity, String userId) {
+    public void writePostpose(DepotPut entity, String userId) {
         // 保存单据子表关联的条形码编号信息
         super.saveErpOrderItemCode(entity);
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

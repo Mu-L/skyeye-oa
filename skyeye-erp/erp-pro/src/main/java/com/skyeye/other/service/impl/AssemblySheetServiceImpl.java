@@ -54,10 +54,10 @@ public class AssemblySheetServiceImpl extends SkyeyeErpOrderServiceImpl<Assembly
     }
 
     @Override
-    public void writeChild(AssemblySheet entity, String userId) {
+    public void writePostpose(AssemblySheet entity, String userId) {
         // 保存单据子表关联的条形码编号信息
         super.saveErpOrderItemCode(entity);
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

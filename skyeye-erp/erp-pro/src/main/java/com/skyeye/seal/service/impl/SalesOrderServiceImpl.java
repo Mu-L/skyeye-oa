@@ -104,8 +104,8 @@ public class SalesOrderServiceImpl extends SkyeyeErpOrderServiceImpl<SalesOrderD
     }
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         iContractService.setMationForMap(beans, "fromId", "fromMation");
         return beans;
     }

@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "费用申请", groupName = "费用申请", flowable = true)
-public class FeeApplicationServiceImpl extends SkyeyeFlowableServiceImpl<FeeApplicationDao, FeeApplication> implements FeeApplicationService {
+public class FeeApplicationServiceImpl extends SkyeyeBusinessServiceImpl<FeeApplicationDao, FeeApplication> implements FeeApplicationService {
 
     @Autowired
     private IDepmentService iDepmentService;

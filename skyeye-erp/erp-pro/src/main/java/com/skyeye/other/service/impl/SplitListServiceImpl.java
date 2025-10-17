@@ -54,10 +54,10 @@ public class SplitListServiceImpl extends SkyeyeErpOrderServiceImpl<SplitListDao
     }
 
     @Override
-    public void writeChild(SplitList entity, String userId) {
+    public void writePostpose(SplitList entity, String userId) {
         // 保存单据子表关联的条形码编号信息
         super.saveErpOrderItemCode(entity);
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

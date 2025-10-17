@@ -9,7 +9,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "资产采购", groupName = "资产模块", flowable = true)
-public class AssetPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<AssetPurchaseDao, AssetPurchase> implements AssetPurchaseService {
+public class AssetPurchaseServiceImpl extends SkyeyeBusinessServiceImpl<AssetPurchaseDao, AssetPurchase> implements AssetPurchaseService {
 
     @Autowired
     private AssetPurchaseLinkService assetPurchaseLinkService;
@@ -102,9 +102,9 @@ public class AssetPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<AssetPur
     }
 
     @Override
-    public void writeChild(AssetPurchase entity, String userId) {
+    public void writePostpose(AssetPurchase entity, String userId) {
         assetPurchaseLinkService.saveLinkList(entity.getId(), entity.getPurchaseLinks());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     private void checkOrderItem(List<AssetPurchaseLink> assetPurchaseLinks) {

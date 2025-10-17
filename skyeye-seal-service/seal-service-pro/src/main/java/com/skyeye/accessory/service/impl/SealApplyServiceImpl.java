@@ -20,7 +20,7 @@ import com.skyeye.accessory.service.SealApplyCodeService;
 import com.skyeye.accessory.service.SealApplyService;
 import com.skyeye.accessory.service.ServiceUserStockService;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "配件申领单", groupName = "配件申领单管理", flowable = true)
-public class SealApplyServiceImpl extends SkyeyeFlowableServiceImpl<SealApplyDao, SealApply> implements SealApplyService {
+public class SealApplyServiceImpl extends SkyeyeBusinessServiceImpl<SealApplyDao, SealApply> implements SealApplyService {
 
     @Autowired
     private ApplyLinkService applyLinkService;
@@ -93,9 +93,9 @@ public class SealApplyServiceImpl extends SkyeyeFlowableServiceImpl<SealApplyDao
     }
 
     @Override
-    public void writeChild(SealApply entity, String userId) {
+    public void writePostpose(SealApply entity, String userId) {
         applyLinkService.saveLinkList(entity.getId(), entity.getApplyLinkList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

@@ -11,7 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "项目管理", groupName = "项目管理", flowable = true)
-public class ProProjectServiceImpl extends SkyeyeFlowableServiceImpl<ProProjectDao, Project> implements ProProjectService, CatalogSdkService {
+public class ProProjectServiceImpl extends SkyeyeBusinessServiceImpl<ProProjectDao, Project> implements ProProjectService, CatalogSdkService {
 
     @Autowired
     private IDepmentService iDepmentService;
@@ -113,8 +113,8 @@ public class ProProjectServiceImpl extends SkyeyeFlowableServiceImpl<ProProjectD
     }
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         return beans;
     }
 

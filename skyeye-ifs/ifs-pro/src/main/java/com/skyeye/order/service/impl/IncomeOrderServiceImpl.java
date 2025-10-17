@@ -10,7 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.account.service.AccountService;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.books.service.IfsSetOfBooksService;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "财务凭证管理", groupName = "财务凭证管理", flowable = true)
-public class IncomeOrderServiceImpl extends SkyeyeFlowableServiceImpl<IncomeOrderDao, IncomeOrder> implements IncomeOrderService {
+public class IncomeOrderServiceImpl extends SkyeyeBusinessServiceImpl<IncomeOrderDao, IncomeOrder> implements IncomeOrderService {
 
     @Autowired
     private IncomeOrderItemService incomeOrderItemService;
@@ -123,9 +123,9 @@ public class IncomeOrderServiceImpl extends SkyeyeFlowableServiceImpl<IncomeOrde
     }
 
     @Override
-    public void writeChild(IncomeOrder entity, String userId) {
+    public void writePostpose(IncomeOrder entity, String userId) {
         incomeOrderItemService.saveLinkList(entity.getId(), entity.getInitem());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

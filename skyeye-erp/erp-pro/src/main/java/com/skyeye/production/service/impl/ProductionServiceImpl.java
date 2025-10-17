@@ -11,7 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.bom.entity.Bom;
 import com.skyeye.bom.service.BomService;
 import com.skyeye.common.constans.CommonCharConstants;
@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "生产计划单管理", groupName = "生产计划单管理", flowable = true)
-public class ProductionServiceImpl extends SkyeyeFlowableServiceImpl<ProductionDao, Production> implements ProductionService {
+public class ProductionServiceImpl extends SkyeyeBusinessServiceImpl<ProductionDao, Production> implements ProductionService {
 
     @Autowired
     private ProductionChildService productionChildService;
@@ -84,8 +84,8 @@ public class ProductionServiceImpl extends SkyeyeFlowableServiceImpl<ProductionD
     private WholeOrderOutService wholeOrderOutService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         productionPlanService.setOrderMationByFromId(beans, "fromId", "fromMation");
         return beans;
     }
@@ -115,10 +115,10 @@ public class ProductionServiceImpl extends SkyeyeFlowableServiceImpl<ProductionD
     }
 
     @Override
-    public void writeChild(Production entity, String userId) {
+    public void writePostpose(Production entity, String userId) {
         // 保存子单据信息
         productionChildService.saveList(entity.getId(), entity.getProductionChildList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

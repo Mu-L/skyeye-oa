@@ -7,7 +7,7 @@ package com.skyeye.quit.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.centerrest.entity.staff.UserStaffLeaveRest;
 import com.skyeye.centerrest.user.SysEveUserStaffService;
 import com.skyeye.common.client.ExecuteFeignClient;
@@ -39,13 +39,13 @@ import java.util.Map;
  */
 @Service
 @SkyeyeService(name = "离职申请", groupName = "离职申请", flowable = true)
-public class QuitServiceImpl extends SkyeyeFlowableServiceImpl<QuitDao, Quit> implements QuitService {
+public class QuitServiceImpl extends SkyeyeBusinessServiceImpl<QuitDao, Quit> implements QuitService {
 
     @Autowired
     private SysEveUserStaffService sysEveUserStaffService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryBossInterviewQuitList(pageInfo);

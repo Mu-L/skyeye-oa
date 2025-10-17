@@ -9,7 +9,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "套餐退款订单管理", groupName = "套餐退款订单管理", flowable = true)
-public class MealRefundOrderServiceImpl extends SkyeyeFlowableServiceImpl<MealRefundOrderDao, MealRefundOrder> implements MealRefundOrderService {
+public class MealRefundOrderServiceImpl extends SkyeyeBusinessServiceImpl<MealRefundOrderDao, MealRefundOrder> implements MealRefundOrderService {
 
     @Autowired
     private MealOrderChildService mealOrderChildService;

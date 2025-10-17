@@ -8,7 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.cancleleave.dao.CancelLeaveDao;
 import com.skyeye.cancleleave.entity.CancelLeave;
 import com.skyeye.cancleleave.entity.CancelLeaveTimeSlot;
@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "销假申请", groupName = "销假申请", flowable = true)
-public class CancelLeaveServiceImpl extends SkyeyeFlowableServiceImpl<CancelLeaveDao, CancelLeave> implements CancelLeaveService {
+public class CancelLeaveServiceImpl extends SkyeyeBusinessServiceImpl<CancelLeaveDao, CancelLeave> implements CancelLeaveService {
 
     @Autowired
     private CheckWorkTimeService checkWorkTimeService;
@@ -76,9 +76,9 @@ public class CancelLeaveServiceImpl extends SkyeyeFlowableServiceImpl<CancelLeav
     }
 
     @Override
-    public void writeChild(CancelLeave entity, String userId) {
+    public void writePostpose(CancelLeave entity, String userId) {
         cancelLeaveTimeSlotService.saveLinkList(entity.getId(), entity.getCancelLeaveTimeSlotList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     private void checkOrderItem(List<CancelLeaveTimeSlot> cancelLeaveTimeSlots) {

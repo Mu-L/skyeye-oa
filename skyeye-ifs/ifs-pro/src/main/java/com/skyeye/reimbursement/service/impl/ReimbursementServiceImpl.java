@@ -7,7 +7,7 @@ package com.skyeye.reimbursement.service.impl;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
@@ -37,7 +37,7 @@ import java.util.Map;
  */
 @Service
 @SkyeyeService(name = "报销订单", groupName = "报销订单", flowable = true)
-public class ReimbursementServiceImpl extends SkyeyeFlowableServiceImpl<ReimbursementDao, Reimbursement> implements ReimbursementService {
+public class ReimbursementServiceImpl extends SkyeyeBusinessServiceImpl<ReimbursementDao, Reimbursement> implements ReimbursementService {
 
     @Autowired
     private ReimbursementChildService reimbursementChildService;
@@ -68,9 +68,9 @@ public class ReimbursementServiceImpl extends SkyeyeFlowableServiceImpl<Reimburs
     }
 
     @Override
-    public void writeChild(Reimbursement entity, String userId) {
+    public void writePostpose(Reimbursement entity, String userId) {
         reimbursementChildService.saveLinkList(entity.getId(), entity.getReimbursementChildList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

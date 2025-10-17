@@ -4,7 +4,7 @@
 
 package com.skyeye.eve.conference.service;
 
-import com.skyeye.base.business.service.SkyeyeFlowableService;
+import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.eve.conference.entity.ConferenceRoomReserve;
 
 /**
@@ -15,6 +15,6 @@ import com.skyeye.eve.conference.entity.ConferenceRoomReserve;
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
-public interface ConferenceRoomReserveService extends SkyeyeFlowableService<ConferenceRoomReserve> {
+public interface ConferenceRoomReserveService extends SkyeyeBusinessService<ConferenceRoomReserve> {
 
 }

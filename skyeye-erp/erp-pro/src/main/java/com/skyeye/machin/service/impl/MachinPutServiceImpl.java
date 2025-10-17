@@ -61,8 +61,8 @@ public class MachinPutServiceImpl extends SkyeyeErpOrderServiceImpl<MachinPutDao
     }
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         // 部门
         iDepmentService.setMationForMap(beans, "departmentId", "departmentMation");
         // 业务员

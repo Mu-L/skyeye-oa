@@ -9,7 +9,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Slf4j
-public class ErpPickServiceImpl<D extends SkyeyeBaseMapper<T>, T extends Pick> extends SkyeyeFlowableServiceImpl<D, T> implements ErpPickService<T> {
+public class ErpPickServiceImpl<D extends SkyeyeBaseMapper<T>, T extends Pick> extends SkyeyeBusinessServiceImpl<D, T> implements ErpPickService<T> {
 
     @Autowired
     private MachinService machinService;
@@ -86,8 +86,8 @@ public class ErpPickServiceImpl<D extends SkyeyeBaseMapper<T>, T extends Pick> e
     }
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         machinService.setMationForMap(beans, "fromId", "fromMation");
         farmService.setMationForMap(beans, "farmId", "farmMation");
         iDepmentService.setMationForMap(beans, "departmentId", "departmentMation");
@@ -105,9 +105,9 @@ public class ErpPickServiceImpl<D extends SkyeyeBaseMapper<T>, T extends Pick> e
     }
 
     @Override
-    public void writeChild(T entity, String userId) {
+    public void writePostpose(T entity, String userId) {
         pickChildService.saveList(entity.getId(), entity.getPickChildList(), userId);
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

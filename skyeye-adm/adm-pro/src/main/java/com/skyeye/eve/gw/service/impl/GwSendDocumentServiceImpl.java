@@ -12,7 +12,7 @@ import com.deepoove.poi.config.Configure;
 import com.deepoove.poi.data.Pictures;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.FileConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -61,7 +61,7 @@ import java.util.Map;
  */
 @Service
 @SkyeyeService(name = "公文发文管理", groupName = "公文发文管理", flowable = true)
-public class GwSendDocumentServiceImpl extends SkyeyeFlowableServiceImpl<GwSendDocumentDao, GwSendDocument> implements GwSendDocumentService {
+public class GwSendDocumentServiceImpl extends SkyeyeBusinessServiceImpl<GwSendDocumentDao, GwSendDocument> implements GwSendDocumentService {
 
     @Autowired
     private GwTemplatesService gwTemplatesService;
@@ -76,7 +76,7 @@ public class GwSendDocumentServiceImpl extends SkyeyeFlowableServiceImpl<GwSendD
     private String tPath;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setState(FlowableStateEnum.PASS.getKey());
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());

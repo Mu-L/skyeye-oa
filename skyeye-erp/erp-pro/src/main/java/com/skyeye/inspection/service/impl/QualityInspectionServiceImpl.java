@@ -11,7 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.business.classenum.OrderItemQualityInspectionType;
 import com.skyeye.business.classenum.OrderQualityInspectionType;
 import com.skyeye.common.constans.CommonCharConstants;
@@ -70,7 +70,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "质检单", groupName = "质检单", flowable = true)
-public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<QualityInspectionDao, QualityInspection> implements QualityInspectionService {
+public class QualityInspectionServiceImpl extends SkyeyeBusinessServiceImpl<QualityInspectionDao, QualityInspection> implements QualityInspectionService {
 
     @Autowired
     private QualityInspectionItemService qualityInspectionItemService;
@@ -115,8 +115,8 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
     }
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         purchaseDeliveryService.setOrderMationByFromId(beans, "fromId", "fromMation");
         return beans;
     }
@@ -128,9 +128,9 @@ public class QualityInspectionServiceImpl extends SkyeyeFlowableServiceImpl<Qual
     }
 
     @Override
-    public void writeChild(QualityInspection entity, String userId) {
+    public void writePostpose(QualityInspection entity, String userId) {
         qualityInspectionItemService.saveList(entity.getId(), entity.getQualityInspectionItemList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     private void checkOrderItem(QualityInspection entity) {

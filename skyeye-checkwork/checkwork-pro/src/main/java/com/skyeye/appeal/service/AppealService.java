@@ -5,7 +5,7 @@
 package com.skyeye.appeal.service;
 
 import com.skyeye.appeal.entity.Appeal;
-import com.skyeye.base.business.service.SkyeyeFlowableService;
+import com.skyeye.base.business.service.SkyeyeBusinessService;
 
 /**
  * @ClassName: AppealService
@@ -15,5 +15,5 @@ import com.skyeye.base.business.service.SkyeyeFlowableService;
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
-public interface AppealService extends SkyeyeFlowableService<Appeal> {
+public interface AppealService extends SkyeyeBusinessService<Appeal> {
 }

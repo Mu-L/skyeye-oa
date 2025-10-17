@@ -8,7 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "资产领用", groupName = "资产模块", flowable = true)
-public class AssetUseServiceImpl extends SkyeyeFlowableServiceImpl<AssetUseDao, AssetUse> implements AssetUseService {
+public class AssetUseServiceImpl extends SkyeyeBusinessServiceImpl<AssetUseDao, AssetUse> implements AssetUseService {
 
     @Autowired
     private AssetUseLinkService assetUseLinkService;
@@ -66,9 +66,9 @@ public class AssetUseServiceImpl extends SkyeyeFlowableServiceImpl<AssetUseDao, 
     }
 
     @Override
-    public void writeChild(AssetUse entity, String userId) {
+    public void writePostpose(AssetUse entity, String userId) {
         assetUseLinkService.saveLinkList(entity.getId(), entity.getUseLinks());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     private void chectOrderItem(List<AssetUseLink> useLinks) {

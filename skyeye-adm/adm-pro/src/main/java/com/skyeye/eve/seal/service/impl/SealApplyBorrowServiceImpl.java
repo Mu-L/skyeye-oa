@@ -8,7 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "印章借用", groupName = "印章模块", flowable = true)
-public class SealApplyBorrowServiceImpl extends SkyeyeFlowableServiceImpl<SealApplyBorrowDao, SealUse> implements SealApplyBorrowService {
+public class SealApplyBorrowServiceImpl extends SkyeyeBusinessServiceImpl<SealApplyBorrowDao, SealUse> implements SealApplyBorrowService {
 
     @Autowired
     private SealService sealService;
@@ -59,9 +59,9 @@ public class SealApplyBorrowServiceImpl extends SkyeyeFlowableServiceImpl<SealAp
     }
 
     @Override
-    public void writeChild(SealUse entity, String userId) {
+    public void writePostpose(SealUse entity, String userId) {
         sealUseLinkService.saveLinkList(entity.getId(), entity.getUseLinks());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

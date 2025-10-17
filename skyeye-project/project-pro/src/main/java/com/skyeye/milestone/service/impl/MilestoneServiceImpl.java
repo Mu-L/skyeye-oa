@@ -11,7 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -42,7 +42,7 @@ import java.util.Map;
  */
 @Service
 @SkyeyeService(name = "里程碑管理", groupName = "里程碑管理", flowable = true, teamAuth = true)
-public class MilestoneServiceImpl extends SkyeyeFlowableServiceImpl<MilestoneDao, Milestone> implements MilestoneService {
+public class MilestoneServiceImpl extends SkyeyeBusinessServiceImpl<MilestoneDao, Milestone> implements MilestoneService {
 
     @Override
     public Class getAuthEnumClass() {

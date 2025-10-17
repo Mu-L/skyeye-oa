@@ -7,7 +7,7 @@ package com.skyeye.loan.service.impl;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
@@ -36,7 +36,7 @@ import java.util.Map;
  */
 @Service
 @SkyeyeService(name = "还款单", groupName = "还款单", flowable = true)
-public class LoanRepayServiceImpl extends SkyeyeFlowableServiceImpl<LoanRepayDao, LoanRepay> implements LoanRepayService {
+public class LoanRepayServiceImpl extends SkyeyeBusinessServiceImpl<LoanRepayDao, LoanRepay> implements LoanRepayService {
 
     @Autowired
     private UserLoanService userLoanService;

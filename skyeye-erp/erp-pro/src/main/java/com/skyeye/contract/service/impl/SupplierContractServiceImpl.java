@@ -11,7 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "供应商合同管理", groupName = "供应商合同管理", flowable = true, teamAuth = true)
-public class SupplierContractServiceImpl extends SkyeyeFlowableServiceImpl<SupplierContractDao, SupplierContract> implements SupplierContractService {
+public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<SupplierContractDao, SupplierContract> implements SupplierContractService {
 
     @Autowired
     private IDepmentService iDepmentService;
@@ -206,9 +206,9 @@ public class SupplierContractServiceImpl extends SkyeyeFlowableServiceImpl<Suppl
     }
 
     @Override
-    public void writeChild(SupplierContract entity, String userId) {
+    public void writePostpose(SupplierContract entity, String userId) {
         supplierContractChildService.saveList(entity.getId(), entity.getSupplierContractChildList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

@@ -8,7 +8,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.appeal.dao.AppealDao;
 import com.skyeye.appeal.entity.Appeal;
 import com.skyeye.appeal.service.AppealService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.checkwork.service.CheckWorkService;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -28,13 +28,13 @@ import java.util.Map;
  */
 @Service
 @SkyeyeService(name = "考勤申诉", groupName = "考勤申诉", flowable = true)
-public class AppealServiceImpl extends SkyeyeFlowableServiceImpl<AppealDao, Appeal> implements AppealService {
+public class AppealServiceImpl extends SkyeyeBusinessServiceImpl<AppealDao, Appeal> implements AppealService {
 
     @Autowired
     private CheckWorkService checkWorkService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryAppealList(pageInfo);

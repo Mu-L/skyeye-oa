@@ -52,6 +52,14 @@ public class LifecycleTemplateMasterServiceImpl extends SkyeyeBusinessServiceImp
     }
 
     @Override
+    protected void writePostpose(LifecycleTemplateMaster entity, String userId) {
+        super.writePostpose(entity, userId);
+        // 删除缓存
+        String cacheKey = iLifecycleTemplateService.getLifecycleTemplateCacheKey(entity.getAppId(), entity.getClassName());
+        jedisClientService.del(cacheKey);
+    }
+
+    @Override
     public void queryLifecycleTemplateMaster(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String appId = map.get("appId").toString();
@@ -72,6 +80,11 @@ public class LifecycleTemplateMasterServiceImpl extends SkyeyeBusinessServiceImp
         updateWrapper.set(MybatisPlusUtil.toColumns(LifecycleTemplateMaster::getEnabled), enabled);
         update(updateWrapper);
         refreshCache(id);
+
+        // 删除缓存
+        LifecycleTemplateMaster lifecycleTemplateMaster = selectById(id);
+        String cacheKey = iLifecycleTemplateService.getLifecycleTemplateCacheKey(lifecycleTemplateMaster.getAppId(), lifecycleTemplateMaster.getClassName());
+        jedisClientService.del(cacheKey);
     }
 
     @Override

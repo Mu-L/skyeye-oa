@@ -9,7 +9,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "回款管理", groupName = "回款管理", flowable = true, teamAuth = true)
-public class PaymentCollectionServiceImpl extends SkyeyeFlowableServiceImpl<PaymentCollectionDao, PaymentCollection> implements PaymentCollectionService {
+public class PaymentCollectionServiceImpl extends SkyeyeBusinessServiceImpl<PaymentCollectionDao, PaymentCollection> implements PaymentCollectionService {
 
     @Autowired
     private CrmContractService crmContractService;

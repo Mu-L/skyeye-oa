@@ -11,7 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.bom.entity.Bom;
 import com.skyeye.bom.entity.BomChild;
 import com.skyeye.bom.service.BomService;
@@ -78,7 +78,7 @@ import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "加工单管理", groupName = "加工单管理", flowable = true)
-public class MachinServiceImpl extends SkyeyeFlowableServiceImpl<MachinDao, Machin> implements MachinService {
+public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Machin> implements MachinService {
 
     @Autowired
     private ProductionService productionService;
@@ -117,8 +117,8 @@ public class MachinServiceImpl extends SkyeyeFlowableServiceImpl<MachinDao, Mach
     private ReturnMaterialService returnMaterialService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         iDepmentService.setMationForMap(beans, "departmentId", "departmentMation");
         // 生产计划单
         productionService.setOrderMationByFromId(beans, "fromId", "fromMation");
@@ -141,12 +141,7 @@ public class MachinServiceImpl extends SkyeyeFlowableServiceImpl<MachinDao, Mach
         // 保存子单据信息
         machinChildService.saveList(entity.getId(), entity.getMachinChildList());
         super.writePostpose(entity, userId);
-    }
-
-    @Override
-    public void writeChild(Machin entity, String userId) {
         refreshCache(entity.getId());
-        super.writeChild(entity, userId);
     }
 
     @Override

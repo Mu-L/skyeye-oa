@@ -9,7 +9,7 @@ import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -41,7 +41,7 @@ import java.util.Map;
  */
 @Service
 @SkyeyeService(name = "用品领用单", groupName = "用品模块", flowable = true)
-public class ArticlesUseServiceImpl extends SkyeyeFlowableServiceImpl<ArticlesUseDao, ArticlesUse> implements ArticlesUseService {
+public class ArticlesUseServiceImpl extends SkyeyeBusinessServiceImpl<ArticlesUseDao, ArticlesUse> implements ArticlesUseService {
 
     @Autowired
     private ArticlesUseLinkService articlesUseLinkService;
@@ -58,9 +58,9 @@ public class ArticlesUseServiceImpl extends SkyeyeFlowableServiceImpl<ArticlesUs
     }
 
     @Override
-    public void writeChild(ArticlesUse entity, String userId) {
+    public void writePostpose(ArticlesUse entity, String userId) {
         articlesUseLinkService.saveLinkList(entity.getId(), entity.getApplyUseLnk());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

@@ -8,7 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.TenantEnum;
@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "订单管理", groupName = "租户管理", flowable = true, tenant = TenantEnum.PLATE)
-public class TenantAppBuyOrderServiceImpl extends SkyeyeFlowableServiceImpl<TenantAppBuyOrderDao, TenantAppBuyOrder> implements TenantAppBuyOrderService {
+public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<TenantAppBuyOrderDao, TenantAppBuyOrder> implements TenantAppBuyOrderService {
 
     @Autowired
     private TenantService tenantService;
@@ -57,8 +57,8 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeFlowableServiceImpl<Tena
     private TenantAppLinkService tenantAppLinkService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         tenantService.setMationForMap(beans, "buyTenantId", "buyTenantMation");
         return beans;
     }

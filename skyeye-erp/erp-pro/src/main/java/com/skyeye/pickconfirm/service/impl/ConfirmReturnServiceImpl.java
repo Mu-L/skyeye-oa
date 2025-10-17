@@ -115,10 +115,10 @@ public class ConfirmReturnServiceImpl extends SkyeyeErpOrderServiceImpl<ConfirmR
     }
 
     @Override
-    public void writeChild(ConfirmReturn entity, String userId) {
+    public void writePostpose(ConfirmReturn entity, String userId) {
         // 保存单据子表关联的条形码编号信息
         super.saveErpOrderItemCode(entity);
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

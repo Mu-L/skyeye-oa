@@ -8,7 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "用品采购单", groupName = "用品模块", flowable = true)
-public class ArticlesPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<ArticlesPurchaseDao, ArticlesPurchase> implements ArticlesPurchaseService {
+public class ArticlesPurchaseServiceImpl extends SkyeyeBusinessServiceImpl<ArticlesPurchaseDao, ArticlesPurchase> implements ArticlesPurchaseService {
 
     @Autowired
     private ArticlesPurchaseLinkService articlesPurchaseLinkService;
@@ -85,9 +85,9 @@ public class ArticlesPurchaseServiceImpl extends SkyeyeFlowableServiceImpl<Artic
     }
 
     @Override
-    public void writeChild(ArticlesPurchase entity, String userId) {
+    public void writePostpose(ArticlesPurchase entity, String userId) {
         articlesPurchaseLinkService.saveLinkList(entity.getId(), entity.getPurchaseLink());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     private void chectOrderItem(List<ArticlesPurchaseLink> articlesPurchaseLinks) {

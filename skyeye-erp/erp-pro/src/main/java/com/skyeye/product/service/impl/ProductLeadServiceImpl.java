@@ -3,7 +3,7 @@ package com.skyeye.product.service.impl;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.enumeration.IsDefaultEnum;
@@ -31,7 +31,7 @@ import java.util.Map;
 
 @Service
 @SkyeyeService(name = "借出申请", groupName = "借出申请", flowable = true)
-public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLeadDao, ProductLead> implements ProductLeadService {
+public class ProductLeadServiceImpl extends SkyeyeBusinessServiceImpl<ProductLeadDao, ProductLead> implements ProductLeadService {
 
     @Autowired
     private ProductLeadChildService productLeadChildService;
@@ -52,8 +52,8 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
     private SupplierService supplierService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         beans.forEach(
             bean -> {
                 String holderKey = bean.get("holderKey").toString();
@@ -94,9 +94,9 @@ public class ProductLeadServiceImpl extends SkyeyeFlowableServiceImpl<ProductLea
     }
 
     @Override
-    public void writeChild(ProductLead entity, String userId) {
+    public void writePostpose(ProductLead entity, String userId) {
         productLeadChildService.saveList(entity.getId(), entity.getErpOrderItemList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

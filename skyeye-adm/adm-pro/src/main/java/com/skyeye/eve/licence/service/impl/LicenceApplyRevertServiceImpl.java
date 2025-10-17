@@ -8,7 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "证照归还", groupName = "证照模块", flowable = true)
-public class LicenceApplyRevertServiceImpl extends SkyeyeFlowableServiceImpl<LicenceRevertDao, LicenceRevert> implements LicenceApplyRevertService {
+public class LicenceApplyRevertServiceImpl extends SkyeyeBusinessServiceImpl<LicenceRevertDao, LicenceRevert> implements LicenceApplyRevertService {
 
     @Autowired
     private LicenceRevertLinkService licenceRevertLinkService;
@@ -58,9 +58,9 @@ public class LicenceApplyRevertServiceImpl extends SkyeyeFlowableServiceImpl<Lic
     }
 
     @Override
-    public void writeChild(LicenceRevert entity, String userId) {
+    public void writePostpose(LicenceRevert entity, String userId) {
         licenceRevertLinkService.saveLinkList(entity.getId(), entity.getRevertLinks());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     private void chectOrderItem(List<LicenceRevertLink> revertLinks) {

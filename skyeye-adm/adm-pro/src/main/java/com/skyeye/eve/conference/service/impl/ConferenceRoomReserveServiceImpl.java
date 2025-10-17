@@ -7,7 +7,7 @@ package com.skyeye.eve.conference.service.impl;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @SkyeyeService(name = "会议室预定", groupName = "会议室模块", flowable = true)
-public class ConferenceRoomReserveServiceImpl extends SkyeyeFlowableServiceImpl<ConferenceRoomReserveDao, ConferenceRoomReserve> implements ConferenceRoomReserveService {
+public class ConferenceRoomReserveServiceImpl extends SkyeyeBusinessServiceImpl<ConferenceRoomReserveDao, ConferenceRoomReserve> implements ConferenceRoomReserveService {
 
     @Autowired
     private ConferenceRoomService conferenceRoomService;

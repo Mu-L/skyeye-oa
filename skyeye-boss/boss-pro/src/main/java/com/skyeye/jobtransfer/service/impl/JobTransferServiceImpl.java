@@ -8,7 +8,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "岗位调动申请", groupName = "岗位调动申请", flowable = true)
-public class JobTransferServiceImpl extends SkyeyeFlowableServiceImpl<JobTransferDao, JobTransfer> implements JobTransferService {
+public class JobTransferServiceImpl extends SkyeyeBusinessServiceImpl<JobTransferDao, JobTransfer> implements JobTransferService {
 
     @Autowired
     private ICompanyService iCompanyService;
@@ -58,7 +58,7 @@ public class JobTransferServiceImpl extends SkyeyeFlowableServiceImpl<JobTransfe
     private ICompanyJobScoreService iCompanyJobScoreService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryJobTransferList(pageInfo);

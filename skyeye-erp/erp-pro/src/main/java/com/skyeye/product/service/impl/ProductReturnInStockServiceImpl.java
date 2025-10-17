@@ -7,7 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.business.service.SkyeyeErpOrderItemService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -49,7 +49,7 @@ import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "归还入库", groupName = "归还入库", flowable = true)
-public class ProductReturnInStockServiceImpl extends SkyeyeFlowableServiceImpl<ProductReturnInStockDao, ProductReturnInStock> implements ProductReturnInStockService {
+public class ProductReturnInStockServiceImpl extends SkyeyeBusinessServiceImpl<ProductReturnInStockDao, ProductReturnInStock> implements ProductReturnInStockService {
 
     @Autowired
     private SkyeyeErpOrderItemService skyeyeErpOrderItemService;
@@ -153,8 +153,8 @@ public class ProductReturnInStockServiceImpl extends SkyeyeFlowableServiceImpl<P
     }
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         productReturnService.setMationForMap(beans, "fromId", "fromMation");
         farmService.setMationForMap(beans, "farmId", "farmMation");
         iProProjectService.setMationForMap(beans, "projectId", "projectMation");

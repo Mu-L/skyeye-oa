@@ -8,7 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "盘点任务单", groupName = "盘点任务单", flowable = true)
-public class InventoryServiceImpl extends SkyeyeFlowableServiceImpl<InventoryDao, Inventory> implements InventoryService {
+public class InventoryServiceImpl extends SkyeyeBusinessServiceImpl<InventoryDao, Inventory> implements InventoryService {
 
     @Autowired
     private InventoryChildService inventoryChildService;
@@ -75,12 +75,12 @@ public class InventoryServiceImpl extends SkyeyeFlowableServiceImpl<InventoryDao
     }
 
     @Override
-    public void writeChild(Inventory entity, String userId) {
+    public void writePostpose(Inventory entity, String userId) {
         // 删除关联的条形码数据
         inventoryChildCodeService.deleteByOrderId(entity.getId());
         // 保存子表数据
         inventoryChildService.saveLinkList(entity.getId(), entity.getInventoryChildList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

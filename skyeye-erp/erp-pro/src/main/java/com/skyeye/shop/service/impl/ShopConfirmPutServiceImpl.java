@@ -121,10 +121,10 @@ public class ShopConfirmPutServiceImpl extends SkyeyeErpOrderServiceImpl<ShopCon
     }
 
     @Override
-    public void writeChild(ShopConfirmPut entity, String userId) {
+    public void writePostpose(ShopConfirmPut entity, String userId) {
         // 保存单据子表关联的条形码编号信息
         super.saveErpOrderItemCode(entity);
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

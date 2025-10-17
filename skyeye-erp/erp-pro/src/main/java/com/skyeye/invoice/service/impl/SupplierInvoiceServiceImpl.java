@@ -10,7 +10,7 @@ import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "发票管理", groupName = "发票管理", teamAuth = true, flowable = true)
-public class SupplierInvoiceServiceImpl extends SkyeyeFlowableServiceImpl<SupplierInvoiceDao, SupplierInvoice> implements SupplierInvoiceService {
+public class SupplierInvoiceServiceImpl extends SkyeyeBusinessServiceImpl<SupplierInvoiceDao, SupplierInvoice> implements SupplierInvoiceService {
 
     @Autowired
     private SupplierContractService supplierContractService;

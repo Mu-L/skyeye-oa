@@ -102,10 +102,10 @@ public class ReturnPutServiceImpl extends SkyeyeErpOrderServiceImpl<ReturnPutDao
     }
 
     @Override
-    public void writeChild(ReturnPut entity, String userId) {
+    public void writePostpose(ReturnPut entity, String userId) {
         // 保存单据子表关联的条形码编号信息
         super.saveErpOrderItemCode(entity);
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

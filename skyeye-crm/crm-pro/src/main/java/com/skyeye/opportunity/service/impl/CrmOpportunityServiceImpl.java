@@ -10,7 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "商机管理", groupName = "商机管理", flowable = true, teamAuth = true)
-public class CrmOpportunityServiceImpl extends SkyeyeFlowableServiceImpl<CrmOpportunityDao, CrmOpportunity> implements CrmOpportunityService {
+public class CrmOpportunityServiceImpl extends SkyeyeBusinessServiceImpl<CrmOpportunityDao, CrmOpportunity> implements CrmOpportunityService {
 
     @Autowired
     private IDepmentService iDepmentService;
@@ -67,7 +67,7 @@ public class CrmOpportunityServiceImpl extends SkyeyeFlowableServiceImpl<CrmOppo
     }
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryCrmOpportunityList(pageInfo);

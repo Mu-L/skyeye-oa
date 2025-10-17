@@ -10,7 +10,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "工序验收", groupName = "工序验收", flowable = true)
-public class MachinProcedureAcceptServiceImpl extends SkyeyeFlowableServiceImpl<MachinProcedureAcceptDao, MachinProcedureAccept> implements MachinProcedureAcceptService {
+public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<MachinProcedureAcceptDao, MachinProcedureAccept> implements MachinProcedureAcceptService {
 
     @Autowired
     private MachinProcedureService machinProcedureService;

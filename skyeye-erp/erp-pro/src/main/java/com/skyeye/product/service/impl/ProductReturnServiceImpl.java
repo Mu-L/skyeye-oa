@@ -3,7 +3,7 @@ package com.skyeye.product.service.impl;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.enumeration.IsDefaultEnum;
@@ -34,7 +34,7 @@ import java.util.Map;
 
 @Service
 @SkyeyeService(name = "归还申请", groupName = "归还申请", flowable = true)
-public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductReturnDao, ProductReturn> implements ProductReturnService {
+public class ProductReturnServiceImpl extends SkyeyeBusinessServiceImpl<ProductReturnDao, ProductReturn> implements ProductReturnService {
 
     @Autowired
     private IProProjectService iProProjectService;
@@ -64,8 +64,8 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
     private ErpDepotService erpDepotService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         iProProjectService.setMationForMap(beans, "projectId", "projectMation");
         beans.forEach(
             bean -> {
@@ -119,9 +119,9 @@ public class ProductReturnServiceImpl extends SkyeyeFlowableServiceImpl<ProductR
     }
 
     @Override
-    public void writeChild(ProductReturn entity, String userId) {
+    public void writePostpose(ProductReturn entity, String userId) {
         productReturnChildService.saveList(entity.getId(), entity.getErpOrderItemList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

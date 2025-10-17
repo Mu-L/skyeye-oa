@@ -6,7 +6,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.business.service.SkyeyeErpOrderItemService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "借出出库", groupName = "借出出库", flowable = true)
-public class ProductLeadOutStockServiceImpl extends SkyeyeFlowableServiceImpl<ProductLeadOutStockDao, ProductLeadOutStock> implements ProductLeadOutStockService {
+public class ProductLeadOutStockServiceImpl extends SkyeyeBusinessServiceImpl<ProductLeadOutStockDao, ProductLeadOutStock> implements ProductLeadOutStockService {
 
     @Autowired
     private SkyeyeErpOrderItemService skyeyeErpOrderItemService;
@@ -144,8 +144,8 @@ public class ProductLeadOutStockServiceImpl extends SkyeyeFlowableServiceImpl<Pr
     }
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         productLeadService.setMationForMap(beans, "fromId", "fromMation");
         iProProjectService.setMationForMap(beans, "projectId", "projectMation");
         farmService.setMationForMap(beans, "farmId", "farmMation");

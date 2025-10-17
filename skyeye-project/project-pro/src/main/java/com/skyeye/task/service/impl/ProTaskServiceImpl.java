@@ -13,7 +13,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
 import com.skyeye.common.base.handler.util.PersistableHandlerExecutor;
 import com.skyeye.common.base.handler.util.eitity.ExecuteTypeEnum;
@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "任务管理", groupName = "任务管理", flowable = true, teamAuth = true)
-public class ProTaskServiceImpl extends SkyeyeFlowableServiceImpl<ProTaskDao, Task> implements ProTaskService {
+public class ProTaskServiceImpl extends SkyeyeBusinessServiceImpl<ProTaskDao, Task> implements ProTaskService {
 
     @Autowired
     private IDepmentService iDepmentService;
@@ -120,8 +120,8 @@ public class ProTaskServiceImpl extends SkyeyeFlowableServiceImpl<ProTaskDao, Ta
     }
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         List<String> ids = beans.stream().map(bean -> bean.get("id").toString()).collect(Collectors.toList());
         if (CollectionUtil.isEmpty(ids)) {
             return beans;

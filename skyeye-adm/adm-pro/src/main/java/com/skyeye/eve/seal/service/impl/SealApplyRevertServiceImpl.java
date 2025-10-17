@@ -7,7 +7,7 @@ package com.skyeye.eve.seal.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "印章归还", groupName = "印章模块", flowable = true)
-public class SealApplyRevertServiceImpl extends SkyeyeFlowableServiceImpl<SealApplyRevertDao, SealRevert> implements SealApplyRevertService {
+public class SealApplyRevertServiceImpl extends SkyeyeBusinessServiceImpl<SealApplyRevertDao, SealRevert> implements SealApplyRevertService {
 
     @Autowired
     private SealService sealService;
@@ -57,9 +57,9 @@ public class SealApplyRevertServiceImpl extends SkyeyeFlowableServiceImpl<SealAp
     }
 
     @Override
-    public void writeChild(SealRevert entity, String userId) {
+    public void writePostpose(SealRevert entity, String userId) {
         sealRevertLinkService.saveLinkList(entity.getId(), entity.getRevertLinks());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     private void chectOrderItem(List<SealRevertLink> revertLinks) {

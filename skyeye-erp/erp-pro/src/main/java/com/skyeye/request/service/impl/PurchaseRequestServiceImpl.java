@@ -11,7 +11,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -59,7 +59,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "采购申请", groupName = "采购申请", flowable = true)
-public class PurchaseRequestServiceImpl extends SkyeyeFlowableServiceImpl<PurchaseRequestDao, PurchaseRequest> implements PurchaseRequestService {
+public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<PurchaseRequestDao, PurchaseRequest> implements PurchaseRequestService {
 
     @Autowired
     private PurchaseRequestChildService purchaseRequestChildService;
@@ -83,8 +83,8 @@ public class PurchaseRequestServiceImpl extends SkyeyeFlowableServiceImpl<Purcha
     private IProProjectService iProProjectService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         iProProjectService.setMationForMap(beans, "projectId", "projectMation");
         return beans;
     }
@@ -128,9 +128,9 @@ public class PurchaseRequestServiceImpl extends SkyeyeFlowableServiceImpl<Purcha
     }
 
     @Override
-    public void writeChild(PurchaseRequest entity, String userId) {
+    public void writePostpose(PurchaseRequest entity, String userId) {
         purchaseRequestChildService.saveList(entity.getId(), entity.getPurchaseRequestChildList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

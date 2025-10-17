@@ -8,7 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.CheckDayType;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "出差申请", groupName = "出差申请", flowable = true)
-public class BusinessTripServiceImpl extends SkyeyeFlowableServiceImpl<BusinessTripDao, BusinessTrip> implements BusinessTripService {
+public class BusinessTripServiceImpl extends SkyeyeBusinessServiceImpl<BusinessTripDao, BusinessTrip> implements BusinessTripService {
 
     @Autowired
     private BusinessTripTimeSlotService businessTripTimeSlotService;
@@ -52,7 +52,7 @@ public class BusinessTripServiceImpl extends SkyeyeFlowableServiceImpl<BusinessT
     private CheckWorkTimeService checkWorkTimeService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
         if (tenantEnable) {
@@ -68,9 +68,9 @@ public class BusinessTripServiceImpl extends SkyeyeFlowableServiceImpl<BusinessT
     }
 
     @Override
-    public void writeChild(BusinessTrip entity, String userId) {
+    public void writePostpose(BusinessTrip entity, String userId) {
         businessTripTimeSlotService.saveLinkList(entity.getId(), entity.getTripTimeSlotList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     private void checkOrderItem(List<BusinessTripTimeSlot> businessTripTimeSlots) {

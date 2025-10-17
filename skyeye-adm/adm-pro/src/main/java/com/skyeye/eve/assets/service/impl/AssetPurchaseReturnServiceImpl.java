@@ -9,7 +9,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "采购退货", groupName = "资产模块", flowable = true)
-public class AssetPurchaseReturnServiceImpl extends SkyeyeFlowableServiceImpl<AssetPurchaseReturnDao, AssetPurchaseReturn> implements AssetPurchaseReturnService {
+public class AssetPurchaseReturnServiceImpl extends SkyeyeBusinessServiceImpl<AssetPurchaseReturnDao, AssetPurchaseReturn> implements AssetPurchaseReturnService {
 
     @Autowired
     private AssetPurchaseLinkService assetPurchaseLinkService;
@@ -92,9 +92,9 @@ public class AssetPurchaseReturnServiceImpl extends SkyeyeFlowableServiceImpl<As
     }
 
     @Override
-    public void writeChild(AssetPurchaseReturn entity, String userId) {
+    public void writePostpose(AssetPurchaseReturn entity, String userId) {
         assetPurchaseLinkService.saveLinkList(entity.getId(), entity.getPurchaseLinks());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     private void checkOrderItem(List<AssetPurchaseLink> assetPurchaseLinks) {

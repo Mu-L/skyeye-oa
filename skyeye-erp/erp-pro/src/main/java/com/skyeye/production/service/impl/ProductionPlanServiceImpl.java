@@ -11,7 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.bom.entity.Bom;
 import com.skyeye.bom.service.BomService;
 import com.skyeye.common.constans.CommonCharConstants;
@@ -62,7 +62,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "出货计划单", groupName = "出货计划单", flowable = true)
-public class ProductionPlanServiceImpl extends SkyeyeFlowableServiceImpl<ProductionPlanDao, ProductionPlan> implements ProductionPlanService {
+public class ProductionPlanServiceImpl extends SkyeyeBusinessServiceImpl<ProductionPlanDao, ProductionPlan> implements ProductionPlanService {
 
     @Autowired
     private ProductionPlanChildService productionPlanChildService;
@@ -86,8 +86,8 @@ public class ProductionPlanServiceImpl extends SkyeyeFlowableServiceImpl<Product
     private BomService bomService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         salesOrderService.setOrderMationByFromId(beans, "fromId", "fromMation");
         return beans;
     }
@@ -110,10 +110,10 @@ public class ProductionPlanServiceImpl extends SkyeyeFlowableServiceImpl<Product
     }
 
     @Override
-    public void writeChild(ProductionPlan entity, String userId) {
+    public void writePostpose(ProductionPlan entity, String userId) {
         // 保存子单据信息
         productionPlanChildService.saveList(entity.getId(), entity.getProductionPlanChildList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     private void setOtherMation(ProductionPlan entity) {

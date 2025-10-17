@@ -5,7 +5,7 @@
 package ${project.packageName}.service.impl;
 
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import ${project.packageName}.dao.${tables[0].entityName}Dao;
 import ${project.packageName}.entity.${tables[0].entityName};
 import ${project.packageName}.service.${tables[0].entityName}Service;
@@ -21,6 +21,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 @SkyeyeService(name = "${tables[0].tableComment}", groupName = "${tables[0].tableName}", flowable = true)
-public class ${tables[0].entityName}ServiceImpl extends SkyeyeFlowableServiceImpl<${tables[0].entityName}Dao, ${tables[0].entityName}> implements ${tables[0].entityName}Service {
+public class ${tables[0].entityName}ServiceImpl extends SkyeyeBusinessServiceImpl<${tables[0].entityName}Dao, ${tables[0].entityName}> implements ${tables[0].entityName}Service {
 
 }

@@ -7,7 +7,7 @@ package com.skyeye.eve.assets.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "资产归还", groupName = "资产模块", flowable = true)
-public class AssetReturnServiceImpl extends SkyeyeFlowableServiceImpl<AssetReturnDao, AssetReturn> implements AssetReturnService {
+public class AssetReturnServiceImpl extends SkyeyeBusinessServiceImpl<AssetReturnDao, AssetReturn> implements AssetReturnService {
 
     @Autowired
     private AssetReturnLinkService assetReturnLinkService;
@@ -65,9 +65,9 @@ public class AssetReturnServiceImpl extends SkyeyeFlowableServiceImpl<AssetRetur
     }
 
     @Override
-    public void writeChild(AssetReturn entity, String userId) {
+    public void writePostpose(AssetReturn entity, String userId) {
         assetReturnLinkService.saveLinkList(entity.getId(), entity.getReturnLinks());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     private void chectOrderItem(List<AssetReturnLink> returnLinks) {

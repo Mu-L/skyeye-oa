@@ -12,7 +12,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.common.base.Joiner;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.business.classenum.OrderItemQualityInspectionType;
 import com.skyeye.business.classenum.OrderQualityInspectionType;
 import com.skyeye.business.service.ErpOrderItemCodeService;
@@ -66,7 +66,7 @@ import java.util.stream.Collectors;
  * @Copyright: 2022 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
-public class SkyeyeErpOrderServiceImpl<D extends SkyeyeBaseMapper<T>, T extends ErpOrderCommon> extends SkyeyeFlowableServiceImpl<D, T> implements SkyeyeErpOrderService<T> {
+public class SkyeyeErpOrderServiceImpl<D extends SkyeyeBaseMapper<T>, T extends ErpOrderCommon> extends SkyeyeBusinessServiceImpl<D, T> implements SkyeyeErpOrderService<T> {
 
     @Autowired
     protected SkyeyeErpOrderItemService skyeyeErpOrderItemService;
@@ -124,8 +124,8 @@ public class SkyeyeErpOrderServiceImpl<D extends SkyeyeBaseMapper<T>, T extends 
     }
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageData(inputObject);
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         setHolderMation(beans);
         return beans;
     }
@@ -242,9 +242,9 @@ public class SkyeyeErpOrderServiceImpl<D extends SkyeyeBaseMapper<T>, T extends 
     }
 
     @Override
-    public void writeChild(T entity, String userId) {
+    public void writePostpose(T entity, String userId) {
         skyeyeErpOrderItemService.saveLinkList(entity.getId(), entity.getErpOrderItemList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     /**

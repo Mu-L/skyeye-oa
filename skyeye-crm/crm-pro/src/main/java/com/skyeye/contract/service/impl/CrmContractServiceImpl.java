@@ -10,7 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "合同管理", groupName = "合同管理", flowable = true, teamAuth = true)
-public class CrmContractServiceImpl extends SkyeyeFlowableServiceImpl<CrmContractDao, CrmContract> implements CrmContractService {
+public class CrmContractServiceImpl extends SkyeyeBusinessServiceImpl<CrmContractDao, CrmContract> implements CrmContractService {
 
     @Autowired
     private IDepmentService iDepmentService;
@@ -140,9 +140,9 @@ public class CrmContractServiceImpl extends SkyeyeFlowableServiceImpl<CrmContrac
     }
 
     @Override
-    public void writeChild(CrmContract entity, String userId) {
+    public void writePostpose(CrmContract entity, String userId) {
         crmContractChildService.saveList(entity.getId(), entity.getCrmContractChildList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

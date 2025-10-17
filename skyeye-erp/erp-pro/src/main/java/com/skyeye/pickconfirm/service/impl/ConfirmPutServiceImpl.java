@@ -109,10 +109,10 @@ public class ConfirmPutServiceImpl extends SkyeyeErpOrderServiceImpl<ConfirmPutD
     }
 
     @Override
-    public void writeChild(ConfirmPut entity, String userId) {
+    public void writePostpose(ConfirmPut entity, String userId) {
         // 保存单据子表关联的条形码编号信息
         super.saveErpOrderItemCode(entity);
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     @Override

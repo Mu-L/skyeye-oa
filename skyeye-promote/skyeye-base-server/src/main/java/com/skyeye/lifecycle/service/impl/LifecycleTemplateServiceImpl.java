@@ -10,7 +10,9 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.cache.redis.RedisCache;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.LifecycleTemplateNodeType;
 import com.skyeye.common.enumeration.TenantEnum;
@@ -57,6 +59,9 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
 
     @Autowired
     private OperateService operateService;
+
+    @Autowired
+    private RedisCache redisCache;
 
     @Override
     public QueryWrapper<LifecycleTemplate> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -356,11 +361,16 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
         Map<String, Object> params = inputObject.getParams();
         String appId = params.get("appId").toString();
         String className = params.get("className").toString();
-        LifecycleTemplateMaster lifecycleTemplateMaster = lifecycleTemplateMasterService.queryLifecycleTemplateMaster(appId, className);
-        if (lifecycleTemplateMaster == null) {
-            return;
-        }
-        LifecycleTemplate lifecycleTemplate = querCurrentLifecycleTemplateByMasterId(lifecycleTemplateMaster.getId());
+        String cacheKey = iLifecycleTemplateService.getLifecycleTemplateCacheKey(appId, className);
+        LifecycleTemplate lifecycleTemplate = redisCache.getBean(cacheKey, key -> {
+            LifecycleTemplateMaster lifecycleTemplateMaster = lifecycleTemplateMasterService.queryLifecycleTemplateMaster(appId, className);
+            if (lifecycleTemplateMaster == null) {
+                return null;
+            }
+            // 查询当前生效的生命周期模板
+            return querCurrentLifecycleTemplateByMasterId(lifecycleTemplateMaster.getId());
+        }, RedisConstants.A_YEAR_SECONDS, LifecycleTemplate.class);
+
         outputObject.setBean(lifecycleTemplate);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -378,5 +388,9 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
             // 修改状态为使用中
             lifecycleStateService.setUsed(stateIdList);
         }
+        // 删除缓存
+        LifecycleTemplateMaster lifecycleTemplateMaster = lifecycleTemplateMasterService.selectById(lifecycleTemplate.getMasterId());
+        String cacheKey = iLifecycleTemplateService.getLifecycleTemplateCacheKey(lifecycleTemplateMaster.getAppId(), lifecycleTemplateMaster.getClassName());
+        jedisClientService.del(cacheKey);
     }
 }

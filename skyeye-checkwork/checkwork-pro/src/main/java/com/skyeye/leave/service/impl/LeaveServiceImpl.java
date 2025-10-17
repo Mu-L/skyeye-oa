@@ -9,7 +9,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.base.business.service.impl.SkyeyeFlowableServiceImpl;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @SkyeyeService(name = "请假申请", groupName = "请假申请", flowable = true)
-public class LeaveServiceImpl extends SkyeyeFlowableServiceImpl<LeaveDao, Leave> implements LeaveService {
+public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave> implements LeaveService {
 
     @Autowired
     private LeaveTimeSlotService leaveTimeSlotService;
@@ -66,7 +66,7 @@ public class LeaveServiceImpl extends SkyeyeFlowableServiceImpl<LeaveDao, Leave>
     private ISystemFoundationSettingsService iSystemFoundationSettingsService;
 
     @Override
-    public List<Map<String, Object>> queryPageData(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
         if (tenantEnable) {
@@ -82,9 +82,9 @@ public class LeaveServiceImpl extends SkyeyeFlowableServiceImpl<LeaveDao, Leave>
     }
 
     @Override
-    public void writeChild(Leave entity, String userId) {
+    public void writePostpose(Leave entity, String userId) {
         leaveTimeSlotService.saveLinkList(entity.getId(), entity.getLeaveTimeSlotList());
-        super.writeChild(entity, userId);
+        super.writePostpose(entity, userId);
     }
 
     private void chectOrderItem(List<LeaveTimeSlot> leaveTimeSlots) {
