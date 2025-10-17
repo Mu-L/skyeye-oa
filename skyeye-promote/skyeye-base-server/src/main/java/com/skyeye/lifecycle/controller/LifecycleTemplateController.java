@@ -70,7 +70,7 @@ public class LifecycleTemplateController {
         lifecycleTemplateService.queryCurrentLifecycleTemplateByMasterId(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryCurrentLifecycleTemplateByAppIdAndClassName", value = "根据AppId和className查询当前发布得最新得生命周期模板详情", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryCurrentLifecycleTemplateByAppIdAndClassName", value = "根据AppId和className查询当前发布得最新得生命周期模板详情", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "appId", name = "appId", value = "应用得appId", required = "required"),
         @ApiImplicitParam(id = "className", name = "className", value = "服务类的className", required = "required")})
