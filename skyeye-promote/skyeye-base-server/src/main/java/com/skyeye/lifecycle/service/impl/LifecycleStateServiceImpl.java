@@ -12,6 +12,8 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.IsUsedEnum;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
@@ -24,6 +26,7 @@ import com.skyeye.lifecycle.service.LifecycleStateService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -59,6 +62,13 @@ public class LifecycleStateServiceImpl extends SkyeyeBusinessServiceImpl<Lifecyc
     @Override
     protected void createPrepose(LifecycleState entity) {
         entity.setIsUsed(IsUsedEnum.NOT_USED.getKey());
+    }
+
+    @Override
+    protected void createPrepose(List<LifecycleState> entity) {
+        entity.forEach(lifecycleState -> {
+            lifecycleState.setIsUsed(IsUsedEnum.NOT_USED.getKey());
+        });
     }
 
     @Override
@@ -122,5 +132,40 @@ public class LifecycleStateServiceImpl extends SkyeyeBusinessServiceImpl<Lifecyc
         updateWrapper.set(MybatisPlusUtil.toColumns(LifecycleState::getIsUsed), IsUsedEnum.IN_USE.getKey());
         update(updateWrapper);
         refreshCache(idsList);
+    }
+
+    @Override
+    public void addLifecycleStateGroup(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String className = params.get("className").toString();
+        String appId = params.get("appId").toString();
+
+        // 查询该类下已存在的生命周期状态
+        QueryWrapper<LifecycleState> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleState::getClassName), className);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleState::getAppId), appId);
+        List<LifecycleState> lifecycleStateList = list(queryWrapper);
+        List<String> numCodeList = lifecycleStateList.stream().map(LifecycleState::getNumCode).collect(Collectors.toList());
+
+        List<LifecycleState> saveList = new ArrayList<>();
+        // 过滤掉已存在的生命周期状态
+        for (FlowableStateEnum value : FlowableStateEnum.values()) {
+            if (numCodeList.contains(value.getKey())) {
+                continue;
+            }
+            LifecycleState lifecycleState = new LifecycleState();
+            lifecycleState.setClassName(className);
+            lifecycleState.setAppId(appId);
+            lifecycleState.setName(value.getValue());
+            lifecycleState.setNumCode(value.getKey());
+            lifecycleState.setEnabled(EnableEnum.ENABLE_USING.getKey());
+            lifecycleState.setColor(value.getColor());
+            saveList.add(lifecycleState);
+        }
+        if (CollectionUtil.isEmpty(saveList)) {
+            return;
+        }
+        String userId = inputObject.getLogParams().get("id").toString();
+        createEntity(saveList, userId);
     }
 }

@@ -73,4 +73,13 @@ public class LifecycleStateController {
         lifecycleStateService.deleteById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "addLifecycleStateGroup", value = "一键添加工作流状态组", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "className", name = "className", value = "service的className", required = "required"),
+        @ApiImplicitParam(id = "appId", name = "appId", value = "服务的appId", required = "required")})
+    @RequestMapping("/post/LifecycleStateController/addLifecycleStateGroup")
+    public void addLifecycleStateGroup(InputObject inputObject, OutputObject outputObject) {
+        lifecycleStateService.addLifecycleStateGroup(inputObject, outputObject);
+    }
+
 }
