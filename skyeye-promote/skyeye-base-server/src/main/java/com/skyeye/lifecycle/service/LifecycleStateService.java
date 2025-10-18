@@ -28,4 +28,6 @@ public interface LifecycleStateService extends SkyeyeBusinessService<LifecycleSt
     void setUsed(List<String> id);
 
     void addLifecycleStateGroup(InputObject inputObject, OutputObject outputObject);
+
+    void removeAllLifecycleState(InputObject inputObject, OutputObject outputObject);
 }

@@ -82,4 +82,13 @@ public class LifecycleStateController {
         lifecycleStateService.addLifecycleStateGroup(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "removeAllLifecycleState", value = "一键移除", method = "DELETE", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "className", name = "className", value = "service的className", required = "required"),
+        @ApiImplicitParam(id = "appId", name = "appId", value = "服务的appId", required = "required")})
+    @RequestMapping("/post/LifecycleStateController/removeAllLifecycleState")
+    public void removeAllLifecycleState(InputObject inputObject, OutputObject outputObject) {
+        lifecycleStateService.removeAllLifecycleState(inputObject, outputObject);
+    }
+
 }

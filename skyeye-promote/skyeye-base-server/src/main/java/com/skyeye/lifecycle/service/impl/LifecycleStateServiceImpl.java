@@ -168,4 +168,20 @@ public class LifecycleStateServiceImpl extends SkyeyeBusinessServiceImpl<Lifecyc
         String userId = inputObject.getLogParams().get("id").toString();
         createEntity(saveList, userId);
     }
+
+    @Override
+    public void removeAllLifecycleState(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String className = params.get("className").toString();
+        String appId = params.get("appId").toString();
+        QueryWrapper<LifecycleState> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleState::getClassName), className);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleState::getAppId), appId);
+        List<LifecycleState> lifecycleStateList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(lifecycleStateList)) {
+            return;
+        }
+        List<String> idsList = lifecycleStateList.stream().map(LifecycleState::getId).collect(Collectors.toList());
+        deleteById(idsList);
+    }
 }
