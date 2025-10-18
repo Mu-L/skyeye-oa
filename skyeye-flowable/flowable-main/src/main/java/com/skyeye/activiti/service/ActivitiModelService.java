@@ -60,4 +60,14 @@ public interface ActivitiModelService {
     void queryProHighLighted(String processInstanceId);
 
     void editModelByModelId(String modelId, String modelName, String modelKey);
+
+    /**
+     * 复制现有模型
+     *
+     * @param sourceModelId 源模型ID
+     * @param newModelName  新模型名称
+     * @param newModelKey   新模型Key
+     * @return 新模型的ID
+     */
+    String copyActivitiModel(String sourceModelId, String newModelName, String newModelKey);
 }

@@ -71,9 +71,15 @@ public class ActFlowServiceImpl extends SkyeyeBusinessServiceImpl<ActFlowDao, Ac
 
     @Override
     public void createPrepose(ActFlowMation entity) {
-        // 新增工作流模型信息
-        String modelId = activitiModelService.insertNewActivitiModel(entity.getFlowName(), entity.getModelKey());
-        entity.setModelId(modelId);
+        if (StrUtil.isEmpty(entity.getModelId())) {
+            // 新增工作流模型信息
+            String modelId = activitiModelService.insertNewActivitiModel(entity.getFlowName(), entity.getModelKey());
+            entity.setModelId(modelId);
+        } else {
+            // 复制工作流模型信息
+            String newModelId = activitiModelService.copyActivitiModel(entity.getModelId(), entity.getFlowName(), entity.getModelKey());
+            entity.setModelId(newModelId);
+        }
     }
 
     @Override
@@ -156,6 +162,25 @@ public class ActFlowServiceImpl extends SkyeyeBusinessServiceImpl<ActFlowDao, Ac
         List<ActFlowMation> list = list(queryWrapper);
         outputObject.setBeans(list);
         outputObject.settotal(list.size());
+    }
+
+    @Override
+    public void copyActFlowMationById(InputObject inputObject, OutputObject outputObject) {
+        ActFlowMation actFlowMation = inputObject.getParams(ActFlowMation.class);
+
+        ActFlowMation oldActFlowMation = selectById(actFlowMation.getId());
+        if (oldActFlowMation == null) {
+            throw new IllegalArgumentException("流程模型不存在");
+        }
+        oldActFlowMation.setFlowName(actFlowMation.getFlowName());
+        oldActFlowMation.setModelKey(actFlowMation.getModelKey());
+        oldActFlowMation.setApplyAppId(actFlowMation.getApplyAppId());
+        oldActFlowMation.setApplyServiceClassName(actFlowMation.getApplyServiceClassName());
+        oldActFlowMation.setId(null);
+        oldActFlowMation.setTenantId(null);
+
+        String userId = inputObject.getLogParams().get("id").toString();
+        createEntity(oldActFlowMation, userId);
     }
 
 }

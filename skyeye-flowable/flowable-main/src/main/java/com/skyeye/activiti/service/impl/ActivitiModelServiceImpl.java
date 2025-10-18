@@ -508,4 +508,77 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
         }
     }
 
+    /**
+     * 复制现有模型
+     *
+     * @param sourceModelId 源模型ID
+     * @param newModelName  新模型名称
+     * @param newModelKey   新模型Key
+     * @return 新模型的ID
+     */
+    @Override
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public String copyActivitiModel(String sourceModelId, String newModelName, String newModelKey) {
+        try {
+            // 获取源模型
+            Model sourceModel = repositoryService.getModel(sourceModelId);
+            if (sourceModel == null) {
+                throw new CustomException("源模型不存在，无法复制");
+            }
+
+            // 获取源模型的编辑器源码
+            byte[] sourceEditorSource = repositoryService.getModelEditorSource(sourceModelId);
+            if (sourceEditorSource == null) {
+                throw new CustomException("源模型数据为空，无法复制");
+            }
+
+            // 创建新模型
+            Model newModel = repositoryService.newModel();
+
+            // 设置新模型的基本信息
+            newModel.setName(newModelName);
+            newModel.setKey(ToolUtil.getSurFaceId());
+
+            // 设置租户信息
+            if (tenantEnable) {
+                String tenantId = TenantContext.getTenantId();
+                newModel.setTenantId(tenantId);
+            } else {
+                newModel.setTenantId(TenantTypeEnum.PLATFORM.getCode());
+            }
+
+            // 复制源模型的元信息并更新
+            ObjectNode sourceMetaInfo = (ObjectNode) objectMapper.readTree(sourceModel.getMetaInfo());
+            ObjectNode newMetaInfo = sourceMetaInfo.deepCopy();
+            newMetaInfo.put(ModelDataJsonConstants.MODEL_NAME, newModelName);
+            newMetaInfo.put(ModelDataJsonConstants.MODEL_DESCRIPTION, StringUtils.EMPTY);
+            newMetaInfo.put(ModelDataJsonConstants.MODEL_REVISION, CommonNumConstants.NUM_ONE);
+            newModel.setMetaInfo(newMetaInfo.toString());
+
+            // 保存新模型
+            repositoryService.saveModel(newModel);
+
+            // 复制并修改编辑器源码
+            String sourceEditorJson = new String(sourceEditorSource, "utf-8");
+            ObjectNode editorJsonNode = (ObjectNode) objectMapper.readTree(sourceEditorJson);
+
+            // 更新流程属性
+            ObjectNode processProperties = (ObjectNode) editorJsonNode.get("properties");
+            if (processProperties != null) {
+                processProperties = getProcessProperties(newModelName, newModelKey, processProperties);
+                editorJsonNode.set("properties", processProperties);
+            }
+
+            // 保存新模型的编辑器源码
+            repositoryService.addModelEditorSource(newModel.getId(), editorJsonNode.toString().getBytes("utf-8"));
+
+            LOGGER.info("成功复制模型，源模型ID: {}, 新模型ID: {}, 新模型名称: {}", sourceModelId, newModel.getId(), newModelName);
+            return newModel.getId();
+
+        } catch (Exception e) {
+            LOGGER.error("复制模型失败，源模型ID: {}, 错误信息: {}", sourceModelId, e.getMessage(), e);
+            throw new CustomException("复制模型失败: " + e.getMessage());
+        }
+    }
+
 }

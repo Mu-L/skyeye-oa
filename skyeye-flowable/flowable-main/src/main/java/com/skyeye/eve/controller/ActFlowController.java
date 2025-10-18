@@ -78,4 +78,11 @@ public class ActFlowController {
         actFlowService.queryAllActFlowListByClassName(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "copyActFlowMationById", value = "复制流程模型", method = "POST", allUse = "1")
+    @ApiImplicitParams(classBean = ActFlowMation.class)
+    @RequestMapping("/post/ActFlowController/copyActFlowMationById")
+    public void copyActFlowMationById(InputObject inputObject, OutputObject outputObject) {
+        actFlowService.copyActFlowMationById(inputObject, outputObject);
+    }
+
 }

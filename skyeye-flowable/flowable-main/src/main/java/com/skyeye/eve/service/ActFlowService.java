@@ -29,4 +29,6 @@ public interface ActFlowService extends SkyeyeBusinessService<ActFlowMation> {
     void queryActFlowListByClassName(InputObject inputObject, OutputObject outputObject);
 
     void queryAllActFlowListByClassName(InputObject inputObject, OutputObject outputObject);
+
+    void copyActFlowMationById(InputObject inputObject, OutputObject outputObject);
 }
