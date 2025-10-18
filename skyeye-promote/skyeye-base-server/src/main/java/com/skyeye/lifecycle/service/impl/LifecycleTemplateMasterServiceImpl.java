@@ -8,6 +8,7 @@ import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -60,6 +61,7 @@ public class LifecycleTemplateMasterServiceImpl extends SkyeyeBusinessServiceImp
     }
 
     @Override
+    @IgnoreTenant
     public void queryLifecycleTemplateMaster(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String appId = map.get("appId").toString();
@@ -88,6 +90,7 @@ public class LifecycleTemplateMasterServiceImpl extends SkyeyeBusinessServiceImp
     }
 
     @Override
+    @IgnoreTenant
     public LifecycleTemplateMaster queryLifecycleTemplateMaster(String appId, String className) {
         QueryWrapper<LifecycleTemplateMaster> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplateMaster::getAppId), appId);
