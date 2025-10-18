@@ -68,7 +68,7 @@ public class LifecycleTemplateNodeData extends OperatorUserInfo {
     private String processId;
 
     @TableField(value = "action_id")
-    @ApiModelProperty(value = "操作id", required = "json")
+    @ApiModelProperty(value = "操作id")
     private String actionId;
 
     @TableField(exist = false)
