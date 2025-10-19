@@ -72,6 +72,10 @@ public class TableColumn extends OperatorUserInfo {
     @ApiModelProperty(value = "排序", required = "required,num")
     private Integer orderBy;
 
+    @TableField(value = "link_config")
+    @ApiModelProperty(value = "连接配置")
+    private String linkConfig;
+
     @TableField("page_id")
     @Property("表单布局id")
     private String pageId;
