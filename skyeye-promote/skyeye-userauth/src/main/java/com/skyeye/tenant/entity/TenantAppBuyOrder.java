@@ -42,6 +42,10 @@ public class TenantAppBuyOrder extends SkyeyeFlowable {
     @Property("租户信息")
     private Tenant buyTenantMation;
 
+    @TableField(value = "lifecycle_template_id")
+    @ApiModelProperty(value = "生命周期模板id")
+    private String lifecycleTemplateId;
+
     @TableField(value = "remark")
     @ApiModelProperty(value = "备注")
     private String remark;
