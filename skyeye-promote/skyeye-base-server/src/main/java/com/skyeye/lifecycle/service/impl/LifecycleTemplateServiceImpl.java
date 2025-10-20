@@ -166,7 +166,7 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
         List<String> nodeOperateIdList = CollectionUtil.isNotEmpty(lifecycleTemplate.getNodes())
             ? lifecycleTemplate.getNodes().stream()
             .filter(lifecycleTemplateNode -> ObjectUtil.isNotEmpty(lifecycleTemplateNode.getData())
-                && StrUtil.equals(lifecycleTemplateNode.getType(), LifecycleTemplateNodeType.ACTION_NODE.getKey()))
+                && StrUtil.equals(lifecycleTemplateNode.getData().getNodeType(), LifecycleTemplateNodeType.ACTION_NODE.getKey()))
             .map(lifecycleTemplateNode -> lifecycleTemplateNode.getData().getActionId())
             .filter(StrUtil::isNotBlank)
             .collect(Collectors.toList())
@@ -274,7 +274,7 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
             .filter(lifecycleTemplate -> CollectionUtil.isNotEmpty(lifecycleTemplate.getNodes()))
             .flatMap(lifecycleTemplate -> lifecycleTemplate.getNodes().stream())
             .filter(lifecycleTemplateNode -> ObjectUtil.isNotEmpty(lifecycleTemplateNode.getData())
-                && StrUtil.equals(lifecycleTemplateNode.getType(), LifecycleTemplateNodeType.ACTION_NODE.getKey()))
+                && StrUtil.equals(lifecycleTemplateNode.getData().getNodeType(), LifecycleTemplateNodeType.ACTION_NODE.getKey()))
             .map(lifecycleTemplateNode -> lifecycleTemplateNode.getData().getActionId())
             .filter(StrUtil::isNotBlank)
             .collect(Collectors.toList());

@@ -128,7 +128,7 @@ public class LifecycleStateServiceImpl extends SkyeyeBusinessServiceImpl<Lifecyc
         }
         // 更新生命周期状态为已被使用
         UpdateWrapper<LifecycleState> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.in(MybatisPlusUtil.toColumns(LifecycleState::getId), idsList);
+        updateWrapper.in(CommonConstants.ID, idsList);
         updateWrapper.set(MybatisPlusUtil.toColumns(LifecycleState::getIsUsed), IsUsedEnum.IN_USE.getKey());
         update(updateWrapper);
         refreshCache(idsList);

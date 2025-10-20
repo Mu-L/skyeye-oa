@@ -52,7 +52,7 @@ public class LifecycleTemplateNodeData extends OperatorUserInfo {
     private String description;
 
     @TableField(value = "state")
-    @ApiModelProperty(value = "状态")
+    @ApiModelProperty(value = "状态id")
     private String state;
 
     @TableField(exist = false)
