@@ -31,7 +31,6 @@ import com.skyeye.eve.model.dao.WagesModelFieldDao;
 import com.skyeye.eve.rest.promote.service.ISysEveUserStaffService;
 import com.skyeye.eve.service.IScheduleDayService;
 import com.skyeye.exception.CustomException;
-import com.skyeye.xxljob.StaffWagesQuartz;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,9 +68,6 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
 
     @Autowired
     private WagesFieldTypeService wagesFieldTypeService;
-
-    @Autowired
-    private StaffWagesQuartz staffWagesQuartz;
 
     @Override
     public void queryStaffWagesModelFieldMationListByStaffId(InputObject inputObject, OutputObject outputObject) {
@@ -131,7 +127,6 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
         });
         // 保存薪资要素字段信息
         skyeyeBaseMapper.saveStaffWagesModelFieldMation(wagesModelFieldMation, tenantId);
-//        staffWagesQuartz.statisticsStaffWages();
         // 保存员工月标准薪资信息以及设定状态
         iSysEveUserStaffService.editSysUserStaffActMoneyById(staffId, map.get("actMoney").toString());
     }
