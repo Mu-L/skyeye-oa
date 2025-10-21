@@ -36,6 +36,7 @@ import com.skyeye.personnel.classenum.StaffWagesStateEnum;
 import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.personnel.service.SysEveUserStaffService;
 import com.skyeye.personnel.service.SysEveUserStaffTimeService;
+import com.skyeye.rest.wages.service.IWagesService;
 import com.skyeye.tenant.dao.TenantUserDao;
 import com.skyeye.tenant.entity.Tenant;
 import com.skyeye.tenant.entity.TenantUser;
@@ -83,6 +84,9 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
     @Autowired
     private SysEveUserStaffService sysEveUserStaffService;
 
+    @Autowired
+    private IWagesService iWagesService;
+
     @Override
     protected void validatorEntity(TenantUser entity) {
         if (!tenantEnable) {
@@ -125,6 +129,14 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         entity.setRetiredHolidayStatisTime(oldData.getRetiredHolidayStatisTime());
         entity.setInterviewArrangementId(oldData.getInterviewArrangementId());
         entity.setIsAdmin(oldData.getIsAdmin());
+    }
+
+    @Override
+    protected void createPostpose(TenantUser entity, String userId) {
+        if (tenantEnable) {
+            // 单租户模式在 com.skyeye.personnel.service.impl.SysEveUserStaffServiceImpl.createPostpose 新增
+            iWagesService.addWagesStaffMationByStaffId(entity.getStaffId());
+        }
     }
 
     @Override

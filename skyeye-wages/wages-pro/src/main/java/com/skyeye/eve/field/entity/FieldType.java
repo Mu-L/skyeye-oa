@@ -15,6 +15,7 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.eve.field.classenum.WagesTypeEnum;
 import lombok.Data;
 
@@ -46,7 +47,7 @@ public class FieldType extends OperatorUserInfo {
     private String key;
 
     @TableField("monthly_clearing")
-    @ApiModelProperty(value = "是否每月统计上月薪资时，该字段自动清零，参考#IsDefaultEnum", required = "required,num")
+    @ApiModelProperty(value = "是否每月统计上月薪资时，该字段自动清零", enumClass = IsDefaultEnum.class, required = "required,num")
     private Integer monthlyClearing;
 
     @TableField("wages_type")

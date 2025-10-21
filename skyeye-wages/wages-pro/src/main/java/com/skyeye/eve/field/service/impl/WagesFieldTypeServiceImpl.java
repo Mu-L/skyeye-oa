@@ -93,6 +93,7 @@ public class WagesFieldTypeServiceImpl extends SkyeyeBusinessServiceImpl<WagesFi
             // 多租户模式
             String tenantId = TenantContext.getTenantId();
             List<String> staffIdList = iSysEveUserStaffService.queryTenantUserStaffIdByTenantId(tenantId);
+            staffIdList = staffIdList.stream().distinct().collect(Collectors.toList());
             staffIdList.forEach(staffId -> {
                 FieldStaffLink fieldStaffLink = new FieldStaffLink();
                 fieldStaffLink.setStaffId(staffId);

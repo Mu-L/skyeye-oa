@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
@@ -36,5 +37,9 @@ public class FieldStaffLink extends CommonInfo {
     @TableField(value = "amount_money")
     @ApiModelProperty(value = "员工与薪资字段类型对应的钱", required = "required,double")
     private String amountMoney;
+
+    @TableField("create_time")
+    @ApiModelProperty(value = "创建时间")
+    private String createTime;
 
 }

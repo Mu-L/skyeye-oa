@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.WagesConstant;
+import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.tenant.context.TenantContext;
@@ -30,6 +31,7 @@ import com.skyeye.eve.model.dao.WagesModelFieldDao;
 import com.skyeye.eve.rest.promote.service.ISysEveUserStaffService;
 import com.skyeye.eve.service.IScheduleDayService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.xxljob.StaffWagesQuartz;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +70,9 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
     @Autowired
     private WagesFieldTypeService wagesFieldTypeService;
 
+    @Autowired
+    private StaffWagesQuartz staffWagesQuartz;
+
     @Override
     public void queryStaffWagesModelFieldMationListByStaffId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -92,7 +97,7 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
                 staffMation.getOrDefault("jobScoreId", StrUtil.EMPTY).toString(), tenantId);
         }
         modelField.stream().forEach(bean -> {
-            if ("1".equals(bean.get("monthlyClearing").toString())) {
+            if (IsDefaultEnum.IS_DEFAULT.getKey().equals(Integer.parseInt(bean.get("monthlyClearing").toString()))) {
                 // 如果是自动清零，则不可进行薪资编辑
                 bean.put("disabled", "disabled");
             }
@@ -126,6 +131,7 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
         });
         // 保存薪资要素字段信息
         skyeyeBaseMapper.saveStaffWagesModelFieldMation(wagesModelFieldMation, tenantId);
+//        staffWagesQuartz.statisticsStaffWages();
         // 保存员工月标准薪资信息以及设定状态
         iSysEveUserStaffService.editSysUserStaffActMoneyById(staffId, map.get("actMoney").toString());
     }
@@ -217,12 +223,20 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
         // 获取所有薪资要素字段类型(不包含默认字段)
         List<FieldType> fieldTypes = wagesFieldTypeService.queryAllWagesFieldTypeList();
         // 封装成FieldStaffLink对象
+        String createTime = DateUtil.getTimeAndToString();
         List<FieldStaffLink> fieldStaffLinkList = fieldTypes.stream().map(fieldType -> {
             FieldStaffLink fieldStaffLink = new FieldStaffLink();
             fieldStaffLink.setStaffId(staffId);
             fieldStaffLink.setFieldTypeKey(fieldType.getKey());
+            fieldStaffLink.setCreateTime(createTime);
             return fieldStaffLink;
         }).collect(Collectors.toList());
+        // 先移除之前的数据
+        QueryWrapper<FieldStaffLink> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(FieldStaffLink::getStaffId), staffId);
+        remove(queryWrapper);
+
+        // 保存新的数据
         if (CollectionUtil.isNotEmpty(fieldStaffLinkList)) {
             createEntity(fieldStaffLinkList, StrUtil.EMPTY);
         }
