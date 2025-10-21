@@ -7,14 +7,18 @@ package com.skyeye.doc.gitcode.service.impl;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.TenantEnum;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.doc.code.service.CodeVersionService;
 import com.skyeye.doc.gitcode.dao.GitCodeIssueDao;
 import com.skyeye.doc.gitcode.entity.GitCodeIssue;
 import com.skyeye.doc.gitcode.service.GitCodeIssueService;
@@ -47,11 +51,29 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
     @Autowired
     private DocMemberService docMemberService;
 
+    @Autowired
+    private CodeVersionService codeVersionService;
+
     @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         docMemberService.setNameMationForMap(beans, "createId", "memberName", StrUtil.EMPTY);
+        codeVersionService.setMationForMap(beans, "versionId", "versionMation");
         return beans;
+    }
+
+    @Override
+    protected QueryWrapper<GitCodeIssue> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<GitCodeIssue> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(GitCodeIssue::getVersionId), commonPageInfo.getObjectId());
+        }
+        if (WhetherEnum.ENABLE_USING.getKey().equals(commonPageInfo.getType())) {
+            // 是否只查询我发布的
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(GitCodeIssue::getCreateId), userId);
+        }
+        return queryWrapper;
     }
 
     @Override

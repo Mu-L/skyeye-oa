@@ -45,6 +45,8 @@ public class CodeVersionServiceImpl extends SkyeyeBusinessServiceImpl<CodeVersio
     @Autowired
     private CodeSourceService codeSourceService;
 
+    private static final String ALL = "all";
+
     @Override
     protected void validatorEntity(CodeVersion entity) {
         super.validatorEntity(entity);
@@ -62,8 +64,8 @@ public class CodeVersionServiceImpl extends SkyeyeBusinessServiceImpl<CodeVersio
     protected void updatePrepose(CodeVersion entity) {
         CodeVersion oldCodeVersion = selectById(entity.getId());
         // 删除旧的年份缓存，防止年份修改了，缓存没修改
-        String cacheKey = getCacheKey(oldCodeVersion.getReleaseYear());
-        jedisClientService.del(cacheKey);
+        jedisClientService.del(getCacheKey(entity.getReleaseYear()));
+        jedisClientService.del(getCacheKey(ALL));
         // 删除对应的源代码缓存
         String sourceCodeCacheKey = codeSourceService.getCacheKey(oldCodeVersion.getReleaseYear());
         jedisClientService.del(sourceCodeCacheKey);
@@ -72,8 +74,8 @@ public class CodeVersionServiceImpl extends SkyeyeBusinessServiceImpl<CodeVersio
     @Override
     protected void writePostpose(CodeVersion entity, String userId) {
         super.writePostpose(entity, userId);
-        String cacheKey = getCacheKey(entity.getReleaseYear());
-        jedisClientService.del(cacheKey);
+        jedisClientService.del(getCacheKey(entity.getReleaseYear()));
+        jedisClientService.del(getCacheKey(ALL));
         // 删除对应的源代码缓存
         String sourceCodeCacheKey = codeSourceService.getCacheKey(entity.getReleaseYear());
         jedisClientService.del(sourceCodeCacheKey);
@@ -82,6 +84,7 @@ public class CodeVersionServiceImpl extends SkyeyeBusinessServiceImpl<CodeVersio
     @Override
     protected void deletePostpose(CodeVersion entity) {
         jedisClientService.del(getCacheKey(entity.getReleaseYear()));
+        jedisClientService.del(getCacheKey(ALL));
         // 删除对应的源代码缓存
         String sourceCodeCacheKey = codeSourceService.getCacheKey(entity.getReleaseYear());
         jedisClientService.del(sourceCodeCacheKey);
@@ -106,15 +109,27 @@ public class CodeVersionServiceImpl extends SkyeyeBusinessServiceImpl<CodeVersio
             QueryWrapper<CodeVersion> queryWrapper = new QueryWrapper<>();
             // 状态为已发布
             queryWrapper.eq(MybatisPlusUtil.toColumns(CodeVersion::getReleaseState), WhetherEnum.ENABLE_USING.getKey());
-            // 发布年份等于当前年份
-            queryWrapper.eq(MybatisPlusUtil.toColumns(CodeVersion::getReleaseYear), year);
-            queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(CodeVersion::getReleaseTime));
+            if (!StrUtil.equals(year, ALL)) {
+                // 发布年份等于当前年份
+                queryWrapper.eq(MybatisPlusUtil.toColumns(CodeVersion::getReleaseYear), year);
+                queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(CodeVersion::getReleaseTime));
+            } else {
+                // 查询所有已发布的版本，按发布时间倒序
+                queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(CodeVersion::getReleaseTime));
+            }
             List<CodeVersion> list = list(queryWrapper);
             return list;
         }, RedisConstants.A_YEAR_SECONDS, CodeVersion.class);
         // 过滤出发布时间小于当前时间
         tableColumns.removeIf(codeVersion -> !DateUtil.compare(codeVersion.getReleaseTime(), currentTime));
         return tableColumns;
+    }
+
+    @Override
+    public void queryAllReleaseCodeVersionList(InputObject inputObject, OutputObject outputObject) {
+        List<CodeVersion> list = queryAllReleaseCodeVersionList(ALL);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
     }
 
     private String getCacheKey(String year) {

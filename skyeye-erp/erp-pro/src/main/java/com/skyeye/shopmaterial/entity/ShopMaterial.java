@@ -15,6 +15,7 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.material.entity.Material;
+import com.skyeye.shopmaterial.enums.ShopMaterialDistributionType;
 import lombok.Data;
 
 import java.util.List;
@@ -63,11 +64,11 @@ public class ShopMaterial extends OperatorUserInfo {
     private String carouselImg;
 
     @TableField(value = "distribution_type")
-    @ApiModelProperty(value = "分销类型，参考#ShopMaterialDistributionType", required = "required,num")
+    @ApiModelProperty(value = "分销类型", enumClass = ShopMaterialDistributionType.class, required = "required,num")
     private Integer distributionType;
 
     @TableField(value = "delivery_method", typeHandler = JacksonTypeHandler.class)
-    @ApiModelProperty(value = "配送方式，参考#ShopMaterialDeliveryMethod", required = "required,json")
+    @ApiModelProperty(value = "配送方式", enumClass = ShopMaterialDistributionType.class, required = "required,json")
     private List<String> deliveryMethod;
 
     @TableField(value = "order_by")

@@ -24,4 +24,6 @@ public interface CodeVersionService extends SkyeyeBusinessService<CodeVersion> {
     void queryAllCodeVersionList(InputObject inputObject, OutputObject outputObject);
 
     List<CodeVersion> queryAllReleaseCodeVersionList(String year);
+
+    void queryAllReleaseCodeVersionList(InputObject inputObject, OutputObject outputObject);
 }

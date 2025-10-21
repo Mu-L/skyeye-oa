@@ -60,4 +60,10 @@ public class CodeVersionController {
         codeVersionService.queryAllCodeVersionList(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryAllReleaseCodeVersionList", value = "查询所有已发布的版本", method = "GET", allUse = "0")
+    @RequestMapping("/post/CodeVersionController/queryAllReleaseCodeVersionList")
+    public void queryAllReleaseCodeVersionList(InputObject inputObject, OutputObject outputObject) {
+        codeVersionService.queryAllReleaseCodeVersionList(inputObject, outputObject);
+    }
+
 }

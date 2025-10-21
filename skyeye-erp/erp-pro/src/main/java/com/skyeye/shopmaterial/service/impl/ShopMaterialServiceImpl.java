@@ -85,12 +85,15 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
         // 更新商品的上架状态
         Material material = materialService.selectById(entity.getMaterialId());
         if (CollectionUtil.isEmpty(entity.getShopMaterialNormsList())) {
+            // 未上架或者取消上架
             materialService.setShelvesState(material.getId(), MaterialShelvesState.NOT_ON_SHELVE.getKey());
             shopMaterialStoreService.deleteByMaterialId(entity.getMaterialId());
         } else if (material.getMaterialNorms().size() > entity.getShopMaterialNormsList().size()) {
+            // 部分上架
             materialService.setShelvesState(material.getId(), MaterialShelvesState.PART_ON_SHELVE.getKey());
             shopMaterialStoreService.addAllStoreForMaterial(entity.getMaterialId());
         } else if (material.getMaterialNorms().size() == entity.getShopMaterialNormsList().size()) {
+            // 全部上架
             materialService.setShelvesState(material.getId(), MaterialShelvesState.ON_SHELVE.getKey());
             shopMaterialStoreService.addAllStoreForMaterial(entity.getMaterialId());
         }

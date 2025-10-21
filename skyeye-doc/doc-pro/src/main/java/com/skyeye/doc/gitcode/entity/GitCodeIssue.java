@@ -66,6 +66,10 @@ public class GitCodeIssue extends OperatorUserInfo {
     @ApiModelProperty(value = "标签，多个用逗号分隔")
     private String labels;
 
+    @TableField(value = "version_id")
+    @ApiModelProperty(value = "版本id")
+    private String versionId;
+
     @TableField(value = "due_date")
     @ApiModelProperty(value = "截止日期")
     private String dueDate;
