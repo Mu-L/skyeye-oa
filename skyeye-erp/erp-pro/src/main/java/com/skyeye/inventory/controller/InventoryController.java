@@ -33,12 +33,6 @@ public class InventoryController {
     @Autowired
     private InventoryService inventoryService;
 
-    /**
-     * 获取盘点任务单信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryInventoryList", value = "获取盘点任务单信息列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/InventoryController/queryInventoryList")
@@ -46,12 +40,6 @@ public class InventoryController {
         inventoryService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑盘点任务单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeInventory", value = "新增/编辑盘点任务单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Inventory.class)
     @RequestMapping("/post/InventoryController/writeInventory")
@@ -59,12 +47,6 @@ public class InventoryController {
         inventoryService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 质检申请提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "submitInventoryToApproval", value = "质检申请提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/InventoryController/submitToApproval")
@@ -72,12 +54,6 @@ public class InventoryController {
         inventoryService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 删除质检申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteInventory", value = "删除质检申请", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,12 +62,6 @@ public class InventoryController {
         inventoryService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 撤销质检申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokeInventory", value = "撤销质检申请", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})

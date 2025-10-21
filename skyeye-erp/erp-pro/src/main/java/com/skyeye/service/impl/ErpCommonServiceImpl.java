@@ -8,13 +8,11 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.skyeye.business.service.SkyeyeErpOrderService;
-import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.SpringUtils;
 import com.skyeye.depot.classenum.DepotPutOutType;
-import com.skyeye.eve.flowable.classenum.FormSubType;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.util.RedisLock;
 import com.skyeye.material.entity.MaterialNorms;
@@ -160,12 +158,10 @@ public class ErpCommonServiceImpl implements ErpCommonService {
     public void editDepotHeadToRevoke(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String serviceClassName = map.get("serviceClassName").toString();
-        String processInstanceId = map.get("processInstanceId").toString();
-        String userId = inputObject.getLogParams().get(CommonConstants.ID).toString();
         try {
             Class<?> clazz = Class.forName(serviceClassName);
             SkyeyeErpOrderService skyeyeErpOrderService = (SkyeyeErpOrderService) SpringUtils.getBean(clazz);
-            skyeyeErpOrderService.revoke(processInstanceId, userId);
+            skyeyeErpOrderService.revoke(inputObject, outputObject);
         } catch (Exception ex) {
             throw new RuntimeException("editDepotHeadToRevoke error", ex);
         }
@@ -182,13 +178,10 @@ public class ErpCommonServiceImpl implements ErpCommonService {
     public void orderSubmitToApproval(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String serviceClassName = map.get("serviceClassName").toString();
-        String id = map.get("id").toString();
-        String modelKey = map.get("modelKey").toString();
-        String approvalId = map.get("approvalId").toString();
         try {
             Class<?> clazz = Class.forName(serviceClassName);
             SkyeyeErpOrderService skyeyeErpOrderService = (SkyeyeErpOrderService) SpringUtils.getBean(clazz);
-            skyeyeErpOrderService.submitToApproval(id, FormSubType.SUB_FLOWABLE.getKey(), approvalId, modelKey);
+            skyeyeErpOrderService.submitToApproval(inputObject, outputObject);
         } catch (Exception ex) {
             throw new RuntimeException("orderSubmitToApproval error", ex);
         }

@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.features.SubmitSkyeyeFlowable;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.service.ErpCommonService;
@@ -30,12 +31,6 @@ public class ErpCommonController {
     @Autowired
     private ErpCommonService erpCommonService;
 
-    /**
-     * 获取ERP单据详情
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryErpOrderById", value = "获取ERP单据详情", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "订单id", required = "required"),
@@ -45,12 +40,6 @@ public class ErpCommonController {
         erpCommonService.queryDepotHeadDetailsMationById(inputObject, outputObject);
     }
 
-    /**
-     * 删除单据信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "erpcommon005", value = "删除ERP单据信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "订单id", required = "required"),
@@ -60,12 +49,6 @@ public class ErpCommonController {
         erpCommonService.deleteErpOrderById(inputObject, outputObject);
     }
 
-    /**
-     * erp相关单据撤销审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "erpcommon003", value = "erp相关单据撤销审批", method = "PUT", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required"),
@@ -75,18 +58,9 @@ public class ErpCommonController {
         erpCommonService.editDepotHeadToRevoke(inputObject, outputObject);
     }
 
-    /**
-     * 订单信息提交审核
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "erpcommon006", value = "订单信息提交审核", method = "PUT", allUse = "1")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "id", name = "id", value = "订单id", required = "required"),
-        @ApiImplicitParam(id = "serviceClassName", name = "serviceClassName", value = "单据类型，值为服务类的className", required = "required"),
-        @ApiImplicitParam(id = "approvalId", name = "approvalId", value = "审批人", required = "required"),
-        @ApiImplicitParam(id = "modelKey", name = "modelKey", value = "模型的key", required = "required")})
+    @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class, value = {
+        @ApiImplicitParam(id = "serviceClassName", name = "serviceClassName", value = "单据类型，值为服务类的className", required = "required")})
     @RequestMapping("/post/ErpCommonController/orderSubmitToApproval")
     public void orderSubmitToApproval(InputObject inputObject, OutputObject outputObject) {
         erpCommonService.orderSubmitToApproval(inputObject, outputObject);
