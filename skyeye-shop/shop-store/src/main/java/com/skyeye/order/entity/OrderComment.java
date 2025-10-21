@@ -63,10 +63,6 @@ public class OrderComment extends OperatorUserInfo {
     @Property(value = "门店信息")
     private Map<String, Object> storeMation;
 
-    @TableField(exist = false)
-    @Property(value = "子单信息")
-    private Map<String, Object> orderItemMation;
-
     @TableField(value = "order_id")
     @ApiModelProperty(value = "订单id", required = "required")
     private String orderId;
@@ -78,6 +74,10 @@ public class OrderComment extends OperatorUserInfo {
     @TableField(value = "order_item_id")
     @ApiModelProperty(value = "订单子单id", required = "required")
     private String orderItemId;
+
+    @TableField(exist = false)
+    @Property(value = "子单信息")
+    private Map<String, Object> orderItemMation;
 
     @TableField(value = "type")
     @ApiModelProperty(value = "类型", enumClass = OrderCommentType.class)

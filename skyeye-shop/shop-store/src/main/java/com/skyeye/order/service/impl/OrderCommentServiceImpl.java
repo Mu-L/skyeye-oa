@@ -83,12 +83,12 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
     public void validatorEntity(OrderComment orderComment) {
         Integer commentType = orderComment.getType();
         if (commentType != OrderCommentType.MERCHANT.getKey()
-                && commentType != OrderCommentType.CUSTOMERLATER.getKey()
-                && commentType != OrderCommentType.CUSTOMERFiRST.getKey()) {
+            && commentType != OrderCommentType.CUSTOMERLATER.getKey()
+            && commentType != OrderCommentType.CUSTOMERFiRST.getKey()) {
             throw new CustomException("type值非法");
         }
         if (commentType == OrderCommentType.MERCHANT.getKey() ||
-                commentType == OrderCommentType.CUSTOMERLATER.getKey()) {
+            commentType == OrderCommentType.CUSTOMERLATER.getKey()) {
             if (StrUtil.isEmpty(orderComment.getParentId())) {
                 throw new CustomException("商家回复评价和客户追评，父级评价id不能为空.");
             }
@@ -127,11 +127,11 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
             if (entity.getType() == OrderCommentType.CUSTOMERLATER.getKey()) {// 追评
                 QueryWrapper<OrderComment> queryWrapper = new QueryWrapper<>();
                 queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), entity.getOrderItemId())
-                        .eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), InputObject.getLogParamsStatic().get("id").toString())
-                        .and(wrap -> {
-                            String parentId = MybatisPlusUtil.toColumns(OrderComment::getParentId);
-                            wrap.isNotNull(parentId).ne(parentId, StrUtil.EMPTY);
-                        });
+                    .eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), InputObject.getLogParamsStatic().get("id").toString())
+                    .and(wrap -> {
+                        String parentId = MybatisPlusUtil.toColumns(OrderComment::getParentId);
+                        wrap.isNotNull(parentId).ne(parentId, StrUtil.EMPTY);
+                    });
                 OrderComment one = getOne(queryWrapper);
                 if (ObjectUtil.isNotEmpty(one)) {// 客户已追评
                     throw new CustomException("追评只能追评一次");
@@ -141,7 +141,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         }
         entity.setStoreId(ObjectUtil.isEmpty(orderItem) ? "" : orderItem.getStoreId());// 设置门店id
         if (entity.getType() == OrderCommentType.CUSTOMERFiRST.getKey() ||
-                entity.getType() == OrderCommentType.CUSTOMERLATER.getKey()) {// 顾客新增的评价，商家均未回复
+            entity.getType() == OrderCommentType.CUSTOMERLATER.getKey()) {// 顾客新增的评价，商家均未回复
             entity.setIsComment(WhetherEnum.DISABLE_USING.getKey());
         }
     }
@@ -157,7 +157,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
             orderItemService.updateCommentStateById(orderComment.getOrderItemId());// 修改此子订单的评价状态为已评价
             List<OrderItem> orderItemList = orderItemService.queryListByStateAndOrderId(orderComment.getOrderId(), WhetherEnum.DISABLE_USING.getKey());
             boolean allMatch = orderItemList.stream()
-                    .allMatch(Orderitem -> Orderitem.getCommentState() == WhetherEnum.ENABLE_USING.getKey());
+                .allMatch(Orderitem -> Orderitem.getCommentState() == WhetherEnum.ENABLE_USING.getKey());
             if (allMatch) {
                 orderService.updateCommonState(orderComment.getOrderId(), ShopOrderCommentState.FINISHED.getKey());
                 orderService.updateOrderState(orderComment.getOrderId(), ShopOrderState.EVALUATED.getKey());
@@ -193,9 +193,9 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         QueryWrapper<OrderComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.and(wrap -> {
             wrap.eq(MybatisPlusUtil.toColumns(OrderComment::getMaterialId), typeId) // 商品id
-                    .eq(MybatisPlusUtil.toColumns(OrderComment::getParentId), StrUtil.EMPTY)
-                    .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), typeId)// 订单子单id
-                    .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderId), typeId);// 订单id
+                .eq(MybatisPlusUtil.toColumns(OrderComment::getParentId), StrUtil.EMPTY)
+                .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), typeId)// 订单子单id
+                .or().eq(MybatisPlusUtil.toColumns(OrderComment::getOrderId), typeId);// 订单id
         }).orderByDesc(MybatisPlusUtil.toColumns(OrderComment::getCreateTime));
         if (StrUtil.isNotEmpty(objectId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(OrderComment::getNormsId), objectId);
@@ -208,16 +208,16 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         List<String> firstId = listFirst.stream().map(OrderComment::getId).collect(Collectors.toList());
         QueryWrapper<OrderComment> queryWrapperLater = new QueryWrapper<>();// 追评
         queryWrapperLater
-                .in(MybatisPlusUtil.toColumns(OrderComment::getParentId), firstId)
-                .eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERLATER.getKey())
-                .orderByDesc(MybatisPlusUtil.toColumns(OrderComment::getCreateTime));
+            .in(MybatisPlusUtil.toColumns(OrderComment::getParentId), firstId)
+            .eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERLATER.getKey())
+            .orderByDesc(MybatisPlusUtil.toColumns(OrderComment::getCreateTime));
         List<OrderComment> listLater = list(queryWrapperLater);
         setValue(listLater);
         // 商家回复
         List<String> idList = Stream.of(listFirst.stream(), listLater.stream()).flatMap(s -> s).map(OrderComment::getId).collect(Collectors.toList());
         QueryWrapper<OrderComment> queryWrapperMerchant = new QueryWrapper<>();
         queryWrapperMerchant.in(MybatisPlusUtil.toColumns(OrderComment::getParentId), idList)
-                .eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.MERCHANT.getKey());
+            .eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.MERCHANT.getKey());
         List<OrderComment> marchantList = list(queryWrapperMerchant);
         setValue(marchantList);
         setAdditionalReviewAndMerchantReply(listFirst, listLater, marchantList);
@@ -230,7 +230,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
     public List<OrderComment> queryListByOrderItemIdAndType(List<String> orderItemIds, Integer type) {
         QueryWrapper<OrderComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), orderItemIds)
-                .eq(MybatisPlusUtil.toColumns(OrderComment::getType), type);
+            .eq(MybatisPlusUtil.toColumns(OrderComment::getType), type);
         List<OrderComment> list = list(queryWrapper);
         return CollectionUtil.isEmpty(list) ? new ArrayList<>() : list;
     }
@@ -241,9 +241,9 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<OrderComment> queryWrapperFirst = new QueryWrapper<>();// 客户首评
         queryWrapperFirst
-                .eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), inputObject.getLogParams().get("id").toString())
-                .eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERFiRST.getKey())
-                .orderByDesc(MybatisPlusUtil.toColumns(OrderComment::getCreateTime));
+            .eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), inputObject.getLogParams().get("id").toString())
+            .eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERFiRST.getKey())
+            .orderByDesc(MybatisPlusUtil.toColumns(OrderComment::getCreateTime));
         List<OrderComment> listFirst = list(queryWrapperFirst);
         setValue(listFirst);
         if (CollectionUtil.isEmpty(listFirst)) {
@@ -251,16 +251,16 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         }
         QueryWrapper<OrderComment> queryWrapperLater = new QueryWrapper<>();// 追评
         queryWrapperLater
-                .eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), inputObject.getLogParams().get("id").toString())
-                .eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERLATER.getKey())
-                .orderByDesc(MybatisPlusUtil.toColumns(OrderComment::getCreateTime));
+            .eq(MybatisPlusUtil.toColumns(OrderComment::getCreateId), inputObject.getLogParams().get("id").toString())
+            .eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.CUSTOMERLATER.getKey())
+            .orderByDesc(MybatisPlusUtil.toColumns(OrderComment::getCreateTime));
         List<OrderComment> listLater = list(queryWrapperLater);
         setValue(listLater);
         // 商家回复
         List<String> idList = Stream.of(listFirst.stream(), listLater.stream()).flatMap(s -> s).map(OrderComment::getId).collect(Collectors.toList());
         QueryWrapper<OrderComment> queryWrapperMerchant = new QueryWrapper<>();
         queryWrapperMerchant.in(MybatisPlusUtil.toColumns(OrderComment::getParentId), idList)
-                .eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.MERCHANT.getKey());
+            .eq(MybatisPlusUtil.toColumns(OrderComment::getType), OrderCommentType.MERCHANT.getKey());
         List<OrderComment> marchantList = list(queryWrapperMerchant);
         setValue(marchantList);
         setAdditionalReviewAndMerchantReply(listFirst, listLater, marchantList);
@@ -277,12 +277,12 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         MPJLambdaWrapper<OrderComment> mpjLambdaWrapper = JoinWrappers.lambda("oc", OrderComment.class);
         if (StrUtil.isNotEmpty(tenantId)) {
             mpjLambdaWrapper.innerJoin("erp_material material ON oc.material_id = material.id")
-                    .eq("material.tenant_id", tenantId);
+                .eq("material.tenant_id", tenantId);
         }
         if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
             // keyword作为订单编号的查询条件
             mpjLambdaWrapper.innerJoin(OrderItem.class, "oi", OrderItem::getId, OrderComment::getOrderItemId)
-                    .like(MybatisPlusUtil.toColumns(OrderItem::getOddNumber), commonPageInfo.getKeyword());
+                .like(MybatisPlusUtil.toColumns(OrderItem::getOddNumber), commonPageInfo.getKeyword());
             if (StrUtil.isNotEmpty(tenantId)) {
                 mpjLambdaWrapper.eq("oi." + CommonConstants.TENANT_ID_FIELD, tenantId);
             }
@@ -291,7 +291,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         mpjLambdaWrapper.and(wrap -> {
             String type = "oc." + MybatisPlusUtil.toColumns(OrderComment::getType);
             wrap.eq(type, OrderCommentType.CUSTOMERFiRST.getKey())
-                    .or().eq(type, OrderCommentType.CUSTOMERLATER.getKey());
+                .or().eq(type, OrderCommentType.CUSTOMERLATER.getKey());
         });
         if (StrUtil.equals(commonPageInfo.getType(), "Store")) {
             // 门店下的订单
@@ -301,18 +301,23 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         }
         // 查询OrderComment中的字段
         mpjLambdaWrapper.select(OrderComment::getId, OrderComment::getParentId
-                , OrderComment::getNormsId, OrderComment::getMaterialId
-                , OrderComment::getStoreId, OrderComment::getOrderId
-                , OrderComment::getOrderItemId, OrderComment::getType
-                , OrderComment::getStart, OrderComment::getIsComment
-                , OrderComment::getContext, OrderComment::getCreateId
-                , OrderComment::getCreateTime, OrderComment::getLastUpdateId, OrderComment::getLastUpdateTime);
+            , OrderComment::getNormsId, OrderComment::getMaterialId
+            , OrderComment::getStoreId, OrderComment::getOrderId
+            , OrderComment::getOrderItemId, OrderComment::getType
+            , OrderComment::getStart, OrderComment::getIsComment
+            , OrderComment::getContext, OrderComment::getCreateId
+            , OrderComment::getCreateTime, OrderComment::getLastUpdateId, OrderComment::getLastUpdateTime);
+
+        mpjLambdaWrapper.orderByDesc(OrderComment::getCreateTime);
         List<Map<String, Object>> mapList = skyeyeBaseMapper.selectJoinMaps(mpjLambdaWrapper);
         List<OrderComment> beans = BeanUtil.copyToList(mapList, OrderComment.class);
         iMaterialService.setDataMation(beans, OrderComment::getMaterialId);
         iMaterialNormsService.setDataMation(beans, OrderComment::getNormsId);
         memberService.setDataMation(beans, OrderComment::getCreateId);
         shopStoreService.setDataMation(beans, OrderComment::getStoreId);
+
+        orderItemService.setDataMation(beans, OrderComment::getOrderItemId);
+
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
@@ -331,13 +336,13 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
         for (OrderComment orderComment : orderCommentLater) {
             if (merchantMapList.containsKey(orderComment.getId())) {
                 List<Map<String, Object>> merchantReplyList = merchantMapList.get(orderComment.getId()).stream()
-                        .map(BeanUtil::beanToMap).collect(Collectors.toList());
+                    .map(BeanUtil::beanToMap).collect(Collectors.toList());
                 orderComment.setMerchantReply(merchantReplyList);
             }
         }
         // 首评放追评和商家回复
         Map<String, Map<String, Object>> laterMap = orderCommentLater.stream()
-                .collect(Collectors.toMap(OrderComment::getParentId, o -> JSONUtil.toBean(JSONUtil.toJsonStr(o), null), (key1, key2) -> key2));
+            .collect(Collectors.toMap(OrderComment::getParentId, o -> JSONUtil.toBean(JSONUtil.toJsonStr(o), null), (key1, key2) -> key2));
         for (OrderComment orderComment : orderCommentCustomer) {
             String id = orderComment.getId();
             if (laterMap.containsKey(id)) {// 追评
@@ -345,7 +350,7 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
             }
             if (merchantMapList.containsKey(id)) {// 商家回复
                 List<Map<String, Object>> merchantReplyList = merchantMapList.get(id).stream()
-                        .map(BeanUtil::beanToMap).collect(Collectors.toList());
+                    .map(BeanUtil::beanToMap).collect(Collectors.toList());
                 orderComment.setMerchantReply(merchantReplyList);
             }
         }
