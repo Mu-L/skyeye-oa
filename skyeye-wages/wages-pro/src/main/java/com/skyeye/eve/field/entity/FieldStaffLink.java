@@ -26,7 +26,7 @@ import lombok.Data;
 @TableName(value = "wages_field_staff_mation")
 public class FieldStaffLink extends CommonInfo {
 
-    @TableId("staff_id")
+    @TableField("staff_id")
     @ApiModelProperty(value = "员工id", required = "required")
     private String staffId;
 
