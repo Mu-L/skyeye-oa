@@ -341,4 +341,16 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
         outputObject.settotal(list.size());
     }
 
+    @Override
+    public List<ShopMaterial> queryShopMaterialListByStoreCoverage(Integer storeCoverage, String storeId) {
+        QueryWrapper<ShopMaterial> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterial::getStoreCoverage), storeCoverage);
+        if (ShopMaterialStoreCoverage.SPECIFIED_STORE.getKey().equals(storeCoverage)) {
+            // 指定门店
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterial::getStoreCoverage), storeId);
+        }
+        List<ShopMaterial> list = list(queryWrapper);
+        return list;
+    }
+
 }

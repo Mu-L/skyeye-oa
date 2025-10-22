@@ -11,6 +11,8 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.material.entity.Material;
 import lombok.Data;
 
@@ -52,5 +54,13 @@ public class ShopMaterialStore extends OperatorUserInfo {
     @TableField(exist = false)
     @Property(value = "上架的商品信息")
     private ShopMaterial shopMaterial;
+
+    @TableField(value = "is_launch")
+    @ApiModelProperty(value = "是否上架", enumClass = WhetherEnum.class)
+    private Integer isLaunch;
+
+    @TableField(value = "store_enabled")
+    @ApiModelProperty(value = "门店状态", enumClass = EnableEnum.class)
+    private Integer storeEnabled;
 
 }

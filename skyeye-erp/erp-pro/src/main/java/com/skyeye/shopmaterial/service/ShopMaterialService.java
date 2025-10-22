@@ -40,4 +40,6 @@ public interface ShopMaterialService extends SkyeyeBusinessService<ShopMaterial>
 
     void queryShopMaterialByMaterialIdList(InputObject inputObject, OutputObject outputObject);
 
+    List<ShopMaterial> queryShopMaterialListByStoreCoverage(Integer storeCoverage, String storeId);
+
 }
