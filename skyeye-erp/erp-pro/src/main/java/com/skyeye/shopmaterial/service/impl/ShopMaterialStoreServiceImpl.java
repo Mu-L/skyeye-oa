@@ -31,6 +31,7 @@ import com.skyeye.shopmaterial.dao.ShopMaterialStoreDao;
 import com.skyeye.shopmaterial.entity.ShopMaterial;
 import com.skyeye.shopmaterial.entity.ShopMaterialNorms;
 import com.skyeye.shopmaterial.entity.ShopMaterialStore;
+import com.skyeye.shopmaterial.enums.ShopMaterialStoreCoverage;
 import com.skyeye.shopmaterial.service.ShopMaterialService;
 import com.skyeye.shopmaterial.service.ShopMaterialStoreService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,17 +112,57 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
     }
 
     @Override
-    public void addAllStoreForMaterial(String materialId) {
-        List<Map<String, Object>> storeList = iShopStoreService.queryStoreListByParams(StrUtil.EMPTY, null);
-        if (CollectionUtil.isEmpty(storeList)) {
+    public void addAllStoreForMaterial(String materialId, Integer storeCoverage, List<String> storeIds) {
+        if (ShopMaterialStoreCoverage.ALL_STORE.getKey().equals(storeCoverage)) {
+            // 使用全部门店
+            List<Map<String, Object>> storeList = iShopStoreService.queryStoreListByParams(StrUtil.EMPTY, null);
+            if (CollectionUtil.isEmpty(storeList)) {
+                return;
+            }
+            storeIds = storeList.stream().map(store -> MapUtil.getStr(store, "id")).collect(Collectors.toList());
+        }
+
+        // 指定门店直接使用默认的storeIds
+        if (CollectionUtil.isEmpty(storeIds)) {
             return;
         }
-        List<ShopMaterialStore> shopMaterialStoreList = storeList.stream().map(store -> {
-            ShopMaterialStore shopMaterialStore = new ShopMaterialStore();
-            shopMaterialStore.setStoreId(MapUtil.getStr(store, "id"));
-            return shopMaterialStore;
-        }).collect(Collectors.toList());
-        saveList(materialId, shopMaterialStoreList);
+
+        // 获取原有的门店关联数据
+        List<ShopMaterialStore> oldShopMaterialStores = selectByMaterialId(materialId);
+
+        // 提取原有门店ID列表
+        List<String> oldStoreIds = oldShopMaterialStores.stream()
+            .map(ShopMaterialStore::getStoreId).collect(Collectors.toList());
+
+        // 找出新增的门店ID（新门店ID - 旧门店ID）
+        List<String> newStoreIds = storeIds.stream()
+            .filter(storeId -> !oldStoreIds.contains(storeId)).collect(Collectors.toList());
+
+        // 找出删除的门店ID（旧门店ID - 新门店ID）
+        List<String> finalStoreIds = storeIds;
+        List<String> deletedStoreIds = oldStoreIds.stream()
+            .filter(storeId -> !finalStoreIds.contains(storeId)).collect(Collectors.toList());
+
+        // 删除不再关联的门店
+        if (CollectionUtil.isNotEmpty(deletedStoreIds)) {
+            QueryWrapper<ShopMaterialStore> deleteWrapper = new QueryWrapper<>();
+            deleteWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getMaterialId), materialId);
+            deleteWrapper.in(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), deletedStoreIds);
+            remove(deleteWrapper);
+        }
+
+        // 新增门店关联
+        if (CollectionUtil.isNotEmpty(newStoreIds)) {
+            List<ShopMaterialStore> newShopMaterialStoreList = newStoreIds.stream().map(storeId -> {
+                ShopMaterialStore shopMaterialStore = new ShopMaterialStore();
+                shopMaterialStore.setStoreId(storeId);
+                shopMaterialStore.setMaterialId(materialId);
+                return shopMaterialStore;
+            }).collect(Collectors.toList());
+
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            createEntity(newShopMaterialStoreList, userId);
+        }
     }
 
     @Override

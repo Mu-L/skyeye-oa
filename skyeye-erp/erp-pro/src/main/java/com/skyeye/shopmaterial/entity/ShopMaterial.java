@@ -14,8 +14,10 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.material.entity.Material;
 import com.skyeye.shopmaterial.enums.ShopMaterialDistributionType;
+import com.skyeye.shopmaterial.enums.ShopMaterialStoreCoverage;
 import lombok.Data;
 
 import java.util.List;
@@ -68,7 +70,7 @@ public class ShopMaterial extends OperatorUserInfo {
     private Integer distributionType;
 
     @TableField(value = "delivery_method", typeHandler = JacksonTypeHandler.class)
-    @ApiModelProperty(value = "配送方式", enumClass = ShopMaterialDistributionType.class, required = "required,json")
+    @ApiModelProperty(value = "配送方式，给门店选择的配送方式", enumClass = ShopMaterialDistributionType.class, required = "required,json")
     private List<String> deliveryMethod;
 
     @TableField(value = "order_by")
@@ -103,4 +105,15 @@ public class ShopMaterial extends OperatorUserInfo {
     @ApiModelProperty(value = "上架的规格信息", required = "json")
     private List<ShopMaterialNorms> shopMaterialNormsList;
 
+    @TableField(value = "store_coverage")
+    @ApiModelProperty(value = "适用门店范围", enumClass = ShopMaterialStoreCoverage.class, required = "required,num")
+    private Integer storeCoverage;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "门店ID，当storeCoverage=2时，必有")
+    private List<String> storeIds;
+
+    @TableField(value = "store_self_made")
+    @ApiModelProperty(value = "门店自制", enumClass = WhetherEnum.class, required = "required,num")
+    private Integer storeSelfMade;
 }

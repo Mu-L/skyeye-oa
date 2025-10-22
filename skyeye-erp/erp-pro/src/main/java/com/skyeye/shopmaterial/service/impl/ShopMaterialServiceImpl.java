@@ -32,6 +32,7 @@ import com.skyeye.shopmaterial.dao.ShopMaterialDao;
 import com.skyeye.shopmaterial.entity.ShopMaterial;
 import com.skyeye.shopmaterial.entity.ShopMaterialNorms;
 import com.skyeye.shopmaterial.entity.ShopMaterialStore;
+import com.skyeye.shopmaterial.enums.ShopMaterialStoreCoverage;
 import com.skyeye.shopmaterial.service.ShopMaterialNormsService;
 import com.skyeye.shopmaterial.service.ShopMaterialService;
 import com.skyeye.shopmaterial.service.ShopMaterialStoreService;
@@ -91,11 +92,11 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
         } else if (material.getMaterialNorms().size() > entity.getShopMaterialNormsList().size()) {
             // 部分上架
             materialService.setShelvesState(material.getId(), MaterialShelvesState.PART_ON_SHELVE.getKey());
-            shopMaterialStoreService.addAllStoreForMaterial(entity.getMaterialId());
+            shopMaterialStoreService.addAllStoreForMaterial(entity.getMaterialId(), entity.getStoreCoverage(), entity.getStoreIds());
         } else if (material.getMaterialNorms().size() == entity.getShopMaterialNormsList().size()) {
             // 全部上架
             materialService.setShelvesState(material.getId(), MaterialShelvesState.ON_SHELVE.getKey());
-            shopMaterialStoreService.addAllStoreForMaterial(entity.getMaterialId());
+            shopMaterialStoreService.addAllStoreForMaterial(entity.getMaterialId(), entity.getStoreCoverage(), entity.getStoreIds());
         }
     }
 
@@ -108,6 +109,14 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
             Material material = materialService.selectById(materialId);
             shopMaterial.setMaterialId(materialId);
             shopMaterial.setMaterialMation(material);
+        }
+        if (ShopMaterialStoreCoverage.SPECIFIED_STORE.getKey().equals(shopMaterial.getStoreCoverage())) {
+            // 门店适用范围--指定门店
+            List<ShopMaterialStore> shopMaterialStores = shopMaterialStoreService.selectByMaterialId(materialId);
+            if (CollectionUtil.isNotEmpty(shopMaterialStores)) {
+                List<String> storeIds = shopMaterialStores.stream().map(ShopMaterialStore::getStoreId).distinct().collect(Collectors.toList());
+                shopMaterial.setStoreIds(storeIds);
+            }
         }
         outputObject.setBean(shopMaterial);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
