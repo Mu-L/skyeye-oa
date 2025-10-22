@@ -15,6 +15,7 @@ import com.skyeye.brand.entity.Brand;
 import com.skyeye.brand.service.BrandService;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -31,7 +32,7 @@ import java.util.List;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "品牌管理", groupName = "品牌管理")
+@SkyeyeService(name = "品牌管理", groupName = "品牌管理", tenant = TenantEnum.WEAK_ISOLATION)
 public class BrandServiceImpl extends SkyeyeBusinessServiceImpl<BrandDao, Brand> implements BrandService {
 
     @Override
@@ -67,5 +68,4 @@ public class BrandServiceImpl extends SkyeyeBusinessServiceImpl<BrandDao, Brand>
     public void selectById(InputObject inputObject, OutputObject outputObject) {
         super.selectById(inputObject, outputObject);
     }
-
 }
