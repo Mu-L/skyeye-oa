@@ -68,7 +68,7 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
         if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(GitCodeIssue::getVersionId), commonPageInfo.getObjectId());
         }
-        if (WhetherEnum.ENABLE_USING.getKey().equals(commonPageInfo.getType())) {
+        if (WhetherEnum.ENABLE_USING.getKey().toString().equals(commonPageInfo.getType())) {
             // 是否只查询我发布的
             String userId = InputObject.getLogParamsStatic().get("id").toString();
             queryWrapper.eq(MybatisPlusUtil.toColumns(GitCodeIssue::getCreateId), userId);
@@ -97,6 +97,13 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
         GitCodeIssue gitCodeIssue = selectById(entity.getId());
         // 调用GitCode API更新Issue
         gitCodeApiClient.updateIssue(gitCodeIssue.getIssueId(), updateData);
+    }
+
+    @Override
+    public GitCodeIssue selectById(String id) {
+        GitCodeIssue gitCodeIssue = super.selectById(id);
+        codeVersionService.setDataMation(gitCodeIssue, GitCodeIssue::getVersionId);
+        return gitCodeIssue;
     }
 
     @Override

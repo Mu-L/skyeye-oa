@@ -14,6 +14,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.doc.code.entity.CodeVersion;
 import lombok.Data;
 
 /**
@@ -69,6 +70,10 @@ public class GitCodeIssue extends OperatorUserInfo {
     @TableField(value = "version_id")
     @ApiModelProperty(value = "版本id")
     private String versionId;
+
+    @TableField(exist = false)
+    @Property(value = "版本信息")
+    private CodeVersion versionMation;
 
     @TableField(value = "due_date")
     @ApiModelProperty(value = "截止日期")

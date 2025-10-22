@@ -223,6 +223,7 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
+    @Override
     public DocMember queryMemberByPhone(String phone) {
         QueryWrapper<DocMember> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DocMember::getPhone), phone);

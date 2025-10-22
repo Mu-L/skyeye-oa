@@ -32,4 +32,6 @@ public interface DocMemberService extends SkyeyeBusinessService<DocMember> {
     void checkUserGitCodeToken(InputObject inputObject, OutputObject outputObject);
 
     void bingUserGitCodeToken(InputObject inputObject, OutputObject outputObject);
+
+    DocMember queryMemberByPhone(String phone);
 }
