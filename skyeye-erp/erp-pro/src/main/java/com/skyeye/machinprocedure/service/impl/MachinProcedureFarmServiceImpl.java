@@ -302,6 +302,7 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
 
         Map<String, Object> result = new HashMap<>();
         result.put("erpOrderItemList", Arrays.asList(machinChild));
+        result.put("farmId", machinProcedureFarm.getFarmId());
         outputObject.setBean(result);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

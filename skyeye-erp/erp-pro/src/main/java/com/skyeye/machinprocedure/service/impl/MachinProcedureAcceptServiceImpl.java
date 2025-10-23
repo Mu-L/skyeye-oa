@@ -13,7 +13,9 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
+import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
@@ -158,6 +160,22 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         }
         machinProcedureAcceptProductNumService.writeList(entity.getId(), entity.getMachinProcedureAcceptProductNumList());
         super.writePostpose(entity, userId);
+    }
+
+    @Override
+    protected QueryWrapper<MachinProcedureAccept> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<MachinProcedureAccept> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedureAccept::getFarmId), commonPageInfo.getObjectId());
+        }
+        return queryWrapper;
+    }
+
+    @Override
+    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        farmService.setMationForMap(beans, "farmId", "farmMation");
+        return beans;
     }
 
     private void saveErpOrderItemCode(MachinProcedureAccept entity) {

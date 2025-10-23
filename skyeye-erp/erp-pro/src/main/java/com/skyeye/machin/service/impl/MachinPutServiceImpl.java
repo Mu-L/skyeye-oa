@@ -14,12 +14,14 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.classenum.DepotPutFromType;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.depot.classenum.DepotPutState;
 import com.skyeye.depot.entity.DepotPut;
 import com.skyeye.depot.service.DepotPutService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.farm.service.FarmService;
 import com.skyeye.machin.classenum.MachinPutFromType;
 import com.skyeye.machin.dao.MachinPutDao;
 import com.skyeye.machin.entity.MachinPut;
@@ -55,9 +57,16 @@ public class MachinPutServiceImpl extends SkyeyeErpOrderServiceImpl<MachinPutDao
     @Autowired
     private MachinProcedureFarmService machinProcedureFarmService;
 
+    @Autowired
+    private FarmService farmService;
+
     @Override
     public QueryWrapper<MachinPut> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        return super.getQueryWrapper(commonPageInfo);
+        QueryWrapper<MachinPut> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(MachinPut::getFarmId), commonPageInfo.getObjectId());
+        }
+        return queryWrapper;
     }
 
     @Override
@@ -69,6 +78,8 @@ public class MachinPutServiceImpl extends SkyeyeErpOrderServiceImpl<MachinPutDao
         iAuthUserService.setMationForMap(beans, "salesman", "salesmanMation");
 
         machinProcedureFarmService.setOrderMationByFromId(beans, "fromId", "fromMation");
+
+        farmService.setMationForMap(beans, "farmId", "farmMation");
         return beans;
     }
 
@@ -80,11 +91,22 @@ public class MachinPutServiceImpl extends SkyeyeErpOrderServiceImpl<MachinPutDao
     @Override
     public void createPrepose(MachinPut entity) {
         super.createPrepose(entity);
+        if (StrUtil.isEmpty(entity.getFarmId())) {
+            throw new CustomException("请选择加工车间");
+        }
         entity.setFromTypeId(MachinPutFromType.FARM_TASK.getKey());
         entity.setType(DepotPutOutType.PUT.getKey());
         entity.getErpOrderItemList().forEach(erpOrderItem -> {
             erpOrderItem.setMType(MaterialInOrderType.GENERAL.getKey());
         });
+    }
+
+    @Override
+    public void updatePrepose(MachinPut entity) {
+        super.updatePrepose(entity);
+        // 保证下面的参数不会因为编辑而改变
+        MachinPut oldMachinPut = selectById(entity.getId());
+        entity.setFarmId(oldMachinPut.getFarmId());
     }
 
     @Override
