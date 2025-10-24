@@ -2,6 +2,8 @@
 
 > 智能制造一体化，采用Springboot(微服务) + UNI-APP + Ant Design Vue的低代码平台开发模式。包含50多种电子流程，CRM、PM、ERP、MES、ADM、OA、EHR、AI、项目、商城、财务、多班次考勤、薪资、招聘、云售后、论坛、问卷、报表设计、工作流、Saas等功能。打造全网首套低代码、功能最全、价格最优惠的智能制造行业供应链一体化管理软件。
 
+# 为我投票可免费获取体验账号：https://gitee.com/activity/2025opensource?ident=IXRHJC
+
 **郑重声明：** 
 
 **1. Skyeye会员（只有 `Skyeye会员` 才能获取完整源代码，扫描下方付款码成为会员吧）拿到源码后可进行学习、毕设、企业等使用。**
