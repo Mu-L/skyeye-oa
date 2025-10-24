@@ -26,7 +26,7 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@UniqueField(value = {"name", "pageId"})
+@UniqueField(value = {"name", "pageId"}, message = "同一表单布局下的打印模板名称不能重复")
 @RedisCacheField(name = "print:template")
 @TableName(value = "print_template", autoResultMap = true)
 @ApiModel("打印模板实体类")
