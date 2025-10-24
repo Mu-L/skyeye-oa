@@ -55,9 +55,13 @@ public class ShopMaterialStore extends OperatorUserInfo {
     @Property(value = "上架的商品信息")
     private ShopMaterial shopMaterial;
 
-    @TableField(value = "is_launch")
-    @ApiModelProperty(value = "是否上架", enumClass = WhetherEnum.class)
-    private Integer isLaunch;
+    @TableField(value = "is_launch_store")
+    @ApiModelProperty(value = "是否添加到门店", enumClass = WhetherEnum.class)
+    private Integer isLaunchStore;
+
+    @TableField(value = "is_launch_shop")
+    @ApiModelProperty(value = "是否上架到商城", enumClass = WhetherEnum.class)
+    private Integer isLaunchShop;
 
     @TableField(value = "store_enabled")
     @ApiModelProperty(value = "门店状态", enumClass = EnableEnum.class)

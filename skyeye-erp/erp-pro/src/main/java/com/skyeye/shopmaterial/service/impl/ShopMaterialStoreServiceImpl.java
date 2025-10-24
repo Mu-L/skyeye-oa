@@ -144,7 +144,8 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
                 ShopMaterialStore shopMaterialStore = new ShopMaterialStore();
                 shopMaterialStore.setStoreId(storeId);
                 shopMaterialStore.setMaterialId(materialId);
-                shopMaterialStore.setIsLaunch(WhetherEnum.DISABLE_USING.getKey());
+                shopMaterialStore.setIsLaunchStore(WhetherEnum.DISABLE_USING.getKey());
+                shopMaterialStore.setIsLaunchShop(WhetherEnum.DISABLE_USING.getKey());
                 return shopMaterialStore;
             }).collect(Collectors.toList());
 
@@ -179,7 +180,8 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
                 ShopMaterialStore shopMaterialStore = new ShopMaterialStore();
                 shopMaterialStore.setMaterialId(materialId);
                 shopMaterialStore.setStoreId(storeId);
-                shopMaterialStore.setIsLaunch(WhetherEnum.DISABLE_USING.getKey());
+                shopMaterialStore.setIsLaunchStore(WhetherEnum.DISABLE_USING.getKey());
+                shopMaterialStore.setIsLaunchShop(WhetherEnum.DISABLE_USING.getKey());
                 shopMaterialStore.setStoreEnabled(EnableEnum.ENABLE_USING.getKey());
                 return shopMaterialStore;
             }).collect(Collectors.toList());
