@@ -52,4 +52,16 @@ public interface ShopMaterialStoreService extends SkyeyeBusinessService<ShopMate
     void queryShopMaterialMapByMaterialIdAndStoreId(InputObject inputObject, OutputObject outputObject);
 
     void deleteShopMaterialStoreByStoreIds(InputObject inputObject, OutputObject outputObject);
+
+    void addShopMaterialStore(InputObject inputObject, OutputObject outputObject);
+
+    void deleteShopMaterialStore(InputObject inputObject, OutputObject outputObject);
+
+    void launchShopMaterialStore(InputObject inputObject, OutputObject outputObject);
+
+    void unlaunchShopMaterialStore(InputObject inputObject, OutputObject outputObject);
+
+    void getAllowedShopMaterialList(InputObject inputObject, OutputObject outputObject);
+
+    void getAddedShopMaterialList(InputObject inputObject, OutputObject outputObject);
 }

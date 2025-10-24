@@ -72,12 +72,64 @@ public class ShopMaterialStoreController {
         shopMaterialStoreService.queryShopMaterialMapByMaterialIdAndStoreId(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteShopMaterialStoreByStoreIds", value = "根据门店id删除商城商品信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "deleteShopMaterialStoreByStoreIds", value = "修改商城商品关联得指定门店为禁用，也就是这个门店下得商品都不在商城显示", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "storeIds", name = "storeIds", value = "门店id，多个逗号隔开", required = "required")})
     @RequestMapping("/post/ShopMaterialStoreController/deleteShopMaterialStoreByStoreIds")
     public void deleteShopMaterialStoreByStoreIds(InputObject inputObject, OutputObject outputObject) {
         shopMaterialStoreService.deleteShopMaterialStoreByStoreIds(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "addShopMaterialStore", value = "添加指定商品到指定门店--管理端使用", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "materialId", name = "materialId", value = "商品id", required = "required"),
+        @ApiImplicitParam(id = "storeId", name = "storeId", value = "门店id", required = "required")})
+    @RequestMapping("/post/ShopMaterialStoreController/addShopMaterialStore")
+    public void addShopMaterialStore(InputObject inputObject, OutputObject outputObject) {
+        shopMaterialStoreService.addShopMaterialStore(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "deleteShopMaterialStore", value = "从指定门店删除指定商品--管理端使用", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "materialId", name = "materialId", value = "商品id", required = "required"),
+        @ApiImplicitParam(id = "storeId", name = "storeId", value = "门店id", required = "required")})
+    @RequestMapping("/post/ShopMaterialStoreController/deleteShopMaterialStore")
+    public void deleteShopMaterialStore(InputObject inputObject, OutputObject outputObject) {
+        shopMaterialStoreService.deleteShopMaterialStore(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "launchShopMaterialStore", value = "上架指定门店得指定商品到商城--管理端使用", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "materialIds", name = "materialIds", value = "商品id，多个逗号隔开", required = "required"),
+        @ApiImplicitParam(id = "storeId", name = "storeId", value = "门店id", required = "required")})
+    @RequestMapping("/post/ShopMaterialStoreController/launchShopMaterialStore")
+    public void launchShopMaterialStore(InputObject inputObject, OutputObject outputObject) {
+        shopMaterialStoreService.launchShopMaterialStore(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "unlaunchShopMaterialStore", value = "下架指定门店得指定商品到商城--管理端使用", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "materialIds", name = "materialIds", value = "商品id，多个逗号隔开", required = "required"),
+        @ApiImplicitParam(id = "storeId", name = "storeId", value = "门店id", required = "required")})
+    @RequestMapping("/post/ShopMaterialStoreController/unlaunchShopMaterialStore")
+    public void unlaunchShopMaterialStore(InputObject inputObject, OutputObject outputObject) {
+        shopMaterialStoreService.unlaunchShopMaterialStore(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "getAllowedShopMaterialList", value = "获取指定门店允许得商品列表--管理端使用", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "storeId", name = "storeId", value = "门店id", required = "required")})
+    @RequestMapping("/post/ShopMaterialStoreController/getAllowedShopMaterialList")
+    public void getAllowedShopMaterialList(InputObject inputObject, OutputObject outputObject) {
+        shopMaterialStoreService.getAllowedShopMaterialList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "getAddedShopMaterialList", value = "获取指定门店已经添加得商品列表--管理端使用", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "storeId", name = "storeId", value = "门店id", required = "required")})
+    @RequestMapping("/post/ShopMaterialStoreController/getAddedShopMaterialList")
+    public void getAddedShopMaterialList(InputObject inputObject, OutputObject outputObject) {
+        shopMaterialStoreService.getAddedShopMaterialList(inputObject, outputObject);
     }
 
 }

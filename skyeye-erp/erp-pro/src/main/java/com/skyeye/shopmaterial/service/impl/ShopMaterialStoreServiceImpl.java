@@ -37,6 +37,7 @@ import com.skyeye.shopmaterial.entity.ShopMaterialStore;
 import com.skyeye.shopmaterial.enums.ShopMaterialStoreCoverage;
 import com.skyeye.shopmaterial.service.ShopMaterialService;
 import com.skyeye.shopmaterial.service.ShopMaterialStoreService;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -79,9 +80,18 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         return shopMaterialStoreList;
     }
 
-    public List<ShopMaterialStore> selectByStoreId(String storeId) {
+    public List<ShopMaterialStore> selectByStoreId(String storeId, Integer isLaunchStore, Integer isLunchShop) {
         QueryWrapper<ShopMaterialStore> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), storeId);
+        if (isLaunchStore != null) {
+            // 是否添加到门店
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchStore), isLaunchStore);
+        }
+        if (isLunchShop != null) {
+            // 是否上架到商城
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchShop), isLunchShop);
+        }
+
         List<ShopMaterialStore> shopMaterialStoreList = list(queryWrapper);
         return shopMaterialStoreList;
     }
@@ -167,7 +177,7 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         List<String> materialIdList = shopMaterialList.stream().map(ShopMaterial::getId).collect(Collectors.toList());
 
         // 获取门店关联的老数据
-        List<ShopMaterialStore> oldShopMaterialStores = selectByStoreId(storeId);
+        List<ShopMaterialStore> oldShopMaterialStores = selectByStoreId(storeId, null, null);
         List<String> oldMaterialIdList = oldShopMaterialStores.stream()
             .map(ShopMaterialStore::getMaterialId).collect(Collectors.toList());
 
@@ -403,6 +413,120 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         updateWrapper.in(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), storeIdList);
         updateWrapper.set(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreEnabled), EnableEnum.DISABLE_USING.getKey());
         update(updateWrapper);
+    }
+
+    @Override
+    public void addShopMaterialStore(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String storeId = params.get("storeId").toString();
+        String materialId = params.get("materialId").toString();
+
+        UpdateWrapper<ShopMaterialStore> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), storeId)
+            .eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getMaterialId), materialId)
+            .eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchStore), WhetherEnum.DISABLE_USING.getKey());
+        updateWrapper.set(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchStore), WhetherEnum.ENABLE_USING.getKey());
+        update(updateWrapper);
+    }
+
+    @Override
+    public void deleteShopMaterialStore(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String storeId = params.get("storeId").toString();
+        String materialId = params.get("materialId").toString();
+
+        UpdateWrapper<ShopMaterialStore> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), storeId)
+            .eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getMaterialId), materialId)
+            .eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchStore), WhetherEnum.ENABLE_USING.getKey());
+        updateWrapper.set(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchStore), WhetherEnum.DISABLE_USING.getKey());
+        update(updateWrapper);
+    }
+
+    @Override
+    public void launchShopMaterialStore(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String storeId = params.get("storeId").toString();
+        List<String> materialIds = Arrays.asList(params.get("materialIds").toString()
+                .split(CommonCharConstants.COMMA_MARK))
+            .stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(materialIds)) {
+            return;
+        }
+        UpdateWrapper<ShopMaterialStore> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), storeId)
+            .in(MybatisPlusUtil.toColumns(ShopMaterialStore::getMaterialId), materialIds);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchShop), WhetherEnum.ENABLE_USING.getKey());
+        update(updateWrapper);
+    }
+
+    @Override
+    public void unlaunchShopMaterialStore(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String storeId = params.get("storeId").toString();
+        List<String> materialIds = Arrays.asList(params.get("materialIds").toString()
+                .split(CommonCharConstants.COMMA_MARK))
+            .stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(materialIds)) {
+            return;
+        }
+        UpdateWrapper<ShopMaterialStore> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), storeId)
+            .in(MybatisPlusUtil.toColumns(ShopMaterialStore::getMaterialId), materialIds);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchShop), WhetherEnum.DISABLE_USING.getKey());
+        update(updateWrapper);
+    }
+
+    @Override
+    public void getAllowedShopMaterialList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String storeId = params.get("storeId").toString();
+        // 获取适用于指定门店的商品数据
+        List<ShopMaterialStore> shopMaterialStoreList = selectByStoreId(storeId, null, null);
+        if (CollectionUtil.isEmpty(shopMaterialStoreList)) {
+            return;
+        }
+        List<ShopMaterial> shopMaterialList = getShopMaterialList(shopMaterialStoreList);
+        outputObject.setBeans(shopMaterialList);
+        outputObject.settotal(shopMaterialList.size());
+    }
+
+    @NotNull
+    private List<ShopMaterial> getShopMaterialList(List<ShopMaterialStore> shopMaterialStoreList) {
+        List<String> materialIds = shopMaterialStoreList.stream()
+            .map(ShopMaterialStore::getMaterialId).distinct().collect(Collectors.toList());
+        Map<String, ShopMaterial> shopMaterialMap = shopMaterialService.queryShopMaterialByMaterialId(materialIds);
+        List<ShopMaterial> shopMaterialList = new ArrayList<>();
+        shopMaterialStoreList.forEach(shopMaterialStore -> {
+            ShopMaterial shopMaterial = shopMaterialMap.get(shopMaterialStore.getMaterialId());
+            if (ObjectUtil.isEmpty(shopMaterial)) {
+                return;
+            }
+            shopMaterial.getMaterialMation().setMaterialNorms(null);
+            shopMaterial.getMaterialMation().setBrandMation(null);
+            shopMaterial.getMaterialMation().setUnitGroupMation(null);
+            shopMaterial.getMaterialMation().setFirstInUnitMation(null);
+            shopMaterial.getMaterialMation().setFirstOutUnitMation(null);
+            shopMaterial.getMaterialMation().setNormsSpec(null);
+            shopMaterial.setShopMaterialStore(shopMaterialStore);
+            shopMaterial.setDefaultStoreId(shopMaterialStore.getStoreId());
+            shopMaterialList.add(shopMaterial);
+        });
+        return shopMaterialList;
+    }
+
+    @Override
+    public void getAddedShopMaterialList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String storeId = params.get("storeId").toString();
+        // 获取该门店新增的商品数据
+        List<ShopMaterialStore> shopMaterialStoreList = selectByStoreId(storeId, WhetherEnum.ENABLE_USING.getKey(), null);
+        if (CollectionUtil.isEmpty(shopMaterialStoreList)) {
+            return;
+        }
+        List<ShopMaterial> shopMaterialList = getShopMaterialList(shopMaterialStoreList);
+        outputObject.setBeans(shopMaterialList);
+        outputObject.settotal(shopMaterialList.size());
     }
 
 }
