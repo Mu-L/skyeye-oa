@@ -165,9 +165,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
     @Override
     protected QueryWrapper<MachinProcedureAccept> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<MachinProcedureAccept> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedureAccept::getFarmId), commonPageInfo.getObjectId());
-        }
+        queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedureAccept::getFarmId), commonPageInfo.getObjectId());
         return queryWrapper;
     }
 

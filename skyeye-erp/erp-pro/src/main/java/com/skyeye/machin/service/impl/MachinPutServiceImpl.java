@@ -63,9 +63,7 @@ public class MachinPutServiceImpl extends SkyeyeErpOrderServiceImpl<MachinPutDao
     @Override
     public QueryWrapper<MachinPut> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<MachinPut> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(MachinPut::getFarmId), commonPageInfo.getObjectId());
-        }
+        queryWrapper.eq(MybatisPlusUtil.toColumns(MachinPut::getFarmId), commonPageInfo.getObjectId());
         return queryWrapper;
     }
 
