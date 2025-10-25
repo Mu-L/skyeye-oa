@@ -16,6 +16,7 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.AreaInfo;
 import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
 import java.util.List;
@@ -89,7 +90,7 @@ public class ShopStore extends AreaInfo {
     private String endTime;
 
     @TableField(value = "online_book_appoint")
-    @ApiModelProperty(value = "是否开启线上预约，参考#WhetherEnum", required = "num")
+    @ApiModelProperty(value = "是否开启线上预约", enumClass = WhetherEnum.class, required = "num")
     private Integer onlineBookAppoint;
 
     @TableField(value = "online_book_radix")
