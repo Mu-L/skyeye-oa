@@ -64,4 +64,6 @@ public interface ShopMaterialStoreService extends SkyeyeBusinessService<ShopMate
     void getAllowedShopMaterialList(InputObject inputObject, OutputObject outputObject);
 
     void getAddedShopMaterialList(InputObject inputObject, OutputObject outputObject);
+
+    void getLaunchedShopMaterialList(InputObject inputObject, OutputObject outputObject);
 }

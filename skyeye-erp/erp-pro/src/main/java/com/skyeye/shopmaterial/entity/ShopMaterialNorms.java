@@ -11,8 +11,10 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
+import com.skyeye.shopmaterial.enums.ShopMaterialNormsLogoType;
 import lombok.Data;
 
 /**
@@ -49,7 +51,7 @@ public class ShopMaterialNorms extends OperatorUserInfo {
     private MaterialNorms normsMation;
 
     @TableField(value = "is_default")
-    @ApiModelProperty(value = "是否默认，参考#IsDefaultEnum", required = "required,num")
+    @ApiModelProperty(value = "是否默认", enumClass = IsDefaultEnum.class, required = "required,num")
     private Integer isDefault;
 
     @TableField(value = "estimate_purchase_price")
@@ -61,7 +63,7 @@ public class ShopMaterialNorms extends OperatorUserInfo {
     private String salePrice;
 
     @TableField(value = "logo_type")
-    @ApiModelProperty(value = "logo类型，参考#ShopMaterialNormsLogoType", required = "required,num")
+    @ApiModelProperty(value = "logo类型", enumClass = ShopMaterialNormsLogoType.class, required = "required,num")
     private Integer logoType;
 
     @TableField(value = "logo")

@@ -80,8 +80,9 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         return shopMaterialStoreList;
     }
 
-    public List<ShopMaterialStore> selectByStoreId(String storeId, Integer isLaunchStore, Integer isLunchShop) {
-        QueryWrapper<ShopMaterialStore> queryWrapper = new QueryWrapper<>();
+    public List<ShopMaterialStore> selectByStoreId(String storeId, Integer isLaunchStore, Integer isLunchShop, String keyword) {
+        MPJLambdaWrapper<ShopMaterialStore> queryWrapper = new MPJLambdaWrapper<ShopMaterialStore>()
+            .innerJoin(Material.class, Material::getId, ShopMaterialStore::getMaterialId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), storeId);
         if (isLaunchStore != null) {
             // 是否添加到门店
@@ -91,8 +92,14 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
             // 是否上架到商城
             queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchShop), isLunchShop);
         }
+        if (StrUtil.isNotBlank(keyword)) {
+            queryWrapper.and(wra -> {
+                wra.or().like(Material::getName, keyword);
+                wra.or().like(Material::getModel, keyword);
+            });
+        }
 
-        List<ShopMaterialStore> shopMaterialStoreList = list(queryWrapper);
+        List<ShopMaterialStore> shopMaterialStoreList = skyeyeBaseMapper.selectJoinList(ShopMaterialStore.class, queryWrapper);
         return shopMaterialStoreList;
     }
 
@@ -177,7 +184,7 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         List<String> materialIdList = shopMaterialList.stream().map(ShopMaterial::getId).collect(Collectors.toList());
 
         // 获取门店关联的老数据
-        List<ShopMaterialStore> oldShopMaterialStores = selectByStoreId(storeId, null, null);
+        List<ShopMaterialStore> oldShopMaterialStores = selectByStoreId(storeId, null, null, null);
         List<String> oldMaterialIdList = oldShopMaterialStores.stream()
             .map(ShopMaterialStore::getMaterialId).collect(Collectors.toList());
 
@@ -229,7 +236,12 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
                 wra.or().like(Material::getModel, commonPageInfo.getKeyword());
             });
         }
-
+        // 已经添加到门店
+        wrapper.eq(ShopMaterialStore::getIsLaunchStore, WhetherEnum.ENABLE_USING.getKey());
+        // 上架到商城
+        wrapper.eq(ShopMaterialStore::getIsLaunchShop, WhetherEnum.ENABLE_USING.getKey());
+        // 门店是启用状态的
+        wrapper.eq(ShopMaterialStore::getStoreEnabled, EnableEnum.ENABLE_USING.getKey());
 
         List<ShopMaterialStore> shopMaterialStoreList = skyeyeBaseMapper.selectJoinList(ShopMaterialStore.class, wrapper);
         iShopStoreService.setDataMation(shopMaterialStoreList, ShopMaterialStore::getStoreId);
@@ -342,12 +354,21 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         }
         QueryWrapper<ShopMaterialStore> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), storeIds);
+        // 已经添加到门店
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchStore), WhetherEnum.ENABLE_USING.getKey());
+        // 上架到商城
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchShop), WhetherEnum.ENABLE_USING.getKey());
+        // 门店是启用状态的
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreEnabled), EnableEnum.ENABLE_USING.getKey());
         List<ShopMaterialStore> shopMaterialStoreList = list(queryWrapper);
         List<String> materialIds = shopMaterialStoreList.stream()
             .map(ShopMaterialStore::getMaterialId).distinct().collect(Collectors.toList());
         Map<String, ShopMaterial> shopMaterialMap = shopMaterialService.queryShopMaterialByMaterialId(materialIds);
         shopMaterialStoreList.forEach(shopMaterialStore -> {
             ShopMaterial shopMaterial = shopMaterialMap.get(shopMaterialStore.getMaterialId());
+            if (ObjectUtil.isEmpty(shopMaterial)) {
+                return;
+            }
             shopMaterial.getMaterialMation().setMaterialNorms(null);
             shopMaterial.getMaterialMation().setBrandMation(null);
             shopMaterial.getMaterialMation().setUnitGroupMation(null);
@@ -440,6 +461,7 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
             .eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getMaterialId), materialId)
             .eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchStore), WhetherEnum.ENABLE_USING.getKey());
         updateWrapper.set(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchStore), WhetherEnum.DISABLE_USING.getKey());
+        updateWrapper.set(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchShop), WhetherEnum.DISABLE_USING.getKey());
         update(updateWrapper);
     }
 
@@ -478,17 +500,19 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
     }
 
     @Override
+    @IgnoreTenant
     public void getAllowedShopMaterialList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> params = inputObject.getParams();
-        String storeId = params.get("storeId").toString();
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         // 获取适用于指定门店的商品数据
-        List<ShopMaterialStore> shopMaterialStoreList = selectByStoreId(storeId, null, null);
+        List<ShopMaterialStore> shopMaterialStoreList = selectByStoreId(commonPageInfo.getObjectId(), null, null,
+            commonPageInfo.getKeyword());
         if (CollectionUtil.isEmpty(shopMaterialStoreList)) {
             return;
         }
         List<ShopMaterial> shopMaterialList = getShopMaterialList(shopMaterialStoreList);
         outputObject.setBeans(shopMaterialList);
-        outputObject.settotal(shopMaterialList.size());
+        outputObject.settotal(pages.getTotal());
     }
 
     @NotNull
@@ -516,17 +540,35 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
     }
 
     @Override
+    @IgnoreTenant
     public void getAddedShopMaterialList(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> params = inputObject.getParams();
-        String storeId = params.get("storeId").toString();
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         // 获取该门店新增的商品数据
-        List<ShopMaterialStore> shopMaterialStoreList = selectByStoreId(storeId, WhetherEnum.ENABLE_USING.getKey(), null);
+        List<ShopMaterialStore> shopMaterialStoreList = selectByStoreId(commonPageInfo.getObjectId(), WhetherEnum.ENABLE_USING.getKey(), null,
+            commonPageInfo.getKeyword());
         if (CollectionUtil.isEmpty(shopMaterialStoreList)) {
             return;
         }
         List<ShopMaterial> shopMaterialList = getShopMaterialList(shopMaterialStoreList);
         outputObject.setBeans(shopMaterialList);
-        outputObject.settotal(shopMaterialList.size());
+        outputObject.settotal(pages.getTotal());
+    }
+
+    @Override
+    @IgnoreTenant
+    public void getLaunchedShopMaterialList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        // 获取该门店已经上架到商城的商品数据
+        List<ShopMaterialStore> shopMaterialStoreList = selectByStoreId(commonPageInfo.getObjectId(), WhetherEnum.ENABLE_USING.getKey(), WhetherEnum.ENABLE_USING.getKey(),
+            commonPageInfo.getKeyword());
+        if (CollectionUtil.isEmpty(shopMaterialStoreList)) {
+            return;
+        }
+        List<ShopMaterial> shopMaterialList = getShopMaterialList(shopMaterialStoreList);
+        outputObject.setBeans(shopMaterialList);
+        outputObject.settotal(pages.getTotal());
     }
 
 }

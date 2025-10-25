@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.shopmaterial.service.ShopMaterialStoreService;
@@ -117,19 +118,23 @@ public class ShopMaterialStoreController {
     }
 
     @ApiOperation(id = "getAllowedShopMaterialList", value = "获取指定门店允许得商品列表--管理端使用", method = "POST", allUse = "2")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "storeId", name = "storeId", value = "门店id", required = "required")})
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ShopMaterialStoreController/getAllowedShopMaterialList")
     public void getAllowedShopMaterialList(InputObject inputObject, OutputObject outputObject) {
         shopMaterialStoreService.getAllowedShopMaterialList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "getAddedShopMaterialList", value = "获取指定门店已经添加得商品列表--管理端使用", method = "POST", allUse = "2")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "storeId", name = "storeId", value = "门店id", required = "required")})
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ShopMaterialStoreController/getAddedShopMaterialList")
     public void getAddedShopMaterialList(InputObject inputObject, OutputObject outputObject) {
         shopMaterialStoreService.getAddedShopMaterialList(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "getLaunchedShopMaterialList", value = "获取指定门店已经上架到商城的商品列表--管理端使用", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/ShopMaterialStoreController/getLaunchedShopMaterialList")
+    public void getLaunchedShopMaterialList(InputObject inputObject, OutputObject outputObject) {
+        shopMaterialStoreService.getLaunchedShopMaterialList(inputObject, outputObject);
+    }
 }
