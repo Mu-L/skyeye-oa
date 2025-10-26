@@ -32,12 +32,6 @@ public class StoreTypeController {
     @Autowired
     private StoreTypeService storeTypeService;
 
-    /**
-     * 新增/编辑门店商品分类信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeStoreType", value = "新增/编辑门店商品分类信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = StoreType.class)
     @RequestMapping("/post/StoreTypeController/writeStoreType")
@@ -45,12 +39,6 @@ public class StoreTypeController {
         storeTypeService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 批量删除收件地址信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteStoreTypeByIds", value = "批量删除门店商品分类信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "ids", name = "ids", value = "主键id列表，多个id用逗号分隔", required = "required")})
@@ -59,12 +47,6 @@ public class StoreTypeController {
         storeTypeService.deleteByIds(inputObject, outputObject);
     }
 
-    /**
-     * 获取门店商品分类信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryStoreTypeList", value = "获取门店商品分类信息列表", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "storeId", name = "storeId", value = "门店id")})
@@ -73,12 +55,6 @@ public class StoreTypeController {
         storeTypeService.queryList(inputObject, outputObject);
     }
 
-    /**
-     * 分页获取门店商品分类信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryStoreTypePageList", value = "分页获取门店商品分类信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/StoreTypeController/queryStoreTypePageList")
@@ -86,12 +62,6 @@ public class StoreTypeController {
         storeTypeService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取门店商品分类信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "selectStoreTypeById", value = "根据id获取门店商品分类信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
