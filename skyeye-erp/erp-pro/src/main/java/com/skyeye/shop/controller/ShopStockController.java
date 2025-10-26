@@ -30,7 +30,7 @@ public class ShopStockController {
     @Autowired
     private ShopStockService shopStockService;
 
-    @ApiOperation(id = "queryShopStockList", value = "获取门店物料库存信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryShopStockList", value = "获取门店物料库存信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ShopStockController/queryShopStockList")
     public void queryShopStockList(InputObject inputObject, OutputObject outputObject) {
