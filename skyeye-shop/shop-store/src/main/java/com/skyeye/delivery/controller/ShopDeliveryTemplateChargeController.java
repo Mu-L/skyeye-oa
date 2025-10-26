@@ -32,12 +32,6 @@ public class ShopDeliveryTemplateChargeController {
     @Autowired
     private ShopDeliveryTemplateChargeService shopDeliveryTemplateChargeService;
 
-    /**
-     * 添加/修改快递运费模板计费配置
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeShopDeliveryTemplateCharge", value = "添加/修改快递运费模板计费配置", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ShopDeliveryTemplateCharge.class)
     @RequestMapping("/post/shopDeliveryTemplateChargeController/writeShopDeliveryTemplateCharge")
@@ -45,53 +39,28 @@ public class ShopDeliveryTemplateChargeController {
         shopDeliveryTemplateChargeService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 批量删除快递运费模板计费配置信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteShopDeliveryTemplateChargeByIds", value = "批量删除快递运费模板计费配置信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "ids", name = "ids", value = "主键id列表，多个id用逗号分隔", required = "required")})
+        @ApiImplicitParam(id = "ids", name = "ids", value = "主键id列表，多个id用逗号分隔", required = "required")})
     @RequestMapping("/post/shopDeliveryTemplateChargeController/deleteShopDeliveryTemplateChargeByIds")
     public void deleteShopDeliveryTemplateChargeByIds(InputObject inputObject, OutputObject outputObject) {
         shopDeliveryTemplateChargeService.deleteByIds(inputObject, outputObject);
     }
 
-    /**
-     * 分页查询快递运费模板计费配置信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryShopDeliveryTemplateChargeList", value = "分页查询快递运费模板计费配置信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
-            @ApiImplicitParam(id = "objectId", name = "objectId", value = "模板id"),
-            @ApiImplicitParam(id = "typeId", name = "typeId", value = "区域id")})
+        @ApiImplicitParam(id = "objectId", name = "objectId", value = "门店id")})
     @RequestMapping("/post/shopDeliveryTemplateChargeController/queryShopDeliveryTemplateChargeList")
     public void queryShopDeliveryTemplateChargeList(InputObject inputObject, OutputObject outputObject) {
         shopDeliveryTemplateChargeService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 获取全部快递运费模板计费配置信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryShopDeliveryTemplateCharge", value = "获取全部快递运费模板计费配置信息", method = "POST", allUse = "0")
     @RequestMapping("/post/shopDeliveryTemplateChargeController/queryShopDeliveryTemplateCharge")
     public void queryShopDeliveryTemplateCharge(InputObject inputObject, OutputObject outputObject) {
         shopDeliveryTemplateChargeService.queryList(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取快递运费模板计费配置信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryShopDeliveryTemplateChargeById", value = "根据id获取快递运费模板计费配置信息", method = "POST", allUse = "2")
     @ApiImplicitParams({@ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/shopDeliveryTemplateChargeController/queryShopDeliveryTemplateChargeById")

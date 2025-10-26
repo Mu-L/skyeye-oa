@@ -32,12 +32,6 @@ public class ShopDeliveryCompanyController {
     @Autowired
     private ShopDeliveryCompanyService shopDeliveryCompanyService;
 
-    /**
-     * 分页获取快递公司信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDeliveryPageList", value = "分页获取快递公司信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
             @ApiImplicitParam(id = "objectId", name = "objectId", value = "门店id")})
@@ -46,12 +40,6 @@ public class ShopDeliveryCompanyController {
         shopDeliveryCompanyService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加/编辑快递公司
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeDelivery", value = "添加/编辑快递公司", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ShopDeliveryCompany.class)
     @RequestMapping("/post/ShopDeliveryCompanyController/writeDelivery")
@@ -59,12 +47,6 @@ public class ShopDeliveryCompanyController {
         shopDeliveryCompanyService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 批量删除快递公司信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteDeliveryByIds", value = "批量删除快递公司信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({@ApiImplicitParam(id = "ids", name = "ids", value = "主键id", required = "required")})
     @RequestMapping("/post/ShopDeliveryCompanyController/deleteDeliveryByIds")
@@ -72,24 +54,12 @@ public class ShopDeliveryCompanyController {
         shopDeliveryCompanyService.deleteByIds(inputObject, outputObject);
     }
 
-    /**
-     * 获取全部已启用快递公司信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDelivery", value = "获取全部已启用快递公司信息", method = "POST", allUse = "0")
     @RequestMapping("/post/ShopDeliveryCompanyController/queryDelivery")
     public void queryDelivery(InputObject inputObject, OutputObject outputObject) {
         shopDeliveryCompanyService.queryList(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取快递公司信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDeliveryById", value = "根据id获取快递公司信息", method = "POST", allUse = "2")
     @ApiImplicitParams({@ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ShopDeliveryCompanyController/queryDeliveryById")
@@ -97,12 +67,6 @@ public class ShopDeliveryCompanyController {
         shopDeliveryCompanyService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据门店id获取快递公司信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDeliveryByStoreId", value = "根据门店id获取快递公司信息", method = "POST", allUse = "2")
     @ApiImplicitParams({@ApiImplicitParam(id = "storeId", name = "storeId", value = "门店id", required = "required")})
     @RequestMapping("/post/ShopDeliveryCompanyController/queryDeliveryByStoreId")

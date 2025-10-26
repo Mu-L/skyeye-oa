@@ -9,10 +9,9 @@ import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-
-import com.skyeye.delivery.entity.ShopDeliveryCompany;
 import com.skyeye.delivery.entity.ShopDeliveryTemplate;
 import com.skyeye.delivery.service.ShopDeliveryTemplateService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,21 +42,23 @@ public class ShopDeliveryTemplateController {
 
     @ApiOperation(id = "deleteShopDeliveryTemplateByIds", value = "批量删除快递运费模版信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "ids", name = "ids", value = "主键id列表，多个id用逗号分隔", required = "required")})
+        @ApiImplicitParam(id = "ids", name = "ids", value = "主键id列表，多个id用逗号分隔", required = "required")})
     @RequestMapping("/post/ShopDeliveryTemplateController/deleteShopDeliveryTemplateByIds")
     public void deleteShopDeliveryTemplateByIds(InputObject inputObject, OutputObject outputObject) {
         shopDeliveryTemplateService.deleteByIds(inputObject, outputObject);
     }
 
     @ApiOperation(id = "queryShopDeliveryTemplatePageList", value = "分页查询快递运费模版信息", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class,value = {
-            @ApiImplicitParam(id = "objectId", name = "objectId", value = "门店id")})
+    @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
+        @ApiImplicitParam(id = "objectId", name = "objectId", value = "门店id")})
     @RequestMapping("/post/ShopDeliveryTemplateController/queryShopDeliveryTemplateList")
     public void queryShopDeliveryTemplateList(InputObject inputObject, OutputObject outputObject) {
         shopDeliveryTemplateService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryShopDeliveryTemplate", value = "获取全部快递运费模版信息", method = "POST", allUse = "0")
+    @ApiOperation(id = "queryShopDeliveryTemplate", value = "根据门店id查询快递运费模版信息", method = "POST", allUse = "0")
+    @ApiImplicitParams(classBean = TableSelectInfo.class, value = {
+        @ApiImplicitParam(id = "objectId", name = "objectId", value = "门店id")})
     @RequestMapping("/post/ShopDeliveryTemplateController/queryShopDeliveryTemplate")
     public void queryShopDeliveryTemplate(InputObject inputObject, OutputObject outputObject) {
         shopDeliveryTemplateService.queryList(inputObject, outputObject);
@@ -65,7 +66,7 @@ public class ShopDeliveryTemplateController {
 
     @ApiOperation(id = "selectShopDeliveryTemplateById", value = "根据id获取快递运费模版信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ShopDeliveryTemplateController/selectShopDeliveryTemplateById")
     public void selectShopDeliveryTemplateById(InputObject inputObject, OutputObject outputObject) {
         shopDeliveryTemplateService.selectById(inputObject, outputObject);

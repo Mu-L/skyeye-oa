@@ -4,13 +4,12 @@
 
 package com.skyeye.delivery.service.impl;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.delivery.dao.ShopDeliveryTemplateDao;
@@ -34,18 +33,12 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "快递运费模板计费配置管理", groupName = "快递运费模板计费配置管理")
+@SkyeyeService(name = "快递运费模版", groupName = "快递运费模版")
 public class ShopDeliveryTemplateServiceImpl extends SkyeyeBusinessServiceImpl<ShopDeliveryTemplateDao, ShopDeliveryTemplate> implements ShopDeliveryTemplateService {
 
     @Autowired
     private ShopStoreService shopStoreService;
 
-    /**
-     * 分页查询-快递运费模版
-     *
-     * @param commonPageInfo
-     * @return
-     */
     @Override
     public QueryWrapper<ShopDeliveryTemplate> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ShopDeliveryTemplate> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -57,37 +50,20 @@ public class ShopDeliveryTemplateServiceImpl extends SkyeyeBusinessServiceImpl<S
 
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        if (CollectionUtil.isNotEmpty(beans)) {
-            shopStoreService.setMationForMap(beans, "storeId", "storeMation");
-        }
-        // 分页查询时获取数据
+        shopStoreService.setMationForMap(beans, "storeId", "storeMation");
         return beans;
     }
 
-    /**
-     * 获取全部快递运费模版信息
-     *
-     * @param inputObject 入参以及用户信息等获取对象
-     */
     @Override
-    public List<Map<String, Object>> queryDataList(InputObject inputObject) {
-        QueryWrapper<ShopDeliveryTemplate> queryWrapper = new QueryWrapper<>();
-        List<ShopDeliveryTemplate> beans = list(queryWrapper);
-        return JSONUtil.toList(JSONUtil.toJsonStr(beans), null);
+    protected QueryWrapper<ShopDeliveryTemplate> getQueryWrapper(TableSelectInfo tableSelectInfo) {
+        QueryWrapper<ShopDeliveryTemplate> queryWrapper = super.getQueryWrapper(tableSelectInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ShopDeliveryTemplate::getStoreId), tableSelectInfo.getObjectId());
+        return queryWrapper;
     }
 
-    /**
-     * 重写新增编辑前置条件快递运费模版信息
-     */
     @Override
     public void validatorEntity(ShopDeliveryTemplate shopDeliveryTemplate) {
         super.validatorEntity(shopDeliveryTemplate);
-        if (StrUtil.isNotEmpty(shopDeliveryTemplate.getName()) && shopDeliveryTemplate.getName().length() > 100) {
-            throw new CustomException("运费模板名称过长");
-        }
-        if (shopDeliveryTemplate.getOrderBy() < -128 || shopDeliveryTemplate.getOrderBy() > 127) {
-            throw new CustomException("运费模板排序值超出范围");
-        }
 
         //判断StoreId是否存在
         if (StrUtil.isNotEmpty(shopDeliveryTemplate.getStoreId())) {

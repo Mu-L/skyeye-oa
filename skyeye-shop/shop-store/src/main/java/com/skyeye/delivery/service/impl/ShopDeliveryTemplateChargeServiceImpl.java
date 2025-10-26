@@ -10,7 +10,6 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -20,15 +19,12 @@ import com.skyeye.delivery.entity.ShopDeliveryTemplateCharge;
 import com.skyeye.delivery.service.ShopDeliveryTemplateChargeService;
 import com.skyeye.delivery.service.ShopDeliveryTemplateService;
 import com.skyeye.exception.CustomException;
-import com.skyeye.store.entity.ShopArea;
-import com.skyeye.store.service.ShopAreaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @ClassName: ShopDeliveryTemplateChargeServiceImpl
@@ -45,20 +41,12 @@ public class ShopDeliveryTemplateChargeServiceImpl extends SkyeyeBusinessService
     @Autowired
     private ShopDeliveryTemplateService shopDeliveryTemplateService;
 
-    @Autowired
-    private ShopAreaService shopAreaService;
-
     @Override
     public QueryWrapper<ShopDeliveryTemplateCharge> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ShopDeliveryTemplateCharge> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        String templateId = commonPageInfo.getObjectId();
-        if (StrUtil.isNotEmpty(templateId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ShopDeliveryTemplateCharge::getTemplateId), templateId);
-        }
-        if (StrUtil.isNotEmpty(commonPageInfo.getTypeId())) {
-            // 区域搜索条件   查找包含该区域的信息
-//            queryWrapper.apply("JSON_CONTAINS(" + MybatisPlusUtil.toColumns(ShopDeliveryTemplateCharge::getAreaId) + ", '\"{0}\"', '$')", commonPageInfo.getTypeId());
-            queryWrapper.like(MybatisPlusUtil.toColumns(ShopDeliveryTemplateCharge::getAreaId), commonPageInfo.getTypeId());
+        String storeId = commonPageInfo.getObjectId();
+        if (StrUtil.isNotEmpty(storeId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ShopDeliveryTemplateCharge::getStoreId), storeId);
         }
         return queryWrapper;
     }
@@ -69,25 +57,8 @@ public class ShopDeliveryTemplateChargeServiceImpl extends SkyeyeBusinessService
             return new ArrayList<>();
         }
         shopDeliveryTemplateService.setMationForMap(beans, "templateId", "templateMation");
-        // 开始处理区域信息
-        List<ShopDeliveryTemplateCharge> list = JSONUtil.toList(JSONUtil.toJsonStr(beans), ShopDeliveryTemplateCharge.class);
-        List<String> allAreaIdList = new ArrayList<>();
-        for (ShopDeliveryTemplateCharge charge : list) {
-            allAreaIdList.addAll(charge.getAreaId());
-            charge.setAreaList(new ArrayList<>());
-        }
-        List<String> areaIdList = allAreaIdList.stream().distinct().collect(Collectors.toList());
-        List<ShopArea> shopAreas = shopAreaService.selectByIds(areaIdList.toArray(new String[CommonNumConstants.NUM_ZERO]));
-        Map<String, ShopArea> areaMap = shopAreas.stream().collect(Collectors.toMap(ShopArea::getId, bean -> bean, (bean1, bean2) -> bean1));
-        for (ShopDeliveryTemplateCharge charge : list) {
-            for (String areaId : charge.getAreaId()) {
-                if (areaMap.containsKey(areaId)) {
-                    charge.getAreaList().add(areaMap.get(areaId));
-                }
-            }
-        }
         // 分页查询时获取数据
-        return JSONUtil.toList(JSONUtil.toJsonStr(list), null);
+        return beans;
     }
 
     @Override
@@ -100,29 +71,11 @@ public class ShopDeliveryTemplateChargeServiceImpl extends SkyeyeBusinessService
     @Override
     public void validatorEntity(ShopDeliveryTemplateCharge shopDeliveryTemplateCharge) {
         super.validatorEntity(shopDeliveryTemplateCharge);
-
-        // 初步过滤区域Id
-        List<String> areaIdList = shopDeliveryTemplateCharge.getAreaId().stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
-//        String areaIds = Joiner.on(CommonCharConstants.COMMA_MARK).join(areaIdList);
-        List<ShopArea> shopAreaList = shopAreaService.selectByIds(areaIdList.toArray(new String[areaIdList.size()]));
-        // 取出可用区域Id
-        List<String> canUseAreaIdList = shopAreaList.stream().map(ShopArea::getId).collect(Collectors.toList());
-        if (StrUtil.isEmpty(shopDeliveryTemplateCharge.getId())) {
-            // 新增操作
-            if (CollectionUtil.isEmpty(canUseAreaIdList)) {
-                throw new CustomException("所传的所有区域id不可用");
-            }
-            shopDeliveryTemplateCharge.setAreaId(canUseAreaIdList);
-        } else {
-            // 更新操作
-            canUseAreaIdList.addAll(shopDeliveryTemplateCharge.getAreaId());
-            List<String> newAreaIdList = canUseAreaIdList.stream().distinct().collect(Collectors.toList());
-            shopDeliveryTemplateCharge.setAreaId(newAreaIdList);
-        }
+        // 判断模板是否存在
         ShopDeliveryTemplate shopDeliveryTemplate = shopDeliveryTemplateService.selectById(shopDeliveryTemplateCharge.getTemplateId());
         // 判断shopDeliveryTemplate是否为空，如果为空则抛出异常
         if (StrUtil.isEmpty(shopDeliveryTemplate.getId())) {
-            throw new CustomException("模板不存在: " + shopDeliveryTemplateCharge.getTemplateId());
+            throw new CustomException("模板不存在，请刷新后重试！");
         }
     }
 
@@ -130,10 +83,6 @@ public class ShopDeliveryTemplateChargeServiceImpl extends SkyeyeBusinessService
     public ShopDeliveryTemplateCharge selectById(String id) {
         ShopDeliveryTemplateCharge charge = super.selectById(id);
         shopDeliveryTemplateService.setDataMation(charge, ShopDeliveryTemplateCharge::getTemplateId);
-        if (CollectionUtil.isNotEmpty(charge.getAreaId())) {
-            List<ShopArea> shopAreas = shopAreaService.selectByIds(charge.getAreaId().toArray(new String[0]));
-            charge.setAreaList(shopAreas);
-        }
         return charge;
     }
 }
