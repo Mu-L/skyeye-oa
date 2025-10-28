@@ -32,12 +32,6 @@ public class MailController {
     @Autowired
     private MailService mailService;
 
-    /**
-     * 获取通讯录列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMailList", value = "获取通讯录列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/MailController/queryMailList")
@@ -45,12 +39,6 @@ public class MailController {
         mailService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑通讯录信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeMail", value = "新增/编辑通讯录信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Mail.class)
     @RequestMapping("/post/MailController/writeMail")
@@ -58,12 +46,6 @@ public class MailController {
         mailService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除通讯录
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteMailById", value = "删除通讯录", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

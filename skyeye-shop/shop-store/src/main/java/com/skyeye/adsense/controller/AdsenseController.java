@@ -22,8 +22,6 @@ import org.springframework.web.bind.annotation.RestController;
  * @Description: 广告位管理控制类
  * @author: skyeye云系列--卫志强
  * @date: 2022/2/4 10:06
- *
- *
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
@@ -50,20 +48,21 @@ public class AdsenseController {
 
     @ApiOperation(id = "deleteAdsenseByIds", value = "批量删除广告位管理信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "ids", name = "ids", value = "主键id列表，多个id用逗号分隔", required = "required")})
+        @ApiImplicitParam(id = "ids", name = "ids", value = "主键id列表，多个id用逗号分隔", required = "required")})
     @RequestMapping("/post/AdsenseController/deleteAdsenseByIds")
     public void deleteAdsenseByIds(InputObject inputObject, OutputObject outputObject) {
         adsenseService.deleteByIds(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryAdsense", value = "获取已启用广告位管理信息", method = "POST", allUse = "0")
-    @RequestMapping("/post/AdsenseController/queryAdsense")
-    public void queryAdsense(InputObject inputObject, OutputObject outputObject) {
-        adsenseService.queryList(inputObject, outputObject);
+    @ApiOperation(id = "queryEnabledAdsenseList", value = "获取已启用广告位管理信息", method = "POST", allUse = "0")
+    @RequestMapping("/post/AdsenseController/queryEnabledAdsenseList")
+    public void queryEnabledAdsenseList(InputObject inputObject, OutputObject outputObject) {
+        adsenseService.queryEnabledAdsenseList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "queryAdsenseById", value = "根据id获取广告位", method = "POST", allUse = "2")
-    @ApiImplicitParams({@ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/AdsenseController/queryAdsenseById")
     public void queryAdsenseById(InputObject inputObject, OutputObject outputObject) {
         adsenseService.selectById(inputObject, outputObject);

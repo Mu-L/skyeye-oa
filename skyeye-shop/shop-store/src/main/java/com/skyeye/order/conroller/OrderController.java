@@ -40,7 +40,7 @@ public class OrderController {
         orderService.createEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryOrderPageListPC", value = "分页获取商品订单信息(后台管理)", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryOrderPageListPC", value = "分页获取所有的商品订单信息(不区分租户，因为是平台租户用的)--管理端", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/OrderController/queryOrderPageListPC")
     public void queryOrderPageListPC(InputObject inputObject, OutputObject outputObject) {

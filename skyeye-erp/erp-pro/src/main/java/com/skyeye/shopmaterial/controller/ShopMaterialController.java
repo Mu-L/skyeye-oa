@@ -83,7 +83,7 @@ public class ShopMaterialController {
         shopMaterialService.queryBrandShopMaterialList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryAllShopMaterialListForChoose", value = "获取商城商品信息列表供选择", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryAllShopMaterialListForChoose", value = "获取当前租户下的商品信息列表供选择--管理端", method = "GET", allUse = "2")
     @RequestMapping("/post/ShopMaterialController/queryAllShopMaterialListForChoose")
     public void queryAllShopMaterialListForChoose(InputObject inputObject, OutputObject outputObject) {
         shopMaterialService.queryAllShopMaterialListForChoose(inputObject, outputObject);
