@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.enumeration.DeleteFlagEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -66,6 +67,7 @@ public class WorkProcedureServiceImpl extends SkyeyeBusinessServiceImpl<WorkProc
         queryWrapper.and(wrapper ->
             wrapper.eq(MybatisPlusUtil.toColumns(WorkProcedure::getName), entity.getName())
                 .or().eq(MybatisPlusUtil.toColumns(WorkProcedure::getNumber), entity.getNumber()));
+        queryWrapper.eq(MybatisPlusUtil.toColumns(WorkProcedure::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
         if (StringUtils.isNotEmpty(entity.getId())) {
             queryWrapper.ne(CommonConstants.ID, entity.getId());
         }

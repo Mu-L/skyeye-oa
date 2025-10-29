@@ -61,6 +61,7 @@ public class FarmServiceImpl extends SkyeyeBusinessServiceImpl<FarmDao, Farm> im
         queryWrapper.and(wrapper ->
             wrapper.eq(MybatisPlusUtil.toColumns(Farm::getName), entity.getName())
                 .or().eq(MybatisPlusUtil.toColumns(Farm::getNumber), entity.getNumber()));
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Farm::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
         if (StringUtils.isNotEmpty(entity.getId())) {
             queryWrapper.ne(CommonConstants.ID, entity.getId());
         }
