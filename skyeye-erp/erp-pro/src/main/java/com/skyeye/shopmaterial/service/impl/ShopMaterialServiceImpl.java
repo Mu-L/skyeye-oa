@@ -81,6 +81,11 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
     @Override
     public void writePostpose(ShopMaterial entity, String userId) {
         // 保存商城商品规格
+        if (CollectionUtil.isNotEmpty(entity.getShopMaterialNormsList())) {
+            entity.getShopMaterialNormsList().forEach(norms -> {
+                norms.setBigTypeId(entity.getBigTypeId());
+            });
+        }
         shopMaterialNormsService.saveList(entity.getMaterialId(), entity.getShopMaterialNormsList());
 
         // 更新商品的上架状态
@@ -92,11 +97,11 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
         } else if (material.getMaterialNorms().size() > entity.getShopMaterialNormsList().size()) {
             // 部分上架
             materialService.setShelvesState(material.getId(), MaterialShelvesState.PART_ON_SHELVE.getKey());
-            shopMaterialStoreService.addAllStoreForMaterial(entity.getMaterialId(), entity.getStoreCoverage(), entity.getStoreIds());
+            shopMaterialStoreService.addAllStoreForMaterial(entity.getMaterialId(), entity.getStoreCoverage(), entity.getStoreIds(), entity.getBigTypeId());
         } else if (material.getMaterialNorms().size() == entity.getShopMaterialNormsList().size()) {
             // 全部上架
             materialService.setShelvesState(material.getId(), MaterialShelvesState.ON_SHELVE.getKey());
-            shopMaterialStoreService.addAllStoreForMaterial(entity.getMaterialId(), entity.getStoreCoverage(), entity.getStoreIds());
+            shopMaterialStoreService.addAllStoreForMaterial(entity.getMaterialId(), entity.getStoreCoverage(), entity.getStoreIds(), entity.getBigTypeId());
         }
     }
 

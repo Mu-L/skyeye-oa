@@ -116,7 +116,7 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
     }
 
     @Override
-    public void addAllStoreForMaterial(String materialId, Integer storeCoverage, List<String> storeIds) {
+    public void addAllStoreForMaterial(String materialId, Integer storeCoverage, List<String> storeIds, String bigTypeId) {
         List<Map<String, Object>> storeList = iShopStoreService.queryStoreListByParams(StrUtil.EMPTY, null);
         if (CollectionUtil.isEmpty(storeList)) {
             return;
@@ -134,9 +134,12 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         // 获取原有的门店关联数据
         List<ShopMaterialStore> oldShopMaterialStores = selectByMaterialId(materialId);
 
+        // 将原有数据转换为Map，便于查找
+        Map<String, ShopMaterialStore> oldStoreMap = oldShopMaterialStores.stream()
+            .collect(Collectors.toMap(ShopMaterialStore::getStoreId, store -> store));
+
         // 提取原有门店ID列表
-        List<String> oldStoreIds = oldShopMaterialStores.stream()
-            .map(ShopMaterialStore::getStoreId).collect(Collectors.toList());
+        List<String> oldStoreIds = new ArrayList<>(oldStoreMap.keySet());
 
         // 找出新增的门店ID（新门店ID - 旧门店ID）
         List<String> newStoreIds = storeIds.stream()
@@ -147,6 +150,11 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         List<String> deletedStoreIds = oldStoreIds.stream()
             .filter(storeId -> !finalStoreIds.contains(storeId)).collect(Collectors.toList());
 
+        // 找出需要编辑的门店ID（新门店ID ∩ 旧门店ID）
+        List<String> updateStoreIds = storeIds.stream()
+            .filter(storeId -> oldStoreIds.contains(storeId))
+            .collect(Collectors.toList());
+
         // 删除不再关联的门店
         if (CollectionUtil.isNotEmpty(deletedStoreIds)) {
             QueryWrapper<ShopMaterialStore> deleteWrapper = new QueryWrapper<>();
@@ -155,12 +163,26 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
             remove(deleteWrapper);
         }
 
+        // 编辑已存在的门店关联（重新设置bigTypeId）
+        if (CollectionUtil.isNotEmpty(updateStoreIds)) {
+            List<ShopMaterialStore> updateShopMaterialStoreList = updateStoreIds.stream().map(storeId -> {
+                ShopMaterialStore existingStore = oldStoreMap.get(storeId);
+                // 重新设置bigTypeId
+                existingStore.setBigTypeId(bigTypeId);
+                return existingStore;
+            }).collect(Collectors.toList());
+
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            updateEntity(updateShopMaterialStoreList, userId);
+        }
+
         // 新增门店关联
         if (CollectionUtil.isNotEmpty(newStoreIds)) {
             List<ShopMaterialStore> newShopMaterialStoreList = newStoreIds.stream().map(storeId -> {
                 ShopMaterialStore shopMaterialStore = new ShopMaterialStore();
                 shopMaterialStore.setStoreId(storeId);
                 shopMaterialStore.setMaterialId(materialId);
+                shopMaterialStore.setBigTypeId(bigTypeId);
                 shopMaterialStore.setIsLaunchStore(WhetherEnum.DISABLE_USING.getKey());
                 shopMaterialStore.setIsLaunchShop(WhetherEnum.DISABLE_USING.getKey());
                 return shopMaterialStore;

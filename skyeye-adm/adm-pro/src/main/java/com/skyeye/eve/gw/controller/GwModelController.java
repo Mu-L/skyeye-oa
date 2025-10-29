@@ -32,12 +32,6 @@ public class GwModelController {
     @Autowired
     private GwModelService gwModelService;
 
-    /**
-     * 查询公文模版列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryGwModelList", value = "查询公文模版列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/GwModelController/queryGwModelList")
@@ -45,12 +39,6 @@ public class GwModelController {
         gwModelService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/修改公文模版信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeGwModel", value = "新增/修改公文模版信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = GwModel.class)
     @RequestMapping("/post/GwModelController/writeGwModel")
@@ -58,12 +46,6 @@ public class GwModelController {
         gwModelService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除公文模版信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteGwModelById", value = "根据id删除公文模版信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class GwModelController {
         gwModelService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有启用的公文模版列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryEnabledGwModelList", value = "获取所有启用的公文模版列表", method = "GET", allUse = "2")
     @RequestMapping("/post/GwModelController/queryEnabledGwModelList")
     public void queryAllGwModelList(InputObject inputObject, OutputObject outputObject) {

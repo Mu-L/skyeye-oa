@@ -67,4 +67,9 @@ public class ShopMaterialStore extends OperatorUserInfo {
     @ApiModelProperty(value = "门店状态", enumClass = EnableEnum.class)
     private Integer storeEnabled;
 
+    @TableField(value = "big_type_id")
+    @Property(value = "大类id，对应的商城的 shop_material_type表 的id")
+    private String bigTypeId;
+
+
 }

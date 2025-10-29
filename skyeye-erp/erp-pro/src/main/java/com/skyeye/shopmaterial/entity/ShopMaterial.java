@@ -85,6 +85,10 @@ public class ShopMaterial extends OperatorUserInfo {
     @ApiModelProperty(value = "虚拟销量", required = "required")
     private String virtualSales;
 
+    @TableField(value = "big_type_id")
+    @ApiModelProperty(value = "大类id，对应的商城的 shop_material_type表 的id")
+    private String bigTypeId;
+
     @TableField(value = "real_sales")
     @Property(value = "实际销量")
     private String realSales;

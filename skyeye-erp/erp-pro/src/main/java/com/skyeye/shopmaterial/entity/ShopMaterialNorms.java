@@ -78,4 +78,8 @@ public class ShopMaterialNorms extends OperatorUserInfo {
     @Property(value = "实际销量")
     private String realSales;
 
+    @TableField(value = "big_type_id")
+    @Property(value = "大类id，对应的商城的 shop_material_type表 的id")
+    private String bigTypeId;
+
 }

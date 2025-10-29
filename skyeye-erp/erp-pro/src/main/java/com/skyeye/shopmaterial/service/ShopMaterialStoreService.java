@@ -32,8 +32,9 @@ public interface ShopMaterialStoreService extends SkyeyeBusinessService<ShopMate
      * 添加指定商品到所有门店
      *
      * @param materialId 商品ID
+     * @param bigTypeId
      */
-    void addAllStoreForMaterial(String materialId, Integer storeCoverage, List<String> storeIds);
+    void addAllStoreForMaterial(String materialId, Integer storeCoverage, List<String> storeIds, String bigTypeId);
 
     void saveShopMaterialStore(InputObject inputObject, OutputObject outputObject);
 
