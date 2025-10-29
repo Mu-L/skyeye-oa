@@ -49,6 +49,6 @@ public class CostAccount extends OperatorUserInfo {
     private Integer addFlag;
 
     @TableField("tenant_id")
-    @Property("项目信息")
+    @Property("租户id")
     private String tenantId;
 }

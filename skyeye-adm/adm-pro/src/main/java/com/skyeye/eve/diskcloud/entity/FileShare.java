@@ -13,6 +13,9 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.eve.diskcloud.classenum.DickCloudType;
+import com.skyeye.eve.diskcloud.classenum.ShareState;
+import com.skyeye.eve.diskcloud.classenum.ShareType;
 import lombok.Data;
 
 /**
@@ -38,7 +41,7 @@ public class FileShare extends OperatorUserInfo {
     private String fileId;
 
     @TableField(value = "file_type")
-    @Property(value = "文件类型，参考#DickCloudType")
+    @Property(value = "文件类型", enumClass = DickCloudType.class)
     private String fileType;
 
     @TableField(value = "share_name")
@@ -54,7 +57,7 @@ public class FileShare extends OperatorUserInfo {
     private String shareUrl;
 
     @TableField(value = "share_type")
-    @ApiModelProperty(value = "分享类型，参考#ShareType", required = "required,num")
+    @ApiModelProperty(value = "分享类型", enumClass = ShareType.class, required = "required,num")
     private Integer shareType;
 
     @TableField(value = "share_password")
@@ -62,7 +65,7 @@ public class FileShare extends OperatorUserInfo {
     private String sharePassword;
 
     @TableField(value = "state")
-    @Property(value = "分享状态，参考#ShareState")
+    @Property(value = "分享状态", enumClass = ShareState.class)
     private Integer state;
 
 }

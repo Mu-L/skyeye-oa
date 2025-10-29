@@ -32,12 +32,6 @@ public class FileShareController {
     @Autowired
     private FileShareService fileShareService;
 
-    /**
-     * 文件分享
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertFileToShare", value = "文件分享", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = FileShare.class)
     @RequestMapping("/post/FileShareController/insertFileToShare")
@@ -45,12 +39,6 @@ public class FileShareController {
         fileShareService.createEntity(inputObject, outputObject);
     }
 
-    /**
-     * 文件分享列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryShareFileList", value = "我的文件分享列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/FileShareController/queryShareFileList")
@@ -58,12 +46,6 @@ public class FileShareController {
         fileShareService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 删除文件分享外链
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteShareFileById", value = "删除文件分享外链", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class FileShareController {
         fileShareService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 文件共享输入密码时获取文件信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryShareFileMationById", value = "文件共享输入密码时获取文件信息", method = "GET", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,12 +62,6 @@ public class FileShareController {
         fileShareService.queryShareFileMationById(inputObject, outputObject);
     }
 
-    /**
-     * 文件共享输入密码时校验
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole020", value = "文件共享输入密码时校验", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
@@ -101,12 +71,6 @@ public class FileShareController {
         fileShareService.checkShareFilePwdMation(inputObject, outputObject);
     }
 
-    /**
-     * 获取分享文件基础信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole021", value = "获取分享文件基础信息", method = "GET", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -115,12 +79,6 @@ public class FileShareController {
         fileShareService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据父id获取该id下分享的文件和文件夹
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "fileconsole022", value = "根据父id获取该id下分享的文件和文件夹", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),

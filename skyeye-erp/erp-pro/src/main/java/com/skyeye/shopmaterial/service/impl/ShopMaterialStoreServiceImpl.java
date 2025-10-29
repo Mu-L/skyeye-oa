@@ -258,6 +258,10 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
                 wra.or().like(Material::getModel, commonPageInfo.getKeyword());
             });
         }
+        if (StrUtil.isNotBlank(commonPageInfo.getCustomParamsMapStr("bigTypeId"))) {
+            // 商品大类ID
+            wrapper.eq(ShopMaterialStore::getBigTypeId, commonPageInfo.getCustomParamsMapStr("bigTypeId"));
+        }
         // 已经添加到门店
         wrapper.eq(ShopMaterialStore::getIsLaunchStore, WhetherEnum.ENABLE_USING.getKey());
         // 上架到商城

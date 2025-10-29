@@ -6,6 +6,7 @@ package com.skyeye.type.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.TenantEnum;
@@ -32,6 +33,7 @@ import java.util.List;
 public class MaterialTypeServiceImpl extends SkyeyeBusinessServiceImpl<MaterialTypeDao, MaterialType> implements MaterialTypeService {
 
     @Override
+    @IgnoreTenant
     public void queryEnabledMaterialTypeList(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<MaterialType> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(MaterialType::getEnabled), EnableEnum.ENABLE_USING.getKey());
