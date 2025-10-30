@@ -77,7 +77,7 @@ public class ShopMaterialController {
         shopMaterialService.queryShopMaterialByMaterialIdList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryBrandShopMaterialList", value = "获取商城商品信息列表根据品牌进行分组，只取前8条", method = "GET", allUse = "0")
+    @ApiOperation(id = "queryBrandShopMaterialList", value = "获取商城商品信息列表根据品牌进行分组，只取前8条--商城PC端使用", method = "GET", allUse = "0")
     @RequestMapping("/post/ShopMaterialController/queryBrandShopMaterialList")
     public void queryBrandShopMaterialList(InputObject inputObject, OutputObject outputObject) {
         shopMaterialService.queryBrandShopMaterialList(inputObject, outputObject);

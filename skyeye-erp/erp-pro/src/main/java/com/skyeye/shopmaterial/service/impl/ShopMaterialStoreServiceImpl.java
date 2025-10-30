@@ -501,10 +501,15 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         if (CollectionUtil.isEmpty(materialIds)) {
             return;
         }
+        Map<String, Object> storeMation = iShopStoreService.queryDataMationById(storeId);
+        if (storeMation == null) {
+            throw new CustomException("门店不存在");
+        }
         UpdateWrapper<ShopMaterialStore> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), storeId)
             .in(MybatisPlusUtil.toColumns(ShopMaterialStore::getMaterialId), materialIds);
         updateWrapper.set(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchShop), WhetherEnum.ENABLE_USING.getKey());
+        updateWrapper.set(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreEnabled), storeMation.get("enabled"));
         update(updateWrapper);
     }
 
