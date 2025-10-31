@@ -7,7 +7,6 @@ package com.skyeye.sms.service;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.sms.entity.SmsCodeSendReq;
-import com.skyeye.sms.entity.SmsCodeUseReq;
 import com.skyeye.sms.entity.SmsCodeValidateReq;
 
 /**
@@ -23,10 +22,6 @@ public interface SmsCodeService {
     void sendSmsCodeReq(InputObject inputObject, OutputObject outputObject);
 
     void sendSmsCodeReq(SmsCodeSendReq smsCodeSendReq);
-
-    void useSmsCodeReq(InputObject inputObject, OutputObject outputObject);
-
-    void useSmsCodeReq(SmsCodeUseReq smsCodeUseReq);
 
     void validateSmsCode(InputObject inputObject, OutputObject outputObject);
 

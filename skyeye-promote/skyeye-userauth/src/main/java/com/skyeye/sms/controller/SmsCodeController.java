@@ -10,7 +10,6 @@ import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.sms.entity.SmsCodeSendReq;
-import com.skyeye.sms.entity.SmsCodeUseReq;
 import com.skyeye.sms.entity.SmsCodeValidateReq;
 import com.skyeye.sms.service.SmsCodeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,13 +36,6 @@ public class SmsCodeController {
     @RequestMapping("/post/SmsCodeController/sendSmsCodeReq")
     public void sendSmsCodeReq(InputObject inputObject, OutputObject outputObject) {
         smsCodeService.sendSmsCodeReq(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "useSmsCodeReq", value = "验证短信验证码，并进行使用", method = "POST", allUse = "0")
-    @ApiImplicitParams(classBean = SmsCodeUseReq.class)
-    @RequestMapping("/post/SmsCodeController/useSmsCodeReq")
-    public void useSmsCodeReq(InputObject inputObject, OutputObject outputObject) {
-        smsCodeService.useSmsCodeReq(inputObject, outputObject);
     }
 
     @ApiOperation(id = "validateSmsCode", value = "检查验证码是否有效", method = "POST", allUse = "0")

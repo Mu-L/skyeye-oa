@@ -18,7 +18,6 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.JedisClientService;
 import com.skyeye.sms.core.config.SmsCodeProperties;
 import com.skyeye.sms.entity.SmsCodeSendReq;
-import com.skyeye.sms.entity.SmsCodeUseReq;
 import com.skyeye.sms.entity.SmsCodeValidateReq;
 import com.skyeye.sms.service.SmsCodeService;
 import com.skyeye.sms.service.SmsSendService;
@@ -108,23 +107,6 @@ public class SmsCodeServiceImpl implements SmsCodeService {
         // 失效时间为 1 天
         jedisClientService.set(key2, String.valueOf(number), RedisConstants.ONE_DAY_SECONDS);
         return code;
-    }
-
-    @Override
-    public void useSmsCodeReq(InputObject inputObject, OutputObject outputObject) {
-        SmsCodeUseReq smsCodeUseReq = inputObject.getParams(SmsCodeUseReq.class);
-        useSmsCodeReq(smsCodeUseReq);
-    }
-
-    @Override
-    public void useSmsCodeReq(SmsCodeUseReq smsCodeUseReq) {
-        // 检测验证码是否有效
-        String chcheCode = validateSmsCode0(smsCodeUseReq.getMobile(), smsCodeUseReq.getScene());
-        if (StrUtil.equals(chcheCode, smsCodeUseReq.getCode())) {
-            // 验证码使用过后，删除缓存
-            String key = String.format(MOBILE_SMS_CODE, smsCodeUseReq.getMobile(), smsCodeUseReq.getScene());
-            jedisClientService.del(key);
-        }
     }
 
     @Override

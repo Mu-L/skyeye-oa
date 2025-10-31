@@ -6,6 +6,7 @@ package com.skyeye.sms.entity;
 
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.common.enumeration.SmsSceneEnum;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -25,7 +26,7 @@ public class SmsCodeValidateReq implements Serializable {
     @ApiModelProperty(value = "手机号", required = "required,phone")
     private String mobile;
 
-    @ApiModelProperty(value = "发送场景，参考#SmsSceneEnum", required = "required")
+    @ApiModelProperty(value = "发送场景", enumClass = SmsSceneEnum.class, required = "required")
     private Integer scene;
 
     @ApiModelProperty(value = "验证码", required = "required")
