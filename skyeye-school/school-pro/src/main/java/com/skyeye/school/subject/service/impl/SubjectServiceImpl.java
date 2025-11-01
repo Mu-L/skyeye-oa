@@ -22,7 +22,6 @@ import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.classenum.LoginIdentity;
 import com.skyeye.eve.entity.School;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.wall.certification.service.ICertificationService;
@@ -66,9 +65,6 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
 
     @Autowired
     private SubjectClassesService subjectClassesService;
-
-    @Autowired
-    private IAuthUserService iAuthUserService;
 
     @Autowired
     private SchoolService schoolService;
@@ -323,9 +319,9 @@ public class SubjectServiceImpl extends SkyeyeBusinessServiceImpl<SubjectDao, Su
     @Override
     public void queryAllSubjectList(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
-        String keyword = ( String) params.get("keyword");
+        String keyword = (String) params.get("keyword");
         QueryWrapper<Subject> queryWrapper = new QueryWrapper<>();
-        if(StrUtil.isNotEmpty( keyword)){
+        if (StrUtil.isNotEmpty(keyword)) {
             queryWrapper.like(MybatisPlusUtil.toColumns(Subject::getName), keyword);
         }
         List<Subject> beans = list(queryWrapper);

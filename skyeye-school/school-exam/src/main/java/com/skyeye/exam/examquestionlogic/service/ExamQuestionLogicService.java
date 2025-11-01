@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/dromara/skyeye
+ ******************************************************************************/
+
 package com.skyeye.exam.examquestionlogic.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
@@ -17,8 +21,6 @@ import java.util.Map;
  */
 public interface ExamQuestionLogicService extends SkyeyeBusinessService<ExamQuestionLogic> {
     List<ExamQuestionLogic> setLogics(String quId, List<ExamQuestionLogic> questionLogic, String userId);
-
-    List<ExamQuestionLogic> selectByQuestionId(String ckQuId);
 
     Map<String, List<ExamQuestionLogic>> selectByQuestionIds(List<String> questionIds);
 

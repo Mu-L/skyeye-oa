@@ -28,12 +28,6 @@ public class ExamAnEnumquController {
     @Autowired
     private ExamAnEnumquService examAnEnumquService;
 
-    /**
-     * 新增/编辑枚举题答案
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeExamAnEnumqu", value = "新增/编辑枚举题答案", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ExamAnEnumqu.class)
     @RequestMapping("/post/ExamAnEnumquController/writeExamAnEnumqu")
@@ -41,12 +35,6 @@ public class ExamAnEnumquController {
         examAnEnumquService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 获取枚举题答案信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryExamAnEnumquList", value = "获取枚举题答案信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamAnEnumquController/queryExamAnEnumquList")
@@ -54,29 +42,17 @@ public class ExamAnEnumquController {
         examAnEnumquService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 删除枚举题答案信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteExamAnEnumquById", value = "删除枚举题答案信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ExamAnEnumquController/deleteExamAnEnumquById")
     public void deleteExamAnEnumquById(InputObject inputObject, OutputObject outputObject) {
         examAnEnumquService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取枚举题答案列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryExamAnEnumquListById", value = "根据id获取枚举题答案列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ExamAnEnumquController/queryExamAnEnumquListById")
     public void queryExamAnEnumquListById(InputObject inputObject, OutputObject outputObject) {
         examAnEnumquService.queryExamAnEnumquListById(inputObject, outputObject);

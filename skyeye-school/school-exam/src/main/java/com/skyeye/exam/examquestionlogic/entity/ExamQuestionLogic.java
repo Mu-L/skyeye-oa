@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/dromara/skyeye
+ ******************************************************************************/
+
 package com.skyeye.exam.examquestionlogic.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
@@ -5,9 +9,6 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.annotation.cache.RedisCacheField;
-import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
-import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import lombok.Data;
 
@@ -22,7 +23,7 @@ import lombok.Data;
 @Data
 @TableName(value = "exam_question_logic")
 @ApiModel("题目逻辑设置实体类")
-public class ExamQuestionLogic extends OperatorUserInfo  {
+public class ExamQuestionLogic extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")

@@ -24,7 +24,6 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.entity.School;
 import com.skyeye.eve.rest.quartz.SysQuartzMation;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
@@ -131,9 +130,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
     @Autowired
     private ExamSurveyAnswerService examSurveyAnswerService;
-
-    @Autowired
-    private IAuthUserService iAuthUserService;
 
     @Autowired
     private SubjectService subjectService;

@@ -39,13 +39,12 @@ public class FloorInfoController {
 
     @ApiOperation(id = "deleteFloorInfoById", value = "根据id删除楼层、教室、服务", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id= "id",name = "id", value = "主键id", required = "required")
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
     })
     @RequestMapping("/post/FloorInfoController/deleteFloorInfoById")
     public void deleteFloorInfoById(InputObject inputObject, OutputObject outputObject) {
         floorInfoService.deleteById(inputObject, outputObject);
     }
-
 
     @ApiOperation(id = "queryFloorInfosByLocationId", value = "根据地点id(holderId)获取楼层所有信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
@@ -56,7 +55,7 @@ public class FloorInfoController {
 
     @ApiOperation(id = "queryFloorInfoById", value = "根据id查询楼层、教室、服务", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id= "id",name = "id", value = "主键id", required = "required")
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
     })
     @RequestMapping("/post/FloorInfoController/queryFloorInfoById")
     public void queryFloorInfoById(InputObject inputObject, OutputObject outputObject) {
@@ -65,12 +64,11 @@ public class FloorInfoController {
 
     @ApiOperation(id = "queryFloorClassList", value = "根据学校id和教室关键字获取教室信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id= "keyword",name = "keyword", value = "关键字"),
-            @ApiImplicitParam(id= "schoolId",name = "schoolId", value = "学校id", required = "required")})
+        @ApiImplicitParam(id = "keyword", name = "keyword", value = "关键字"),
+        @ApiImplicitParam(id = "schoolId", name = "schoolId", value = "学校id", required = "required")})
     @RequestMapping("/post/FloorInfoController/queryFloorClassList")
     public void queryFloorClassList(InputObject inputObject, OutputObject outputObject) {
         floorInfoService.queryFloorClassList(inputObject, outputObject);
     }
-
 
 }

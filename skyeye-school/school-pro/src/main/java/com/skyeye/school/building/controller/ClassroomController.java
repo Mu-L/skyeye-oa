@@ -32,12 +32,6 @@ public class ClassroomController {
     @Autowired
     private ClassroomService classroomService;
 
-    /**
-     * 获取教室信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryClassroomList", value = "获取教室信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ClassroomController/queryClassroomList")
@@ -45,12 +39,6 @@ public class ClassroomController {
         classroomService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加或修改教室信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeClassroom", value = "新增/编辑教室信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Classroom.class)
     @RequestMapping("/post/ClassroomController/writeClassroom")
@@ -58,12 +46,6 @@ public class ClassroomController {
         classroomService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除教室信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteClassroomById", value = "根据ID删除教室信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class ClassroomController {
         classroomService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取教室信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryClassroomById", value = "根据ID获取教室信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")

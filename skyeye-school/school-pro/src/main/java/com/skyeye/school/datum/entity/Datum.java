@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/dromara/skyeye
+ ******************************************************************************/
+
 package com.skyeye.school.datum.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldStrategy;
@@ -6,17 +10,13 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
-import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
 import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.school.chapter.entity.Chapter;
 import lombok.Data;
-
-import java.util.Map;
 
 /**
  * @ClassName: Datum
@@ -66,9 +66,6 @@ public class Datum extends OperatorUserInfo implements EnclosureFace {
 
     @TableField(exist = false)
     @ApiModelProperty(value = "章节信息", required = "json")
-    private  Chapter chapterMation;
+    private Chapter chapterMation;
 
-//    @TableField(exist = false)
-//    @Property(value = "科目数据")
-//    private  String serviceClassName;
 }

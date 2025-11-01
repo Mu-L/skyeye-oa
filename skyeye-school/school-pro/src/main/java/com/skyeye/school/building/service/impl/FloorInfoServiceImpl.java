@@ -18,14 +18,12 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.school.building.dao.FloorInfoDao;
 import com.skyeye.school.building.entity.FloorInfo;
 import com.skyeye.school.building.entity.TeachBuilding;
 import com.skyeye.school.building.floorenum.FloorInfoEnum;
 import com.skyeye.school.building.service.FloorInfoService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -42,10 +40,6 @@ import java.util.Map;
 @Service
 @SkyeyeService(name = "楼层教室服务管理", groupName = "楼层教室服务管理")
 public class FloorInfoServiceImpl extends SkyeyeBusinessServiceImpl<FloorInfoDao, FloorInfo> implements FloorInfoService {
-
-
-    @Autowired
-    private IAuthUserService iAuthUserService;
 
     @Override
     public void createPrepose(FloorInfo floorInfo) {
@@ -73,7 +67,6 @@ public class FloorInfoServiceImpl extends SkyeyeBusinessServiceImpl<FloorInfoDao
         floorInfo.setLevel(level);
     }
 
-
     @Override
     public void updatePrepose(FloorInfo entity) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
@@ -81,7 +74,7 @@ public class FloorInfoServiceImpl extends SkyeyeBusinessServiceImpl<FloorInfoDao
         String floorInfoId = entity.getId();
         Integer status = entity.getStatus();
         if (status == EnableEnum.DISABLE_USING.getKey()
-                && nodeType != FloorInfoEnum.SERVICE_INFO_ENUM.getKey()) {
+            && nodeType != FloorInfoEnum.SERVICE_INFO_ENUM.getKey()) {
             if (nodeType == FloorInfoEnum.ClASS_INFO_ENUM.getKey()) {
                 // 房间——同时禁用服务
                 disabledServiceInfo(entity, userId);
@@ -206,7 +199,7 @@ public class FloorInfoServiceImpl extends SkyeyeBusinessServiceImpl<FloorInfoDao
         String keyword = (String) params.get("keyword");
         String schoolId = params.get("schoolId").toString();
         MPJLambdaWrapper<FloorInfo> queryWrapper = JoinWrappers.lambda("flw", FloorInfo.class)
-                .innerJoin(TeachBuilding.class, "tb", TeachBuilding::getId, FloorInfo::getLocationId);
+            .innerJoin(TeachBuilding.class, "tb", TeachBuilding::getId, FloorInfo::getLocationId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(TeachBuilding::getSchoolId), schoolId);
         if (StrUtil.isNotEmpty(keyword)) {
             queryWrapper.like("flw." + MybatisPlusUtil.toColumns(FloorInfo::getName), keyword);

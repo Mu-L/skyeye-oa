@@ -35,41 +35,23 @@ public class ExamSurveyDirectoryController {
         examSurveyDirectoryService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 发布试卷
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "setUpExamDirectory", value = "发布试卷", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
     @RequestMapping("/post/ExamSurveyDirectoryController/setUpExamDirectory")
     public void setUpExamDirectory(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.setUpExamDirectory(inputObject, outputObject);
     }
 
-    /**
-     * 复制试卷
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "copyExamDirectory", value = "复制试卷", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required"),
-            @ApiImplicitParam(id = "surveyName", name = "surveyName", value = "试卷名称")})
+        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required"),
+        @ApiImplicitParam(id = "surveyName", name = "surveyName", value = "试卷名称")})
     @RequestMapping("/post/ExamSurveyDirectoryController/copyExamDirectory")
     public void copyExamDirectory(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.copyExamDirectory(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有试卷列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAllExamList", value = "获取所有试卷列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamSurveyDirectoryController/queryAllExamList")
@@ -77,12 +59,6 @@ public class ExamSurveyDirectoryController {
         examSurveyDirectoryService.queryAllExamList(inputObject, outputObject);
     }
 
-    /**
-     * 获取我的试卷列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMyExamList", value = "获取我的试卷列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamSurveyDirectoryController/queryMyExamList")
@@ -90,82 +66,46 @@ public class ExamSurveyDirectoryController {
         examSurveyDirectoryService.queryMyExamList(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取试卷信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDirectoryById", value = "根据id获取试卷信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
     @RequestMapping("/post/ExamSurveyDirectoryController/queryDirectoryById")
     public void queryDirectoryById(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 逻辑删除试卷信息,及改变whether_delete字段为2
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "changeWhetherDeleteById", value = "删除试卷信息,及改变whether_delete字段为2", method = "POST", allUse = "1")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
     @RequestMapping("/post/ExamSurveyDirectoryController/changeWhetherDeleteById")
     public void changeWhetherDeleteById(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.changeWhetherDeleteById(inputObject, outputObject);
     }
 
-    /**
-     * 物理删除试卷信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteSurvey", value = "删除试卷信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
     @RequestMapping("/post/ExamSurveyDirectoryController/deleteSurvey")
     public void deleteSurvey(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 是否可以参加考试
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "takeExam", value = "是否可以参加考试", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
     @RequestMapping("/post/ExamSurveyDirectoryController/takeExam")
     public void takeExam(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.takeExam(inputObject, outputObject);
     }
 
-    /**
-     * 手动结束试卷
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "updateExamMationEndById", value = "手动结束试卷", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required")})
     @RequestMapping("/post/ExamSurveyDirectoryController/updateExamMationEndById")
     public void updateExamMationEndById(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.updateExamMationEndById(inputObject, outputObject);
     }
 
-    /**
-     * 分页筛选试卷
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryFilterExamLists", value = "筛选试卷", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamSurveyDirectoryController/queryFilterExamLists")
@@ -173,12 +113,6 @@ public class ExamSurveyDirectoryController {
         examSurveyDirectoryService.queryFilterExamLists(inputObject, outputObject);
     }
 
-    /**
-     * 筛选我的试卷列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMySurvey", value = "筛选我的试卷列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamSurveyDirectoryController/queryMySurvey")
@@ -187,12 +121,6 @@ public class ExamSurveyDirectoryController {
     }
 
 
-    /**
-     * 筛选科目和班级Id以及发布的试卷列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySurveyListBySubjectLinkId", value = "筛选科目和班级Id以及发布的试卷列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamSurveyDirectoryController/querySurveyListBySubjectLinkId")
@@ -200,29 +128,14 @@ public class ExamSurveyDirectoryController {
         examSurveyDirectoryService.querySurveyListBySubjectLinkId(inputObject, outputObject);
     }
 
-    /**
-     * 获取我需做试卷，并过滤已做试卷
-     * 学生角度过滤已做试卷
-     * 教师角度获取我可以做的试卷，并显示哪些已做过
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryMyDoSurvey", value = "获取我需做试卷", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryMyDoSurvey", value = "获取我需做试卷，并过滤已做试卷。学生角度过滤已做试卷。教师角度获取我可以做的试卷，并显示哪些已做过", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamSurveyDirectoryController/queryMyDoSurvey")
     public void queryMyDoSurvey(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.queryMyDoSurvey(inputObject, outputObject);
     }
 
-    /**
-     * 筛选未/已批阅试卷信息
-     * 教师角度,筛选未/已批阅试卷，看状态
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryFilterNoSurveys", value = "筛选未/已批阅试卷信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryFilterNoSurveys", value = "筛选未/已批阅试卷信息。教师角度,筛选未/已批阅试卷，看状态", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamSurveyDirectoryController/queryFilterNoSurveys")
     public void queryFilterNoSurveys(InputObject inputObject, OutputObject outputObject) {

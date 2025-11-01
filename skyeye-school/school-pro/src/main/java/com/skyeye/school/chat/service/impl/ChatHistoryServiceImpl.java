@@ -21,8 +21,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
-import com.skyeye.rest.promote.company.service.ISysEveUserStaffService;
-import com.skyeye.rest.wall.user.service.IUserService;
 import com.skyeye.school.chat.dao.ChatHistoryDao;
 import com.skyeye.school.chat.entity.ChatHistory;
 import com.skyeye.school.chat.service.ChatHistoryService;

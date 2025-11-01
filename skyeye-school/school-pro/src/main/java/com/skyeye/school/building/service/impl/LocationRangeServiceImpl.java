@@ -17,7 +17,6 @@ import com.skyeye.school.building.service.LocationRangeService;
 import com.skyeye.school.building.service.RangeVertexService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -42,9 +41,9 @@ public class LocationRangeServiceImpl extends SkyeyeBusinessServiceImpl<Location
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<LocationRange> queryWrapper = new QueryWrapper<>();
         List<LocationRange> bean = list(queryWrapper);
-        for(LocationRange locationRange : bean){
+        for (LocationRange locationRange : bean) {
             String rangeId = locationRange.getId();
-            QueryWrapper<RangeVertex> vertexQueryWrapper= new QueryWrapper<>();
+            QueryWrapper<RangeVertex> vertexQueryWrapper = new QueryWrapper<>();
             vertexQueryWrapper.eq(MybatisPlusUtil.toColumns(RangeVertex::getRangeId), rangeId);
             vertexQueryWrapper.orderByAsc(MybatisPlusUtil.toColumns(RangeVertex::getOrderNum));
             List<RangeVertex> vertexList = rangeVertexService.list(vertexQueryWrapper);
@@ -58,7 +57,7 @@ public class LocationRangeServiceImpl extends SkyeyeBusinessServiceImpl<Location
     public LocationRange selectById(String id) {
         LocationRange locationRange = super.selectById(id);
         String rangeId = locationRange.getId();
-        QueryWrapper<RangeVertex> vertexQueryWrapper= new QueryWrapper<>();
+        QueryWrapper<RangeVertex> vertexQueryWrapper = new QueryWrapper<>();
         vertexQueryWrapper.eq(MybatisPlusUtil.toColumns(RangeVertex::getRangeId), rangeId);
         vertexQueryWrapper.orderByAsc(MybatisPlusUtil.toColumns(RangeVertex::getOrderNum));
         List<RangeVertex> vertexList = rangeVertexService.list(vertexQueryWrapper);
@@ -67,16 +66,15 @@ public class LocationRangeServiceImpl extends SkyeyeBusinessServiceImpl<Location
     }
 
     @Override
-    @Transactional
     public void deleteById(String id) {
         super.deleteById(id);
-        QueryWrapper<RangeVertex> vertexQueryWrapper= new QueryWrapper<>();
+        QueryWrapper<RangeVertex> vertexQueryWrapper = new QueryWrapper<>();
         vertexQueryWrapper.eq(MybatisPlusUtil.toColumns(RangeVertex::getRangeId), id);
         rangeVertexService.remove(vertexQueryWrapper);
     }
 
     @Override
-    public void createPostpose(LocationRange locationRange,String userId) {
+    public void createPostpose(LocationRange locationRange, String userId) {
         String rangeId = locationRange.getId();
         List<RangeVertex> rangeVertexMation = locationRange.getRangeVertexMation();
         for (RangeVertex rangeVertex : rangeVertexMation) {

@@ -14,5 +14,7 @@ import com.skyeye.school.building.entity.LocationRange;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface LocationRangeService extends SkyeyeBusinessService<LocationRange> {
+
     void queryLocationRangeList(InputObject inputObject, OutputObject outputObject);
+
 }

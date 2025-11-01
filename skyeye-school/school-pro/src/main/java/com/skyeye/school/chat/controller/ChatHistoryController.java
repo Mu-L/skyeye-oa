@@ -32,12 +32,6 @@ public class ChatHistoryController {
         chatHistoryService.editChatHistoryToRead(inputObject, outputObject);
     }
 
-//    @ApiOperation(id = "queryMyChatMessageList", value = "查询我的最近的聊天消息列表", method = "GET", allUse = "2")
-//    @RequestMapping("/post/ChatHistoryController/queryMyChatMessageList")
-//    public void queryMyChatMessageList(InputObject inputObject, OutputObject outputObject) {
-//        chatHistoryService.queryMyChatMessageList(inputObject, outputObject);
-//    }
-
     @ApiOperation(id = "queryChatLogByType", value = "获取聊天记录", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "limit", name = "limit", value = "分页参数,每页多少条数据", required = "required,num"),

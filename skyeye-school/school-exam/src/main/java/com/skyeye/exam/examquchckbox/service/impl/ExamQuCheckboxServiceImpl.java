@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/dromara/skyeye
+ ******************************************************************************/
+
 package com.skyeye.exam.examquchckbox.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
@@ -16,25 +20,28 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.CheckType;
-import com.skyeye.exam.examquestion.entity.Question;
 import com.skyeye.exam.examquchckbox.dao.ExamQuCheckboxDao;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchckbox.service.ExamQuCheckboxService;
-import com.skyeye.exam.examquestionlogic.service.ExamQuestionLogicService;
+import com.skyeye.exam.examquestion.entity.Question;
 import com.skyeye.exam.examquradio.entity.ExamQuRadio;
 import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * @ClassName: ExamQuCheckboxServiceImpl
+ * @Description: 多选题选项表管理服务层
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/11/1 18:52
+ * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
+ */
 @Service
 @SkyeyeService(name = "多选题选项表管理", groupName = "多选题选项表管理")
 public class ExamQuCheckboxServiceImpl extends SkyeyeBusinessServiceImpl<ExamQuCheckboxDao, ExamQuCheckbox> implements ExamQuCheckboxService {
-
-    @Autowired
-    private ExamQuestionLogicService examQuestionLogicService;
 
     @Override
     protected QueryWrapper<ExamQuCheckbox> getQueryWrapper(CommonPageInfo commonPageInfo) {

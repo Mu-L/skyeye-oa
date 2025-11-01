@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/dromara/skyeye
+ ******************************************************************************/
+
 package com.skyeye.exam.examquestionlogic.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
@@ -69,14 +73,6 @@ public class ExamQuestionLogicServiceImpl extends SkyeyeBusinessServiceImpl<Exam
         }
         insertList.addAll(editList);
         return insertList;
-    }
-
-    @Override
-    public List<ExamQuestionLogic> selectByQuestionId(String ckQuId) {
-        QueryWrapper<ExamQuestionLogic> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamQuestionLogic::getCkQuId), ckQuId);
-        List<ExamQuestionLogic> list = list(queryWrapper);
-        return list;
     }
 
     @Override

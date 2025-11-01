@@ -32,12 +32,6 @@ public class QuestionController {
     @Autowired
     private QuestionService questionService;
 
-    /**
-     * 添加/编辑问题
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeQuestion", value = "添加/编辑问题", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Question.class)
     @RequestMapping("/post/QuestionController/writeQuestion")
@@ -45,12 +39,6 @@ public class QuestionController {
         questionService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 分页获取题目信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryQuestionList", value = "分页获取题目信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/QuestionController/queryQuestionList")
@@ -58,12 +46,6 @@ public class QuestionController {
         questionService.queryQuestionLists(inputObject, outputObject);
     }
 
-    /**
-     * 分页获取我的题目信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMyQuestionList", value = "分页获取我的题目信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/QuestionController/queryMyQuestionList")
@@ -71,12 +53,6 @@ public class QuestionController {
         questionService.queryMyQuestionList(inputObject, outputObject);
     }
 
-    /**
-     * 分页获取所有题库列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryPageQuestionList", value = "分页获取所有题库列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/QuestionController/queryPageQuestionList")
@@ -84,40 +60,22 @@ public class QuestionController {
         questionService.queryPageQuestionList(inputObject, outputObject);
     }
 
-    /**
-     * 根据Id查询问题
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "selectQuestionById", value = "根据Ids批量查询问题", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "ids", name = "ids", value = "主键ids", required = "required")})
+        @ApiImplicitParam(id = "ids", name = "ids", value = "主键ids", required = "required")})
     @RequestMapping("/post/QuestionController/selectQuestionById")
     public void selectQuestionById(InputObject inputObject, OutputObject outputObject) {
         questionService.selectByIds(inputObject, outputObject);
     }
 
-    /**
-     * 根据ID删除题目信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteQuestionById", value = "根据ID删除题目信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/QuestionController/deleteQuestionById")
     public void deleteQuestionById(InputObject inputObject, OutputObject outputObject) {
         questionService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据科目ID查询题目信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "selectQuestionBySubjectId", value = "根据科目ID查询题目信息传holderId=subjectId", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/QuestionController/selectQuestionBySubjectId")
@@ -125,30 +83,11 @@ public class QuestionController {
         questionService.selectQuestionBySubjectId(inputObject, outputObject);
     }
 
-    /**
-     * 筛选题目信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryFilterQuestionList", value = "筛选题目信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/QuestionController/queryFilterQuestionList")
     public void queryFilterQuestionList(InputObject inputObject, OutputObject outputObject) {
         questionService.queryFilterQuestionList(inputObject, outputObject);
     }
-
-
-//    /**
-//     * 添加分页标记
-//     *
-//     * @param inputObject  入参以及用户信息等获取对象
-//     * @param outputObject 出参以及提示信息的返回值对象
-//     */
-//    @ApiOperation(id = "addQuPagetagMation", value = "筛选题目信息", method = "POST", allUse = "2")
-//    @RequestMapping("/post/QuestionController/addQuPagetagMation")
-//    public void addQuPagetagMation(InputObject inputObject, OutputObject outputObject) {
-//        questionService.addQuPagetag(inputObject, outputObject);
-//    }
 
 }

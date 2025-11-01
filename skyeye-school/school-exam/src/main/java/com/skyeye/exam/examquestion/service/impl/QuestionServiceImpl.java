@@ -18,9 +18,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.entity.School;
-import com.skyeye.exam.examquestion.dao.QuestionDao;
-import com.skyeye.exam.examquestion.entity.Question;
-import com.skyeye.exam.examquestion.service.QuestionService;
 import com.skyeye.eve.service.SchoolService;
 import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 import com.skyeye.exam.examancheckbox.service.ExamAnCheckboxService;
@@ -50,6 +47,9 @@ import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
 import com.skyeye.exam.examquchencolumn.service.ExamQuChenColumnService;
 import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
 import com.skyeye.exam.examquchenrow.service.ExamQuChenRowService;
+import com.skyeye.exam.examquestion.dao.QuestionDao;
+import com.skyeye.exam.examquestion.entity.Question;
+import com.skyeye.exam.examquestion.service.QuestionService;
 import com.skyeye.exam.examquestionlogic.entity.ExamQuestionLogic;
 import com.skyeye.exam.examquestionlogic.service.ExamQuestionLogicService;
 import com.skyeye.exam.examqumultfillblank.entity.ExamQuMultiFillblank;
@@ -531,7 +531,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
         List<String> orderQuIds = orderQuList.stream().map(Question::getId).collect(Collectors.toList());
         Map<String, List<ExamQuOrderby>> orderQuMapList = examQuOrderbyService.selectByQuestionIds(orderQuIds);
 
-        List<Question> multifillblankList = questionList.stream().filter(question -> question.getQuType().equals(QuType.MULTIFILLBLANK.getIndex())||
+        List<Question> multifillblankList = questionList.stream().filter(question -> question.getQuType().equals(QuType.MULTIFILLBLANK.getIndex()) ||
             question.getQuType().equals(QuType.FILLBLANK.getIndex())).collect(Collectors.toList());
         List<String> multifillblankIds = multifillblankList.stream().map(Question::getId).collect(Collectors.toList());
         Map<String, List<ExamQuMultiFillblank>> multifillblankMapList = examQuMultiFillblankService.selectByQuestionIds(multifillblankIds);
