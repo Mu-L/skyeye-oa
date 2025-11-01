@@ -16,8 +16,11 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.brand.entity.Brand;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.IsUsedEnum;
+import com.skyeye.material.classenum.MaterialFromType;
 import com.skyeye.material.classenum.MaterialItemCode;
 import com.skyeye.material.classenum.MaterialShelvesState;
+import com.skyeye.material.classenum.MaterialType;
 import com.skyeye.material.entity.unit.MaterialUnit;
 import com.skyeye.material.entity.unit.MaterialUnitGroup;
 import lombok.Data;
@@ -100,11 +103,11 @@ public class Material extends BaseGeneralInfo {
     private List<MaterialNorms> materialNorms;
 
     @TableField(value = "from_type")
-    @ApiModelProperty(value = "商品来源类型，参考#MaterialFromType", required = "required,num")
+    @ApiModelProperty(value = "商品来源类型", enumClass = MaterialFromType.class, required = "required,num")
     private Integer fromType;
 
     @TableField(value = "`type`")
-    @ApiModelProperty(value = "商品类型，参考#MaterialType", required = "required,num")
+    @ApiModelProperty(value = "商品类型", enumClass = MaterialType.class, required = "required,num")
     private Integer type;
 
     @TableField(value = "item_code", updateStrategy = FieldStrategy.NEVER)
@@ -116,7 +119,7 @@ public class Material extends BaseGeneralInfo {
     private List<MaterialProcedure> materialProcedure;
 
     @TableField("is_used")
-    @Property(value = "是否使用中，参考#IsUsedEnum")
+    @Property(value = "是否使用中", enumClass = IsUsedEnum.class)
     private Integer isUsed;
 
     @TableField(value = "shelves_state")

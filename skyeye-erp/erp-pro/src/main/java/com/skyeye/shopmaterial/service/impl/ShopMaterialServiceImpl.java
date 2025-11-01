@@ -20,6 +20,7 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.ResultEntity;
@@ -237,9 +238,17 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
     public void queryBrandShopMaterialList(InputObject inputObject, OutputObject outputObject) {
         MPJLambdaWrapper<ShopMaterial> wrapper = new MPJLambdaWrapper<ShopMaterial>()
             .innerJoin(Material.class, Material::getId, ShopMaterial::getMaterialId)
+            .innerJoin(ShopMaterialStore.class, ShopMaterialStore::getMaterialId, ShopMaterial::getMaterialId)
             .innerJoin(Brand.class, Brand::getId, Material::getBrandId)
             .eq(Brand::getEnabled, EnableEnum.ENABLE_USING.getKey())
-            .in(Material::getShelvesState, Arrays.asList(MaterialShelvesState.ON_SHELVE.getKey(), MaterialShelvesState.PART_ON_SHELVE.getKey()));
+            // 商品上架
+            .in(Material::getShelvesState, Arrays.asList(MaterialShelvesState.ON_SHELVE.getKey(), MaterialShelvesState.PART_ON_SHELVE.getKey()))
+            // 已经添加到门店
+            .eq(ShopMaterialStore::getIsLaunchStore, WhetherEnum.ENABLE_USING.getKey())
+            // 上架到商城
+            .eq(ShopMaterialStore::getIsLaunchShop, WhetherEnum.ENABLE_USING.getKey())
+            // 门店是启用状态的
+            .eq(ShopMaterialStore::getStoreEnabled, EnableEnum.ENABLE_USING.getKey());
         List<ShopMaterial> shopMaterialList = skyeyeBaseMapper.selectJoinList(ShopMaterial.class, wrapper);
         // 根据id批量查询详细的商品信息
         List<String> idList = shopMaterialList.stream().map(ShopMaterial::getId).collect(Collectors.toList());
