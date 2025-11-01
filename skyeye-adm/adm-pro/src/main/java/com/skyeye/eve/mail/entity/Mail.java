@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.eve.mail.classenum.MailCategory;
 import lombok.Data;
 
 /**
@@ -30,7 +31,7 @@ import lombok.Data;
 public class Mail extends BaseGeneralInfo {
 
     @TableField(value = "category")
-    @ApiModelProperty(value = "通讯录类型，参考#MailCategory", required = "required,num")
+    @ApiModelProperty(value = "通讯录类型", enumClass = MailCategory.class, required = "required,num")
     private Integer category;
 
     @TableField(value = "type_id")

@@ -594,24 +594,6 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     }
 
     @Override
-    public void queryAllExamList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        outputResult(outputObject, page, queryWrapper);
-    }
-
-    @Override
-    public void queryMySurvey(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
-        extracted(commonPageInfo, queryWrapper);
-        outputResult(outputObject, page, queryWrapper);
-    }
-
-    @Override
     public void querySurveyListBySubjectLinkId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
@@ -963,28 +945,19 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     private void outputResult(OutputObject outputObject, Page page, QueryWrapper<ExamSurveyDirectory> queryWrapper) {
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getWhetherDelete), CommonNumConstants.NUM_ONE);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateTime));
-        List<ExamSurveyDirectory> beans = list(queryWrapper).stream().map(item -> {
-            //设置科目信息
-            item.setSubjectMation(subjectService.selectById(item.getSubjectId()));
-            //设置学校信息
-            item.setSchoolMation(schoolService.selectById(item.getSchoolId()));
-            //设置学院信息
-            item.setFacultyMation(facultyService.selectById(item.getFacultyId()));
-            //设置专业信息
-            item.setMajorMation(majorService.selectById(item.getMajorId()));
-            //设置学期信息
-            item.setSemesterMation(semesterService.selectById(item.getSemesterId()));
-            String classId = item.getClassId();
-            if (StrUtil.isEmpty(classId)) {
-                return item;
-            }
-            List<Classes> classesList = new ArrayList<>();
-            if (StrUtil.isNotEmpty(classId)) {
-                classesList = classesService.selectByIds(classId);
-            }
-            item.setClassesMation(classesList);
-            return item;
-        }).collect(Collectors.toList());
+        List<ExamSurveyDirectory> beans = list(queryWrapper);
+
+        // 设置科目信息
+        subjectService.setDataMation(beans, ExamSurveyDirectory::getSubjectId);
+        // 设置学校信息
+        schoolService.setDataMation(beans, ExamSurveyDirectory::getSchoolId);
+        // 设置学院信息
+        facultyService.setDataMation(beans, ExamSurveyDirectory::getFacultyId);
+        // 设置专业信息
+        majorService.setDataMation(beans, ExamSurveyDirectory::getMajorId);
+        // 设置学期信息
+        semesterService.setDataMation(beans, ExamSurveyDirectory::getSemesterId);
+
         iAuthUserService.setName(beans, "createId", "createName");
         iAuthUserService.setName(beans, "lastUpdateId", "lastUpdateName");
         outputObject.setBeans(beans);

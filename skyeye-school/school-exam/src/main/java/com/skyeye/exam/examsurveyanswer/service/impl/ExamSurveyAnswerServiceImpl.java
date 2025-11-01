@@ -61,6 +61,7 @@ import com.skyeye.school.subject.entity.SubjectClasses;
 import com.skyeye.school.subject.entity.SubjectClassesStu;
 import com.skyeye.school.subject.service.SubjectClassesService;
 import com.skyeye.school.subject.service.SubjectClassesStuService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -80,6 +81,7 @@ import java.util.stream.Stream;
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
+@Slf4j
 @Service
 @SkyeyeService(name = "试卷回答信息表管理", groupName = "试卷回答信息表管理")
 public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamSurveyAnswerDao, ExamSurveyAnswer> implements ExamSurveyAnswerService, ExamDirectoryAnService {
@@ -419,60 +421,50 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
     @Override
     public void querySurveyAnswerBySurveyId(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        //试卷id
-        String surveyId = commonPageInfo.getHolderId();
-        //科目Id
-        String objectId = commonPageInfo.getObjectId();
-        //班级Id
-        String companyId = commonPageInfo.getCompanyId();
-        SubjectClasses subjectClasses = subjectClassesService.selectIdBySubAndClassId(objectId, companyId);
-        //老师创建班级的创建Id
-        String createId = subjectClasses.getCreateId();
-        List<String> stuNoLists = new ArrayList<>();
-        if (StrUtil.isNotEmpty(subjectClasses.getId())) {
-            List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.selectNumBySubClassLinkId(subjectClasses.getId());
-            if (CollectionUtil.isNotEmpty(subjectClassesStuList)) {
-                stuNoLists = subjectClassesStuList.stream().map(SubjectClassesStu::getStuNo).collect(Collectors.toList());
-            }
+        // 试卷id
+        String examId = commonPageInfo.getHolderId();
+        ExamSurveyDirectory examDirectory = examSurveyDirectoryService.selectById(examId);
+        // 科目Id
+        String subjectId = examDirectory.getSubjectId();
+        List<SubjectClasses> subjectClasses = subjectClassesService.getSubjectClassesByObjectIdAndClassesIds(subjectId, Arrays.asList(commonPageInfo.getObjectId()));
+        if (CollectionUtil.isEmpty(subjectClasses)) {
+            log.info("未查询到科目Id和班级Id对应的数据");
+            return;
         }
+
+        // 根据班级查询学生信息
+        List<String> subjectClassesIds = subjectClasses.stream().map(SubjectClasses::getId).collect(Collectors.toList());
+        List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.queryListBySubClassLinkId(subjectClassesIds.toArray(new String[]{}));
+        if (CollectionUtil.isEmpty(subjectClassesStuList)) {
+            log.info("当前班级没有学生,没有答卷");
+            return;
+        }
+        List<String> stuNoLists = subjectClassesStuList.stream().map(SubjectClassesStu::getStuNo).distinct().collect(Collectors.toList());
         String state = commonPageInfo.getState();
-        Integer starts = Integer.valueOf(state);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyId);
-        if (CollectionUtil.isEmpty(stuNoLists)) {
-            throw new CustomException("当前班级没有学生,没有答卷");
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), examId);
+
+        if (StrUtil.isNotEmpty(state)) {
+            // 阅卷状态
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), state);
         }
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), starts);
         queryWrapper.isNotNull(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate))
-            .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), "");
-        if (CollectionUtil.isNotEmpty(stuNoLists)) {
-            List<String> finalStuNoLists = stuNoLists;
-            queryWrapper.and(wrapper ->
-                wrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getStudentNumber), finalStuNoLists)
-                    .or()
-                    .eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), createId)
-            );
-        } else {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), createId);
-        }
-        //学生回答的答卷
+            .ne(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getEndAnDate), StrUtil.EMPTY);
+        queryWrapper.and(wrapper ->
+            wrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getStudentNumber), stuNoLists)
+                .or()
+                .eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getCreateId), examDirectory.getCreateId())
+        );
+        // 学生回答的答卷
         List<ExamSurveyAnswer> list = list(queryWrapper);
-        UserOrStudent teacherInfo = schoolCommonService.queryUserOrStudent(createId);
-        List<String> stuNoList = list.stream().map(ExamSurveyAnswer::getStudentNumber).distinct().collect(Collectors.toList());
+
+        UserOrStudent teacherInfo = schoolCommonService.queryUserOrStudent(examDirectory.getCreateId());
         List<Map<String, Object>> userList = new ArrayList<>();
-        if (CollectionUtil.isNotEmpty(stuNoList)) {
+        if (CollectionUtil.isNotEmpty(stuNoLists)) {
             userList = ExecuteFeignClient.get(() ->
-                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoList))).getRows();
+                iCertificationRest.queryUserByStudentNumber(Joiner.on(CommonCharConstants.COMMA_MARK).join(stuNoLists))).getRows();
         }
-        List<String> schoolIds = list.stream().map(ExamSurveyAnswer::getSchoolId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
-        List<String> surveyIds = list.stream().map(ExamSurveyAnswer::getSurveyId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
-        List<String> facultyIds = list.stream().map(ExamSurveyAnswer::getFacultyId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
-        List<String> majorIds = list.stream().map(ExamSurveyAnswer::getMajorId).filter(StrUtil::isNotBlank).distinct().collect(Collectors.toList());
-        Map<String, List<School>> schoolMap = schoolIds.isEmpty() ? new HashMap<>() : schoolService.selectByIdList(schoolIds);
-        Map<String, ExamSurveyDirectory> surveyMap = surveyIds.isEmpty() ? new HashMap<>() : examSurveyDirectoryService.selectMapBysurveyIds(surveyIds);
-        Map<String, List<Faculty>> facultyMap = facultyIds.isEmpty() ? new HashMap<>() : facultyService.selectByIdList(facultyIds);
-        Map<String, List<Major>> majorMap = majorIds.isEmpty() ? new HashMap<>() : majorService.selectByIdList(majorIds);
         Map<String, Map<String, Object>> userMap = userList.stream()
             .filter(user -> user.get("studentNumber") != null) // 过滤空学号
             .collect(Collectors.toMap(
@@ -482,19 +474,16 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
             ));
 
         for (ExamSurveyAnswer answer : list) {
-            if (answer.getCreateId().equals(createId)) {
+            if (answer.getCreateId().equals(examDirectory.getCreateId())) {
                 answer.setTeacherMation(teacherInfo);
             }
-            List<School> schools = schoolMap.getOrDefault(answer.getSchoolId(), Collections.emptyList());
-            answer.setSchoolMation(schools.isEmpty() ? null : schools.get(CommonNumConstants.NUM_ZERO));
-            answer.setSurveyMation(surveyMap.get(answer.getSurveyId()));
-            List<Faculty> faculties = facultyMap.getOrDefault(answer.getFacultyId(), Collections.emptyList());
-            answer.setFacultyMation(faculties.isEmpty() ? null : faculties.get(CommonNumConstants.NUM_ZERO));
-            List<Major> majors = majorMap.getOrDefault(answer.getMajorId(), Collections.emptyList());
-            answer.setMajorMation(majors.isEmpty() ? null : majors.get(CommonNumConstants.NUM_ZERO));
+            answer.setSurveyMation(examDirectory);
             String studentNumber = answer.getStudentNumber();
             answer.setStuMation(StrUtil.isNotBlank(studentNumber) ? userMap.get(studentNumber) : null);
         }
+        schoolService.setDataMation(list, ExamSurveyAnswer::getSchoolId);
+        facultyService.setDataMation(list, ExamSurveyAnswer::getFacultyId);
+        majorService.setDataMation(list, ExamSurveyAnswer::getMajorId);
         iAuthUserService.setName(list, "createId", "createName");
         outputObject.setBeans(list);
         outputObject.settotal(page.getTotal());

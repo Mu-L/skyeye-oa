@@ -61,25 +61,15 @@ public interface SubjectClassesService extends SkyeyeBusinessService<SubjectClas
 
     SubjectClasses queryStuNumBySubjectId(String subjectId, String classId);
 
-    List<SubjectClasses> selectIdBySubJectId(String subjectId);
-
-    List<SubjectClasses> selectIdByClassId(String id1);
-
     List<SubjectClasses> getSubjectClassesByObjectIdAndClassesIds(String subjectId, List<String> classIds);
 
     void queryOverallAnalysis(InputObject inputObject, OutputObject outputObject);
 
     List<SubjectClasses> queryClassBySubClassLinkId(List<String> subClassLinkId);
 
-    List<SubjectClasses> selectByCreateId(String userId);
-
     void queryOneStudentAnalysis(InputObject inputObject, OutputObject outputObject);
 
-    SubjectClasses selectIdBySubAndClassId(String objectId, String companyId);
-
     int queryNumBySubAndClassIds(String subjectId, List<String> classIds);
-
-    List<SubjectClasses> selectIdBySubAndClassIds(String subjectId, List<String> classIds);
 
     void queryClassBySemesterAndSubjectId(InputObject inputObject, OutputObject outputObject);
 }

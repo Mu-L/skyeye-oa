@@ -52,14 +52,7 @@ public class ExamSurveyDirectoryController {
         examSurveyDirectoryService.copyExamDirectory(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryAllExamList", value = "获取所有试卷列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/ExamSurveyDirectoryController/queryAllExamList")
-    public void queryAllExamList(InputObject inputObject, OutputObject outputObject) {
-        examSurveyDirectoryService.queryAllExamList(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "queryMyExamList", value = "获取我的试卷列表", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryMyExamList", value = "获取我创建的试卷列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ExamSurveyDirectoryController/queryMyExamList")
     public void queryMyExamList(InputObject inputObject, OutputObject outputObject) {
@@ -112,14 +105,6 @@ public class ExamSurveyDirectoryController {
     public void queryFilterExamLists(InputObject inputObject, OutputObject outputObject) {
         examSurveyDirectoryService.queryFilterExamLists(inputObject, outputObject);
     }
-
-    @ApiOperation(id = "queryMySurvey", value = "筛选我的试卷列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/ExamSurveyDirectoryController/queryMySurvey")
-    public void queryMySurvey(InputObject inputObject, OutputObject outputObject) {
-        examSurveyDirectoryService.queryMySurvey(inputObject, outputObject);
-    }
-
 
     @ApiOperation(id = "querySurveyListBySubjectLinkId", value = "筛选科目和班级Id以及发布的试卷列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)

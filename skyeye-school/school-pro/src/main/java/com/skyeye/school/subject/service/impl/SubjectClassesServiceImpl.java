@@ -51,8 +51,6 @@ import com.skyeye.school.subject.service.SubjectService;
 import com.skyeye.school.topic.service.TopicService;
 import com.skyeye.school.topiccomment.service.TopicCommentService;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -75,8 +73,6 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
 
     @Value("${IMAGES_PATH}")
     private String tPath;
-
-    private static Logger LOGGER = LoggerFactory.getLogger(SubjectClassesServiceImpl.class);
 
     @Autowired
     private SubjectService subjectService;
@@ -252,7 +248,7 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 // 加锁失败
                 throw new CustomException("增减人员失败，当前并发量较大，请稍后再次尝试.");
             }
-            LOGGER.info("get lock success, lockKey is {}.", lockKey);
+            log.info("get lock success, lockKey is {}.", lockKey);
             SubjectClasses subjectClasses = selectById(id);
             if (isAdd) {
                 // 新增
@@ -268,9 +264,9 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
                 update(updateWrapper);
             }
             refreshCache(id);
-            LOGGER.info("editSubjectClassesPeopleNum is success.");
+            log.info("editSubjectClassesPeopleNum is success.");
         } catch (Exception ee) {
-            LOGGER.warn("editSubjectClassesPeopleNum error, because {}", ee);
+            log.warn("editSubjectClassesPeopleNum error, because {}", ee);
             if (ee instanceof CustomException) {
                 throw new CustomException(ee.getMessage());
             }
@@ -496,22 +492,6 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     }
 
     @Override
-    public List<SubjectClasses> selectIdBySubJectId(String subjectId) {
-        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId);
-        List<SubjectClasses> subjectClassesList = list(queryWrapper);
-        return subjectClassesList;
-    }
-
-    @Override
-    public List<SubjectClasses> selectIdByClassId(String id1) {
-        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), id1);
-        List<SubjectClasses> subjectClassesList = list(queryWrapper);
-        return subjectClassesList;
-    }
-
-    @Override
     public List<SubjectClasses> getSubjectClassesByObjectIdAndClassesIds(String subjectId, List<String> classIds) {
         if (CollectionUtil.isEmpty(classIds)) {
             return new ArrayList<>();
@@ -619,13 +599,6 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     }
 
     @Override
-    public List<SubjectClasses> selectByCreateId(String userId) {
-        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getCreateId), userId);
-        return list(queryWrapper);
-    }
-
-    @Override
     public void queryOneStudentAnalysis(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString(); // 科目与班级的关系id
@@ -696,14 +669,6 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
     }
 
     @Override
-    public SubjectClasses selectIdBySubAndClassId(String objectId, String companyId) {
-        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), objectId)
-            .eq(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), companyId);
-        return getOne(queryWrapper);
-    }
-
-    @Override
     public int queryNumBySubAndClassIds(String subjectId, List<String> classIds) {
         QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId)
@@ -715,14 +680,6 @@ public class SubjectClassesServiceImpl extends SkyeyeBusinessServiceImpl<Subject
         }
         List<SubjectClassesStu> subjectClassesStuList = subjectClassesStuService.queryListBySubClassLinkIds(collect);
         return subjectClassesStuList.size();
-    }
-
-    @Override
-    public List<SubjectClasses> selectIdBySubAndClassIds(String subjectId, List<String> classIds) {
-        QueryWrapper<SubjectClasses> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(SubjectClasses::getObjectId), subjectId)
-            .in(MybatisPlusUtil.toColumns(SubjectClasses::getClassesId), classIds);
-        return list(queryWrapper);
     }
 
     @Override

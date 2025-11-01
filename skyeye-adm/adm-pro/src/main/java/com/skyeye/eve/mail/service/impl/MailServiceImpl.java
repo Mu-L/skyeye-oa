@@ -11,6 +11,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.mail.classenum.MailCategory;
 import com.skyeye.eve.mail.dao.MailDao;
 import com.skyeye.eve.mail.entity.Mail;
 import com.skyeye.eve.mail.service.MailService;
@@ -37,8 +38,13 @@ public class MailServiceImpl extends SkyeyeBusinessServiceImpl<MailDao, Mail> im
     protected QueryWrapper<Mail> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Mail> queryWrapper = super.getQueryWrapper(commonPageInfo);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Mail::getCategory), commonPageInfo.getType());
-        if (StrUtil.equals(commonPageInfo.getType(), "1")) {
+        if (StrUtil.equals(commonPageInfo.getType(), MailCategory.PERSON.getKey().toString())) {
+            // 个人通讯录
             queryWrapper.eq(MybatisPlusUtil.toColumns(Mail::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+            if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+                // 所属分组
+                queryWrapper.eq(MybatisPlusUtil.toColumns(Mail::getTypeId), commonPageInfo.getObjectId());
+            }
         }
         return queryWrapper;
     }
