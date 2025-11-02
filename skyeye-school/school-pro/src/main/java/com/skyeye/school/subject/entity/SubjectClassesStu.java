@@ -45,7 +45,7 @@ public class SubjectClassesStu extends CommonInfo {
     private String joinTime;
 
     @TableField("reward")
-    @ApiModelProperty(value = "奖励星星",defaultValue = "0")
+    @ApiModelProperty(value = "奖励星星", defaultValue = "0")
     private String reward;
 
     @TableField(exist = false)

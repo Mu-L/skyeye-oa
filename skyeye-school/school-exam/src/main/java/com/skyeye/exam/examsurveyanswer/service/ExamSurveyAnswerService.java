@@ -21,8 +21,6 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
 
     ExamSurveyAnswer queryWhetherExamIngByStuId(String userId, String id);
 
-    void queryAllSurveyList(InputObject inputObject, OutputObject outputObject);
-
     void querySurveyAnswerBySurveyId(InputObject inputObject, OutputObject outputObject);
 
     void queryFilterApprovedSurveys(InputObject inputObject, OutputObject outputObject);
@@ -42,4 +40,6 @@ public interface ExamSurveyAnswerService extends SkyeyeBusinessService<ExamSurve
     void queryAllSurveyAnswerListBySurveyId(InputObject inputObject, OutputObject outputObject);
 
     List<ExamSurveyAnswer> queryListByStuNoListAndExamId(List<String> allStuNo, String examId);
+
+    void queryAllAnswerListByExamId(InputObject inputObject, OutputObject outputObject);
 }
