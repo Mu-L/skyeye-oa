@@ -57,4 +57,11 @@ public interface ExamSurveyDirectoryService extends SkyeyeBusinessService<ExamSu
     void createNotSubStudent(String id, String userId);
 
     void updateSurveyAnswerStatus(String id);
+
+    /**
+     * 自动组卷
+     * @param inputObject 输入对象，包含试卷ID和组卷规则列表
+     * @param outputObject 输出对象
+     */
+    void autoGeneratePaper(InputObject inputObject, OutputObject outputObject);
 }

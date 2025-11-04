@@ -127,4 +127,13 @@ public class ExamSurveyDirectoryController {
         examSurveyDirectoryService.queryFilterNoSurveys(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "autoGeneratePaper", value = "自动组卷", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "试卷id", required = "required"),
+        @ApiImplicitParam(id = "ruleList", name = "ruleList", value = "组卷规则列表，包含题目类型(quType)、题目数量(questionCount)、总分值(totalScore)", required = "required")})
+    @RequestMapping("/post/ExamSurveyDirectoryController/autoGeneratePaper")
+    public void autoGeneratePaper(InputObject inputObject, OutputObject outputObject) {
+        examSurveyDirectoryService.autoGeneratePaper(inputObject, outputObject);
+    }
+
 }

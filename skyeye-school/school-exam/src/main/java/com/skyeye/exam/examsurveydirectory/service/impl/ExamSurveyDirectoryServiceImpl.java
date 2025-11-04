@@ -1112,4 +1112,215 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         }
     }
 
+    /**
+     * 自动组卷
+     *
+     * @param inputObject  输入对象，包含试卷ID和组卷规则列表
+     * @param outputObject 输出对象
+     */
+    @Override
+    public void autoGeneratePaper(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String surveyId = params.get("id").toString();
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+
+        // 获取试卷信息
+        ExamSurveyDirectory examSurveyDirectory = selectById(surveyId);
+        if (ObjectUtil.isEmpty(examSurveyDirectory)) {
+            throw new CustomException("试卷不存在");
+        }
+
+        // 获取组卷规则列表
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> ruleList = (List<Map<String, Object>>) params.get("ruleList");
+        if (CollectionUtil.isEmpty(ruleList)) {
+            throw new CustomException("组卷规则不能为空");
+        }
+
+        // 验证规则
+        validateRules(ruleList);
+
+        // 收集所有需要组卷的题目
+        List<Question> selectedQuestions = new ArrayList<>();
+
+        // 遍历每个规则，按规则选择题目
+        for (Map<String, Object> ruleMap : ruleList) {
+            Integer quType = Integer.valueOf(ruleMap.get("quType").toString());
+            Integer totalScore = Integer.valueOf(ruleMap.get("totalScore").toString());
+            Integer questionCount = Integer.valueOf(ruleMap.get("questionCount").toString());
+
+            // 从题库中查询符合条件的题目
+            List<Question> candidateQuestions = queryQuestionsFromBank(quType, examSurveyDirectory.getSubjectId());
+
+            if (CollectionUtil.isEmpty(candidateQuestions)) {
+                throw new CustomException(String.format("题目类型 %d 的题目数量不足", quType));
+            }
+
+            if (candidateQuestions.size() < questionCount) {
+                throw new CustomException(String.format("题目类型 %d 的可用题目数量 %d 少于所需数量 %d",
+                    quType, candidateQuestions.size(), questionCount));
+            }
+
+            // 计算每道题的分值（简单平均分配）
+            int scorePerQuestion = totalScore / questionCount;
+            int remainingScore = totalScore % questionCount;
+
+            // 随机选择题目
+            List<Question> selected = randomlySelectQuestions(candidateQuestions, questionCount);
+
+            // 批量查询题目的选项信息
+            List<String> questionIds = selected.stream().map(Question::getId).collect(Collectors.toList());
+
+            // 查询题目的选项信息（通过selectByIds会自动加载选项）
+            List<Question> questionsWithOptions = questionService.selectByIds(questionIds.toArray(new String[0]));
+
+            // 设置题目分值和属性
+            for (int i = 0; i < questionsWithOptions.size(); i++) {
+                Question question = questionsWithOptions.get(i);
+                // 复制题目
+                Question newQuestion = copyQuestion(question);
+                // 设置分值和属性
+                int questionScore = scorePerQuestion + (i < remainingScore ? 1 : 0);
+                newQuestion.setFraction(questionScore);
+                newQuestion.setBelongId(surveyId);
+                newQuestion.setTag(CommonNumConstants.NUM_TWO); // 标记为试卷中的题
+                newQuestion.setOrderById(selectedQuestions.size() + i + 1); // 设置排序
+                selectedQuestions.add(newQuestion);
+            }
+        }
+
+        // 创建题目
+        if (CollectionUtil.isNotEmpty(selectedQuestions)) {
+            questionService.createEntity(selectedQuestions, userId);
+            examSurveyDirectory.setQuestionMation(selectedQuestions);
+        }
+
+        // 更新试卷的题目数量和总分
+        int totalQuestionCount = selectedQuestions.size();
+        int totalFraction = selectedQuestions.stream().mapToInt(Question::getFraction).sum();
+
+        UpdateWrapper<ExamSurveyDirectory> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, surveyId);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getSurveyQuNum), totalQuestionCount);
+        updateWrapper.set(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getFraction), totalFraction);
+        update(updateWrapper);
+
+        outputObject.setBean(examSurveyDirectory);
+        outputObject.settotal(1);
+    }
+
+    /**
+     * 验证组卷规则
+     *
+     * @param ruleList 规则列表
+     */
+    private void validateRules(List<Map<String, Object>> ruleList) {
+        for (Map<String, Object> ruleMap : ruleList) {
+            Integer quType = Integer.valueOf(ruleMap.get("quType").toString());
+            Integer questionCount = Integer.valueOf(ruleMap.get("questionCount").toString());
+            Integer totalScore = Integer.valueOf(ruleMap.get("totalScore").toString());
+
+            if (quType == null || quType <= 0) {
+                throw new CustomException("题目类型不能为空或小于等于0");
+            }
+
+            if (questionCount == null || questionCount <= 0) {
+                throw new CustomException("题目数量不能为空或小于等于0");
+            }
+
+            if (totalScore == null || totalScore <= 0) {
+                throw new CustomException("总分值不能为空或小于等于0");
+            }
+        }
+    }
+
+    /**
+     * 从题库中查询符合条件的题目
+     *
+     * @param quType    题目类型
+     * @param subjectId 科目ID
+     * @return 题目列表
+     */
+    private List<Question> queryQuestionsFromBank(Integer quType, String subjectId) {
+        QueryWrapper<Question> queryWrapper = new QueryWrapper<>();
+
+        // 只查询题库中的题目（tag=1）
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getTag), CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getQuType), quType);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getIsDelete), CommonNumConstants.NUM_ONE);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getVisibility), CommonNumConstants.NUM_ONE);
+        // 筛选该科目的题目
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Question::getSubjectId), subjectId);
+
+        return questionService.list(queryWrapper);
+    }
+
+    /**
+     * 随机选择指定数量的题目
+     *
+     * @param candidateQuestions 候选题目列表
+     * @param count              需要选择的数量
+     * @return 选中的题目列表
+     */
+    private List<Question> randomlySelectQuestions(List<Question> candidateQuestions, Integer count) {
+        if (candidateQuestions.size() <= count) {
+            return new ArrayList<>(candidateQuestions);
+        }
+
+        // 打乱顺序
+        List<Question> shuffled = new ArrayList<>(candidateQuestions);
+        Collections.shuffle(shuffled);
+
+        // 选择前count个
+        return shuffled.subList(0, count);
+    }
+
+    /**
+     * 复制题目
+     *
+     * @param source 源题目
+     * @return 新题目
+     */
+    private Question copyQuestion(Question source) {
+        Question newQuestion = new Question();
+        newQuestion.setQuTitle(source.getQuTitle());
+        newQuestion.setQuType(source.getQuType());
+        newQuestion.setQuTag(source.getQuTag());
+        newQuestion.setIsPublic(source.getIsPublic());
+        newQuestion.setAnswerInputRow(source.getAnswerInputRow());
+        newQuestion.setAnswerInputWidth(source.getAnswerInputWidth());
+        newQuestion.setCellCount(source.getCellCount());
+        newQuestion.setCheckType(source.getCheckType());
+        newQuestion.setContactsAttr(source.getContactsAttr());
+        newQuestion.setContactsField(source.getContactsField());
+        newQuestion.setCopyFromId(source.getId());
+        newQuestion.setHv(source.getHv());
+        newQuestion.setRandOrder(source.getRandOrder());
+        newQuestion.setVisibility(source.getVisibility());
+        newQuestion.setYesnoOption(source.getYesnoOption());
+        newQuestion.setKnowledgeIds(source.getKnowledgeIds());
+        newQuestion.setFileUrl(source.getFileUrl());
+        newQuestion.setFileType(source.getFileType());
+        newQuestion.setWhetherUpload(source.getWhetherUpload());
+        newQuestion.setIsDefaultAnswer(source.getIsDefaultAnswer());
+        newQuestion.setParamInt01(source.getParamInt01());
+        newQuestion.setParamInt02(source.getParamInt02());
+        newQuestion.setSchoolId(source.getSchoolId());
+        newQuestion.setFacultyId(source.getFacultyId());
+        newQuestion.setMajorId(source.getMajorId());
+        newQuestion.setSubjectId(source.getSubjectId());
+
+        // 复制题目选项等信息（需要在创建后通过关联表复制）
+        newQuestion.setRadioTd(source.getRadioTd());
+        newQuestion.setCheckboxTd(source.getCheckboxTd());
+        newQuestion.setScoreTd(source.getScoreTd());
+        newQuestion.setMultifillblankTd(source.getMultifillblankTd());
+        newQuestion.setOrderByTd(source.getOrderByTd());
+        newQuestion.setColumnTd(source.getColumnTd());
+        newQuestion.setRowTd(source.getRowTd());
+        newQuestion.setQuestionLogic(source.getQuestionLogic());
+
+        return newQuestion;
+    }
+
 }

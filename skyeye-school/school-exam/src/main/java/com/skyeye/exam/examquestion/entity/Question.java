@@ -14,7 +14,6 @@ import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.util.question.QuType;
 import com.skyeye.eve.entity.School;
-import com.skyeye.exam.examquestion.classenum.CheckTypes;
 import com.skyeye.exam.examancheckbox.entitiy.ExamAnCheckbox;
 import com.skyeye.exam.examanchencheckbox.entity.ExamAnChenCheckbox;
 import com.skyeye.exam.examanchenfbk.entity.ExamAnChenFbk;
@@ -29,6 +28,7 @@ import com.skyeye.exam.examanscore.entity.ExamAnScore;
 import com.skyeye.exam.examquchckbox.entity.ExamQuCheckbox;
 import com.skyeye.exam.examquchencolumn.entity.ExamQuChenColumn;
 import com.skyeye.exam.examquchenrow.entity.ExamQuChenRow;
+import com.skyeye.exam.examquestion.classenum.CheckTypes;
 import com.skyeye.exam.examquestionlogic.entity.ExamQuestionLogic;
 import com.skyeye.exam.examqumultfillblank.entity.ExamQuMultiFillblank;
 import com.skyeye.exam.examquorderby.entity.ExamQuOrderby;
@@ -73,7 +73,7 @@ public class Question extends OperatorUserInfo implements EnclosureFace {
     private Integer quType;
 
     @TableField("is_public")
-    @ApiModelProperty(value = "是否公开  0公开  1私有",defaultValue = "0")
+    @ApiModelProperty(value = "是否公开  0公开  1私有", defaultValue = "0")
     private Integer isPublic;
 
     @TableField("answer_input_row")

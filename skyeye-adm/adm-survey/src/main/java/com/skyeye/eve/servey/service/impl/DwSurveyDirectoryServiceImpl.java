@@ -218,8 +218,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
     @Override
     public void takeExam(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        // 是否可以参加问卷，true：可以；false：不可以
-        boolean yesOrNo = false;
         String id = map.get("id").toString();
         DwSurveyDirectory dwSurveyDirectory = selectById(id);
         if (ObjUtil.isEmpty(dwSurveyDirectory) && StrUtil.isEmpty(dwSurveyDirectory.getId())) {
@@ -234,8 +232,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                     if (ObjUtil.isNotEmpty(dwSurveyAnswer)) {
                         throw new CustomException("此问卷只能答一次，您已参加过该问卷");
                     }
-                    // 密码访问是否正确
-                    yesOrNo = isYesOrNoRuleCode(dwSurveyDirectory, map, yesOrNo);
                 }
                 if (dwSurveyDirectory.getEffectiveIp().equals(CommonNumConstants.NUM_ONE)) {
                     // 获取IP地址
@@ -244,10 +240,7 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                     if (ObjUtil.isNotEmpty(dwSurveyAnswer)) {
                         throw new CustomException("此IP只能答一次，您已参加过该问卷");
                     }
-                    // 密码访问是否正确
-                    yesOrNo = isYesOrNoRuleCode(dwSurveyDirectory, map, yesOrNo);
                 }
-                yesOrNo = isYesOrNoRuleCode(dwSurveyDirectory, map, yesOrNo);
             }
             if (dwSurveyDirectory.getYnEndTime().equals(CommonNumConstants.NUM_ONE)) {
                 // 获取截止时间
@@ -259,9 +252,8 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 if (!compare) {
                     throw new CustomException("该问卷已截止");
                 }
-                yesOrNo = IsYesOrNoEndNum(dwSurveyDirectory, id, yesOrNo);
             }
-            yesOrNo = IsYesOrNoEndNum(dwSurveyDirectory, id, yesOrNo);
+            IsYesOrNoEndNum(dwSurveyDirectory, id);
         }
         String userId = inputObject.getLogParams().get("id").toString();
         List<DwSurveyAnswer> dwSurveyAnswers = dwSurveyAnswerService.queryWhetherExamIngByStuId(userId, id);
@@ -270,15 +262,10 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         } else {
             dwSurveyDirectory.setIsAnswered(CommonNumConstants.NUM_ZERO);
         }
-        yesOrNo = true;
-        if (yesOrNo) {
-            outputObject.setBean(dwSurveyDirectory);
-        } else {
-            throw new CustomException("您不具备该问卷权限");
-        }
+        outputObject.setBean(dwSurveyDirectory);
     }
 
-    private boolean IsYesOrNoEndNum(DwSurveyDirectory dwSurveyDirectory, String id, boolean yesOrNo) {
+    private void IsYesOrNoEndNum(DwSurveyDirectory dwSurveyDirectory, String id) {
         if (dwSurveyDirectory.getYnEndNum().equals(CommonNumConstants.NUM_ONE)) {
             // 查询是否达到最大人数
             List<DwSurveyAnswer> dwSurveyAnswers = dwSurveyAnswerService.querySurveyAnswerNumById(id);
@@ -286,18 +273,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
                 throw new CustomException("该问卷回答人数已达到最大人数");
             }
         }
-        return yesOrNo;
-    }
-
-    private static boolean isYesOrNoRuleCode(DwSurveyDirectory dwSurveyDirectory, Map<String, Object> map, boolean yesOrNo) {
-        if (dwSurveyDirectory.getRule().equals(CommonNumConstants.NUM_THREE)) {
-            // 获取访问密码
-            String ruleCode = map.get("ruleCode").toString();
-            if (!dwSurveyDirectory.getRuleCode().equals(ruleCode)) {
-                throw new CustomException("访问密码错误");
-            }
-        }
-        return yesOrNo;
     }
 
     /**
