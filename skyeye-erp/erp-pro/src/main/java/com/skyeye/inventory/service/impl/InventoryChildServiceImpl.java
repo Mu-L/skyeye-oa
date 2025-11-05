@@ -43,6 +43,7 @@ import com.skyeye.material.service.MaterialService;
 import com.skyeye.service.ErpCommonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -159,6 +160,7 @@ public class InventoryChildServiceImpl extends SkyeyeLinkDataServiceImpl<Invento
     }
 
     @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void complateInventoryChild(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String id = params.get("id").toString();
