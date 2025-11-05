@@ -114,4 +114,8 @@ public class DsFormPage extends OperatorUserInfo {
     @ApiModelProperty(value = "是否开启工作流，只有开启了工作流的业务对象可以设置这个字段，参考#WhetherEnum", required = "num")
     private Integer isFlowable;
 
+    @TableField("content")
+    @ApiModelProperty(value = "布局的自定义内容")
+    private String content;
+
 }

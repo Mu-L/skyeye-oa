@@ -87,6 +87,15 @@ public class DsFormPageController {
         dsFormPageService.writeDsFormPageTable(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "writeDsFormPageContentAttr", value = "保存tab选项卡布局、小卡片布局等布局的自定义信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "表单布局id", required = "required"),
+        @ApiImplicitParam(id = "content", name = "content", value = "布局的自定义内容")})
+    @RequestMapping("/post/DsFormPageController/writeDsFormPageContentAttr")
+    public void writeDsFormPageContentAttr(InputObject inputObject, OutputObject outputObject) {
+        dsFormPageService.writeDsFormPageContentAttr(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "queryBusinessDataByObject", value = "根据业务数据id获取业务数据信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "所属第三方业务数据id", required = "required"),

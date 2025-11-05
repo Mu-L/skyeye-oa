@@ -9,6 +9,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.attr.entity.AttrDefinition;
 import com.skyeye.attr.service.AttrDefinitionService;
@@ -245,6 +246,20 @@ public class DsFormPageServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageD
         TableColumnVo tableColumnVo = inputObject.getParams(TableColumnVo.class);
         String userId = inputObject.getLogParams().get("id").toString();
         tableColumnService.createList(tableColumnVo.getTableColumnList(), userId, tableColumnVo.getPageId(), getServiceClassName());
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void writeDsFormPageContentAttr(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        String content = params.get("content").toString();
+
+        UpdateWrapper<DsFormPage> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(DsFormPage::getContent), content);
+        update(updateWrapper);
+        refreshCache(id);
     }
 
     /**
