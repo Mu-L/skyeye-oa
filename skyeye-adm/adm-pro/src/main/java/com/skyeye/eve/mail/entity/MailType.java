@@ -7,7 +7,6 @@ package com.skyeye.eve.mail.entity;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.cache.RedisCacheField;
-import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import lombok.Data;
 
@@ -20,7 +19,6 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 @Data
-@UniqueField
 @RedisCacheField(name = "mail:type")
 @TableName(value = "sys_mail_type", autoResultMap = true)
 @ApiModel("通讯录分组实体类")

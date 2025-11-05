@@ -32,12 +32,6 @@ public class MailTypeController {
     @Autowired
     private MailTypeService mailTypeService;
 
-    /**
-     * 获取通讯录类别列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMailTypeList", value = "获取通讯录类别列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/MailTypeController/queryMailTypeList")
@@ -45,12 +39,6 @@ public class MailTypeController {
         mailTypeService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑通讯录类型信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeMailType", value = "新增/编辑通讯录类型信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = MailType.class)
     @RequestMapping("/post/MailTypeController/writeMailType")
@@ -58,12 +46,6 @@ public class MailTypeController {
         mailTypeService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除通讯录类型
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteMailTypeById", value = "删除通讯录类型", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class MailTypeController {
         mailTypeService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取我的通讯录类型用作下拉框展示
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAllMailTypeList", value = "获取我的通讯录类型用作下拉框展示", method = "GET", allUse = "2")
     @RequestMapping("/post/MailTypeController/queryAllMailTypeList")
     public void queryAllMailTypeList(InputObject inputObject, OutputObject outputObject) {
