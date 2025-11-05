@@ -13,6 +13,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.features.IconOrImgInfo;
 import com.skyeye.dsform.entity.DsFormPage;
+import com.skyeye.operate.classenum.MenuPageType;
 import com.skyeye.win.entity.SysDesktop;
 import com.skyeye.win.entity.SysWin;
 import lombok.Data;
@@ -42,7 +43,7 @@ public class SysMenu extends IconOrImgInfo {
     private String name;
 
     @TableField("page_type")
-    @ApiModelProperty(value = "页面类型，参考#MenuPageType", required = "required")
+    @ApiModelProperty(value = "页面类型", enumClass = MenuPageType.class, required = "required")
     private Integer pageType;
 
     @TableField(exist = false)

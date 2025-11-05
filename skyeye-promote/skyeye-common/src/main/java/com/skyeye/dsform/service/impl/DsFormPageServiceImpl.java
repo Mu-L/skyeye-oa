@@ -124,6 +124,12 @@ public class DsFormPageServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageD
     }
 
     @Override
+    protected void updatePrepose(DsFormPage entity) {
+        DsFormPage oldDsFormPage = selectById(entity.getId());
+        entity.setContent(oldDsFormPage.getContent());
+    }
+
+    @Override
     public void writePostpose(DsFormPage entity, String userId) {
         super.writePostpose(entity, userId);
         if (!entity.getType().equals(DsFormPageType.TAB_CHOOSE.getKey())) {

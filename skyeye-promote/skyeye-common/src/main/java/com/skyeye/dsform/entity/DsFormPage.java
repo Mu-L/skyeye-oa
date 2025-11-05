@@ -4,6 +4,7 @@
 
 package com.skyeye.dsform.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -16,6 +17,7 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.business.entity.BusinessApi;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.dsform.classenum.DsFormPageType;
 import com.skyeye.operate.entity.Operate;
 import com.skyeye.server.entity.ServiceBeanCustom;
@@ -50,24 +52,24 @@ public class DsFormPage extends OperatorUserInfo {
     @ApiModelProperty(value = "简介")
     private String remark;
 
-    @TableField("num_code")
+    @TableField(value = "num_code", updateStrategy = FieldStrategy.NEVER)
     @Property("页面编码")
     private String numCode;
 
-    @TableField("`type`")
+    @TableField(value = "`type`", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "表单布局的类型", enumClass = DsFormPageType.class, required = "required")
     private String type;
 
-    @TableField(value = "app_id")
+    @TableField(value = "app_id", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "应用的appId", required = "required")
     private String appId;
 
-    @TableField("class_name")
+    @TableField(value = "class_name", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "服务类的className", required = "required")
     private String className;
 
     @TableField("is_page")
-    @ApiModelProperty(value = "表格时拥有，是否分页，参考#WhetherEnum")
+    @ApiModelProperty(value = "表格时拥有，是否分页", enumClass = WhetherEnum.class)
     private Integer isPage;
 
     @TableField("search_tips")

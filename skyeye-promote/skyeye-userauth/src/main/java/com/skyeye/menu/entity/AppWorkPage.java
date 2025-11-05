@@ -15,6 +15,7 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.menu.classenum.MenuType;
 import com.skyeye.menu.classenum.UrlType;
+import com.skyeye.operate.classenum.AppMenuPageType;
 import com.skyeye.win.entity.SysDesktop;
 import lombok.Data;
 
@@ -59,6 +60,10 @@ public class AppWorkPage extends OperatorUserInfo {
     @TableField(value = "type", updateStrategy = FieldStrategy.NEVER)
     @Property(value = "菜单类型", enumClass = MenuType.class)
     private Integer type;
+
+    @TableField("page_type")
+    @ApiModelProperty(value = "页面类型", enumClass = AppMenuPageType.class, required = "required")
+    private Integer pageType;
 
     @TableField(value = "parent_id")
     @ApiModelProperty(value = "所属目录id", defaultValue = "0")
