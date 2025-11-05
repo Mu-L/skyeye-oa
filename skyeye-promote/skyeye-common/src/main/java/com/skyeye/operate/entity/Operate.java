@@ -45,6 +45,10 @@ public class Operate extends BaseGeneralInfo {
     @ApiModelProperty(value = "权限控制编号")
     private String authPointNum;
 
+    @TableField("app_auth_point_num")
+    @ApiModelProperty(value = "移动端权限控制编号")
+    private String appAuthPointNum;
+
     @TableField("event_type")
     @ApiModelProperty(value = "事件类型", enumClass = EventType.class, required = "required")
     private String eventType;
