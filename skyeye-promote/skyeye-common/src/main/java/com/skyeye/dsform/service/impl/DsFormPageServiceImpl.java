@@ -125,19 +125,25 @@ public class DsFormPageServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageD
     @Override
     public void writePostpose(DsFormPage entity, String userId) {
         super.writePostpose(entity, userId);
-        // 保存请求事件
-        BusinessApi businessApi = entity.getBusinessApi();
-        businessApi.setObjectId(entity.getId());
-        businessApi.setObjectKey(getServiceClassName());
-        businessApiService.createEntity(businessApi, userId);
+        if (!entity.getType().equals(DsFormPageType.TAB_CHOOSE.getKey())) {
+            // 选项卡布局之外的布局，需要保存请求事件
+            BusinessApi businessApi = entity.getBusinessApi();
+            businessApi.setObjectId(entity.getId());
+            businessApi.setObjectKey(getServiceClassName());
+            businessApiService.createEntity(businessApi, userId);
+        }
     }
 
     @Override
     public void deletePostpose(DsFormPage dsFormPage) {
-        if (!StrUtil.equals(dsFormPage.getType(), DsFormPageType.SIMPLE_TABLE.getKey())) {
+        if (dsFormPage.getType().equals(DsFormPageType.CREATE.getKey())
+            || dsFormPage.getType().equals(DsFormPageType.EDIT.getKey())
+            || dsFormPage.getType().equals(DsFormPageType.DETAILS.getKey())
+            || dsFormPage.getType().equals(DsFormPageType.PROCESS_ATTR.getKey())) {
             // 删除页面内容项信息
             dsFormPageContentService.deleteDsFormContentByPageId(dsFormPage.getId());
-        } else {
+        }
+        if (dsFormPage.getType().equals(DsFormPageType.SIMPLE_TABLE.getKey())) {
             // 删除表单布局(表格类型关联的列信息)
             tableColumnService.deleteByPageId(dsFormPage.getId(), getServiceClassName());
         }
@@ -146,10 +152,14 @@ public class DsFormPageServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageD
     @Override
     public DsFormPage selectById(String id) {
         DsFormPage dsFormPage = super.selectById(id);
-        if (!StrUtil.equals(dsFormPage.getType(), DsFormPageType.SIMPLE_TABLE.getKey())) {
+        if (dsFormPage.getType().equals(DsFormPageType.CREATE.getKey())
+            || dsFormPage.getType().equals(DsFormPageType.EDIT.getKey())
+            || dsFormPage.getType().equals(DsFormPageType.DETAILS.getKey())
+            || dsFormPage.getType().equals(DsFormPageType.PROCESS_ATTR.getKey())) {
             // 查询表单布局的内容信息
             selectPageContent(dsFormPage);
-        } else {
+        }
+        if (dsFormPage.getType().equals(DsFormPageType.SIMPLE_TABLE.getKey())) {
             // 查询表格的字段列信息
             selectTableColumn(dsFormPage);
         }
@@ -159,10 +169,11 @@ public class DsFormPageServiceImpl extends SkyeyeBusinessServiceImpl<DsFormPageD
             operateList = operateList.stream().filter(operate -> dsFormPage.getOperateIdList().contains(operate.getId())).collect(Collectors.toList());
             dsFormPage.setOperateList(operateList);
         }
-
-        // 接口信息
-        BusinessApi businessApi = businessApiService.selectByObjectId(dsFormPage.getId());
-        dsFormPage.setBusinessApi(businessApi);
+        if (!dsFormPage.getType().equals(DsFormPageType.TAB_CHOOSE.getKey())) {
+            // 选项卡布局之外的其他布局，需要查询接口信息
+            BusinessApi businessApi = businessApiService.selectByObjectId(dsFormPage.getId());
+            dsFormPage.setBusinessApi(businessApi);
+        }
 
         // 服务类的信息
         ServiceBeanCustom serviceBeanCustom = serviceBeanCustomService.selectServiceBeanCustom(dsFormPage.getAppId(), dsFormPage.getClassName());

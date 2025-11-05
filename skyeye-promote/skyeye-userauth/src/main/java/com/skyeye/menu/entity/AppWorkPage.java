@@ -13,6 +13,8 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.menu.classenum.MenuType;
+import com.skyeye.menu.classenum.UrlType;
 import com.skyeye.win.entity.SysDesktop;
 import lombok.Data;
 
@@ -47,7 +49,7 @@ public class AppWorkPage extends OperatorUserInfo {
     private String url;
 
     @TableField("url_type")
-    @ApiModelProperty(value = "APP菜单URL类型，参考#UrlType", required = "num")
+    @ApiModelProperty(value = "APP菜单URL类型", enumClass = UrlType.class, required = "num")
     private Integer urlType;
 
     @TableField("order_by")
@@ -55,7 +57,7 @@ public class AppWorkPage extends OperatorUserInfo {
     private Integer orderBy;
 
     @TableField(value = "type", updateStrategy = FieldStrategy.NEVER)
-    @Property(value = "菜单类型，参考#MenuType")
+    @Property(value = "菜单类型", enumClass = MenuType.class)
     private Integer type;
 
     @TableField(value = "parent_id")

@@ -22,15 +22,24 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum DsFormPageType implements SkyeyeEnumClass {
 
-    CREATE("create", "创建布局", true, false),
-    EDIT("edit", "编辑布局", true, false),
-    DETAILS("details", "详情布局", true, false),
-    SIMPLE_TABLE("simpleTable", "基础表格", true, false),
-    PROCESS_ATTR("processAttr", "流程属性布局", true, false);
+    CREATE("create", "创建布局", 3, true, false),
+    EDIT("edit", "编辑布局", 3, true, false),
+    DETAILS("details", "详情布局", 3, true, false),
+    PROCESS_ATTR("processAttr", "流程属性布局", 3, true, false),
+
+    SIMPLE_TABLE("simpleTable", "基础表格", 1, true, false),
+
+    SIMPLE_CARD("simpleCard", "小卡片列表布局", 2, true, false),
+    TAB_CHOOSE("tabChoose", "选项卡布局", 2, true, false);
 
     private String key;
 
     private String value;
+
+    /**
+     * 布局类型：1-PC端，2-移动端，3-PC+移动端
+     */
+    private Integer type;
 
     private Boolean show;
 
