@@ -10,7 +10,6 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
-import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.eve.mail.classenum.MailCategory;
 import lombok.Data;
@@ -24,7 +23,6 @@ import lombok.Data;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 @Data
-@UniqueField
 @RedisCacheField(name = "mail:list")
 @TableName(value = "sys_mail_list", autoResultMap = true)
 @ApiModel("通讯录实体类")
