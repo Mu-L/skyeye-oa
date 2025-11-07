@@ -26,6 +26,7 @@ import com.skyeye.eve.service.ITenantService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -181,6 +182,17 @@ public class ActFlowServiceImpl extends SkyeyeBusinessServiceImpl<ActFlowDao, Ac
 
         String userId = inputObject.getLogParams().get("id").toString();
         createEntity(oldActFlowMation, userId);
+    }
+
+    @Override
+    @IgnoreTenant
+    public List<ActFlowMation> queryActFlowMationByTenantId(String tenantId) {
+        if (StrUtil.isEmpty(tenantId)) {
+            return Collections.emptyList();
+        }
+        QueryWrapper<ActFlowMation> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ActFlowMation::getTenantId), tenantId);
+        return list(queryWrapper);
     }
 
 }

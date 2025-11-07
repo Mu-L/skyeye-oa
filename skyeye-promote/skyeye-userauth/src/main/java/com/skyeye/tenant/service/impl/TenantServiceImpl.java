@@ -7,6 +7,7 @@ package com.skyeye.tenant.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
@@ -18,16 +19,21 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.tenant.TenantTypeEnum;
 import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.PropertiesUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.rest.mq.JobMateMation;
+import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.tenant.dao.TenantDao;
 import com.skyeye.tenant.entity.Tenant;
 import com.skyeye.tenant.entity.TenantApp;
 import com.skyeye.tenant.entity.TenantAppLink;
 import com.skyeye.tenant.service.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,6 +46,7 @@ import java.util.stream.Collectors;
  * @Copyright: 2024 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
+@Slf4j
 @Service
 @SkyeyeService(name = "租户管理", groupName = "租户管理", tenant = TenantEnum.PLATE)
 public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tenant> implements TenantService {
@@ -56,9 +63,28 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
     @Autowired
     private TenantUserService tenantUserService;
 
+    @Autowired
+    private IJobMateMationService iJobMateMationService;
+
     @Override
     public void createPrepose(Tenant entity) {
         entity.setAccountNum(CommonNumConstants.NUM_ZERO);
+    }
+
+    @Override
+    protected void createPostpose(Tenant entity, String userId) {
+        // 创建消息通知，同步数据到该租户下
+        Map<String, Object> jobBody = new HashMap<>();
+        jobBody.put("whetherCreatTask", false);
+        jobBody.put("content", JSONUtil.toJsonStr(entity));
+        jobBody.put("userId", userId);
+        String topic = PropertiesUtil.getPropertiesValue("${topic.synchronize-data-to-tenants}");
+        jobBody.put("topic", topic);
+        JobMateMation jobMateMation = new JobMateMation();
+        jobMateMation.setJsonStr(JSONUtil.toJsonStr(jobBody));
+        jobMateMation.setUserId(userId);
+        iJobMateMationService.sendMQProducer(jobMateMation);
+        log.info("租户创建成功，同步数据到该租户下");
     }
 
     @Override

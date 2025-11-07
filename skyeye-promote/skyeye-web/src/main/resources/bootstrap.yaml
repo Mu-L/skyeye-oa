@@ -58,6 +58,8 @@ topic:
   notice-send-service: NOTICE_SEND_SERVICE
   # 短信通知的topic
   sms-send-service: SMS_SEND_SERVICE
+  # 同步数据到租户的topic，会有多个消费者同时消费
+  synchronize-data-to-tenants: SYNCHRONIZE_DATA_TO_TENANTS_SERVICE
 
 skyeye:
   sms-code: # 短信验证码相关的配置项

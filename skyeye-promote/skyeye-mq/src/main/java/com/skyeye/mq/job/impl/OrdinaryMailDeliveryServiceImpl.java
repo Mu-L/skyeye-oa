@@ -1,6 +1,7 @@
 /*******************************************************************************
  * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
  ******************************************************************************/
+
 package com.skyeye.mq.job.impl;
 
 import cn.hutool.core.util.StrUtil;
@@ -27,9 +28,9 @@ import java.util.Map;
  */
 @Component
 @RocketMQMessageListener(
-        topic = "${topic.ordinary-mail-delivery-service}",
-        consumerGroup = "${topic.ordinary-mail-delivery-service}",
-        selectorExpression = "${spring.profiles.active}")
+    topic = "${topic.ordinary-mail-delivery-service}",
+    consumerGroup = "${topic.ordinary-mail-delivery-service}",
+    selectorExpression = "${spring.profiles.active}")
 public class OrdinaryMailDeliveryServiceImpl implements RocketMQListener<String> {
 
     private static Logger LOGGER = LoggerFactory.getLogger(OrdinaryMailDeliveryServiceImpl.class);
@@ -45,23 +46,23 @@ public class OrdinaryMailDeliveryServiceImpl implements RocketMQListener<String>
         Map<String, Object> map = JSONUtil.toBean(data, null);
         String jobId = map.get("jobMateId").toString();
         try {
-            String tenantId = StrUtil.EMPTY;
+            String tenantId;
             if (tenantEnable) {
                 tenantId = map.get("tenantId").toString();
                 TenantContext.setTenantId(tenantId);
             }
             // 任务开始
-            jobMateMationService.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, "");
+            jobMateMationService.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, StrUtil.EMPTY);
             String email = map.get("email").toString();
             String content = map.get("content").toString();
             LOGGER.info("resever is {}, content is {}", email, content);
             new MailUtil().send(email, map.get("title").toString(), content);
             // 任务完成
-            jobMateMationService.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_SUCCESS, "");
+            jobMateMationService.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_SUCCESS, StrUtil.EMPTY);
         } catch (Exception e) {
             LOGGER.warn("Normal mail sending task failed, reason is {}.", e);
             // 任务失败
-            jobMateMationService.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_FAIL, "");
+            jobMateMationService.comMQJobMation(jobId, MqConstants.JOB_TYPE_IS_FAIL, StrUtil.EMPTY);
         }
     }
 

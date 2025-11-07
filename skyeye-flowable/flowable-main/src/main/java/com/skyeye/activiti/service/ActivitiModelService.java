@@ -70,4 +70,15 @@ public interface ActivitiModelService {
      * @return 新模型的ID
      */
     String copyActivitiModel(String sourceModelId, String newModelName, String newModelKey);
+
+    /**
+     * 根据BPMN XML创建模型到指定租户
+     *
+     * @param bpmnXml    BPMN XML内容
+     * @param modelName  模型名称
+     * @param modelKey   模型Key
+     * @param tenantId   租户ID
+     * @return 新模型的ID
+     */
+    String createModelFromBpmnXml(String bpmnXml, String modelName, String modelKey, String tenantId);
 }

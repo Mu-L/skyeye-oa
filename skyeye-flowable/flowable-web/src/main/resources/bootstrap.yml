@@ -40,3 +40,7 @@ logging:
 webroot:
   # 总工程服务
   skyeye-pro: skyeye-pro-${spring.profiles.active}
+
+topic:
+  # 同步工作流数据到租户下
+  synchronize-data-to-tenants: SYNCHRONIZE_DATA_TO_TENANTS_SERVICE

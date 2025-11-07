@@ -28,7 +28,6 @@ import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.entity.ActFlowMation;
 import com.skyeye.eve.flowable.entity.FlowableSubData;
 import com.skyeye.exception.CustomException;
-import com.skyeye.jedis.JedisClientService;
 import com.skyeye.userprocess.service.ActUserProcessService;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.converter.BpmnXMLConverter;
@@ -52,6 +51,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.imageio.ImageIO;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
@@ -81,9 +82,6 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
 
     @Autowired
     private RuntimeService runtimeService;
-
-    @Autowired
-    public JedisClientService jedisClient;
 
     @Value("${IMAGES_PATH}")
     private String tPath;
@@ -578,6 +576,70 @@ public class ActivitiModelServiceImpl implements ActivitiModelService {
         } catch (Exception e) {
             LOGGER.error("复制模型失败，源模型ID: {}, 错误信息: {}", sourceModelId, e.getMessage(), e);
             throw new CustomException("复制模型失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 根据BPMN XML创建模型到指定租户
+     *
+     * @param bpmnXml   BPMN XML内容
+     * @param modelName 模型名称
+     * @param modelKey  模型Key
+     * @param tenantId  租户ID
+     * @return 新模型的ID
+     */
+    @Override
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public String createModelFromBpmnXml(String bpmnXml, String modelName, String modelKey, String tenantId) {
+        try {
+            LOGGER.info("开始根据BPMN XML创建模型，模型名称: {}, 模型Key: {}, 租户ID: {}", modelName, modelKey, tenantId);
+
+            // 将BPMN XML转换为BpmnModel
+            BpmnXMLConverter xmlConverter = new BpmnXMLConverter();
+            InputStream xmlInputStream = new ByteArrayInputStream(bpmnXml.getBytes("UTF-8"));
+            XMLInputFactory xmlInputFactory = XMLInputFactory.newInstance();
+            XMLStreamReader xmlStreamReader = xmlInputFactory.createXMLStreamReader(xmlInputStream);
+            BpmnModel bpmnModel = xmlConverter.convertToBpmnModel(xmlStreamReader);
+
+            if (bpmnModel.getProcesses().isEmpty()) {
+                throw new CustomException("BPMN XML中没有有效的流程定义");
+            }
+
+            // 将BpmnModel转换为JSON（用于编辑器）
+            BpmnJsonConverter jsonConverter = new BpmnJsonConverter();
+            ObjectNode editorJsonNode = jsonConverter.convertToJson(bpmnModel);
+
+            // 创建新模型
+            Model model = repositoryService.newModel();
+            model.setName(modelName);
+            model.setKey(ToolUtil.getSurFaceId());
+
+            // 设置租户信息
+            if (StrUtil.isNotBlank(tenantId)) {
+                model.setTenantId(tenantId);
+            } else {
+                model.setTenantId(TenantTypeEnum.PLATFORM.getCode());
+            }
+
+            // 设置元信息
+            ObjectNode metaInfo = getMateInfo(modelName);
+            model.setMetaInfo(metaInfo.toString());
+
+            // 保存模型
+            repositoryService.saveModel(model);
+
+            // 设置流程属性
+            ObjectNode processProperties = getProcessProperties(modelName, modelKey, null);
+            editorJsonNode.put("properties", processProperties);
+
+            // 保存编辑器源码
+            repositoryService.addModelEditorSource(model.getId(), editorJsonNode.toString().getBytes("utf-8"));
+
+            LOGGER.info("成功根据BPMN XML创建模型，模型ID: {}, 模型名称: {}, 租户ID: {}", model.getId(), modelName, tenantId);
+            return model.getId();
+        } catch (Exception e) {
+            LOGGER.error("根据BPMN XML创建模型失败，模型名称: {}, 错误信息: {}", modelName, e.getMessage(), e);
+            throw new CustomException("根据BPMN XML创建模型失败: " + e.getMessage());
         }
     }
 

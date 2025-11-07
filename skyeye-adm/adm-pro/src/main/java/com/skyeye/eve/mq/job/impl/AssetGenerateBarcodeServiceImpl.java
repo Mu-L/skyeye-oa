@@ -78,7 +78,7 @@ public class AssetGenerateBarcodeServiceImpl implements RocketMQListener<String>
         List<Map<String, Object>> list = JSONUtil.toList(map.get("list").toString(), null);
         String className = map.get("className").toString();
         String userId = map.get("userId").toString();
-        String tenantId = StrUtil.EMPTY;
+        String tenantId;
         if (tenantEnable) {
             Object val = map.get("tenantId");
             tenantId = val == null ? StrUtil.EMPTY : val.toString();
