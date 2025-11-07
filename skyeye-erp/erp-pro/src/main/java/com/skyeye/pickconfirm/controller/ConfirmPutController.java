@@ -31,12 +31,6 @@ public class ConfirmPutController {
     @Autowired
     private ConfirmPutService confirmPutService;
 
-    /**
-     * 获取物料接收单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryConfirmPutList", value = "获取物料接收单列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ConfirmPutController/queryConfirmPutList")
@@ -44,12 +38,6 @@ public class ConfirmPutController {
         confirmPutService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑物料接收单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeConfirmPut", value = "新增/编辑物料接收单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ConfirmPut.class)
     @RequestMapping("/post/ConfirmPutController/writeConfirmPut")

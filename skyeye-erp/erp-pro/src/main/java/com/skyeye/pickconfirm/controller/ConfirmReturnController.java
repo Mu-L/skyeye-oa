@@ -33,12 +33,6 @@ public class ConfirmReturnController {
     @Autowired
     private ConfirmReturnService confirmReturnService;
 
-    /**
-     * 获取物料退货单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryConfirmReturnList", value = "获取物料退货单列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ConfirmReturnController/queryConfirmReturnList")
@@ -46,12 +40,6 @@ public class ConfirmReturnController {
         confirmReturnService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑物料退货单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeConfirmReturn", value = "新增/编辑物料退货单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ConfirmReturn.class)
     @RequestMapping("/post/ConfirmReturnController/writeConfirmReturn")
@@ -59,12 +47,6 @@ public class ConfirmReturnController {
         confirmReturnService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 转仓库入库单时，根据id查询物料退货信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryConfirmReturnTransById", value = "转仓库入库单时，根据id查询物料退货信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class ConfirmReturnController {
         confirmReturnService.queryConfirmReturnTransById(inputObject, outputObject);
     }
 
-    /**
-     * 物料退货单信息转仓库入库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertConfirmReturnToTurnDepot", value = "物料退货单信息转仓库入库单", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DepotPut.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

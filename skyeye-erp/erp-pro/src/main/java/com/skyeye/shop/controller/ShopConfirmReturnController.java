@@ -33,26 +33,14 @@ public class ShopConfirmReturnController {
     @Autowired
     private ShopConfirmReturnService shopConfirmReturnService;
 
-    /**
-     * 获取物料退货单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryShopConfirmReturnList", value = "获取物料退货单列表", method = "POST", allUse = "1")
-    @ApiImplicitParams(classBean = CommonPageInfo.class,value = {
-            @ApiImplicitParam(id = "objectId", name = "objectId", value = "门店id")})
+    @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
+        @ApiImplicitParam(id = "objectId", name = "objectId", value = "门店id")})
     @RequestMapping("/post/ShopConfirmReturnController/queryShopConfirmReturnList")
     public void queryShopConfirmReturnList(InputObject inputObject, OutputObject outputObject) {
         shopConfirmReturnService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑物料退货单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeShopConfirmReturn", value = "新增/编辑物料退货单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ShopConfirmReturn.class)
     @RequestMapping("/post/ShopConfirmReturnController/writeShopConfirmReturn")
@@ -60,12 +48,6 @@ public class ShopConfirmReturnController {
         shopConfirmReturnService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 转仓库入库单时，根据id查询物料退货信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryShopConfirmReturnTransById", value = "转仓库入库单时，根据id查询物料退货信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -74,12 +56,6 @@ public class ShopConfirmReturnController {
         shopConfirmReturnService.queryShopConfirmReturnTransById(inputObject, outputObject);
     }
 
-    /**
-     * 物料退货单信息转仓库入库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertShopConfirmReturnToTurnDepot", value = "物料退货单信息转仓库入库单", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DepotPut.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

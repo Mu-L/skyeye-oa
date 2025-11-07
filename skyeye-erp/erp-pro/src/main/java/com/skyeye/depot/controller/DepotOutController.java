@@ -131,12 +131,6 @@ public class DepotOutController {
         depotOutService.insertDepotOutToSealsReturns(inputObject, outputObject);
     }
 
-    /**
-     * 获取需要门店物料确认的仓库出库列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryNeedStoreConfirmDepotOutList", value = "获取需要门店物料确认的仓库出库列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DepotOutController/queryNeedStoreConfirmDepotOutList")

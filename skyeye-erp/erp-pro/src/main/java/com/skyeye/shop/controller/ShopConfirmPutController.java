@@ -32,26 +32,14 @@ public class ShopConfirmPutController {
     @Autowired
     private ShopConfirmPutService shopConfirmPutService;
 
-    /**
-     * 获取物料接收单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryShopConfirmPutList", value = "获取物料接收单列表", method = "POST", allUse = "1")
-    @ApiImplicitParams(classBean = CommonPageInfo.class,value = {
+    @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "门店id")})
     @RequestMapping("/post/ShopConfirmPutController/queryShopConfirmPutList")
     public void queryShopConfirmPutList(InputObject inputObject, OutputObject outputObject) {
         shopConfirmPutService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑物料接收单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeShopConfirmPut", value = "新增/编辑物料接收单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ShopConfirmPut.class)
     @RequestMapping("/post/ShopConfirmPutController/writeShopConfirmPut")
