@@ -168,7 +168,10 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
                 String userToken = GetUserToken.getUserToken(InputObject.getRequest());
                 requestHeaderKey2Value.put("userToken", userToken);
 
-                String responseData = HttpRequestUtil.getDataByRequest(restEntity.getRestUrl(), restEntity.getMethod(), requestHeaderKey2Value, restEntity.getRequestBody());
+                // 合并 restEntity.getRequestBody() 和 inputParams
+                String mergedRequestBody = mergeRequestBody(restEntity.getRequestBody(), inputParams);
+
+                String responseData = HttpRequestUtil.getDataByRequest(restEntity.getRestUrl(), restEntity.getMethod(), requestHeaderKey2Value, mergedRequestBody);
                 return responseData;
             } else if (reportDataFrom.getType() == ReportDataFromType.SQL.getKey()) {
                 // 1.获取数据源信息
@@ -180,6 +183,50 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
             }
         }
         return "{}";
+    }
+
+    /**
+     * 合并请求体和输入参数
+     *
+     * @param requestBody 请求体（JSON字符串）
+     * @param inputParams 输入参数（JSON字符串）
+     * @return 合并后的JSON字符串
+     */
+    private String mergeRequestBody(String requestBody, String inputParams) {
+        // 如果两者都为空，返回空字符串
+        if (ObjectUtil.isEmpty(requestBody) && ObjectUtil.isEmpty(inputParams)) {
+            return "";
+        }
+        // 如果请求体为空，直接返回输入参数
+        if (ObjectUtil.isEmpty(requestBody)) {
+            return inputParams;
+        }
+        // 如果输入参数为空，直接返回请求体
+        if (ObjectUtil.isEmpty(inputParams)) {
+            return requestBody;
+        }
+
+        try {
+            // 尝试将两者解析为JSON对象并合并
+            Map<String, Object> requestBodyMap = JSONUtil.toBean(requestBody, null);
+            Map<String, Object> inputParamsMap = JSONUtil.toBean(inputParams, null);
+
+            // 合并：inputParams 覆盖 requestBody 中的相同键
+            Map<String, Object> mergedMap = new HashMap<>(requestBodyMap);
+            mergedMap.putAll(inputParamsMap);
+
+            return JSON.toJSONString(mergedMap);
+        } catch (Exception e) {
+            // 如果解析失败，尝试作为字符串拼接（通常这种情况不应该发生）
+            // 如果 inputParams 不是有效的 JSON，优先使用 inputParams
+            try {
+                JSONUtil.toBean(inputParams, null);
+                return inputParams;
+            } catch (Exception ex) {
+                // 如果两者都不是有效的 JSON，返回 inputParams（因为它是动态参数）
+                return inputParams;
+            }
+        }
     }
 
     private List<Map<String, Object>> resetSqlResultData(List<ReportMetaDataRow> metaDataRows) {
