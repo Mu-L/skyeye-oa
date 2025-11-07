@@ -32,25 +32,13 @@ public class DepotPutController {
     @Autowired
     private DepotPutService depotPutService;
 
-    /**
-     * 获取仓库入库列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryDepotPutList", value = "获取仓库入库单列表", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryDepotPutList", value = "获取仓库【入库管理】列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DepotPutController/queryDepotPutList")
     public void queryDepotPutList(InputObject inputObject, OutputObject outputObject) {
         depotPutService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 获取仓库入库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDepotPutOrderList", value = "获取仓库入库单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
         @ApiImplicitParam(id = "type", name = "type", value = "类型", required = "required", defaultValue = "DepotPut")})
@@ -59,12 +47,6 @@ public class DepotPutController {
         depotPutService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑仓库入库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeDepotPut", value = "新增/编辑仓库入库单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = DepotPut.class)
     @RequestMapping("/post/DepotPutController/writeDepotPut")

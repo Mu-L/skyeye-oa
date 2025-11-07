@@ -40,7 +40,6 @@ import com.skyeye.material.classenum.MaterialNormsCodeType;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.entity.MaterialNormsCode;
-import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.other.service.OtherWareHousService;
 import com.skyeye.pick.service.ReturnPutService;
@@ -107,9 +106,6 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
 
     @Autowired
     private MaterialService materialService;
-
-    @Autowired
-    private MaterialNormsService iMaterialNormsService;
 
     @Autowired
     private DepotOutPutRecordService depotOutPutRecordService;
@@ -268,6 +264,7 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
             // 门店物料退货单
             shopConfirmReturnService.setDataMation(depotPut, DepotPut::getFromId);
         } else if (depotPut.getFromTypeId() == DepotPutFromType.SALES_EXCHANGES.getKey()) {
+            // 销售换货单
             salesExchangesService.setDataMation(depotPut, DepotPut::getFromId);
         }
         return depotPut;
@@ -328,7 +325,7 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
             List<ErpOrderItem> erpOrderItemList = fromMation.getErpOrderItemList().stream()
                 .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
             if (entity.getFromTypeId().equals(DepotPutFromType.LOANIN.getKey())) {
-                if (CollectionUtil.isNotEmpty(erpOrderItemList)) {
+                if (CollectionUtil.isEmpty(erpOrderItemList)) {
                     productReturnInStockService.editOtherState(entity.getFromId(), DepotPutState.COMPLATE_PUT.getKey());
                 } else {
                     productReturnInStockService.editOtherState(entity.getFromId(), DepotPutState.PARTIAL_PUT.getKey());
