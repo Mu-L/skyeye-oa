@@ -189,7 +189,7 @@ public class KnowledgeContentServiceImpl extends SkyeyeBusinessServiceImpl<Knowl
         }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryKnowledgeContentList(pageInfo);
         iSysDictDataService.setNameForMap(beans, "typeId", "typeName");
-        iAuthUserService.setNameForMap(beans, "createId", "createName");
+        iAuthUserService.setMationForMap(beans, "createId", "createMation");
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
