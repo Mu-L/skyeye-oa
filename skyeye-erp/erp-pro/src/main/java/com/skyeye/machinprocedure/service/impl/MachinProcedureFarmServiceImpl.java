@@ -23,6 +23,7 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.machin.entity.Machin;
 import com.skyeye.machin.entity.MachinChild;
+import com.skyeye.machin.entity.MachinPut;
 import com.skyeye.machin.service.MachinPutService;
 import com.skyeye.machin.service.MachinService;
 import com.skyeye.machinprocedure.classenum.MachinProcedureFarmState;
@@ -141,6 +142,12 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
         farmService.setDataMation(machinProcedureFarm, MachinProcedureFarm::getFarmId);
         machinService.setDataMation(machinProcedureFarm, MachinProcedureFarm::getMachinId);
         machinProcedureService.setDataMation(machinProcedureFarm, MachinProcedureFarm::getMachinProcedureId);
+        // 设置工序验收单信息
+        Map<String, List<MachinProcedureAccept>> machinProcedureAcceptMap = machinProcedureAcceptService.queryMachinProcedureAcceptByMachinProcedureFarmId(id);
+        machinProcedureFarm.setMachinProcedureAcceptList(machinProcedureAcceptMap.get(id));
+        // 设置加工入库单信息
+        List<MachinPut> machinPutList = machinPutService.queryMachinPutByMachinProcedureFarmId(id);
+        machinProcedureFarm.setMachinPutList(machinPutList);
         return machinProcedureFarm;
     }
 

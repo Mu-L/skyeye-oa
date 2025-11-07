@@ -9,6 +9,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.machin.entity.MachinPut;
 
+import java.util.List;
+
 /**
  * @ClassName: MachinPutService
  * @Description: 加工入库单服务接口层
@@ -22,4 +24,12 @@ public interface MachinPutService extends SkyeyeErpOrderService<MachinPut> {
     void queryMachinPutTransById(InputObject inputObject, OutputObject outputObject);
 
     void insertMachinPutToTurnDepot(InputObject inputObject, OutputObject outputObject);
+
+    /**
+     * 根据车间任务ID查询加工入库单
+     *
+     * @param machinProcedureFarmId 车间任务ID
+     * @return 加工入库单列表
+     */
+    List<MachinPut> queryMachinPutByMachinProcedureFarmId(String machinProcedureFarmId);
 }

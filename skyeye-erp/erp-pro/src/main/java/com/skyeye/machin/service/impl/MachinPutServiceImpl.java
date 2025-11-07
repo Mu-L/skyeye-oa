@@ -148,4 +148,12 @@ public class MachinPutServiceImpl extends SkyeyeErpOrderServiceImpl<MachinPutDao
             outputObject.setreturnMessage("状态错误，无法下达仓库入库单.");
         }
     }
+
+    @Override
+    public List<MachinPut> queryMachinPutByMachinProcedureFarmId(String machinProcedureFarmId) {
+        QueryWrapper<MachinPut> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(MachinPut::getFromId), machinProcedureFarmId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(MachinPut::getFromTypeId), MachinPutFromType.FARM_TASK.getKey());
+        return this.list(queryWrapper);
+    }
 }

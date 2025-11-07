@@ -14,6 +14,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.farm.entity.Farm;
 import com.skyeye.machin.entity.Machin;
+import com.skyeye.machin.entity.MachinPut;
 import lombok.Data;
 
 import java.util.List;
@@ -77,7 +78,11 @@ public class MachinProcedureFarm extends OperatorUserInfo {
     private Map<String, Object> stateMation;
 
     @TableField(exist = false)
-    @Property(value = "车间工序验收任务列表")
+    @Property(value = "车间工序验收单列表")
     private List<MachinProcedureAccept> machinProcedureAcceptList;
+
+    @TableField(exist = false)
+    @Property(value = "车间加工入库单列表")
+    private List<MachinPut> machinPutList;
 
 }
