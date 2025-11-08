@@ -117,7 +117,6 @@
 			a.p_id pId,
 			'isCompany' folderType,
 			1 isParent,
-			'../../assets/images/icon/company-icon.png' `icon`,
 			'' `email`
 		FROM
 			company_mation a

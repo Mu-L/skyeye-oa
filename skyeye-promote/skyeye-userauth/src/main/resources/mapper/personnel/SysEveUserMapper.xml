@@ -205,7 +205,6 @@
 			</choose>
 			'isPeople' folderType,
 			0 isParent,
-			'../../assets/images/people-icon.png' `icon`,
 			a.phone
 		FROM
 			sys_eve_user_staff a
@@ -263,7 +262,6 @@
 			</choose>
 			'isPeople' folderType,
 			0 isParent,
-			'../../assets/images/people-icon.png' `icon`,
 			a.phone
 
 		FROM
@@ -320,7 +318,6 @@
 				'0' pId,
 				'isGroup' folderType,
 				1 isParent,
-				'../../assets/images/talk-group-icon.png' `icon`,
 				'' `email`,
 				'' phone,
 				'' departmentId
@@ -347,7 +344,6 @@
 				c.group_id pId,
 				'isPeople' folderType,
 				0 isParent,
-				'../../assets/images/people-icon.png' `icon`,
 				a.phone
 			FROM
 				sys_eve_user_staff a,

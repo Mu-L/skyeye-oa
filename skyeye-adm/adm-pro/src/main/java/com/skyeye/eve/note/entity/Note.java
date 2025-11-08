@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.eve.note.classenum.NoteType;
 import lombok.Data;
 
 /**
@@ -39,7 +40,7 @@ public class Note extends BaseGeneralInfo {
     private String parentId;
 
     @TableField(value = "type", updateStrategy = FieldStrategy.NEVER)
-    @ApiModelProperty(value = "笔记类型，参考#NoteType")
+    @ApiModelProperty(value = "笔记类型", enumClass = NoteType.class)
     private Integer type;
 
     @TableField(value = "delete_flag")

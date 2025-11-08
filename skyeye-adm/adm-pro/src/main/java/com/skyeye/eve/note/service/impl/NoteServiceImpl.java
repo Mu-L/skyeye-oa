@@ -23,7 +23,6 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.folder.entity.Folder;
 import com.skyeye.eve.folder.service.FolderService;
 import com.skyeye.eve.note.classenum.FileFolderType;
-import com.skyeye.eve.note.classenum.NoteType;
 import com.skyeye.eve.note.dao.NoteDao;
 import com.skyeye.eve.note.entity.Note;
 import com.skyeye.eve.note.service.NoteService;
@@ -58,12 +57,6 @@ public class NoteServiceImpl extends SkyeyeBusinessServiceImpl<NoteDao, Note> im
     @Autowired
     private IJobMateMationService iJobMateMationService;
 
-    /**
-     * 删除文件夹或文件
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void deleteFileFolderById(InputObject inputObject, OutputObject outputObject) {
@@ -140,7 +133,6 @@ public class NoteServiceImpl extends SkyeyeBusinessServiceImpl<NoteDao, Note> im
     public void createPrepose(Note entity) {
         String parentId = folderService.setParentId(entity.getParentId());
         entity.setParentId(parentId);
-        entity.setIconLogo(NoteType.getIconPathByType(entity.getType()));
         if (StrUtil.isNotEmpty(entity.getRemark()) && entity.getRemark().length() > 100) {
             entity.setRemark(entity.getRemark().substring(0, 99));
         }
@@ -162,12 +154,6 @@ public class NoteServiceImpl extends SkyeyeBusinessServiceImpl<NoteDao, Note> im
         return note;
     }
 
-    /**
-     * 根据文件夹id获取文件夹下的文件夹和笔记列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryFileAndContentListByFolderId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -180,12 +166,6 @@ public class NoteServiceImpl extends SkyeyeBusinessServiceImpl<NoteDao, Note> im
         outputObject.settotal(beans.size());
     }
 
-    /**
-     * 保存文件夹拖拽后的信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void editFileToDragById(InputObject inputObject, OutputObject outputObject) {

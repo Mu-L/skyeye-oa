@@ -7,7 +7,6 @@
 			a.id,
 			a.`name`,
 			#{parentId} pId,
-			'../../assets/images/cloud/my-folder-icon.png' icon,
 			1 isParent,
 			a.create_id createId,
 			CONVERT(a.create_time, char) createTime
@@ -32,7 +31,7 @@
 					a.id,
 					a.`name`,
 					#{folderId} pId,
-					'../../assets/images/icon/folder-show.png' icon,
+					'' icon,
 					1 isParent,
 					'folder' type,
 					if((SELECT COUNT(*) FROM file_catalog_share l WHERE l.file_id = a.id AND l.file_type = '1') > 0, 'block', 'none') isShow,

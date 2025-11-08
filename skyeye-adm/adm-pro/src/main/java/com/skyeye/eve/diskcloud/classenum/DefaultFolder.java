@@ -28,15 +28,13 @@ import java.util.Map;
 @AllArgsConstructor
 public enum DefaultFolder implements SkyeyeEnumClass {
 
-    FAVORITES("1", "收藏夹", "../../assets/images/cloud/my-favorites-icon.png", true, false),
-    FOLDER("2", "我的文档", "../../assets/images/cloud/my-folder-icon.png", true, false),
-    SKYDRIVE("3", "企业网盘", "../../assets/images/cloud/skydrive-icon.png", true, false);
+    FAVORITES("1", "收藏夹", true, false),
+    FOLDER("2", "我的文档", true, false),
+    SKYDRIVE("3", "企业网盘", true, false);
 
     private String key;
 
     private String value;
-
-    private String icon;
 
     private Boolean show;
 
@@ -62,7 +60,6 @@ public enum DefaultFolder implements SkyeyeEnumClass {
         node.put("name", bean.getValue());
         node.put("pId", CommonNumConstants.NUM_ZERO);
         node.put("isParent", CommonNumConstants.NUM_ONE);
-        node.put("icon", bean.getIcon());
         return node;
     }
 

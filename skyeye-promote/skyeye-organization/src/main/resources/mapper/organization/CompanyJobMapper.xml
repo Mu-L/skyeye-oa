@@ -85,7 +85,6 @@
 			a.department_id pId,
 			'isJob' folderType,
 			1 isParent,
-			'../../assets/images/job-icon.png' `icon`,
 			'' `email`
 		FROM
 			company_job a

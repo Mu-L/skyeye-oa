@@ -31,14 +31,12 @@ public class NoteConstants {
         newnotes.put("name", "最新笔记");
         newnotes.put("pId", "0");
         newnotes.put("isParent", 0);// 是否是文件夹 0否1是
-        newnotes.put("icon", "../../assets/images/note-folder.png");// 图标
         beans.add(newnotes);
         Map<String, Object> myfiles = new HashMap<>();
         myfiles.put("id", "2");
         myfiles.put("name", "我的文件夹");
         myfiles.put("pId", "0");
         myfiles.put("isParent", 1);// 是否是文件夹 0否1是
-        myfiles.put("icon", "../../assets/images/cloud/my-folder-icon.png");// 图标
         beans.add(myfiles);
         return beans;
     }

@@ -32,12 +32,6 @@ public class NoteController {
     @Autowired
     private NoteService noteService;
 
-    /**
-     * 删除文件夹或笔记
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteFileFolderById", value = "删除文件夹或笔记", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "文件夹/笔记id", required = "required"),
@@ -47,12 +41,6 @@ public class NoteController {
         noteService.deleteFileFolderById(inputObject, outputObject);
     }
 
-    /**
-     * 编辑文件夹或者笔记的名称
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "editFileFolderById", value = "编辑文件夹或者笔记的名称", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "文件夹/笔记id", required = "required"),
@@ -63,12 +51,6 @@ public class NoteController {
         noteService.editFileFolderById(inputObject, outputObject);
     }
 
-    /**
-     * 获取当前用户最新的笔记列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryNewNoteListByUserId", value = "获取当前用户最新的笔记列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/NoteController/queryNewNoteListByUserId")
@@ -76,12 +58,6 @@ public class NoteController {
         noteService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加/编辑笔记
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeNote", value = "新增/编辑笔记", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Note.class)
     @RequestMapping("/post/NoteController/writeNote")
@@ -89,12 +65,6 @@ public class NoteController {
         noteService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据文件夹id获取文件夹下的文件夹和笔记列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "mynote006", value = "根据文件夹id获取文件夹下的文件夹和笔记列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "parentId", name = "parentId", value = "文件夹id", required = "required"),
@@ -104,12 +74,6 @@ public class NoteController {
         noteService.queryFileAndContentListByFolderId(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取笔记信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryNoteById", value = "根据id获取笔记信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "笔记id", required = "required")})
@@ -118,12 +82,6 @@ public class NoteController {
         noteService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 保存文件夹拖拽后的信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "mynote010", value = "保存文件夹拖拽后的信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "targetId", name = "targetId", value = "拖拽目标节点id", required = "required"),
@@ -133,12 +91,6 @@ public class NoteController {
         noteService.editFileToDragById(inputObject, outputObject);
     }
 
-    /**
-     * 保存笔记移动后的信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "mynote011", value = "保存笔记移动后的信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "toId", name = "toId", value = "移动目标节点id", required = "required"),
@@ -148,12 +100,6 @@ public class NoteController {
         noteService.editNoteToMoveById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id(文件夹或者笔记id)将笔记输出为压缩包
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "outputNoteIsZipJob", value = "根据id(文件夹或者笔记id)将笔记输出为压缩包", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "文件夹/文件id", required = "required"),

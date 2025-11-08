@@ -7,7 +7,6 @@
             a.id,
             a.`name`,
             #{parentId} parentId,
-            '../../assets/images/cloud/my-folder-icon.png' icon,
             1 isParent
         FROM
             note_folder a

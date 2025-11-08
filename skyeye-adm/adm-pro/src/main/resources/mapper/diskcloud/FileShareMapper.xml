@@ -39,7 +39,6 @@
             b.name fileName,
             0 fileSize,
             'folder' fileType,
-            '../../assets/images/share-folder.png' iconPath,
             DATE_FORMAT(a.create_time, '%Y-%m-%d %H:%i') createTime
         FROM
             file_catalog_share a,
@@ -57,7 +56,6 @@
             b.name fileName,
             b.size fileSize,
             b.type fileType,
-            '../../assets/images/share-file.png' iconPath,
             DATE_FORMAT(a.create_time, '%Y-%m-%d %H:%i') createTime
         FROM
             file_catalog_share a,
@@ -80,7 +78,6 @@
                      a.name fileName,
                      'folder' fileType,
                      0 fileSize,
-                     '../../assets/images/share-folder.png' iconPath,
                      CONVERT(a.create_time, char) createTime
                  FROM
                      file_catalog a
@@ -95,7 +92,6 @@
                      a.name fileName,
                      a.type fileType,
                      a.size fileSize,
-                     '../../assets/images/share-file.png' iconPath,
                      CONVERT(a.create_time, char) createTime
                  FROM
                      file_catelog_papers a
