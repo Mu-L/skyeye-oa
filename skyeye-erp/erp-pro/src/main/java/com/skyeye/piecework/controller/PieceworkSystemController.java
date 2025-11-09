@@ -18,12 +18,6 @@ public class PieceworkSystemController {
     @Autowired
     private PieceworkSystemService pieceworkSystemService;
 
-    /**
-     * 查询当前账号员工计件数量或工时统计信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryPieceworkSystem", value = "查询员工计件数量或工时统计信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/PieceworkSystemController/queryPieceworkSystem")
