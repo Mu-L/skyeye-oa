@@ -104,7 +104,7 @@ public class PrintTemplateController {
         @ApiImplicitParam(id = "margin", name = "margin", value = "外边距", required = "required,json"),
         @ApiImplicitParam(id = "width", name = "width", value = "宽度"),
         @ApiImplicitParam(id = "height", name = "height", value = "高度"),
-        @ApiImplicitParam(id = "configContent", name = "configContent", value = "configContent", required = "required,json")})
+        @ApiImplicitParam(id = "configContent", name = "configContent", value = "模板配置内容(JSON)", required = "required,json")})
     @RequestMapping("/post/PrintTemplateController/editConfigContentById")
     public void editConfigContentById(InputObject inputObject, OutputObject outputObject) {
         printTemplateService.editConfigContentById(inputObject, outputObject);

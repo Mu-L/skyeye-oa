@@ -144,9 +144,14 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
         machinProcedureService.setDataMation(machinProcedureFarm, MachinProcedureFarm::getMachinProcedureId);
         // 设置工序验收单信息
         Map<String, List<MachinProcedureAccept>> machinProcedureAcceptMap = machinProcedureAcceptService.queryMachinProcedureAcceptByMachinProcedureFarmId(id);
-        machinProcedureFarm.setMachinProcedureAcceptList(machinProcedureAcceptMap.get(id));
+        List<MachinProcedureAccept> machinProcedureAccepts = machinProcedureAcceptMap.get(id);
+        iAuthUserService.setName(machinProcedureAccepts, "createId", "createName");
+        iAuthUserService.setName(machinProcedureAccepts, "lastUpdateId", "lastUpdateName");
+        machinProcedureFarm.setMachinProcedureAcceptList(machinProcedureAccepts);
         // 设置加工入库单信息
         List<MachinPut> machinPutList = machinPutService.queryMachinPutByMachinProcedureFarmId(id);
+        iAuthUserService.setName(machinProcedureAccepts, "createId", "createName");
+        iAuthUserService.setName(machinProcedureAccepts, "lastUpdateId", "lastUpdateName");
         machinProcedureFarm.setMachinPutList(machinPutList);
         return machinProcedureFarm;
     }
