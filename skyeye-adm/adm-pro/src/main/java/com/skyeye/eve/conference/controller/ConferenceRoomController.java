@@ -32,12 +32,6 @@ public class ConferenceRoomController {
     @Autowired
     private ConferenceRoomService conferenceRoomService;
 
-    /**
-     * 查询会议室列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "conferenceroom001", value = "查询会议室列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ConferenceRoomController/queryConferenceRoomList")
@@ -45,12 +39,6 @@ public class ConferenceRoomController {
         conferenceRoomService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/修改会议室信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeConferenceRoom", value = "新增/修改会议室信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ConferenceRoom.class)
     @RequestMapping("/post/ConferenceRoomController/writeConferenceRoom")
@@ -58,12 +46,6 @@ public class ConferenceRoomController {
         conferenceRoomService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除会议室信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "conferenceroom003", value = "根据id删除会议室信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class ConferenceRoomController {
         conferenceRoomService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 会议室恢复正常
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "conferenceroom004", value = "会议室恢复正常", method = "POST", allUse = "1")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,12 +62,6 @@ public class ConferenceRoomController {
         conferenceRoomService.normalConferenceRoomById(inputObject, outputObject);
     }
 
-    /**
-     * 会议室维修
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "conferenceroom005", value = "会议室维修", method = "POST", allUse = "1")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -100,12 +70,6 @@ public class ConferenceRoomController {
         conferenceRoomService.repairConferenceRoomById(inputObject, outputObject);
     }
 
-    /**
-     * 会议室报废
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "conferenceroom006", value = "会议室报废", method = "POST", allUse = "1")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -114,12 +78,6 @@ public class ConferenceRoomController {
         conferenceRoomService.scrapConferenceRoomById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询会议室信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryConferenceRoomById", value = "根据id查询会议室信息", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -128,13 +86,7 @@ public class ConferenceRoomController {
         conferenceRoomService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有会议室列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "conferenceroomreserve008", value = "获取所有会议室列表", method = "GET", allUse = "2")
+    @ApiOperation(id = "conferenceroomreserve008", value = "获取所有正常的会议室列表", method = "GET", allUse = "2")
     @RequestMapping("/post/ConferenceRoomController/queryAllConferenceRoomList")
     public void queryAllConferenceRoomList(InputObject inputObject, OutputObject outputObject) {
         conferenceRoomService.queryAllConferenceRoomList(inputObject, outputObject);

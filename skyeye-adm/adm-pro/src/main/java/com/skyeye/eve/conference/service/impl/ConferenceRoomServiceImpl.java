@@ -58,12 +58,6 @@ public class ConferenceRoomServiceImpl extends SkyeyeBusinessServiceImpl<Confere
         return conferenceRoom;
     }
 
-    /**
-     * 会议室恢复正常
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void normalConferenceRoomById(InputObject inputObject, OutputObject outputObject) {
@@ -80,12 +74,6 @@ public class ConferenceRoomServiceImpl extends SkyeyeBusinessServiceImpl<Confere
         }
     }
 
-    /**
-     * 会议室维修
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void repairConferenceRoomById(InputObject inputObject, OutputObject outputObject) {
@@ -102,12 +90,6 @@ public class ConferenceRoomServiceImpl extends SkyeyeBusinessServiceImpl<Confere
         }
     }
 
-    /**
-     * 会议室报废
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void scrapConferenceRoomById(InputObject inputObject, OutputObject outputObject) {
@@ -124,16 +106,11 @@ public class ConferenceRoomServiceImpl extends SkyeyeBusinessServiceImpl<Confere
         }
     }
 
-    /**
-     * 获取会议室列表用于预定选择
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryAllConferenceRoomList(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<ConferenceRoom> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ConferenceRoom::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ConferenceRoom::getState), ConferenceState.NORMAL.getKey());
         List<ConferenceRoom> conferenceRoomList = list(queryWrapper);
         outputObject.setBeans(conferenceRoomList);
         outputObject.settotal(conferenceRoomList.size());
