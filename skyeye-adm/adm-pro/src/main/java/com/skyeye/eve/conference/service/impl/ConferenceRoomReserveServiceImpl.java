@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.conference.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -12,7 +13,9 @@ import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.conference.classenum.ConferenceState;
 import com.skyeye.eve.conference.dao.ConferenceRoomReserveDao;
+import com.skyeye.eve.conference.entity.ConferenceRoom;
 import com.skyeye.eve.conference.entity.ConferenceRoomReserve;
 import com.skyeye.eve.conference.service.ConferenceRoomReserveService;
 import com.skyeye.eve.conference.service.ConferenceRoomService;
@@ -37,6 +40,13 @@ public class ConferenceRoomReserveServiceImpl extends SkyeyeBusinessServiceImpl<
     @Override
     public void validatorEntity(ConferenceRoomReserve entity) {
         super.validatorEntity(entity);
+        ConferenceRoom conferenceRoom = conferenceRoomService.selectById(entity.getConferenceRoomId());
+        if (ObjectUtil.isEmpty(conferenceRoom) || StrUtil.isEmpty(conferenceRoom.getId())) {
+            throw new IllegalArgumentException("会议室不存在");
+        }
+        if (!conferenceRoom.getState().equals(ConferenceState.NORMAL.getKey())) {
+            throw new IllegalArgumentException("会议室处于非正常状态，无法预定");
+        }
         // 校验同一个会议室的使用时间是否冲突
         // 时间冲突判断：两个时间段有重叠的条件是：startTime < newEndTime AND endTime > newStartTime
         QueryWrapper<ConferenceRoomReserve> queryWrapper = new QueryWrapper<>();

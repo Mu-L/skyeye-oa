@@ -13,6 +13,7 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.eve.conference.classenum.ConferenceState;
 import lombok.Data;
 
 import java.util.Map;
@@ -61,7 +62,7 @@ public class ConferenceRoom extends BaseGeneralInfo {
     private Map<String, Object> roomAdminMation;
 
     @TableField(value = "state")
-    @Property(value = "会议室状态，参考#ConferenceState")
+    @Property(value = "会议室状态", enumClass = ConferenceState.class)
     private Integer state;
 
     @TableField(value = "delete_flag")
