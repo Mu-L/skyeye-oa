@@ -265,6 +265,25 @@
                     th:text="${element.value}">
                 </div>
             </div>
+
+            <!-- 横线元素 -->
+            <div th:if="${element.type == 'line'}"
+                th:style="${'width:100%;' +
+                         'height:' + (element.borderWidth ?: 1) + 'px;' +
+                         'border-top:' + (element.borderWidth ?: 1) + 'px ' + (element.borderStyle ?: 'solid') + ' ' + (element.borderColor ?: '#000000') + ';' +
+                         'background-color:' + (element.backgroundColor ?: 'transparent') + ';' +
+                         'box-sizing:border-box;'}">
+            </div>
+
+            <!-- 矩形元素 -->
+            <div th:if="${element.type == 'rectangle'}"
+                th:style="${'width:100%;' +
+                         'height:100%;' +
+                         'box-sizing:border-box;' +
+                         (element.borderStyle != null && element.borderStyle != 'none' ? 'border:' + (element.borderWidth ?: 1) + 'px ' + element.borderStyle + ' ' + (element.borderColor ?: '#000000') + ';' : '') +
+                         (element.borderRadius != null && element.borderRadius > 0 ? 'border-radius:' + element.borderRadius + (element.borderRadiusUnit ?: 'px') + ';' : '') +
+                         'background-color:' + (element.backgroundColor ?: 'transparent') + ';'}">
+            </div>
         </div>
     </div>
 </body>

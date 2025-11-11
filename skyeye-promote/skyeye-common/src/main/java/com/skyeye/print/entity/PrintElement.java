@@ -58,6 +58,14 @@ public class PrintElement {
     private String textPosition;   // 文本位置：bottom/top
     private Integer barWidth;      // 条码宽度
     private String valueType;      // 条码值类型：variable/static
+
+    // 新增边框和样式相关属性
+    private Integer borderWidth;
+    private String borderStyle;
+    private String borderColor;
+    private String backgroundColor;
+    private Integer borderRadius;
+    private String borderRadiusUnit;
 }
 
 @Data

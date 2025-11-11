@@ -45,6 +45,20 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
     private String webRootfileBath;
 
     @Override
+    public String generatePreviewImage(String html) {
+        try {
+            // 此处应实现实际的HTML转图片逻辑
+            // 例如使用html2canvas+phantomjs或其他工具
+            // 以下为模拟实现，生成一个唯一的预览图URL
+            String previewId = UUID.randomUUID().toString().replace("-", "");
+            return "/api/print/preview/image/" + previewId + ".png";
+        } catch (Exception e) {
+            log.error("生成预览图片失败", e);
+            throw new CustomException("生成预览图片失败: " + e.getMessage());
+        }
+    }
+
+    @Override
     public String generateHtml(PrintTemplate printTemplate, Map<String, Object> data) {
         try {
             // 解析模板配置
@@ -67,20 +81,6 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
         } catch (Exception e) {
             log.error("生成打印HTML失败", e);
             throw new CustomException("生成打印HTML失败: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public String generatePreviewImage(String html) {
-        try {
-            // 此处应实现实际的HTML转图片逻辑
-            // 例如使用html2canvas+phantomjs或其他工具
-            // 以下为模拟实现，生成一个唯一的预览图URL
-            String previewId = UUID.randomUUID().toString().replace("-", "");
-            return "/api/print/preview/image/" + previewId + ".png";
-        } catch (Exception e) {
-            log.error("生成预览图片失败", e);
-            throw new CustomException("生成预览图片失败: " + e.getMessage());
         }
     }
 
