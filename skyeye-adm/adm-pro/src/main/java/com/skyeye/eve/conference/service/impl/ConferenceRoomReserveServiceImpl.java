@@ -38,10 +38,11 @@ public class ConferenceRoomReserveServiceImpl extends SkyeyeBusinessServiceImpl<
     public void validatorEntity(ConferenceRoomReserve entity) {
         super.validatorEntity(entity);
         // 校验同一个会议室的使用时间是否冲突
+        // 时间冲突判断：两个时间段有重叠的条件是：startTime < newEndTime AND endTime > newStartTime
         QueryWrapper<ConferenceRoomReserve> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ConferenceRoomReserve::getConferenceRoomId), entity.getConferenceRoomId());
-        queryWrapper.ge(MybatisPlusUtil.toColumns(ConferenceRoomReserve::getStartTime), entity.getStartTime());
-        queryWrapper.le(MybatisPlusUtil.toColumns(ConferenceRoomReserve::getEndTime), entity.getEndTime());
+        queryWrapper.lt(MybatisPlusUtil.toColumns(ConferenceRoomReserve::getStartTime), entity.getEndTime());
+        queryWrapper.gt(MybatisPlusUtil.toColumns(ConferenceRoomReserve::getEndTime), entity.getStartTime());
         if (StrUtil.isNotEmpty(entity.getId())) {
             queryWrapper.ne(CommonConstants.ID, entity.getId());
         }
