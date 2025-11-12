@@ -97,8 +97,8 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), currentUserId)
-                .eq(MybatisPlusUtil.toColumns(ForumContent::getState), ContentStateEnum.NOT_DELETE.getKey())
-                .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
+            .eq(MybatisPlusUtil.toColumns(ForumContent::getState), ContentStateEnum.NOT_DELETE.getKey())
+            .orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
         List<ForumContent> beans = list(queryWrapper);
         forumTagService.setTagMationForContentList(beans);
         iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
@@ -191,8 +191,8 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_ONE);
         queryWrapper.or(
-                w -> w.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), userId)
-                        .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_TWO)
+            w -> w.eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), userId)
+                .eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_TWO)
         );
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumContent::getCreateTime));
         List<ForumContent> beans = list(queryWrapper);
@@ -218,17 +218,35 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String currentUserId = inputObject.getLogParams().get("id").toString();
         setCommonPageInfoOtherInfo(commonPageInfo);
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         List<ForumHistoryView> forumHistoryViewList = forumHistoryViewService.queryMyHistory(currentUserId);
         if (CollectionUtil.isEmpty(forumHistoryViewList)) {
             return;
         }
 
         List<String> forumIds = forumHistoryViewList.stream().map(ForumHistoryView::getForumId).distinct().collect(Collectors.toList());
-        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         List<ForumContent> beans = forumContentService.queryForumContentListByForumIds(forumIds);
         forumTagService.setTagMationForContentList(beans);
         setAnonymous(beans);
         iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
+        // 根据 forumHistoryViewList 的 createTime 对 beans 进行排序
+        Map<String, String> forumIdToCreateTimeMap = forumHistoryViewList.stream()
+            .collect(Collectors.toMap(ForumHistoryView::getForumId, ForumHistoryView::getCreateTime, (v1, v2) -> v1));
+        beans.sort((a, b) -> {
+            String timeA = forumIdToCreateTimeMap.get(a.getId());
+            String timeB = forumIdToCreateTimeMap.get(b.getId());
+            if (timeA == null && timeB == null) {
+                return 0;
+            }
+            if (timeA == null) {
+                return 1;
+            }
+            if (timeB == null) {
+                return -1;
+            }
+            // 降序排序（最新的在前）
+            return timeB.compareTo(timeA);
+        });
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
@@ -279,15 +297,15 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         QueryWrapper<ForumContent> queryWrapper = new QueryWrapper<>();
         // A&B&(C|(D&E))
         queryWrapper
-                .like(MybatisPlusUtil.toColumns(ForumContent::getTagId), tagId)
-                .eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE)
-                .and(wrapper -> {
-                    wrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_ONE)
-                            .or(w -> {
-                                w.eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_TWO)
-                                        .eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), currentUserId);
-                            });
-                });
+            .like(MybatisPlusUtil.toColumns(ForumContent::getTagId), tagId)
+            .eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE)
+            .and(wrapper -> {
+                wrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_ONE)
+                    .or(w -> {
+                        w.eq(MybatisPlusUtil.toColumns(ForumContent::getType), CommonNumConstants.NUM_TWO)
+                            .eq(MybatisPlusUtil.toColumns(ForumContent::getCreateId), currentUserId);
+                    });
+            });
         List<ForumContent> beans = list(queryWrapper);
         iAuthUserService.setDataMation(beans, ForumContent::getCreateId);
         setAnonymous(beans);
@@ -311,7 +329,7 @@ public class ForumContentServiceImpl extends SkyeyeBusinessServiceImpl<ForumCont
         queryWrapper.eq(MybatisPlusUtil.toColumns(ForumContent::getState), CommonNumConstants.NUM_ONE);
         List<ForumContent> contentBean = list(queryWrapper);
         Map<String, Long> contentMap = contentBean.stream().
-                collect(Collectors.groupingBy(ForumContent::getCreateId, Collectors.counting()));
+            collect(Collectors.groupingBy(ForumContent::getCreateId, Collectors.counting()));
 
         Map<String, List<Long>> weightMap = new HashMap<>();
         for (Map.Entry<String, Long> entry : contentMap.entrySet()) {
