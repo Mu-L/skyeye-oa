@@ -75,7 +75,7 @@ public class QuitServiceImpl extends SkyeyeBusinessServiceImpl<QuitDao, Quit> im
 
         // 修改员工信息为离职状态
         UserStaffLeaveRest userStaffLeaveRest = new UserStaffLeaveRest();
-        userStaffLeaveRest.setRowId(staffId);
+        userStaffLeaveRest.setId(staffId);
         userStaffLeaveRest.setQuitTime(entity.getLeaveTime());
         userStaffLeaveRest.setQuitReason(entity.getRemark());
         ExecuteFeignClient.get(() -> sysEveUserStaffService.userStaffQuit(userStaffLeaveRest));

@@ -33,12 +33,6 @@ public class QuitController {
     @Autowired
     private QuitService quitService;
 
-    /**
-     * 获取我发起的离职申请列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryBossInterviewQuitList", value = "获取我发起的离职申请列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/QuitController/queryInterviewQuitList")
@@ -46,12 +40,6 @@ public class QuitController {
         quitService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑离职申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeInterviewQuit", value = "新增/编辑离职申请", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Quit.class)
     @RequestMapping("/post/QuitController/writeInterviewQuit")
@@ -59,12 +47,6 @@ public class QuitController {
         quitService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 离职申请提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "submitInterviewQuit", value = "离职申请提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/QuitController/submitToApproval")
@@ -72,12 +54,6 @@ public class QuitController {
         quitService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 作废离职申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "invalidInterviewQuit", value = "作废离职申请", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "离职申请主键id", required = "required")})
@@ -86,12 +62,6 @@ public class QuitController {
         quitService.invalid(inputObject, outputObject);
     }
 
-    /**
-     * 撤销离职申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokeInterviewQuit", value = "撤销离职申请", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程id", required = "required")})

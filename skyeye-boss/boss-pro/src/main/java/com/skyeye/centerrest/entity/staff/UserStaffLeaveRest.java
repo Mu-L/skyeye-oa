@@ -23,7 +23,7 @@ import java.io.Serializable;
 public class UserStaffLeaveRest implements Serializable {
 
     @ApiModelProperty(value = "员工id", required = "required")
-    private String rowId;
+    private String id;
 
     @ApiModelProperty(value = "离职时间")
     private String quitTime;
