@@ -37,10 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -250,6 +247,9 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
         List<AttrDefinition> attrDefinitionList = getAttrDefinitions(appId, className);
         setCustomDefinition(appId, className, attrDefinitionList);
 
+        // 批量获取子属性
+        setChildAttrDefinitionsBatch(appId, attrDefinitionList);
+
         attrDefinitionList = attrDefinitionList.stream()
             .sorted(Comparator.comparing(AttrDefinition::getWhetherInputParams, Comparator.reverseOrder())).collect(Collectors.toList());
         outputObject.setBeans(attrDefinitionList);
@@ -266,12 +266,90 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
         });
     }
 
+    /**
+     * 批量获取子属性（性能优化版本）
+     *
+     * @param appId              应用ID
+     * @param attrDefinitionList 属性定义列表
+     */
+    private void setChildAttrDefinitionsBatch(String appId, List<AttrDefinition> attrDefinitionList) {
+        if (CollectionUtil.isEmpty(attrDefinitionList)) {
+            return;
+        }
+
+        // 1. 收集所有唯一的attrType（过滤空值）
+        List<String> attrTypeList = attrDefinitionList.stream()
+            .map(AttrDefinition::getAttrType)
+            .filter(StrUtil::isNotBlank)
+            .distinct()
+            .collect(Collectors.toList());
+
+        if (CollectionUtil.isEmpty(attrTypeList)) {
+            return;
+        }
+
+        // 2. 批量查询ServiceBean（通过entityClassName）
+        Map<String, ServiceBean> serviceBeanMap = serviceBeanService.getByEntityClassName(appId, attrTypeList);
+        if (CollectionUtil.isEmpty(serviceBeanMap)) {
+            return;
+        }
+
+        // 3. 收集所有需要查询子属性的className（去重）
+        List<String> childClassNameList = serviceBeanMap.values().stream()
+            .map(ServiceBean::getClassName)
+            .filter(StrUtil::isNotBlank)
+            .distinct()
+            .collect(Collectors.toList());
+
+        if (CollectionUtil.isEmpty(childClassNameList)) {
+            return;
+        }
+
+        // 4. 批量查询所有子属性（按className分组）
+        Map<String, List<AttrDefinition>> childAttrDefinitionMap = getAttrDefinitions(appId, childClassNameList);
+        for (String childClassName : childClassNameList) {
+            List<AttrDefinition> childAttrDefinitions = childAttrDefinitionMap.get(childClassName);
+            if (CollectionUtil.isNotEmpty(childAttrDefinitions)) {
+                // 设置自定义属性
+                setCustomDefinition(appId, childClassName, childAttrDefinitions);
+            }
+        }
+
+        // 5. 按关联关系设置子属性到对应的属性上
+        for (AttrDefinition attrDefinition : attrDefinitionList) {
+            if (StrUtil.isBlank(attrDefinition.getAttrType())) {
+                continue;
+            }
+
+            ServiceBean service = serviceBeanMap.get(attrDefinition.getAttrType());
+            if (service == null) {
+                continue;
+            }
+
+            List<AttrDefinition> childAttrDefinitions = childAttrDefinitionMap.get(service.getClassName());
+            if (CollectionUtil.isNotEmpty(childAttrDefinitions)) {
+                attrDefinition.setChildAttrDefinitions(childAttrDefinitions);
+            }
+        }
+    }
+
     private List<AttrDefinition> getAttrDefinitions(String appId, String className) {
         QueryWrapper<AttrDefinition> wrapper = new QueryWrapper<>();
         wrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getAppId), appId);
         wrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getClassName), className);
         List<AttrDefinition> attrDefinitionList = list(wrapper);
         return attrDefinitionList;
+    }
+
+    private Map<String, List<AttrDefinition>> getAttrDefinitions(String appId, List<String> classNames) {
+        if (CollectionUtil.isEmpty(classNames)) {
+            return Collections.emptyMap();
+        }
+        QueryWrapper<AttrDefinition> wrapper = new QueryWrapper<>();
+        wrapper.eq(MybatisPlusUtil.toColumns(AttrDefinition::getAppId), appId);
+        wrapper.in(MybatisPlusUtil.toColumns(AttrDefinition::getClassName), classNames);
+        List<AttrDefinition> attrDefinitionList = list(wrapper);
+        return attrDefinitionList.stream().collect(Collectors.groupingBy(AttrDefinition::getClassName));
     }
 
     @Override
@@ -290,7 +368,7 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
             return;
         }
 
-        ServiceBean service = serviceBeanService.getByEntityClassName(attrDefinition.getAttrType());
+        ServiceBean service = serviceBeanService.getByEntityClassName(appId, attrDefinition.getAttrType());
         if (service == null) {
             return;
         }

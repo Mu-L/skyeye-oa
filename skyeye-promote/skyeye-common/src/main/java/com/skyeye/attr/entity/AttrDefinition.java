@@ -18,6 +18,8 @@ import com.skyeye.common.enumeration.ServiceBeanType;
 import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
+import java.util.List;
+
 
 /**
  * @ClassName: AttrDefinition
@@ -39,6 +41,10 @@ public class AttrDefinition extends CommonInfo {
     @TableField(exist = false)
     @Property("自定义属性信息")
     private AttrDefinitionCustom attrDefinitionCustom;
+
+    @TableField(exist = false)
+    @Property("子属性列表")
+    private List<AttrDefinition> childAttrDefinitions;
 
     @TableField("app_id")
     @ApiModelProperty(value = "应用的APPID")
