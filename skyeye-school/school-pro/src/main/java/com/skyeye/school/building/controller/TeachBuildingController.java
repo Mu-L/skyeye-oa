@@ -8,7 +8,6 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.school.building.entity.TeachBuilding;
@@ -47,6 +46,16 @@ public class TeachBuildingController {
         teachBuildingService.deleteById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "editTeachBuildingLocationById", value = "重新给地点标记坐标", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "longitude", name = "longitude", value = "经度", required = "required"),
+        @ApiImplicitParam(id = "latitude", name = "latitude", value = "纬度", required = "required")})
+    @RequestMapping("/post/TeachBuildingController/editTeachBuildingLocationById")
+    public void editTeachBuildingLocationById(InputObject inputObject, OutputObject outputObject) {
+        teachBuildingService.editTeachBuildingLocationById(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "queryTeachBuildingBySchoolId", value = "根据学校schoolId获取地点信息", method = "GET", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "schoolId", name = "schoolId", value = "学校id")})
@@ -70,12 +79,5 @@ public class TeachBuildingController {
     @RequestMapping("/post/TeachBuildingController/queryTeachBuildingById")
     public void queryTeachBuildingById(InputObject inputObject, OutputObject outputObject) {
         teachBuildingService.selectById(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "queryTeachBuildingList", value = "分页获取地点信息列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/TeachBuildingController/queryTeachBuildingList")
-    public void queryTeachBuildingList(InputObject inputObject, OutputObject outputObject) {
-        teachBuildingService.queryPageList(inputObject, outputObject);
     }
 }

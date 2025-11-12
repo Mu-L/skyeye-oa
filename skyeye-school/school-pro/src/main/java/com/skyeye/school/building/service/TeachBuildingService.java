@@ -22,4 +22,6 @@ public interface TeachBuildingService extends SkyeyeBusinessService<TeachBuildin
     void queryTeachBuildingBySchoolId(InputObject inputObject, OutputObject outputObject);
 
     void queryTeachBuildingByHolderId(InputObject inputObject, OutputObject outputObject);
+
+    void editTeachBuildingLocationById(InputObject inputObject, OutputObject outputObject);
 }

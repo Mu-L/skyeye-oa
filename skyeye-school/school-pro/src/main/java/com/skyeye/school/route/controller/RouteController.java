@@ -28,7 +28,7 @@ public class RouteController {
     @Autowired
     private RoutesService routeService;
 
-    @ApiOperation(id = "writeRoute", value = "新增/编辑路线", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeRoute", value = "新增/编辑路线", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Routes.class)
     @RequestMapping("/post/RouteController/writeRoute")
     public void writeRoute(InputObject inputObject, OutputObject outputObject) {
@@ -42,7 +42,7 @@ public class RouteController {
         routeService.queryRouteList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteRouteById", value = "根据id删除路线", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteRouteById", value = "根据id删除路线", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "路线id", required = "required")})
     @RequestMapping("/post/RouteController/deleteRouteById")

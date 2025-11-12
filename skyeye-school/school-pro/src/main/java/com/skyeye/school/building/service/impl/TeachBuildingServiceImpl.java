@@ -4,16 +4,20 @@
 
 package com.skyeye.school.building.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.cache.redis.RedisCache;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.SchoolService;
+import com.skyeye.exception.CustomException;
 import com.skyeye.school.building.dao.TeachBuildingDao;
 import com.skyeye.school.building.entity.FloorInfo;
 import com.skyeye.school.building.entity.TeachBuilding;
@@ -49,19 +53,19 @@ public class TeachBuildingServiceImpl extends SkyeyeBusinessServiceImpl<TeachBui
     private RedisCache redisCache;
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> bean = super.queryPageDataList(inputObject);
-        schoolService.setMationForMap(bean, "schoolId", "schoolMation");
-        return bean;
-    }
-
-    @Override
     public void selectById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         TeachBuilding building = selectById(id);
         iAuthUserService.setName(building, "createId", "createName");
         iAuthUserService.setName(building, "lastUpdateId", "lastUpdateName");
         outputObject.setBean(building);
+    }
+
+    @Override
+    protected void updatePrepose(TeachBuilding entity) {
+        TeachBuilding oldBuilding = selectById(entity.getId());
+        entity.setLongitude(oldBuilding.getLongitude());
+        entity.setLatitude(oldBuilding.getLatitude());
     }
 
     @Override
@@ -102,7 +106,7 @@ public class TeachBuildingServiceImpl extends SkyeyeBusinessServiceImpl<TeachBui
 
     @Override
     public void queryTeachBuildingByHolderId(InputObject inputObject, OutputObject outputObject) {
-        Map params = inputObject.getParams();
+        Map<String, Object> params = inputObject.getParams();
         String schoolId = params.get("schoolId").toString();
         String typeId = params.get("typeId").toString();
         QueryWrapper<TeachBuilding> queryWrapper = new QueryWrapper<>();
@@ -122,6 +126,30 @@ public class TeachBuildingServiceImpl extends SkyeyeBusinessServiceImpl<TeachBui
         QueryWrapper<FloorInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getLocationId), id);
         floorInfoService.remove(queryWrapper);
+    }
+
+    @Override
+    public void editTeachBuildingLocationById(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        String longitude = params.get("longitude").toString();
+        String latitude = params.get("latitude").toString();
+        TeachBuilding building = selectById(id);
+        if (ObjectUtil.isEmpty(building) || StrUtil.isEmpty(building.getId())) {
+            throw new CustomException("该地点不存在。");
+        }
+        // 更新地点坐标
+        UpdateWrapper<TeachBuilding> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TeachBuilding::getLongitude), longitude);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TeachBuilding::getLatitude), latitude);
+        update(updateWrapper);
+        // 更新缓存
+        refreshCache(id);
+
+        // 更新指定学校下拥有的地点的缓存
+        String cacheKey = getCacheKey(building.getSchoolId());
+        jedisClientService.del(cacheKey);
     }
 
 }
