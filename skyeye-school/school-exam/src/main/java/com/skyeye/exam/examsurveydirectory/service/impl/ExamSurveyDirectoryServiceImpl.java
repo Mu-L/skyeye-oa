@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
@@ -1132,7 +1133,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
 
         // 获取组卷规则列表
         @SuppressWarnings("unchecked")
-        List<Map<String, Object>> ruleList = (List<Map<String, Object>>) params.get("ruleList");
+        List<Map<String, Object>> ruleList = JSONUtil.toList(params.get("ruleList").toString(), null);
         if (CollectionUtil.isEmpty(ruleList)) {
             throw new CustomException("组卷规则不能为空");
         }
