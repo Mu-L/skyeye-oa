@@ -1155,11 +1155,11 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<Question> candidateQuestions = queryQuestionsFromBank(quType, examSurveyDirectory.getSubjectId());
 
             if (CollectionUtil.isEmpty(candidateQuestions)) {
-                throw new CustomException(String.format("题目类型 %d 的题目数量不足", quTypeName));
+                throw new CustomException(String.format("题目类型 %s 的题目数量不足", quTypeName));
             }
 
             if (candidateQuestions.size() < questionCount) {
-                throw new CustomException(String.format("题目类型 %d 的可用题目数量 %d 少于所需数量 %d",
+                throw new CustomException(String.format("题目类型 %s 的可用题目数量 %d 少于所需数量 %d",
                     quTypeName, candidateQuestions.size(), questionCount));
             }
 
