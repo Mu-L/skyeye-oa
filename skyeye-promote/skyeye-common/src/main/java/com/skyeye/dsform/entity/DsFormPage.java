@@ -81,7 +81,7 @@ public class DsFormPage extends OperatorUserInfo {
     private ServiceBeanCustom serviceBeanCustom;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "表单布局关联的接口信息", required = "required,json")
+    @ApiModelProperty(value = "表单布局关联的接口信息", required = "json")
     private BusinessApi businessApi;
 
     @TableField(exist = false)
@@ -105,7 +105,7 @@ public class DsFormPage extends OperatorUserInfo {
     private List<String> operateIdList;
 
     @TableField("is_data_auth")
-    @ApiModelProperty(value = "表格时拥有，是否开启数据权限，参考#WhetherEnum")
+    @ApiModelProperty(value = "表格时拥有，是否开启数据权限", enumClass = WhetherEnum.class)
     private Integer isDataAuth;
 
     @TableField("data_auth_point_num")
@@ -113,7 +113,7 @@ public class DsFormPage extends OperatorUserInfo {
     private String dataAuthPointNum;
 
     @TableField("is_flowable")
-    @ApiModelProperty(value = "是否开启工作流，只有开启了工作流的业务对象可以设置这个字段，参考#WhetherEnum", required = "num")
+    @ApiModelProperty(value = "是否开启工作流，只有开启了工作流的业务对象可以设置这个字段", enumClass = WhetherEnum.class, required = "num")
     private Integer isFlowable;
 
     @TableField("content")
