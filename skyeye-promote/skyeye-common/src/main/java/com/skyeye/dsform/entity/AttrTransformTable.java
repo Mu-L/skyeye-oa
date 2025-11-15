@@ -72,4 +72,7 @@ public class AttrTransformTable implements Serializable {
     @ApiModelProperty(value = "列内容展示的脚本，相当于表格中的templet")
     private String templet;
 
+    @ApiModelProperty(value = "公式表达式，用于计算列内容，json格式")
+    private String formula;
+
 }
