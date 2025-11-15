@@ -1147,6 +1147,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         // 遍历每个规则，按规则选择题目
         for (Map<String, Object> ruleMap : ruleList) {
             Integer quType = Integer.valueOf(ruleMap.get("quType").toString());
+            String quTypeName = QuType.getCName(quType);
             Integer totalScore = Integer.valueOf(ruleMap.get("totalScore").toString());
             Integer questionCount = Integer.valueOf(ruleMap.get("questionCount").toString());
 
@@ -1154,12 +1155,12 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
             List<Question> candidateQuestions = queryQuestionsFromBank(quType, examSurveyDirectory.getSubjectId());
 
             if (CollectionUtil.isEmpty(candidateQuestions)) {
-                throw new CustomException(String.format("题目类型 %d 的题目数量不足", quType));
+                throw new CustomException(String.format("题目类型 %d 的题目数量不足", quTypeName));
             }
 
             if (candidateQuestions.size() < questionCount) {
                 throw new CustomException(String.format("题目类型 %d 的可用题目数量 %d 少于所需数量 %d",
-                    quType, candidateQuestions.size(), questionCount));
+                    quTypeName, candidateQuestions.size(), questionCount));
             }
 
             // 计算每道题的分值（简单平均分配）
