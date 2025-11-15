@@ -28,6 +28,8 @@ public interface ShopMaterialStoreService extends SkyeyeBusinessService<ShopMate
 
     Map<String, List<ShopMaterialStore>> selectByMaterialId(List<String> materialId);
 
+    List<ShopMaterialStore> selectByStoreId(String storeId, Integer isLaunchStore, Integer isLunchShop, String keyword);
+
     /**
      * 添加指定商品到所有门店
      *

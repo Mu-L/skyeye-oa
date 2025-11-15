@@ -14,17 +14,20 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.github.yulichang.toolkit.JoinWrappers;
 import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.entity.Material;
@@ -37,6 +40,7 @@ import com.skyeye.shopmaterial.entity.ShopMaterialStore;
 import com.skyeye.shopmaterial.enums.ShopMaterialStoreCoverage;
 import com.skyeye.shopmaterial.service.ShopMaterialService;
 import com.skyeye.shopmaterial.service.ShopMaterialStoreService;
+import com.skyeye.tenant.util.TenantAopUtil;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -80,22 +84,29 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         return shopMaterialStoreList;
     }
 
+    @IgnoreTenant
+    @Override
     public List<ShopMaterialStore> selectByStoreId(String storeId, Integer isLaunchStore, Integer isLunchShop, String keyword) {
-        MPJLambdaWrapper<ShopMaterialStore> queryWrapper = new MPJLambdaWrapper<ShopMaterialStore>()
-            .innerJoin(Material.class, Material::getId, ShopMaterialStore::getMaterialId);
+        MPJLambdaWrapper<ShopMaterialStore> queryWrapper = JoinWrappers.lambda("i", ShopMaterialStore.class);
+        queryWrapper.innerJoin(Material.class, "t", Material::getId, ShopMaterialStore::getMaterialId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getStoreId), storeId);
         if (isLaunchStore != null) {
             // 是否添加到门店
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchStore), isLaunchStore);
+            queryWrapper.eq("i." + MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchStore), isLaunchStore);
+        }
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            queryWrapper.eq("t." + CommonConstants.TENANT_ID_FIELD, tenantId);
+            queryWrapper.eq("i." + CommonConstants.TENANT_ID_FIELD, tenantId);
         }
         if (isLunchShop != null) {
             // 是否上架到商城
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchShop), isLunchShop);
+            queryWrapper.eq("i." + MybatisPlusUtil.toColumns(ShopMaterialStore::getIsLaunchShop), isLunchShop);
         }
         if (StrUtil.isNotBlank(keyword)) {
             queryWrapper.and(wra -> {
-                wra.or().like(Material::getName, keyword);
-                wra.or().like(Material::getModel, keyword);
+                wra.or().like("t." + MybatisPlusUtil.toColumns(Material::getName), keyword);
+                wra.or().like("t." + MybatisPlusUtil.toColumns(Material::getModel), keyword);
             });
         }
 
@@ -206,7 +217,7 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         List<String> materialIdList = shopMaterialList.stream().map(ShopMaterial::getId).collect(Collectors.toList());
 
         // 获取门店关联的老数据
-        List<ShopMaterialStore> oldShopMaterialStores = selectByStoreId(storeId, null, null, null);
+        List<ShopMaterialStore> oldShopMaterialStores = TenantAopUtil.getSelf(this).selectByStoreId(storeId, null, null, null);
         List<String> oldMaterialIdList = oldShopMaterialStores.stream()
             .map(ShopMaterialStore::getMaterialId).collect(Collectors.toList());
 
