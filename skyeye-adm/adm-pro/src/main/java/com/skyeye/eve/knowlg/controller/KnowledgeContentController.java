@@ -39,7 +39,6 @@ public class KnowledgeContentController {
         knowledgeContentService.queryPageList(inputObject, outputObject);
     }
 
-
     @ApiOperation(id = "writeKnowledgeContent", value = "新增/编辑知识库", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = KnowledgeContent.class)
     @RequestMapping("/post/KnowledgeContentController/writeKnowledgeContent")

@@ -109,6 +109,7 @@ public class KnowledgeContentServiceImpl extends SkyeyeBusinessServiceImpl<Knowl
         KnowledgeContent knowledgeContent = super.selectById(id);
         iSysDictDataService.setDataMation(knowledgeContent, KnowledgeContent::getTypeId);
         iAuthUserService.setDataMation(knowledgeContent, KnowledgeContent::getExamineId);
+        iAuthUserService.setName(knowledgeContent, "createId", "createName");
         return knowledgeContent;
     }
 
