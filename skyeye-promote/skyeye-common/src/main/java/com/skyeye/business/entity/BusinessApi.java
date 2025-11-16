@@ -42,15 +42,15 @@ public class BusinessApi extends OperatorUserInfo {
     private String objectKey;
 
     @TableField("service_str")
-    @ApiModelProperty(value = "接口对应的服务，由前端进行配置，方便前端解析", required = "required")
+    @ApiModelProperty(value = "接口对应的服务，由前端进行配置，方便前端解析")
     private String serviceStr;
 
     @TableField("api")
-    @ApiModelProperty(value = "接口地址", required = "required")
+    @ApiModelProperty(value = "接口地址")
     private String api;
 
     @TableField("method")
-    @ApiModelProperty(value = "请求方式", required = "required")
+    @ApiModelProperty(value = "请求方式")
     private String method;
 
     @TableField(value = "params", typeHandler = JacksonTypeHandler.class)
