@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/dromara/skyeye
+ ******************************************************************************/
+
 package com.skyeye.eve.chen.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
@@ -47,16 +51,6 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
 
     @Autowired
     private DwQuestionLogicService dwQuestionLogicService;
-
-    @Override
-    protected QueryWrapper<DwQuChenColumn> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<DwQuChenColumn> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        if (StrUtil.isNotEmpty(commonPageInfo.getHolderId())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(DwQuChenColumn::getQuId), commonPageInfo.getHolderId());
-            dwQuChenRowService.QueryExamQuChenRowList(commonPageInfo.getHolderId());
-        }
-        return queryWrapper;
-    }
 
     @Override
     public void saveList(List<DwQuChenColumn> column, List<DwQuChenRow> row, String quId, String userId) {
@@ -128,7 +122,7 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
     }
 
     @Override
-    public Map<String, List<String>> createChenColumns(List<DwQuestion> dwQuestionList, String userId) {
+    public void createChenColumns(List<DwQuestion> dwQuestionList, String userId) {
         List<DwQuChenColumn> insertList = new ArrayList<>();
         List<DwQuChenColumn> updateList = new ArrayList<>();
         Map<String, List<DwQuChenColumn>> quRadioMap = new HashMap<>();
@@ -157,22 +151,11 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
         }
 
         if (CollectionUtil.isNotEmpty(insertList)) {
-            List<String> entity = super.createEntity(insertList, userId);
-            List<String> chenRows = dwQuChenRowService.createChenRows(dwQuestionList, userId);
-            Map<String, List<String>> map = new HashMap<>();
-            map.put("cloumnId", entity);
-            map.put("rowId", chenRows);
-            return map;
+            super.createEntity(insertList, userId);
         }
         if (CollectionUtil.isNotEmpty(updateList)) {
-            List<String> strings = super.updateEntity(updateList, userId);
-            List<String> chenRows = dwQuChenRowService.createChenRows(dwQuestionList, userId);
-            Map<String, List<String>> map = new HashMap<>();
-            map.put("cloumnId", strings);
-            map.put("rowId", chenRows);
-            return map;
+            super.updateEntity(updateList, userId);
         }
-        return Collections.emptyMap();
     }
 
     @Override
@@ -206,7 +189,6 @@ public class DwQuChenColumnServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChe
 
     @Override
     public void updateChenColumn(List<DwQuestion> dwQuestionList, String userId) {
-        dwQuChenRowService.updateChenRow(dwQuestionList, userId);
         List<DwQuChenColumn> insertList = new ArrayList<>();
         List<DwQuChenColumn> updateList = new ArrayList<>();
         Set<String> needDeleteIds = new HashSet<>();

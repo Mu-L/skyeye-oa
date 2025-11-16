@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/dromara/skyeye
+ ******************************************************************************/
+
 package com.skyeye.eve.servey.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
@@ -65,6 +69,14 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * @ClassName: DwSurveyDirectoryServiceImpl
+ * @Description: 问卷管理
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/11/16 17:19
+ * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
+ */
 @Service
 @SkyeyeService(name = "问卷管理", groupName = "问卷管理")
 public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSurveyDirectoryDao, DwSurveyDirectory> implements DwSurveyDirectoryService {
@@ -405,7 +417,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             }
             dwQuestionService.createEntity(dwQuestionMation, userId);
         }
-
     }
 
     @Override
@@ -445,7 +456,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
             dwQuestionService.updateEntity(questionsWithId, userId);
         }
         dwQuestionService.createEntity(questionsWithoutId, userId);
-
     }
 
     /**
@@ -1161,23 +1171,6 @@ public class DwSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<DwSu
         if (CollectionUtil.isEmpty(dwSurveyDirectoryList)) {
             return new HashMap<>();
         }
-//        List<String> schoolIds = dwSurveyDirectoryList.stream().map(DwSurveyDirectory::getSchoolId).collect(Collectors.toList());
-//        List<String> facultyIds = dwSurveyDirectoryList.stream().map(DwSurveyDirectory::getFacultyId).collect(Collectors.toList());
-//        List<String> majorIds = dwSurveyDirectoryList.stream().map(DwSurveyDirectory::getMajorId).collect(Collectors.toList());
-//
-//        Map<String, List<School>> schoolMapList = schoolIds.isEmpty() ? new HashMap<>() : schoolService.selectByIdList(schoolIds);
-//        Map<String, List<Faculty>> facultyMapList = facultyIds.isEmpty() ? new HashMap<>() : facultyService.selectByIdList(facultyIds);
-//        Map<String, List<Major>> majorMapList = majorIds.isEmpty() ? new HashMap<>() : majorService.selectByIdList(majorIds);
-//        for (DwSurveyDirectory dwSurveyDirectory : dwSurveyDirectoryList) {
-//            List<School> schools = schoolMapList.getOrDefault(dwSurveyDirectory.getSchoolId(), Collections.emptyList());
-//            dwSurveyDirectory.setSchoolMation(schools.isEmpty() ? null : schools.get(CommonNumConstants.NUM_ZERO));
-//
-//            List<Faculty> faculties = facultyMapList.getOrDefault(dwSurveyDirectory.getFacultyId(), Collections.emptyList());
-//            dwSurveyDirectory.setFacultyMation(faculties.isEmpty() ? null : faculties.get(CommonNumConstants.NUM_ZERO));
-//
-//            List<Major> majors = majorMapList.getOrDefault(dwSurveyDirectory.getMajorId(), Collections.emptyList());
-//            dwSurveyDirectory.setMajorMation(majors.isEmpty() ? null : majors.get(CommonNumConstants.NUM_ZERO));
-//        }
         return dwSurveyDirectoryList.stream().collect(Collectors.toMap(DwSurveyDirectory::getId, dwSurveyDirectory -> dwSurveyDirectory));
     }
 

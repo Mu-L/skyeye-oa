@@ -1,10 +1,13 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/dromara/skyeye
+ ******************************************************************************/
+
 package com.skyeye.eve.chen.controller;
 
 import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.eve.chen.service.DwQuChenColumnService;
@@ -19,25 +22,6 @@ public class DwQuChenColumnController {
     @Autowired
     private DwQuChenColumnService dwQuChenColumnService;
 
-    /**
-     * 分页获取矩阵列和行选项表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @ApiOperation(id = "queryDwQuChenColumnAndRowList", value = "分页获取矩阵列和行选项表信息", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/DwQuChenColumnController/queryDwQuChenColumnAndRowList")
-    public void queryDwQuChenColumnAndRowList(InputObject inputObject, OutputObject outputObject) {
-        dwQuChenColumnService.queryPageList(inputObject, outputObject);
-    }
-
-    /**
-     * 根据ID物理删除矩阵题-列-行选项表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteDwQuChenColumnAndRowById", value = "根据ID物理删除矩阵题-列-行选项表信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -46,12 +30,6 @@ public class DwQuChenColumnController {
         dwQuChenColumnService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 逻辑删除矩阵题-列-行选项表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "changeVisibility", value = "逻辑删除矩阵题-列-行选项表信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),

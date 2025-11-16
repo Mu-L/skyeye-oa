@@ -118,7 +118,9 @@ public class DwQuChenRowServiceImpl extends SkyeyeBusinessServiceImpl<DwQuChenRo
         for (DwQuestion dwQuestion : dwQuestionList) {
             String quId = dwQuestion.getId();
             List<DwQuChenRow> radios = dwQuestion.getRowTd();
-            if (CollectionUtils.isEmpty(radios)) continue;
+            if (CollectionUtils.isEmpty(radios)) {
+                continue;
+            }
 
             quRadioMap.computeIfAbsent(quId, k -> new ArrayList<>()).addAll(radios);
 
