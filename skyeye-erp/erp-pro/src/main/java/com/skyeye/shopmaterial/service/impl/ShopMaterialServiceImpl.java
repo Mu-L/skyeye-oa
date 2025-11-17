@@ -211,7 +211,7 @@ public class ShopMaterialServiceImpl extends SkyeyeBusinessServiceImpl<ShopMater
             return;
         }
         List<String> storeIdList = storeList.stream().map(bean -> bean.get("id").toString()).collect(Collectors.toList());
-        Map<String, List<ShopMaterialStore>> stringListMap = shopMaterialStoreService.queryShopMaterialListByStoreIds(storeIdList);
+        Map<String, List<ShopMaterialStore>> stringListMap = shopMaterialStoreService.queryShopMaterialListByStoreIds(storeIdList, commonPageInfo);
         storeList.forEach(store -> {
             store.put("shopMaterialList", stringListMap.get(store.get("id").toString()));
         });

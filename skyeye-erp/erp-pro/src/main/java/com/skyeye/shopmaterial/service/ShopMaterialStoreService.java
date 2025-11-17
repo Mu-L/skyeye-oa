@@ -5,6 +5,7 @@
 package com.skyeye.shopmaterial.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.shopmaterial.entity.ShopMaterialStore;
@@ -48,7 +49,7 @@ public interface ShopMaterialStoreService extends SkyeyeBusinessService<ShopMate
 
     void queryShopMaterialByMaterialIdAndStoreId(InputObject inputObject, OutputObject outputObject);
 
-    Map<String, List<ShopMaterialStore>> queryShopMaterialListByStoreIds(List<String> storeIds);
+    Map<String, List<ShopMaterialStore>> queryShopMaterialListByStoreIds(List<String> storeIds, CommonPageInfo commonPageInfo);
 
     void queryShopMaterialByIds(InputObject inputObject, OutputObject outputObject);
 

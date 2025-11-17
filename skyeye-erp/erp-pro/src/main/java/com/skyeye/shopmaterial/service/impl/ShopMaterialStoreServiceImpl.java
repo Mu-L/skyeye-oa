@@ -275,7 +275,22 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
             // 商品大类ID
             wrapper.eq(ShopMaterialStore::getBigTypeId, commonPageInfo.getCustomParamsMapStr("bigTypeId"));
         }
+        // 设置商品查询的类型
+        queryShopSelType(commonPageInfo, wrapper);
+        // 已经添加到门店
+        wrapper.eq(ShopMaterialStore::getIsLaunchStore, WhetherEnum.ENABLE_USING.getKey());
+        // 上架到商城
+        wrapper.eq(ShopMaterialStore::getIsLaunchShop, WhetherEnum.ENABLE_USING.getKey());
+        // 门店是启用状态的
+        wrapper.eq(ShopMaterialStore::getStoreEnabled, EnableEnum.ENABLE_USING.getKey());
 
+        List<ShopMaterialStore> shopMaterialStoreList = skyeyeBaseMapper.selectJoinList(ShopMaterialStore.class, wrapper);
+        iShopStoreService.setDataMation(shopMaterialStoreList, ShopMaterialStore::getStoreId);
+        outputObject.settotal(pages.getTotal());
+        return shopMaterialStoreList;
+    }
+
+    private static void queryShopSelType(CommonPageInfo commonPageInfo, MPJLambdaWrapper<ShopMaterialStore> wrapper) {
         String deliveryMethodColumn = MybatisPlusUtil.toColumns(ShopMaterial::getDeliveryMethod);
         if (StrUtil.equals(commonPageInfo.getCustomParamsMapStr("shopType"), "sameCity")) {
             // 同城的商品 - 配送方式包含"同城配送"（key=3）
@@ -290,17 +305,6 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
             wrapper.apply("sm." + deliveryMethodColumn + " LIKE {0}",
                 "%\"" + key + "\"%");
         }
-        // 已经添加到门店
-        wrapper.eq(ShopMaterialStore::getIsLaunchStore, WhetherEnum.ENABLE_USING.getKey());
-        // 上架到商城
-        wrapper.eq(ShopMaterialStore::getIsLaunchShop, WhetherEnum.ENABLE_USING.getKey());
-        // 门店是启用状态的
-        wrapper.eq(ShopMaterialStore::getStoreEnabled, EnableEnum.ENABLE_USING.getKey());
-
-        List<ShopMaterialStore> shopMaterialStoreList = skyeyeBaseMapper.selectJoinList(ShopMaterialStore.class, wrapper);
-        iShopStoreService.setDataMation(shopMaterialStoreList, ShopMaterialStore::getStoreId);
-        outputObject.settotal(pages.getTotal());
-        return shopMaterialStoreList;
     }
 
     @Override
@@ -409,7 +413,7 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
 
     @Override
     @IgnoreTenant
-    public Map<String, List<ShopMaterialStore>> queryShopMaterialListByStoreIds(List<String> storeIds) {
+    public Map<String, List<ShopMaterialStore>> queryShopMaterialListByStoreIds(List<String> storeIds, CommonPageInfo commonPageInfo) {
         if (CollectionUtil.isEmpty(storeIds)) {
             return MapUtil.empty();
         }
@@ -422,12 +426,8 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         queryWrapper.eq(ShopMaterialStore::getIsLaunchShop, WhetherEnum.ENABLE_USING.getKey());
         // 门店是启用状态的
         queryWrapper.eq(ShopMaterialStore::getStoreEnabled, EnableEnum.ENABLE_USING.getKey());
-        // 同城的商品 - 配送方式包含"同城配送"（key=3）
-        // deliveryMethod存储的是JSON字符串数组，如["1","2","3"]，使用LIKE查询字符串"3"
-        String deliveryMethodColumn = MybatisPlusUtil.toColumns(ShopMaterial::getDeliveryMethod);
-        Integer key = ShopMaterialDeliveryMethod.LOCAL_DELIVERY.getKey();
-        queryWrapper.apply("sm." + deliveryMethodColumn + " LIKE {0}",
-            "%\"" + key + "\"%");
+        // 设置商品查询的类型
+        queryShopSelType(commonPageInfo, queryWrapper);
 
         List<ShopMaterialStore> shopMaterialStoreList = list(queryWrapper);
         List<String> materialIds = shopMaterialStoreList.stream()
