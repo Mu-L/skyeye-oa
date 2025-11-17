@@ -14,6 +14,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.ShopMaterialDeliveryMethod;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.material.entity.Material;
 import com.skyeye.shopmaterial.enums.ShopMaterialDistributionType;
@@ -70,7 +71,7 @@ public class ShopMaterial extends OperatorUserInfo {
     private Integer distributionType;
 
     @TableField(value = "delivery_method", typeHandler = JacksonTypeHandler.class)
-    @ApiModelProperty(value = "配送方式，给门店选择的配送方式", enumClass = ShopMaterialDistributionType.class, required = "required,json")
+    @ApiModelProperty(value = "配送方式，给门店选择的配送方式", enumClass = ShopMaterialDeliveryMethod.class, required = "required,json")
     private List<String> deliveryMethod;
 
     @TableField(value = "order_by")
