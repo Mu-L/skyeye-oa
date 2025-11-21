@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @ClassName: RollbackCmd
- * @Description:
+ * @Description: 回退命令，用于回退任务
  * @author: skyeye云系列--卫志强
  * @date: 2021/12/18 0:26
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

@@ -12,6 +12,7 @@
                     "title": "流程id",
                     "value": "process",
                     "description": "流程的特殊唯一的名称标识",
+                    "remark": "对应 BPMN 中的 process id，例如 \"leaveProcess\"，需要在模型内保持唯一以便部署与版本管理。",
                     "popular": true,
                     "readOnly": true
                 }
@@ -26,6 +27,7 @@
                     "title": "Id",
                     "value": "",
                     "description": "元素的唯一标识。",
+                    "remark": "用于覆盖建模器自动生成的节点 ID，例如 \"Task_Approve\"，导出 XML 时会写入该值。",
                     "popular": true
                 }
             ]
@@ -39,6 +41,7 @@
                     "title": "名称",
                     "value": "",
                     "description": "元素名称",
+                    "remark": "显示在画布和流程实例中的标题，可结合国际化变量，如 \"请假申请\" 或 \"${taskName}\"。",
                     "popular": true,
                     "refToView": "text_name",
                     "readOnly": true
@@ -54,6 +57,7 @@
                     "title": "描述",
                     "value": "",
                     "description": "元素描述",
+                    "remark": "记录节点的业务说明或操作指引，发布后会写入 BPMN documentation 供运维查阅。",
                     "popular": true
                 }
             ]
@@ -95,6 +99,7 @@
                     "title": "执行监听器",
                     "value": "",
                     "description": "用于活动、流程、顺序流以及开始/结束事件的监听器。",
+                    "remark": "可配置 start/end/take 等事件监听，支持 Java 类、表达式或脚本，例如在 start 事件中写运行日志。",
                     "popular": true
                 }
             ]
@@ -108,6 +113,7 @@
                     "title": "任务监听器",
                     "value": "",
                     "description": "用户任务的监听器。",
+                    "remark": "覆盖 create/assignment/complete 等生命周期回调，可用于自动指派、发送通知或调用外部服务。",
                     "popular": true
                 }
             ]
@@ -121,6 +127,7 @@
                     "title": "事件监听器",
                     "value": "",
                     "description": "监听Activiti引擎中发生的任何事件，也可以将事件重新抛出为信号、消息或错误事件。",
+                    "remark": "可监听如 JOB_EXECUTION_SUCCESS、TASK_COMPLETED 等全局事件，并选择转发为 signal/message/error 事件。",
                     "popular": true
                 }
             ]
@@ -134,6 +141,7 @@
                     "title": "代理",
                     "value": "",
                     "description": "用户任务的参与者配置。",
+                    "remark": "设置 assignee、candidateUsers、candidateGroups 等，示例：{\"assignee\":\"${initiator}\",\"candidateGroups\":\"finance\"}。",
                     "popular": true
                 }
             ]
@@ -147,6 +155,7 @@
                     "title": "到期日期",
                     "value": "",
                     "description": "用户任务到期时间",
+                    "remark": "支持多种格式：\n1. ISO-8601 持续时间（相对时间）：\"P1M\"（一个月后）、\"P2M\"（两个月后）、\"P30D\"（30天后）、\"PT2H\"（2小时后）\n2. EL 表达式：\"${date().plusMonths(1)}\"（一个月后）、\"${date().plusMonths(2)}\"（两个月后）、\"${date().plusDays(30)}\"（30天后）\n3. 绝对时间戳：\"2025-01-31T18:00:00\"\n4. 流程变量：\"${dueDate}\"\n引擎会在任务创建时计算并写入到期时间。\n\n到期后的处理（需要代码实现）：\n• 默认情况下，任务到期后不会自动处理，任务仍可正常处理\n• 定时器边界事件（推荐）：在流程建模器中为任务添加定时器边界事件，设置触发时间为到期时间（如 \"P1M\"），到期后自动触发流程分支。触发后的具体业务逻辑（如发送邮件、自动转派）需要在监听器或服务任务中编写代码实现\n• API 查询：编写定时任务代码，定期查询超期任务（task.dueDate < now()），然后执行业务处理逻辑\n• 任务监听器：在建模器中配置监听器类，监听器类需要编写代码来检查到期时间并执行处理逻辑\n注意：Flowable 本身不提供内置的到期自动处理功能，所有到期后的业务处理都需要通过上述方式编写代码实现",
                     "popular": true
                 }
             ]
@@ -160,19 +169,7 @@
                     "title": "优先级",
                     "value": "",
                     "description": "用户任务优先级",
-                    "popular": true
-                }
-            ]
-        },
-        {
-            "name": "duedatedefinitionpackage",
-            "properties": [
-                {
-                    "id": "duedatedefinition",
-                    "type": "String",
-                    "title": "到期日期",
-                    "value": "",
-                    "description": "用户任务的到期时间。",
+                    "remark": "Flowable 默认优先级为 50，可填写 1-100 等整数或表达式 \"${taskPriority}\" 以驱动待办排序。",
                     "popular": true
                 }
             ]
@@ -186,6 +183,7 @@
                     "title": "监听类",
                     "value": "",
                     "description": "实现服务任务逻辑的类。",
+                    "remark": "填写实现 org.flowable.engine.delegate.JavaDelegate 的类全名，例如 \"com.skyeye.flowable.task.SyncOrderTask\"。",
                     "popular": true
                 }
             ]
@@ -199,6 +197,7 @@
                     "title": "表达式",
                     "value": "",
                     "description": "使用表达式定义的服务任务逻辑。",
+                    "remark": "当服务任务通过表达式调用 Bean/方法时使用，如 \"#{mailBean.send(execution)}\"。",
                     "popular": true
                 }
             ]
@@ -212,6 +211,7 @@
                     "title": "委托表达式",
                     "value": "",
                     "description": "使用代理表达式定义的服务任务逻辑。",
+                    "remark": "绑定 Spring Bean 名称的 delegateExpression，例如 \"${callExternalSystemDelegate}\"。",
                     "popular": true
                 }
             ]
@@ -225,6 +225,7 @@
                     "title": "字段",
                     "value": "",
                     "description": "字段扩展。",
+                    "remark": "配置 Field Extension，向 JavaDelegate 注入常量或表达式参数（name/value 或 expression）。",
                     "popular": true
                 }
             ]
@@ -238,6 +239,7 @@
                     "title": "脚本格式",
                     "value": "",
                     "description": "脚本任务的脚本格式。",
+                    "remark": "指定执行脚本的语言，如 \"groovy\"、\"javascript\"、\"python\"，需与服务器可用引擎匹配。",
                     "popular": true
                 }
             ]
@@ -251,6 +253,7 @@
                     "title": "脚本",
                     "value": "",
                     "description": "脚本任务的脚本文本。",
+                    "remark": "编写脚本正文，可多行书写，如 \"execution.setVariable('approved', true);\"。",
                     "popular": true
                 }
             ]
@@ -264,6 +267,7 @@
                     "title": "规则",
                     "value": "",
                     "description": "规则任务所使用的规则。",
+                    "remark": "填写 Drools/规则文件或决策表名称，多个可逗号分隔，如 \"loanRules.drl,limitRules.drl\"。",
                     "popular": true
                 }
             ]
@@ -277,6 +281,7 @@
                     "title": "输入变量",
                     "value": "",
                     "description": "规则任务的输入变量。",
+                    "remark": "列出传入规则引擎的流程变量名，如 \"applicant,creditScore\"。",
                     "popular": true
                 }
             ]
@@ -290,6 +295,7 @@
                     "title": "除外",
                     "value": "false",
                     "description": "将规则属性用作排他条件。",
+                    "remark": "开启后以排他方式评估规则：命中一条即停止继续推理，常用于互斥规则集。",
                     "popular": true
                 }
             ]
@@ -303,6 +309,7 @@
                     "title": "返回变量",
                     "value": "",
                     "description": "规则任务的结果变量。",
+                    "remark": "指定规则执行结果写入的流程变量名，例如 \"decisionResult\"。",
                     "popular": true
                 }
             ]
@@ -316,6 +323,7 @@
                     "title": "接收人",
                     "value": "",
                     "description": "邮件的收件人，多个收件人用逗号分隔。",
+                    "remark": "支持静态邮箱和表达式，如 \"user@corp.com\" 或 \"${applicantEmail}\"，多个地址逗号分隔。",
                     "popular": true
                 }
             ]
@@ -329,6 +337,7 @@
                     "title": "发件人",
                     "value": "",
                     "description": "邮件的发件人地址，未设置时使用系统默认地址。",
+                    "remark": "自定义发件邮箱，例如 \"noreply@skyeye.com\"；留空时取 Flowable 邮件配置。",
                     "popular": true
                 }
             ]
@@ -342,6 +351,7 @@
                     "title": "主题",
                     "value": "",
                     "description": "邮件主题。",
+                    "remark": "可包含占位符，如 \"审批结果：${taskName}\"，便于动态生成标题。",
                     "popular": true
                 }
             ]
@@ -355,6 +365,7 @@
                     "title": "转发",
                     "value": "",
                     "description": "邮件抄送地址，多个地址用逗号分隔。",
+                    "remark": "配置抄送人列表，格式与收件人一致，可用于知会领导。",
                     "popular": true
                 }
             ]
@@ -368,6 +379,7 @@
                     "title": "密送",
                     "value": "",
                     "description": "邮件密送地址，多个地址用逗号分隔。",
+                    "remark": "密送对象不可在邮件头中看到，对接审计或档案抄送场景常用。",
                     "popular": true
                 }
             ]
@@ -381,6 +393,7 @@
                     "title": "内容",
                     "value": "",
                     "description": "邮件的纯文本内容，可与HTML内容配合使用，供不支持富文本的客户端回退显示。",
+                    "remark": "建议与 HTML 内容保持一致，可写 \"您好，${assigneeName}\" 这种模板，确保低端客户端可阅。",
                     "popular": true
                 }
             ]
@@ -394,6 +407,7 @@
                     "title": "Html",
                     "value": "",
                     "description": "作为邮件内容的HTML片段。",
+                    "remark": "支持完整 HTML 模板或表达式，如 \"${mailTemplateBuilder.build(execution)}\"。",
                     "popular": true
                 }
             ]
@@ -407,6 +421,7 @@
                     "title": "Charset",
                     "value": "",
                     "description": "允许修改邮件字符集，以支持多种非英语语言。",
+                    "remark": "默认 UTF-8，如需兼容旧系统可改为 \"GBK\"、\"ISO-8859-1\" 等 MIME Charset。",
                     "popular": true
                 }
             ]
@@ -420,6 +435,7 @@
                     "title": "被调用元素",
                     "value": "",
                     "description": "流程引用。",
+                    "remark": "填写被调用子流程的 key，例如 \"expenseSubProcess\"，也可使用表达式 \"${subProcessKey}\"。",
                     "popular": true
                 }
             ]
@@ -433,6 +449,7 @@
                     "title": "输入参数",
                     "value": "",
                     "description": "输入参数定义。",
+                    "remark": "配置父流程到子流程的入参映射，例如 [{\"source\":\"amount\",\"target\":\"amount\"}]。",
                     "popular": true
                 }
             ]
@@ -446,6 +463,7 @@
                     "title": "输出参数",
                     "value": "",
                     "description": "输出参数定义。",
+                    "remark": "配置子流程返回到父流程的变量映射，如 [{\"source\":\"result\",\"target\":\"subResult\"}]。",
                     "popular": true
                 }
             ]
@@ -459,6 +477,7 @@
                     "title": "Camel内容",
                     "value": "",
                     "description": "可选的Camel上下文定义，留空则使用默认值。",
+                    "remark": "仅当部署了多个 Camel Context 时需要填写，例如 \"camelContextSales\"。",
                     "popular": true
                 }
             ]
@@ -472,6 +491,7 @@
                     "title": "终端url",
                     "value": "",
                     "description": "发送消息到Mule所需的端点URL。",
+                    "remark": "填写 Mule 端点，如 \"vm://inbound\" 或 \"http://host/service\"，按 Mule 配置一致。",
                     "popular": true
                 }
             ]
@@ -485,6 +505,7 @@
                     "title": "语言",
                     "value": "",
                     "description": "用于解析载荷表达式的语言定义（例如JUEL），必填。",
+                    "remark": "常用值如 \"juel\"、\"groovy\"，需与 payloadExpression 中语法一致。",
                     "popular": true
                 }
             ]
@@ -498,6 +519,7 @@
                     "title": "有效载荷表达式",
                     "value": "",
                     "description": "发送给Mule的消息载荷定义，必填。",
+                    "remark": "构造要推送的消息体，可写 \"${payloadBuilder.build(execution)}\"。",
                     "popular": true
                 }
             ]
@@ -511,6 +533,7 @@
                     "title": "返回变量",
                     "value": "",
                     "description": "可选的返回载荷结果变量。",
+                    "remark": "若 Mule 返回数据需后续使用，填写流程变量名，如 \"muleResponse\"。",
                     "popular": true
                 }
             ]
@@ -524,6 +547,7 @@
                     "title": "流转条件",
                     "value": "",
                     "description": "顺序流的条件。",
+                    "remark": "配置条件类型与表达式，如 expression + \"${amount > 1000}\"，用来控制线条是否可走通。",
                     "popular": true
                 }
             ]
@@ -537,6 +561,7 @@
                     "title": "默认流转",
                     "value": "false",
                     "description": "将该顺序流设为默认路径。",
+                    "remark": "仅在其他条件都不满足时触发，常作为兜底出口。",
                     "popular": true,
                     "refToView": "default"
                 }
@@ -551,6 +576,7 @@
                     "title": "Conditional flow",
                     "value": "false",
                     "description": "为顺序流设置条件。",
+                    "remark": "开启后可在该连线上配置 conditionsequenceflow，用以声明型条件流。",
                     "popular": true
                 }
             ]
@@ -564,6 +590,7 @@
                     "title": "循环时间(例：R3/PT10H)",
                     "value": "",
                     "description": "使用ISO-8601周期定义计时器。",
+                    "remark": "示例 \"R3/PT10M\" 表示每 10 分钟触发一次，总计 3 次。",
                     "popular": true
                 }
             ]
@@ -577,6 +604,7 @@
                     "title": "开始时间（ISO-8601）",
                     "value": "",
                     "description": "使用ISO-8601日期定义计时器。",
+                    "remark": "填写绝对时间，如 \"2025-05-01T08:00:00Z\"，常用于定点启动。",
                     "popular": true
                 }
             ]
@@ -590,6 +618,7 @@
                     "title": "持续时间(例：PT5M)",
                     "value": "",
                     "description": "使用ISO-8601持续时间定义计时器。",
+                    "remark": "如 \"PT5M\" 表示 5 分钟后触发一次，适合 SLA 类剩余时间提醒。",
                     "popular": true
                 }
             ]
@@ -603,6 +632,7 @@
                     "title": "结束时间（ISO-8601）",
                     "value": "",
                     "description": "使用ISO-8601持续时间定义计时器。",
+                    "remark": "用于限制循环计时器的结束时间，例如 \"2025-06-01T00:00:00+08:00\"。",
                     "popular": true
                 }
             ]
@@ -616,6 +646,7 @@
                     "title": "消息引用",
                     "value": "",
                     "description": "定义消息名称。",
+                    "remark": "引用在 messageDefinitions 中维护的消息，名称需完全一致。",
                     "popular": true
                 }
             ]
@@ -629,6 +660,7 @@
                     "title": "信号引用",
                     "value": "",
                     "description": "定义信号名称。",
+                    "remark": "引用 signalDefinitions 中的信号，可实现跨流程广播，如 \"signalInventoryLow\"。",
                     "popular": true
                 }
             ]
@@ -642,6 +674,7 @@
                     "title": "错误引用",
                     "value": "",
                     "description": "定义错误名称。",
+                    "remark": "填写错误代码或名称，如 \"ERROR_STOCK_OUT\"，配合错误事件使用。",
                     "popular": true
                 }
             ]
@@ -655,6 +688,7 @@
                     "title": "取消活动",
                     "value": "true",
                     "description": "是否需要取消该活动。",
+                    "remark": "主要用于事务子流程的边界取消事件，开启后会终止关联事务并触发补偿。",
                     "popular": true,
                     "refToView": [
                         "frame",
@@ -672,6 +706,7 @@
                     "title": "发起人",
                     "value": "",
                     "description": "流程发起人。",
+                    "remark": "填写接收发起人账号的变量名，如 \"applyUserId\"，启动流程时自动赋值。",
                     "popular": true
                 }
             ]
@@ -685,6 +720,7 @@
                     "title": "Text",
                     "value": "",
                     "description": "文本注释的内容。",
+                    "remark": "支持自由文本及换行，可用于标注建模说明，双击注释节点即可编辑。",
                     "popular": true,
                     "refToView": "text"
                 }
@@ -699,6 +735,7 @@
                     "title": "多实例类型",
                     "value": "None",
                     "description": "通过不同循环类型展示活动的重复执行（并行或串行）。",
+                    "remark": "可选 None/Parallel/Sequential，对应 BPMN 多实例标记并影响执行行为。",
                     "popular": true,
                     "refToView": "multiinstance"
                 }
@@ -713,6 +750,7 @@
                     "title": "基数(多实例)",
                     "value": "",
                     "description": "定义多实例的实例数量。",
+                    "remark": "指定需要创建的实例个数，例如 \"5\" 或 \"${approverCount}\"，在 collection 为空时生效。",
                     "popular": true
                 }
             ]
@@ -726,6 +764,7 @@
                     "title": "集合(多实例)",
                     "value": "",
                     "description": "定义多实例使用的集合。",
+                    "remark": "引用流程变量中的集合，如 \"${countersignUsers}\"，引擎会遍历集合启动实例。",
                     "popular": true
                 }
             ]
@@ -739,6 +778,7 @@
                     "title": "元素变量(多实例)",
                     "value": "",
                     "description": "定义多实例的元素变量。",
+                    "remark": "指定遍历集合时当前元素在流程中的变量名，如 \"assignee\"。",
                     "popular": true
                 }
             ]
@@ -752,6 +792,7 @@
                     "title": "完成条件(多实例)",
                     "value": "",
                     "description": "定义多实例的完成条件。",
+                    "remark": "填写提前完成表达式，如 \"${nrOfCompletedInstances >= 2}\"。",
                     "popular": true
                 }
             ]
@@ -765,6 +806,7 @@
                     "title": "是否为补偿",
                     "value": "false",
                     "description": "一个标志,标识是否这个活动的目的是为了补偿.",
+                    "remark": "设置为 true 后节点变为补偿任务，只会在补偿事件触发时执行。",
                     "popular": true,
                     "refToView": "compensation"
                 }
@@ -793,6 +835,7 @@
                     "title": "信号定义",
                     "value": "",
                     "description": "信号定义。",
+                    "remark": "集中维护可复用的信号列表（name、scope 等），供 signal 事件引用。",
                     "popular": true
                 }
             ]
@@ -806,6 +849,7 @@
                     "title": "消息定义",
                     "value": "",
                     "description": "消息定义。",
+                    "remark": "维护消息名称与文案，Start/Boundary/Throw Message Event 可通过 messageref 引用。",
                     "popular": true
                 }
             ]
@@ -819,6 +863,7 @@
                     "title": "是否事务处理子过程",
                     "value": "false",
                     "description": "标识该子流程是否为事务类型。",
+                    "remark": "勾选后子流程按 BPMN Transaction 执行，支持边界取消与补偿事件。",
                     "popular": true,
                     "refToView": "border"
                 }
@@ -833,6 +878,7 @@
                     "title": "终止全部",
                     "value": "false",
                     "description": "启用后终止该流程实例。",
+                    "remark": "在终止结束事件上启用后，会直接结束整个流程实例（而非当前子流程）。",
                     "popular": true
                 }
             ]

@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * @ClassName: RollbackEventListener
- * @Description:
+ * @Description: 回退事件监听器，用于监听回退事件
  * @author: skyeye云系列--卫志强
  * @date: 2021/12/18 0:24
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
