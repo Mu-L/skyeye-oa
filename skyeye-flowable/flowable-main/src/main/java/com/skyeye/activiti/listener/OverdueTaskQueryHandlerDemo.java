@@ -4,18 +4,18 @@
 
 package com.skyeye.activiti.listener;
 
-import org.flowable.engine.TaskService;
 import org.flowable.task.api.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 /**
  * @ClassName: OverdueTaskQueryHandlerDemo
  * @Description: 超期任务查询和处理Demo（需要代码实现）
- * 
+ *
  * <p><b>使用场景：</b></p>
  * <ul>
  *   <li>定期查询超期任务并发送提醒</li>
@@ -23,7 +23,7 @@ import java.util.List;
  *   <li>统计超期任务数据</li>
  *   <li>生成超期任务报告</li>
  * </ul>
- * 
+ *
  * <p><b>实现方式：</b></p>
  * <ol>
  *   <li><b>创建定时任务：</b></li>
@@ -50,15 +50,15 @@ import java.util.List;
  *     </ul>
  *   </li>
  * </ol>
- * 
+ *
  * <p><b>配置示例（Spring @Scheduled）：</b></p>
  * <pre>{@code
  * @Component
  * public class OverdueTaskScheduler {
- *     
+ *
  *     @Autowired
  *     private OverdueTaskQueryHandlerDemo handler;
- *     
+ *
  *     // 每5分钟执行一次
  *     @Scheduled(fixedRate = 300000)
  *     public void checkOverdueTasks() {
@@ -66,14 +66,13 @@ import java.util.List;
  *     }
  * }
  * }</pre>
- * 
+ *
  * <p><b>重要提示：</b></p>
  * <ul>
  *   <li>需要编写定时任务代码，定期查询超期任务并处理</li>
  *   <li>Flowable 本身不提供内置的超期任务自动处理功能</li>
  *   <li>建议使用定时任务框架，而不是在监听器中实现</li>
  * </ul>
- * 
  * @author: skyeye云系列--卫志强
  * @date: 2025/01/XX
  * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -85,7 +84,7 @@ public class OverdueTaskQueryHandlerDemo {
 
     // 注意：这里需要注入 TaskService，实际使用时通过 Spring 注入
     // private TaskService taskService;
-    
+
     // 示例：通过构造函数注入（实际使用时）
     // public OverdueTaskQueryHandlerDemo(TaskService taskService) {
     //     this.taskService = taskService;
@@ -93,30 +92,30 @@ public class OverdueTaskQueryHandlerDemo {
 
     /**
      * 查询并处理超期任务
-     * 
+     *
      * <p>此方法应该由定时任务调用，定期执行</p>
      */
     public void queryAndProcessOverdueTasks() {
         try {
             LOGGER.info("========== 开始查询超期任务 ==========");
-            
+
             // 1. 查询超期任务
             List<Task> overdueTasks = queryOverdueTasks();
-            
+
             if (overdueTasks == null || overdueTasks.isEmpty()) {
                 LOGGER.info("未发现超期任务");
                 return;
             }
-            
+
             LOGGER.info("发现 {} 个超期任务", overdueTasks.size());
-            
+
             // 2. 处理每个超期任务
             for (Task task : overdueTasks) {
                 processOverdueTask(task);
             }
-            
+
             LOGGER.info("========== 超期任务处理完成 ==========");
-            
+
         } catch (Exception e) {
             LOGGER.error("查询和处理超期任务异常", e);
         }
@@ -124,7 +123,7 @@ public class OverdueTaskQueryHandlerDemo {
 
     /**
      * 查询超期任务
-     * 
+     *
      * @return 超期任务列表
      */
     private List<Task> queryOverdueTasks() {
@@ -137,15 +136,15 @@ public class OverdueTaskQueryHandlerDemo {
             .dueBefore(now)  // 查询到期时间在当前时间之前的任务
             .list();
         */
-        
+
         LOGGER.info("查询超期任务 - 当前时间: {}", new Date());
         // 返回空列表作为示例
-        return List.of();
+        return new ArrayList<>();
     }
 
     /**
      * 处理单个超期任务
-     * 
+     *
      * @param task 超期任务
      */
     private void processOverdueTask(Task task) {
@@ -155,17 +154,17 @@ public class OverdueTaskQueryHandlerDemo {
             String assignee = task.getAssignee();
             Date dueDate = task.getDueDate();
             String processInstanceId = task.getProcessInstanceId();
-            
-            LOGGER.info("处理超期任务 - 任务ID: {}, 任务名称: {}, 负责人: {}, 到期时间: {}", 
-                       taskId, taskName, assignee, dueDate);
-            
+
+            LOGGER.info("处理超期任务 - 任务ID: {}, 任务名称: {}, 负责人: {}, 到期时间: {}",
+                taskId, taskName, assignee, dueDate);
+
             // 1. 计算超期时长
             long overdueHours = calculateOverdueHours(dueDate);
             LOGGER.info("任务已超期 {} 小时", overdueHours);
-            
+
             // 2. 发送超期提醒（示例）
             sendOverdueReminder(task, overdueHours);
-            
+
             // 3. 根据超期时长决定处理方式
             if (overdueHours > 24) {
                 // 超期超过24小时，自动升级
@@ -177,13 +176,13 @@ public class OverdueTaskQueryHandlerDemo {
                 // 超期12小时内，只发送提醒
                 sendNormalReminder(task, overdueHours);
             }
-            
+
             // 4. 记录超期日志（示例）
             recordOverdueLog(task, overdueHours);
-            
+
             // 5. 更新任务状态（示例）
             updateTaskOverdueStatus(task, overdueHours);
-            
+
         } catch (Exception e) {
             LOGGER.error("处理超期任务异常 - 任务ID: {}", task.getId(), e);
         }
@@ -191,7 +190,7 @@ public class OverdueTaskQueryHandlerDemo {
 
     /**
      * 计算超期时长（小时）
-     * 
+     *
      * @param dueDate 到期时间
      * @return 超期时长（小时）
      */
@@ -279,36 +278,36 @@ public class OverdueTaskQueryHandlerDemo {
 
     /**
      * 统计超期任务数据（示例方法）
-     * 
+     *
      * <p>可以定期调用此方法生成超期任务统计报告</p>
      */
     public void generateOverdueTaskReport() {
         try {
             LOGGER.info("========== 生成超期任务统计报告 ==========");
-            
+
             // 1. 查询所有超期任务
             List<Task> overdueTasks = queryOverdueTasks();
-            
+
             // 2. 按负责人统计
             // Map<String, Long> assigneeStats = overdueTasks.stream()
             //     .collect(Collectors.groupingBy(Task::getAssignee, Collectors.counting()));
-            
+
             // 3. 按流程统计
             // Map<String, Long> processStats = overdueTasks.stream()
             //     .collect(Collectors.groupingBy(Task::getProcessDefinitionId, Collectors.counting()));
-            
+
             // 4. 生成报告
             // OverdueTaskReport report = new OverdueTaskReport();
             // report.setTotalCount(overdueTasks.size());
             // report.setAssigneeStats(assigneeStats);
             // report.setProcessStats(processStats);
             // report.setGenerateTime(new Date());
-            
+
             // 5. 保存或发送报告
             // reportService.save(report);
-            
+
             LOGGER.info("超期任务统计报告生成完成");
-            
+
         } catch (Exception e) {
             LOGGER.error("生成超期任务统计报告异常", e);
         }
