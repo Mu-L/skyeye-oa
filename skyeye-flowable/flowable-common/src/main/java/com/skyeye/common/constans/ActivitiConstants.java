@@ -95,10 +95,7 @@ public class ActivitiConstants {
         IS_SELECTED("isSelected", null, "选择", "ro", "center", false, false,
             false, false, "eq", "50", "fnRenderSelectUser", false, true,
             "#rspan", true, true),
-        ID("id", null, "用户ID", "ro", "center", false, false,
-            false, false, "eq", "100", "", false, true,
-            "#rspan", true, true),
-        FIRST_NAME("jobNumber", null, "工号", "ro", "center", false, false,
+        FIRST_NAME("jobNumber", null, "工号", "ro", "left", false, false,
             false, false, "eq", "120", "", false, true,
             "#rspan", true, true),
         LAST_NAME("userName", null, "姓名", "ro", "center", false, false,
@@ -108,6 +105,15 @@ public class ActivitiConstants {
             false, false, "eq", "120", "", false, true,
             "#rspan", true, true),
         NAME("name", null, "用户组", "ro", "center", false, false,
+            false, false, "eq", "120", "", false, true,
+            "#rspan", true, true),
+        COMPANY_NAME("companyName", null, "所属企业", "ro", "left", false, false,
+            false, false, "eq", "120", "", false, true,
+            "#rspan", true, true),
+        DEPARTMENT_NAME("departmentName", null, "所属部门", "ro", "left", false, false,
+            false, false, "eq", "120", "", false, true,
+            "#rspan", true, true),
+        JOB_NAME("jobName", null, "所属岗位", "ro", "left", false, false,
             false, false, "eq", "120", "", false, true,
             "#rspan", true, true);
 
@@ -177,29 +183,30 @@ public class ActivitiConstants {
     }
 
     public static List<Map<String, Object>> getActivitiUserColumnList() {
-        return getPointKeyList("rowIndex", "isSelected", "id", "jobNumber", "userName", "email");
+        return getPointKeyList("rowIndex", "isSelected", "jobNumber", "userName", "email", "companyName", "departmentName", "jobName");
     }
 
     public static Map<String, Object> getActivitiUserColumnMap() {
         Map<String, Object> bean = new HashMap<>();
         bean.put("rowIndex", getMap2PointKey("rowIndex"));
         bean.put("isSelected", getMap2PointKey("isSelected"));
-        bean.put("id", getMap2PointKey("id"));
         bean.put("jobNumber", getMap2PointKey("jobNumber"));
         bean.put("userName", getMap2PointKey("userName"));
         bean.put("email", getMap2PointKey("email"));
+        bean.put("companyName", getMap2PointKey("companyName"));
+        bean.put("departmentName", getMap2PointKey("departmentName"));
+        bean.put("jobName", getMap2PointKey("jobName"));
         return bean;
     }
 
     public static List<Map<String, Object>> getActivitiGroupColumnList() {
-        return getPointKeyList("rowIndex", "isSelected", "id", "name");
+        return getPointKeyList("rowIndex", "isSelected", "name");
     }
 
     public static Map<String, Object> getActivitiGroupColumnMap() {
         Map<String, Object> bean = new HashMap<>();
         bean.put("rowIndex", getMap2PointKey("rowIndex"));
         bean.put("isSelected", getMap2PointKey("isSelected"));
-        bean.put("id", getMap2PointKey("id"));
         bean.put("name", getMap2PointKey("name"));
         return bean;
     }
