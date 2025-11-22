@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ActivitiUserServiceImpl
@@ -166,6 +167,12 @@ public class ActivitiUserServiceImpl implements ActivitiUserService {
         if ("id_group_list".equals(queryId)) {
             // 分组
             beans = iSysDictDataService.queryDictDataListByDictTypeCode("ACT_GROUP");
+            // 根据 关键词进行模糊查询
+            if (StrUtil.isNotBlank(commonPageInfo.getKeyword())) {
+                beans = beans.stream()
+                    .filter(bean -> bean.get("dictName").toString().contains(commonPageInfo.getKeyword()))
+                    .collect(Collectors.toList());
+            }
             total = beans.size();
         } else {
             // 人员
