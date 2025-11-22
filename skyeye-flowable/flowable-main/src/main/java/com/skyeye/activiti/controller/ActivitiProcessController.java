@@ -31,11 +31,17 @@ public class ActivitiProcessController {
     @Autowired
     private ActivitiProcessService activitiProcessService;
 
+    @ApiOperation(id = "activitimode020", value = "流程挂起", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程id", required = "required")})
     @RequestMapping("/post/ActivitiProcessController/updateProcessToHangUp")
     public void updateProcessToHangUp(InputObject inputObject, OutputObject outputObject) {
         activitiProcessService.updateProcessToHangUp(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "activitimode021", value = "流程激活", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程id", required = "required")})
     @RequestMapping("/post/ActivitiProcessController/updateProcessToActivation")
     public void updateProcessToActivation(InputObject inputObject, OutputObject outputObject) {
         activitiProcessService.updateProcessToActivation(inputObject, outputObject);
@@ -46,11 +52,19 @@ public class ActivitiProcessController {
         activitiProcessService.editProcessInstanceWithDraw(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "activitimode027", value = "刷新流程图", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程id", required = "required")})
     @RequestMapping("/post/ActivitiProcessController/editProcessInstancePicToRefresh")
     public void editProcessInstancePicToRefresh(InputObject inputObject, OutputObject outputObject) {
         activitiProcessService.editProcessInstancePicToRefresh(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "activitiProcess001", value = "获取流程下一个节点的审批人", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程id", required = "required"),
+        @ApiImplicitParam(id = "taskId", name = "taskId", value = "当前任务节点的任务id", required = "required"),
+        @ApiImplicitParam(id = "flag", name = "flag", value = "是否通过：1.通过2.不通过", required = "num")})
     @RequestMapping("/post/ActivitiProcessController/nextPrcessApprover")
     public void nextPrcessApprover(InputObject inputObject, OutputObject outputObject) {
         activitiProcessService.nextPrcessApprover(inputObject, outputObject);
