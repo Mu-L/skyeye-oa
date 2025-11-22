@@ -406,6 +406,12 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
                 Collectors.toCollection(ArrayList::new),
                 ArrayList::new
             ));
+        // 根据 userId 去除重复的审批人
+        resultList = resultList.stream()
+            .collect(Collectors.collectingAndThen(
+                 Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(p -> String.valueOf(p.get("id")), Comparator.nullsLast(Comparator.naturalOrder())))),
+                 ArrayList::new
+             ));
         return resultList;
     }
 

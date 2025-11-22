@@ -15,6 +15,9 @@
         FROM
             act_group_user a,
             sys_eve_user_staff b
+            <if test="tenantId != '' and tenantId != null">
+            ,tenant_user k
+            </if>
         <where>
             a.user_id = b.user_id
             <if test="objectId != '' and objectId != null">
@@ -25,6 +28,8 @@
             </if>
             <if test="tenantId != '' and tenantId != null">
                 AND a.tenant_id = #{tenantId}
+                AND k.tenant_id = #{tenantId}
+                AND k.staff_id = b.id
             </if>
         </where>
         group by b.id

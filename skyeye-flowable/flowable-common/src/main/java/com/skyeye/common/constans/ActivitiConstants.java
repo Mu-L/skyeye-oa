@@ -25,6 +25,9 @@ public class ActivitiConstants {
 
     public static final String APPROVAL_NO_PASS = "nopass";
 
+    /**
+     * 默认审批人
+     */
     public static final String ASSIGNEE_USER = "assignee";
 
     public static final String ASSIGNEE_USER_MATION = "assigneeMation";
