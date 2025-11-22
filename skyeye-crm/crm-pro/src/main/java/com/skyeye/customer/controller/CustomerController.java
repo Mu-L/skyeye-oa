@@ -33,12 +33,6 @@ public class CustomerController {
     @Autowired
     private CustomerService customerService;
 
-    /**
-     * 获取客户管理列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "customer001", value = "获取客户管理列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/CustomerController/queryCustomerList")
@@ -46,12 +40,6 @@ public class CustomerController {
         customerService.queryCustomerList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑客户信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeCustomerMation", value = "新增/编辑客户信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CustomerMation.class)
     @RequestMapping("/post/CustomerController/writeCustomerMation")
@@ -59,12 +47,6 @@ public class CustomerController {
         customerService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除客户信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteCustomerMationById", value = "根据id删除客户信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class CustomerController {
         customerService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id批量获取客户信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryCustomerListByIds", value = "根据id批量获取客户信息", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "ids", name = "ids", value = "主键id", required = "required")})
@@ -87,12 +63,6 @@ public class CustomerController {
         customerService.selectByIds(inputObject, outputObject);
     }
 
-    /**
-     * 获取公海客户群列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "customer012", value = "获取公海客户群列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CustomerQueryDo.class)
     @RequestMapping("/post/CustomerController/queryInternationalCustomerList")

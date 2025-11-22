@@ -81,7 +81,7 @@ public class ProProjectServiceImpl extends SkyeyeBusinessServiceImpl<ProProjectD
             ResultEntity resultEnt = iTeamBusinessService.queryMyBusinessTeamIdsLinkObjectId(commonPageInfo.getPage(),
                 commonPageInfo.getLimit(), getServiceClassName(), true);
             if (CollectionUtil.isEmpty(resultEnt.getRows())) {
-                throw new CustomException("您还不在任何团队中，请联系管理员");
+                return;
             }
             List<String> ids = resultEnt.getRows().stream().map(row -> row.get("objectId").toString()).distinct().collect(Collectors.toList());
             QueryWrapper<Project> queryWrapper = getQueryWrapper(commonPageInfo);

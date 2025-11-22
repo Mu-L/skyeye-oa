@@ -33,12 +33,6 @@ public class ProProjectController {
     @Autowired
     private ProProjectService proProjectService;
 
-    /**
-     * 获取项目管理列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryProProjectList", value = "获取项目管理列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ProProjectController/queryProProjectList")
@@ -46,12 +40,6 @@ public class ProProjectController {
         proProjectService.queryProProjectList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑项目信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeProject", value = "新增/编辑项目信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Project.class)
     @RequestMapping("/post/ProProjectController/writeProject")
@@ -59,12 +47,6 @@ public class ProProjectController {
         proProjectService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id批量获取项目信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryProProjectByIds", value = "根据id批量获取项目信息", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "ids", name = "ids", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class ProProjectController {
         proProjectService.selectByIds(inputObject, outputObject);
     }
 
-    /**
-     * 项目提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "proproject008", value = "项目提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/ProProjectController/submitToApproval")
@@ -86,12 +62,6 @@ public class ProProjectController {
         proProjectService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 删除项目信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "proproject009", value = "删除项目信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -100,12 +70,6 @@ public class ProProjectController {
         proProjectService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 撤销项目审批申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "proproject010", value = "撤销项目审批申请", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程id", required = "required")})
@@ -114,12 +78,6 @@ public class ProProjectController {
         proProjectService.revoke(inputObject, outputObject);
     }
 
-    /**
-     * 作废项目
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "proproject011", value = "作废项目", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -128,12 +86,6 @@ public class ProProjectController {
         proProjectService.invalid(inputObject, outputObject);
     }
 
-    /**
-     * 开始执行项目
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "proproject012", value = "开始执行项目", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -142,12 +94,6 @@ public class ProProjectController {
         proProjectService.executeProjectById(inputObject, outputObject);
     }
 
-    /**
-     * 信息完善
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "proproject016", value = "信息完善", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),

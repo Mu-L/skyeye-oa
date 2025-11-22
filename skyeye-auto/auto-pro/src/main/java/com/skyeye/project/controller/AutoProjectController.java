@@ -32,12 +32,6 @@ public class AutoProjectController {
     @Autowired
     private AutoProjectService autoProjectService;
 
-    /**
-     * 获取项目管理列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAutoProjectList", value = "获取项目管理列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/AutoProjectController/queryAutoProjectList")
@@ -45,12 +39,6 @@ public class AutoProjectController {
         autoProjectService.queryAutoProjectList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑项目信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeAutoProject", value = "新增/编辑项目信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = AutoProject.class)
     @RequestMapping("/post/AutoProjectController/writeAutoProject")
@@ -58,12 +46,6 @@ public class AutoProjectController {
         autoProjectService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除项目信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteAutoProjectById", value = "根据id删除项目信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class AutoProjectController {
         autoProjectService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取我负责的/我创建的所有项目列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAllAutoProjectList", value = "获取我负责的/我创建的所有项目列表", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "type", name = "type", value = "类型", required = "required")})
