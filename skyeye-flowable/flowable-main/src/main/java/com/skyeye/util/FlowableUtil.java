@@ -2,15 +2,25 @@
  * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
  ******************************************************************************/
 
-package com.skyeye.common.util;
+package com.skyeye.util;
 
+import cn.hutool.core.collection.CollectionUtil;
+import com.google.common.base.Joiner;
+import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.util.ToolUtil;
+import com.skyeye.eve.entity.ActGroupUser;
+import com.skyeye.eve.service.ActGroupUserService;
+import com.skyeye.eve.service.IAuthUserService;
+import org.apache.commons.collections4.CollectionUtils;
+import org.flowable.bpmn.model.UserTask;
 import org.flowable.common.engine.api.delegate.Expression;
 import org.flowable.common.engine.api.variable.VariableContainer;
 import org.flowable.common.engine.impl.el.ExpressionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: FlowableUtil
@@ -301,6 +311,246 @@ public class FlowableUtil {
             return null;
         }
         return expression.substring(2, expression.length() - 1).trim();
+    }
+
+    /**
+     * 从字符串列表中收集ID（支持表达式评估和逗号分隔）
+     * 
+     * <p><b>功能说明：</b></p>
+     * <ul>
+     *   <li>遍历字符串列表，评估每个字符串（可能是表达式）</li>
+     *   <li>支持逗号分隔的多个ID</li>
+     *   <li>自动去重并添加到目标集合中</li>
+     * </ul>
+     * 
+     * <p><b>使用场景：</b></p>
+     * <ul>
+     *   <li>收集候选组ID（candidateGroups）</li>
+     *   <li>收集候选用户ID（candidateUsers）</li>
+     * </ul>
+     * 
+     * @param idList 字符串列表，可能包含表达式或逗号分隔的ID
+     * @param businessData 业务数据，用于评估表达式
+     * @param targetSet 目标集合，用于存储收集到的ID（自动去重）
+     */
+    private static void collectIdsFromList(List<String> idList, Map<String, Object> businessData, 
+                                          Set<String> targetSet) {
+        if (CollectionUtils.isEmpty(idList) || targetSet == null) {
+            return;
+        }
+        
+        for (String id : idList) {
+            // 评估表达式（如果是表达式）
+            if (isExpression(id)) {
+                id = evaluateExpressionAsString(id, businessData);
+            }
+            
+            if (!ToolUtil.isBlank(id)) {
+                // 支持逗号分隔的多个ID
+                Arrays.asList(id.split(CommonCharConstants.COMMA_MARK)).forEach(splitId -> {
+                    String trimmedId = splitId.trim();
+                    if (!ToolUtil.isBlank(trimmedId)) {
+                        targetSet.add(trimmedId);
+                    }
+                });
+            }
+        }
+    }
+
+    /**
+     * 批量获取用户任务节点的审批人列表（优化版本，减少数据库操作）
+     * 
+     * <p><b>功能说明：</b></p>
+     * <ul>
+     *   <li>支持表达式评估（assignee、candidateUsers、candidateGroups 可能是表达式）</li>
+     *   <li>先收集所有需要查询的ID，然后批量查询，减少数据库操作次数</li>
+     *   <li>自动去重，避免重复添加相同的审批人</li>
+     * </ul>
+     * 
+     * <p><b>使用场景：</b></p>
+     * <ul>
+     *   <li>获取用户任务节点的所有审批人（包括候选组、候选用户、默认审批人）</li>
+     *   <li>支持表达式动态计算审批人</li>
+     * </ul>
+     * 
+     * <p><b>示例：</b></p>
+     * <pre>{@code
+     * // 获取用户任务节点的审批人列表
+     * List<Map<String, Object>> approvers = FlowableUtil.getNextTaskApproveBatch(
+     *     userTask, 
+     *     businessData, 
+     *     actGroupUserService, 
+     *     iAuthUserService
+     * );
+     * }</pre>
+     * 
+     * @param userTask 用户任务节点
+     * @param businessData 业务数据，用于评估表达式
+     * @param actGroupUserService 用户组服务，用于查询组用户（如果为null，则跳过组用户查询）
+     * @param iAuthUserService 用户服务，用于查询用户信息（如果为null，则跳过用户查询）
+     * @return 审批人列表，已去重并排序
+     */
+    public static List<Map<String, Object>> getNextTaskApproveBatch(
+            UserTask userTask, 
+            Map<String, Object> businessData,
+            ActGroupUserService actGroupUserService,
+            IAuthUserService iAuthUserService) {
+        if (userTask == null) {
+            return new ArrayList<>();
+        }
+        
+        if (businessData == null) {
+            businessData = new HashMap<>();
+        }
+        
+        // 第一步：收集所有需要查询的ID（先构造数据，避免多次数据库操作）
+        Set<String> allGroupIds = new HashSet<>();  // 所有组ID（去重）
+        Set<String> allUserIds = new HashSet<>();  // 所有用户ID（去重）
+        
+        // 1. 收集候选组ID
+        collectIdsFromList(userTask.getCandidateGroups(), businessData, allGroupIds);
+        
+        // 2. 收集候选用户ID
+        collectIdsFromList(userTask.getCandidateUsers(), businessData, allUserIds);
+        
+        // 3. 收集默认审批人
+        String assignee = userTask.getAssignee();
+        if (!ToolUtil.isBlank(assignee)) {
+            // 如果 assignee 是表达式，需要评估
+            if (isExpression(assignee)) {
+                assignee = evaluateExpressionAsString(assignee, businessData);
+            }
+            if (!ToolUtil.isBlank(assignee)) {
+                allUserIds.add(assignee);
+            }
+        }
+
+        // 第二步：批量查询数据（减少数据库操作次数）
+        List<Map<String, Object>> userList = new ArrayList<>();
+        Set<String> processedUserIds = new HashSet<>();  // 已处理的用户ID（用于去重）
+        
+        // 批量查询组用户
+        if (!allGroupIds.isEmpty() && actGroupUserService != null) {
+            try {
+                List<ActGroupUser> actGroupUserList = actGroupUserService.queryActGroupUser(new ArrayList<>(allGroupIds));
+                if (CollectionUtils.isNotEmpty(actGroupUserList)) {
+                    actGroupUserList.forEach(bean -> {
+                        Map<String, Object> userMation = bean.getUserMation();
+                        if (CollectionUtil.isNotEmpty(userMation)) {
+                            String userId = userMation.get("id").toString();
+                            // 避免重复添加（组用户和直接指定的用户可能重复）
+                            if (!processedUserIds.contains(userId)) {
+                                userList.add(userMation);
+                                processedUserIds.add(userId);
+                                // 从 allUserIds 中移除已处理的用户ID，避免重复查询
+                                allUserIds.remove(userId);
+                            }
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                LOGGER.warn("查询组用户异常: {}", e.getMessage());
+            }
+        }
+        
+        // 批量查询剩余的用户信息（排除已从组用户中获取的用户）
+        if (!allUserIds.isEmpty() && iAuthUserService != null) {
+            String userIdsStr = Joiner.on(CommonCharConstants.COMMA_MARK).join(allUserIds);
+            List<Map<String, Object>> users = iAuthUserService.queryDataMationByIds(userIdsStr);
+            if (CollectionUtils.isNotEmpty(users)) {
+                users.forEach(user -> {
+                    Object userId = user != null ? user.get("id") : null;
+                    if (userId != null && !processedUserIds.contains(userId.toString())) {
+                        userList.add(user);
+                        processedUserIds.add(userId.toString());
+                    }
+                });
+            }
+        }
+        
+        // 移除 null 值
+        userList.removeAll(Collections.singleton(null));
+        
+        // 使用 Stream API 进行过滤、排序并最终收集到 ArrayList 中
+        List<Map<String, Object>> resultList = userList.stream()
+            .filter(Objects::nonNull)  // 确保 item 不是 null
+            .map(item -> item.entrySet().stream()
+                .filter(entry -> entry != null && entry.getKey() != null &&
+                    entry.getValue() != null && !"".equals(entry.getValue()))
+                .collect(Collectors.toMap(
+                    Map.Entry::getKey,
+                    Map.Entry::getValue,
+                    (existing, replacement) -> existing,  // 解决重复键的问题
+                    LinkedHashMap::new))  // 保持插入顺序
+            )
+            .filter(Objects::nonNull)  // 确保转换后的 map 不是 null
+            .sorted(Comparator.comparing(p -> String.valueOf(p.get("id")), Comparator.nullsLast(Comparator.naturalOrder())))
+            .collect(Collectors.collectingAndThen(
+                Collectors.toCollection(ArrayList::new),
+                ArrayList::new
+            ));
+        
+        // 根据 userId 去除重复的审批人
+        resultList = resultList.stream()
+            .collect(Collectors.collectingAndThen(
+                 Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(p -> String.valueOf(p.get("id")), Comparator.nullsLast(Comparator.naturalOrder())))),
+                 ArrayList::new
+             ));
+        
+        return resultList;
+    }
+
+    /**
+     * 查找用户任务节点的默认审批人
+     * 
+     * <p><b>功能说明：</b></p>
+     * <ul>
+     *   <li>获取用户任务节点的 assignee 属性</li>
+     *   <li>支持表达式评估（assignee 可能是表达式，如 ${userId}）</li>
+     *   <li>返回默认审批人的用户信息</li>
+     * </ul>
+     * 
+     * <p><b>使用场景：</b></p>
+     * <ul>
+     *   <li>获取用户任务节点的默认审批人（只有一个）</li>
+     *   <li>支持表达式动态计算默认审批人</li>
+     * </ul>
+     * 
+     * <p><b>示例：</b></p>
+     * <pre>{@code
+     * // 获取用户任务节点的默认审批人
+     * Map<String, Object> defaultApprover = FlowableUtil.findDefaultApprover(
+     *     userTask, 
+     *     businessData, 
+     *     iAuthUserService
+     * );
+     * }</pre>
+     * 
+     * @param userTask 用户任务节点
+     * @param businessData 业务数据，用于评估表达式
+     * @param iAuthUserService 用户服务，用于查询用户信息（如果为null，则返回null）
+     * @return 默认审批人信息，如果未找到则返回null
+     */
+    public static Map<String, Object> findDefaultApprover(
+            UserTask userTask, 
+            Map<String, Object> businessData,
+            IAuthUserService iAuthUserService) {
+        if (userTask == null) {
+            return null;
+        }
+
+        // 获取用户任务节点的 assignee 属性
+        String assignee = userTask.getAssignee();
+        if (!ToolUtil.isBlank(assignee)) {
+            // 如果 assignee 是表达式，需要评估
+            if (isExpression(assignee)) {
+                assignee = evaluateExpressionAsString(assignee, businessData);
+            }
+            if (!ToolUtil.isBlank(assignee)) {
+                return iAuthUserService.queryDataMationById(assignee);
+            }
+        }
+        return null;
     }
 
     /**

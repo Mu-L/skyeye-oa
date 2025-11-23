@@ -21,10 +21,8 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.tenant.context.TenantContext;
-import com.skyeye.common.util.FlowableUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.entity.ActFlowMation;
-import com.skyeye.eve.entity.ActGroupUser;
 import com.skyeye.eve.flowable.classenum.FormSubType;
 import com.skyeye.eve.flowable.entity.FlowableSubData;
 import com.skyeye.eve.service.ActFlowService;
@@ -33,8 +31,8 @@ import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.userprocess.entity.ActUserProcess;
 import com.skyeye.userprocess.service.ActUserProcessService;
+import com.skyeye.util.FlowableUtil;
 import net.sf.json.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.bpmn.model.UserTask;
@@ -55,7 +53,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -174,85 +175,134 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
     }
 
     /**
-     * 获取流程下一个节点的审批人
-     *
+     * 获取流程下一个节点的审批人列表
+     * 
+     * <p><b>功能说明：</b></p>
+     * <ul>
+     *   <li>根据当前任务ID和业务数据，获取下一个用户任务节点</li>
+     *   <li>根据业务数据判断条件表达式，找到符合条件的下一个节点</li>
+     *   <li>返回下一个用户任务节点的所有审批人列表（包括 assignee、candidateUsers、candidateGroups）</li>
+     * </ul>
+     * 
+     * <p><b>使用场景：</b></p>
+     * <ul>
+     *   <li>任务审批前，需要查看下一个节点的审批人</li>
+     *   <li>根据业务数据，确定下一个审批路径</li>
+     * </ul>
+     * 
+     * <p><b>与 nextProcessDefaultApprover 的区别：</b></p>
+     * <ul>
+     *   <li>本方法不需要 flag 参数，用于审批前查询（还未确定审批结果）</li>
+     *   <li>nextProcessDefaultApprover 需要 flag 参数，用于审批中查询（已确定审批结果）</li>
+     * </ul>
+     * 
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
     public void nextPrcessApprover(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> params = inputObject.getParams();
-        String taskId = params.get("taskId").toString();
-        String processInstanceId = params.get("processInstanceId").toString();
-        // 获取表单数据用于排他网关的参数校验
-        Map<String, Object> map = getFormVariable(processInstanceId, params);
-        NextTaskInfo nextTaskInfo = this.getNextTaskInfo(taskId, map);
-        if (nextTaskInfo != null && nextTaskInfo.getUserTask() != null) {
-            // 1.获取下个节点的所有可选审批人
-            List<Map<String, Object>> user = this.getNextTaskApprove(nextTaskInfo.getUserTask());
-            outputObject.setBeans(user);
-            // 2.获取节点信息
-            Map<String, Object> nodeMation = new HashMap<>();
-            nodeMation.put("nodeName", nextTaskInfo.getUserTask().getName());
-            nodeMation.put("nodeType", ActivitiConstants.USER_TASK);
-            outputObject.setBean(nodeMation);
+        try {
+            Map<String, Object> params = inputObject.getParams();
+            String taskId = params.get("taskId").toString();
+            String processInstanceId = params.get("processInstanceId").toString();
+            String flag = params.get("flag").toString();
+
+            // 获取业务数据
+            Map<String, Object> businessData = new HashMap<>();
+            String businessDataStr = params.get("businessData") != null ? params.get("businessData").toString() : null;
+            if (!ToolUtil.isBlank(businessDataStr)) {
+                businessData = JSONObject.fromObject(businessDataStr);
+            }
+
+            // 确保审批结果（flag）在业务数据中
+            if (!ToolUtil.isBlank(flag)) {
+                businessData.put("flag", flag);
+            }
+            
+            // 获取下一个用户任务节点
+            NextTaskInfo nextTaskInfo = this.getNextTaskInfo(taskId, businessData);
+            
+            if (nextTaskInfo != null && nextTaskInfo.getUserTask() != null) {
+                UserTask nextUserTask = nextTaskInfo.getUserTask();
+                // 使用批量查询方式获取审批人列表
+                List<Map<String, Object>> userList = FlowableUtil.getNextTaskApproveBatch(
+                    nextUserTask, businessData, actGroupUserService, iAuthUserService);
+                // 设置返回结果
+                outputObject.setBeans(userList);
+                // 设置节点信息
+                Map<String, Object> nodeMation = new HashMap<>();
+                nodeMation.put("nodeName", nextUserTask.getName());
+                nodeMation.put("nodeType", ActivitiConstants.USER_TASK);
+                nodeMation.put("nodeId", nextUserTask.getId());
+                outputObject.setBean(nodeMation);
+            } else {
+                // 如果没有下一个用户任务节点，返回空列表
+                LOGGER.warn("未找到下一个用户任务节点，taskId: {}, processInstanceId: {}", taskId, processInstanceId);
+            }
+        } catch (Exception e) {
+            LOGGER.error("查询下一个节点审批人异常，taskId: {}", inputObject.getParams().get("taskId"), e);
+            throw new CustomException("查询下一个节点审批人失败: " + e.getMessage());
         }
     }
 
     /**
-     * 获取表单数据用于排他网关的参数校验
-     *
-     * @param processInstanceId 流程id
-     * @param inputParams       入参
-     * @return
+     * 流程运行过程中查询下一个用户节点默认审批人
+     * 
+     * <p><b>功能说明：</b></p>
+     * <ul>
+     *   <li>根据当前任务ID和审批结果，获取下一个用户任务节点</li>
+     *   <li>根据业务数据判断条件表达式，找到符合条件的下一个节点</li>
+     *   <li>返回下一个用户任务节点的默认审批人</li>
+     * </ul>
+     * 
+     * <p><b>使用场景：</b></p>
+     * <ul>
+     *   <li>任务审批时，需要查看下一个节点的默认审批人</li>
+     *   <li>根据审批结果（同意/拒绝）和业务数据，确定下一个审批路径</li>
+     * </ul>
+     * 
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
      */
-    private Map<String, Object> getFormVariable(String processInstanceId, Map<String, Object> inputParams) {
-        Map<String, Object> variable = new HashMap<>();
-        Map<String, Object> params = activitiTaskService.getCurrentTaskParamsByTaskId(processInstanceId);
-        for (String key : params.keySet()) {
-            if (params.get(key) == null) {
-                continue;
+    @Override
+    public void nextProcessDefaultApprover(InputObject inputObject, OutputObject outputObject) {
+        try {
+            Map<String, Object> params = inputObject.getParams();
+            String taskId = params.get("taskId").toString();
+            String processInstanceId = params.get("processInstanceId").toString();
+            String flag = params.get("flag").toString();
+            
+            // 获取业务数据
+            Map<String, Object> businessData = new HashMap<>();
+            String businessDataStr = params.get("businessData") != null ? params.get("businessData").toString() : null;
+            if (!ToolUtil.isBlank(businessDataStr)) {
+                businessData = JSONObject.fromObject(businessDataStr);
             }
-            String str = params.get(key).toString();
-            if (ToolUtil.isJson(str)) {
-                Map<String, Object> formItemMation = JSONObject.fromObject(str);
-                variable.put(key, formItemMation.containsKey("value") ? formItemMation.get("value") : StringUtils.EMPTY);
+            
+            // 确保审批结果（flag）在业务数据中
+            if (!ToolUtil.isBlank(flag)) {
+                businessData.put("flag", flag);
             }
+            
+            // 获取下一个用户任务节点
+            NextTaskInfo nextTaskInfo = this.getNextTaskInfo(taskId, businessData);
+            
+            if (nextTaskInfo != null && nextTaskInfo.getUserTask() != null) {
+                UserTask nextUserTask = nextTaskInfo.getUserTask();
+                // 使用批量查询方式获取审批人列表
+                Map<String, Object> user = FlowableUtil.findDefaultApprover(nextUserTask, businessData, iAuthUserService);
+                // 设置返回结果
+                outputObject.setBean(user);
+            } else {
+                // 如果没有下一个用户任务节点，返回空
+                LOGGER.warn("未找到下一个用户任务节点，taskId: {}, processInstanceId: {}", taskId, processInstanceId);
+            }
+        } catch (Exception e) {
+            LOGGER.error("查询下一个节点默认审批人异常，taskId: {}", inputObject.getParams().get("taskId"), e);
+            throw new CustomException("查询下一个节点默认审批人失败: " + e.getMessage());
         }
-        // 审批结果
-        if (!ToolUtil.isBlank(inputParams.get("flag").toString())) {
-            variable.put("flag", inputParams.get("flag"));
-        }
-        return variable;
     }
 
-    private List<Map<String, Object>> getNextTaskApprove(UserTask userTask) {
-        List<Map<String, Object>> user = new ArrayList<>();
-        // 1.候选组人员获取
-        List<String> groupIds = userTask.getCandidateGroups();
-        if (CollectionUtils.isNotEmpty(groupIds)) {
-            List<ActGroupUser> actGroupUserList = actGroupUserService.queryActGroupUser(groupIds);
-            actGroupUserList.forEach(bean -> {
-                user.add(bean.getUserMation());
-            });
-        }
-        // 2.候选人员获取
-        List<String> userIds = userTask.getCandidateUsers();
-        if (CollectionUtils.isNotEmpty(userIds)) {
-            userIds.forEach(userId -> {
-                Map<String, Object> userMation = iAuthUserService.queryDataMationById(userId);
-                user.add(userMation);
-            });
-        }
-        // 3.代理人获取
-        String assignee = userTask.getAssignee();
-        if (assignee != null) {
-            Map<String, Object> userMation = iAuthUserService.queryDataMationById(assignee);
-            user.add(userMation);
-        }
-        user.removeAll(Collections.singleton(null));
-        return user;
-    }
 
     /**
      * 获取下一个用户任务信息
@@ -404,121 +454,7 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
             if (firstUserTask == null) {
                 return new ArrayList<>();
             }
-
-            // 第一步：收集所有需要查询的ID（先构造数据，避免多次数据库操作）
-            Set<String> allGroupIds = new HashSet<>();  // 所有组ID（去重）
-            Set<String> allUserIds = new HashSet<>();  // 所有用户ID（去重）
-            
-            // 1. 收集候选组ID
-            List<String> candidateGroups = firstUserTask.getCandidateGroups();
-            if (CollectionUtils.isNotEmpty(candidateGroups)) {
-                for (String groupId : candidateGroups) {
-                    // 评估表达式（如果 candidateGroups 是表达式）
-                    if (FlowableUtil.isExpression(groupId)) {
-                        Object evaluated = FlowableUtil.evaluateExpression(groupId, businessData);
-                        if (evaluated != null) {
-                            groupId = evaluated.toString();
-                        }
-                    }
-                    if (!ToolUtil.isBlank(groupId)) {
-                        allGroupIds.add(groupId);
-                    }
-                }
-            }
-            
-            // 2. 收集候选用户ID
-            List<String> candidateUsers = firstUserTask.getCandidateUsers();
-            if (CollectionUtils.isNotEmpty(candidateUsers)) {
-                for (String userId : candidateUsers) {
-                    // 评估表达式（如果 candidateUsers 是表达式）
-                    if (FlowableUtil.isExpression(userId)) {
-                        userId = FlowableUtil.evaluateExpressionAsString(userId, businessData);
-                    }
-                    if (!ToolUtil.isBlank(userId)) {
-                        allUserIds.add(userId);
-                    }
-                }
-            }
-            
-            // 3. 收集代理人ID
-            String assignee = firstUserTask.getAssignee();
-            if (!ToolUtil.isBlank(assignee)) {
-                // 如果 assignee 是表达式，需要评估
-                if (FlowableUtil.isExpression(assignee)) {
-                    assignee = FlowableUtil.evaluateExpressionAsString(assignee, businessData);
-                }
-                if (!ToolUtil.isBlank(assignee)) {
-                    allUserIds.add(assignee);
-                }
-            }
-
-            // 第二步：批量查询数据（减少数据库操作次数）
-            List<Map<String, Object>> userList = new ArrayList<>();
-            Set<String> processedUserIds = new HashSet<>();  // 已处理的用户ID（用于去重）
-            
-            // 批量查询组用户
-            if (!allGroupIds.isEmpty()) {
-                List<ActGroupUser> actGroupUserList = actGroupUserService.queryActGroupUser(new ArrayList<>(allGroupIds));
-                if (CollectionUtils.isNotEmpty(actGroupUserList)) {
-                    actGroupUserList.forEach(bean -> {
-                        Map<String, Object> userMation = bean.getUserMation();
-                        if (CollectionUtil.isNotEmpty(userMation)) {
-                            String userId = userMation.get("id").toString();
-                            // 避免重复添加（组用户和直接指定的用户可能重复）
-                            if (!processedUserIds.contains(userId)) {
-                                userList.add(userMation);
-                                processedUserIds.add(userId);
-                                // 从 allUserIds 中移除已处理的用户ID，避免重复查询
-                                allUserIds.remove(userId);
-                            }
-                        }
-                    });
-                }
-            }
-            
-            // 批量查询剩余的用户信息（排除已从组用户中获取的用户）
-            if (!allUserIds.isEmpty()) {
-                String userIdsStr = Joiner.on(CommonCharConstants.COMMA_MARK).join(allUserIds);
-                List<Map<String, Object>> users = iAuthUserService.queryDataMationByIds(userIdsStr);
-                if (CollectionUtils.isNotEmpty(users)) {
-                    users.forEach(user -> {
-                        Object userId = user != null ? user.get("id") : null;
-                        if (userId != null && !processedUserIds.contains(userId.toString())) {
-                            userList.add(user);
-                            processedUserIds.add(userId.toString());
-                        }
-                    });
-                }
-            }
-            
-            // 使用 Stream API 进行过滤、排序并最终收集到 ArrayList 中
-            List<Map<String, Object>> resultList = userList.stream()
-                .filter(Objects::nonNull)  // 确保 item 不是 null
-                .map(item -> item.entrySet().stream()
-                    .filter(entry -> entry != null && entry.getKey() != null &&
-                        entry.getValue() != null && !"".equals(entry.getValue()))
-                    .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (existing, replacement) -> existing,  // 解决重复键的问题
-                        LinkedHashMap::new))  // 保持插入顺序
-                )
-                .filter(Objects::nonNull)  // 确保转换后的 map 不是 null
-                .sorted(Comparator.comparing(p -> String.valueOf(p.get("id")), Comparator.nullsLast(Comparator.naturalOrder())))
-                .collect(Collectors.collectingAndThen(
-                    Collectors.toCollection(ArrayList::new),
-                    ArrayList::new
-                ));
-            
-            // 根据 userId 去除重复的审批人
-            resultList = resultList.stream()
-                .collect(Collectors.collectingAndThen(
-                     Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(p -> String.valueOf(p.get("id")), Comparator.nullsLast(Comparator.naturalOrder())))),
-                     ArrayList::new
-                 ));
-            
-            return resultList;
-            
+            return FlowableUtil.getNextTaskApproveBatch(firstUserTask, businessData, actGroupUserService, iAuthUserService);            
         } catch (Exception e) {
             LOGGER.error("获取第一个用户任务节点审批人列表异常，流程定义ID: {}", processDefinition.getId(), e);
             return new ArrayList<>();
@@ -574,28 +510,14 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
                 );
             
             UserTask firstUserTask = managementService.executeCommand(cmd);
-            
-            if (firstUserTask != null) {
-                // 获取用户任务节点的 assignee 属性
-                String assignee = firstUserTask.getAssignee();
-                if (!ToolUtil.isBlank(assignee)) {
-                    // 如果 assignee 是表达式，需要评估
-                    if (FlowableUtil.isExpression(assignee)) {
-                        assignee = FlowableUtil.evaluateExpressionAsString(assignee, businessData);
-                    }
-                    if (!ToolUtil.isBlank(assignee)) {
-                        Map<String, Object> userMation = iAuthUserService.queryDataMationById(assignee);
-                        return userMation;
-                    }
-                }
-            }
 
-            return null;
+            return FlowableUtil.findDefaultApprover(firstUserTask, businessData, iAuthUserService);
         } catch (Exception e) {
             LOGGER.error("获取第一个用户任务节点默认审批人异常，流程定义ID: {}", processDefinition.getId(), e);
             throw new CustomException("获取第一个用户任务节点默认审批人失败: " + e.getMessage());
         }
     }
+
 
     /**
      * 启动流程

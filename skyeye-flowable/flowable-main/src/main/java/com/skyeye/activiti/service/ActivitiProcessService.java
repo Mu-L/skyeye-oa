@@ -48,4 +48,6 @@ public interface ActivitiProcessService {
     void queryProcessInstance(InputObject inputObject, OutputObject outputObject);
 
     void nextPrcessDefaultApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject);
+
+    void nextProcessDefaultApprover(InputObject inputObject, OutputObject outputObject);
 }
