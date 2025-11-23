@@ -8,6 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.google.common.base.Joiner;
+import com.skyeye.activiti.cmd.nextusertask.FindFirstUserTaskByConditionCmd;
 import com.skyeye.activiti.cmd.nextusertask.FindNextUserTaskNodeCmd;
 import com.skyeye.activiti.cmd.rollback.RollbackCmd;
 import com.skyeye.activiti.entity.NextTaskInfo;
@@ -20,6 +21,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.tenant.context.TenantContext;
+import com.skyeye.common.util.FlowableUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.entity.ActFlowMation;
 import com.skyeye.eve.entity.ActGroupUser;
@@ -34,10 +36,6 @@ import com.skyeye.userprocess.service.ActUserProcessService;
 import net.sf.json.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
 import org.flowable.bpmn.model.BpmnModel;
 import org.flowable.bpmn.model.UserTask;
 import org.flowable.engine.ManagementService;
@@ -57,7 +55,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -302,12 +299,6 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
         return task;
     }
 
-    /**
-     * 启动流程时获取流程下一个用户节点的审批人
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void nextPrcessApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
@@ -318,14 +309,10 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
         if (!ToolUtil.isBlank(businessDataStr)) {
             businessData = JSONObject.fromObject(businessDataStr);
         }
-        List<Map<String, Object>> user = this.nextPrcessApproverByProcessDefinitionKey(modelKey);
-        outputObject.setBeans(user);
-    }
 
-    public List<Map<String, Object>> nextPrcessApproverByProcessDefinitionKey(String processDefinitionKey) {
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         List<Map<String, Object>> user = new ArrayList<>();
-        ProcessDefinitionQuery processDefinitionQuery = repositoryService.createProcessDefinitionQuery().processDefinitionKey(processDefinitionKey);
+        ProcessDefinitionQuery processDefinitionQuery = repositoryService.createProcessDefinitionQuery().processDefinitionKey(modelKey);
         if (tenantEnable) {
             processDefinitionQuery.processDefinitionTenantId(tenantId);
         }
@@ -339,80 +326,275 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
             List<String> deploymentIds = beans.stream().map(p -> p.getDeploymentId()).collect(Collectors.toList());
             processDefinition = processDefinition.stream().filter(bean -> deploymentIds.contains(bean.getDeploymentId())).collect(Collectors.toList());
             if (processDefinition != null && !processDefinition.isEmpty()) {
-                user = getUserTaskList(processDefinition.get(0));
+                user = getFistUserTaskUserList(processDefinition.get(0), businessData);
             }
         }
-        return user;
+        outputObject.setBeans(user);
     }
 
-    public List<Map<String, Object>> getUserTaskList(ProcessDefinition processDefinition) {
-        String deploymentId = processDefinition.getDeploymentId();
-        // 实现读写bpmn文件信息
-        InputStream bpmnIs = repositoryService.getResourceAsStream(deploymentId, processDefinition.getResourceName());
-        SAXReader saxReader = new SAXReader();
-        // 获取流程图文件中的userTask节点的所有属性
-        Document document = null;
+    @Override
+    public void nextPrcessDefaultApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String modelKey = params.get("modelKey").toString();
+        // 获取业务数据
+        String businessDataStr = params.get("businessData").toString();
+        Map<String, Object> businessData = null;
+        if (!ToolUtil.isBlank(businessDataStr)) {
+            businessData = JSONObject.fromObject(businessDataStr);
+        }
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        Map<String, Object> user = new HashMap<>();
+        ProcessDefinitionQuery processDefinitionQuery = repositoryService.createProcessDefinitionQuery().processDefinitionKey(modelKey);
+        if (tenantEnable) {
+            processDefinitionQuery.processDefinitionTenantId(tenantId);
+        }
+        List<ProcessDefinition> processDefinition = processDefinitionQuery.list();
+        if (processDefinition != null) {
+            ModelQuery modelQuery = repositoryService.createModelQuery();
+            if (tenantEnable) {
+                modelQuery.modelTenantId(tenantId);
+            }
+            List<Model> beans = modelQuery.latestVersion().orderByLastUpdateTime().desc().list();
+            List<String> deploymentIds = beans.stream().map(p -> p.getDeploymentId()).collect(Collectors.toList());
+            processDefinition = processDefinition.stream().filter(bean -> deploymentIds.contains(bean.getDeploymentId())).collect(Collectors.toList());
+            if (processDefinition != null && !processDefinition.isEmpty()) {
+                user = getFirstUserTaskDefaultUser(processDefinition.get(0), businessData);
+            }
+        }
+        outputObject.setBean(user);
+    }
+
+    /**
+     * 根据业务数据获取第一个符合条件的用户任务节点的所有审批人列表
+     * 
+     * <p><b>功能说明：</b></p>
+     * <ul>
+     *   <li>从流程的开始节点开始，根据 businessData 中的值判断条件表达式</li>
+     *   <li>找到第一个符合条件的用户任务节点</li>
+     *   <li>返回该用户任务节点的所有审批人（包括 assignee、candidateUsers、candidateGroups）</li>
+     * </ul>
+     * 
+     * <p><b>使用场景：</b></p>
+     * <ul>
+     *   <li>流程启动前，需要根据业务数据确定第一个审批人列表</li>
+     *   <li>流程中有多个分支，需要根据条件选择不同的审批路径</li>
+     * </ul>
+     * 
+     * @param processDefinition 流程定义
+     * @param businessData 业务数据，用于判断条件表达式。key 为变量名，value 为变量值
+     * @return 审批人列表，如果未找到则返回空列表
+     */
+    public List<Map<String, Object>> getFistUserTaskUserList(ProcessDefinition processDefinition, Map<String, Object> businessData) {
         try {
-            document = saxReader.read(bpmnIs);
-        } catch (DocumentException ee) {
-            throw new CustomException(ee);
-        }
-        Element rootElement = document.getRootElement();
-        Element process = rootElement.element("process");
-        List<Element> userTaskList = process.elements("userTask");
-
-        List<Map<String, Object>> list = new ArrayList<>();
-        // 获取第一个用户任务节点
-        if (CollectionUtil.isNotEmpty(userTaskList)) {
-            Element element = userTaskList.get(0);
-            String assignee = element.attributeValue(ActivitiConstants.ASSIGNEE_USER);
-            String candidateUsers = element.attributeValue("candidateUsers");
-            String candidateGroups = element.attributeValue("candidateGroups");
-
-            if (!ToolUtil.isBlank(candidateGroups)) {
-                List<ActGroupUser> actGroupUserList = actGroupUserService.queryActGroupUser(Arrays.asList(candidateGroups.split(CommonCharConstants.COMMA_MARK)));
-                actGroupUserList.forEach(bean -> {
-                    list.add(bean.getUserMation());
-                });
+            // 获取 BPMN 模型
+            BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinition.getId());
+            if (bpmnModel == null || bpmnModel.getProcesses().isEmpty()) {
+                LOGGER.warn("无法获取 BPMN 模型，流程定义ID: {}", processDefinition.getId());
+                return new ArrayList<>();
             }
-            // 2.候选人员获取
-            if (!ToolUtil.isBlank(candidateUsers)) {
-                Arrays.asList(candidateUsers.split(CommonCharConstants.COMMA_MARK)).forEach(userId -> {
-                    Map<String, Object> userMation = iAuthUserService.queryDataMationById(userId);
-                    list.add(userMation);
-                });
+
+            // 使用 ManagementService 执行 Command 来查找第一个用户任务节点
+            FindFirstUserTaskByConditionCmd cmd = new FindFirstUserTaskByConditionCmd(
+                    bpmnModel, 
+                    businessData != null ? businessData : new HashMap<>(), 
+                    processDefinition.getId()
+                );
+            
+            UserTask firstUserTask = managementService.executeCommand(cmd);
+            if (firstUserTask == null) {
+                return new ArrayList<>();
             }
-            // 3.代理人获取
+
+            // 第一步：收集所有需要查询的ID（先构造数据，避免多次数据库操作）
+            Set<String> allGroupIds = new HashSet<>();  // 所有组ID（去重）
+            Set<String> allUserIds = new HashSet<>();  // 所有用户ID（去重）
+            
+            // 1. 收集候选组ID
+            List<String> candidateGroups = firstUserTask.getCandidateGroups();
+            if (CollectionUtils.isNotEmpty(candidateGroups)) {
+                for (String groupId : candidateGroups) {
+                    // 评估表达式（如果 candidateGroups 是表达式）
+                    if (FlowableUtil.isExpression(groupId)) {
+                        Object evaluated = FlowableUtil.evaluateExpression(groupId, businessData);
+                        if (evaluated != null) {
+                            groupId = evaluated.toString();
+                        }
+                    }
+                    if (!ToolUtil.isBlank(groupId)) {
+                        allGroupIds.add(groupId);
+                    }
+                }
+            }
+            
+            // 2. 收集候选用户ID
+            List<String> candidateUsers = firstUserTask.getCandidateUsers();
+            if (CollectionUtils.isNotEmpty(candidateUsers)) {
+                for (String userId : candidateUsers) {
+                    // 评估表达式（如果 candidateUsers 是表达式）
+                    if (FlowableUtil.isExpression(userId)) {
+                        userId = FlowableUtil.evaluateExpressionAsString(userId, businessData);
+                    }
+                    if (!ToolUtil.isBlank(userId)) {
+                        allUserIds.add(userId);
+                    }
+                }
+            }
+            
+            // 3. 收集代理人ID
+            String assignee = firstUserTask.getAssignee();
             if (!ToolUtil.isBlank(assignee)) {
-                Map<String, Object> userMation = iAuthUserService.queryDataMationById(assignee);
-                list.add(userMation);
+                // 如果 assignee 是表达式，需要评估
+                if (FlowableUtil.isExpression(assignee)) {
+                    assignee = FlowableUtil.evaluateExpressionAsString(assignee, businessData);
+                }
+                if (!ToolUtil.isBlank(assignee)) {
+                    allUserIds.add(assignee);
+                }
             }
+
+            // 第二步：批量查询数据（减少数据库操作次数）
+            List<Map<String, Object>> userList = new ArrayList<>();
+            Set<String> processedUserIds = new HashSet<>();  // 已处理的用户ID（用于去重）
+            
+            // 批量查询组用户
+            if (!allGroupIds.isEmpty()) {
+                List<ActGroupUser> actGroupUserList = actGroupUserService.queryActGroupUser(new ArrayList<>(allGroupIds));
+                if (CollectionUtils.isNotEmpty(actGroupUserList)) {
+                    actGroupUserList.forEach(bean -> {
+                        Map<String, Object> userMation = bean.getUserMation();
+                        if (CollectionUtil.isNotEmpty(userMation)) {
+                            String userId = userMation.get("id").toString();
+                            // 避免重复添加（组用户和直接指定的用户可能重复）
+                            if (!processedUserIds.contains(userId)) {
+                                userList.add(userMation);
+                                processedUserIds.add(userId);
+                                // 从 allUserIds 中移除已处理的用户ID，避免重复查询
+                                allUserIds.remove(userId);
+                            }
+                        }
+                    });
+                }
+            }
+            
+            // 批量查询剩余的用户信息（排除已从组用户中获取的用户）
+            if (!allUserIds.isEmpty()) {
+                String userIdsStr = Joiner.on(CommonCharConstants.COMMA_MARK).join(allUserIds);
+                List<Map<String, Object>> users = iAuthUserService.queryDataMationByIds(userIdsStr);
+                if (CollectionUtils.isNotEmpty(users)) {
+                    users.forEach(user -> {
+                        Object userId = user != null ? user.get("id") : null;
+                        if (userId != null && !processedUserIds.contains(userId.toString())) {
+                            userList.add(user);
+                            processedUserIds.add(userId.toString());
+                        }
+                    });
+                }
+            }
+            
+            // 使用 Stream API 进行过滤、排序并最终收集到 ArrayList 中
+            List<Map<String, Object>> resultList = userList.stream()
+                .filter(Objects::nonNull)  // 确保 item 不是 null
+                .map(item -> item.entrySet().stream()
+                    .filter(entry -> entry != null && entry.getKey() != null &&
+                        entry.getValue() != null && !"".equals(entry.getValue()))
+                    .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (existing, replacement) -> existing,  // 解决重复键的问题
+                        LinkedHashMap::new))  // 保持插入顺序
+                )
+                .filter(Objects::nonNull)  // 确保转换后的 map 不是 null
+                .sorted(Comparator.comparing(p -> String.valueOf(p.get("id")), Comparator.nullsLast(Comparator.naturalOrder())))
+                .collect(Collectors.collectingAndThen(
+                    Collectors.toCollection(ArrayList::new),
+                    ArrayList::new
+                ));
+            
+            // 根据 userId 去除重复的审批人
+            resultList = resultList.stream()
+                .collect(Collectors.collectingAndThen(
+                     Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(p -> String.valueOf(p.get("id")), Comparator.nullsLast(Comparator.naturalOrder())))),
+                     ArrayList::new
+                 ));
+            
+            return resultList;
+            
+        } catch (Exception e) {
+            LOGGER.error("获取第一个用户任务节点审批人列表异常，流程定义ID: {}", processDefinition.getId(), e);
+            return new ArrayList<>();
         }
-        // 使用 Stream API 进行过滤、排序并最终收集到 ArrayList 中
-        List<Map<String, Object>> resultList = list.stream()
-            .filter(Objects::nonNull)  // 确保 item 不是 null
-            .map(item -> item.entrySet().stream()
-                .filter(entry -> entry != null && entry.getKey() != null &&
-                    entry.getValue() != null && !"".equals(entry.getValue()))
-                .collect(Collectors.toMap(
-                    Map.Entry::getKey,
-                    Map.Entry::getValue,
-                    (existing, replacement) -> existing,  // 解决重复键的问题
-                    LinkedHashMap::new))  // 保持插入顺序
-            )
-            .filter(Objects::nonNull)  // 确保转换后的 map 不是 null
-            .sorted(Comparator.comparing(p -> String.valueOf(p.get("id")), Comparator.nullsLast(Comparator.naturalOrder())))
-            .collect(Collectors.collectingAndThen(
-                Collectors.toCollection(ArrayList::new),
-                ArrayList::new
-            ));
-        // 根据 userId 去除重复的审批人
-        resultList = resultList.stream()
-            .collect(Collectors.collectingAndThen(
-                 Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(p -> String.valueOf(p.get("id")), Comparator.nullsLast(Comparator.naturalOrder())))),
-                 ArrayList::new
-             ));
-        return resultList;
+    }
+
+    /**
+     * 根据业务数据获取第一个符合条件的用户任务节点的默认审批人
+     * 
+     * <p><b>功能说明：</b></p>
+     * <ul>
+     *   <li>从流程的开始节点开始，根据 businessData 中的值判断条件表达式</li>
+     *   <li>找到第一个符合条件的用户任务节点</li>
+     *   <li>返回该用户任务节点的默认审批人</li>
+     * </ul>
+     * 
+     * <p><b>使用场景：</b></p>
+     * <ul>
+     *   <li>流程启动前，需要根据业务数据确定第一个审批人</li>
+     *   <li>流程中有多个分支，需要根据条件选择不同的审批路径</li>
+     * </ul>
+     * 
+     * <p><b>示例：</b></p>
+     * <pre>{@code
+     * // businessData 示例
+     * Map<String, Object> businessData = new HashMap<>();
+     * businessData.put("amount", 5000);  // 金额
+     * businessData.put("dept", "finance");  // 部门
+     * 
+     * // 如果流程中有条件：${amount > 1000}，会根据 businessData 中的 amount 值判断
+     * Map<String, Object> user = getFirstUserTaskDefaultUser(processDefinition, businessData);
+     * }</pre>
+     * 
+     * @param processDefinition 流程定义
+     * @param businessData 业务数据，用于判断条件表达式。key 为变量名，value 为变量值
+     * @return 用户信息，如果未找到则返回null
+     */
+    public Map<String, Object> getFirstUserTaskDefaultUser(ProcessDefinition processDefinition, Map<String, Object> businessData) {
+        try {
+            // 获取 BPMN 模型
+            BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinition.getId());
+            if (bpmnModel == null || bpmnModel.getProcesses().isEmpty()) {
+                LOGGER.warn("无法获取 BPMN 模型，流程定义ID: {}", processDefinition.getId());
+                return null;
+            }
+
+            // 使用 ManagementService 执行 Command 来查找第一个用户任务节点
+            // 这样可以确保 ExecutionEntity 在正确的上下文中创建
+            FindFirstUserTaskByConditionCmd cmd = new FindFirstUserTaskByConditionCmd(
+                    bpmnModel, 
+                    businessData != null ? businessData : new HashMap<>(), 
+                    processDefinition.getId()
+                );
+            
+            UserTask firstUserTask = managementService.executeCommand(cmd);
+            
+            if (firstUserTask != null) {
+                // 获取用户任务节点的 assignee 属性
+                String assignee = firstUserTask.getAssignee();
+                if (!ToolUtil.isBlank(assignee)) {
+                    // 如果 assignee 是表达式，需要评估
+                    if (FlowableUtil.isExpression(assignee)) {
+                        assignee = FlowableUtil.evaluateExpressionAsString(assignee, businessData);
+                    }
+                    if (!ToolUtil.isBlank(assignee)) {
+                        Map<String, Object> userMation = iAuthUserService.queryDataMationById(assignee);
+                        return userMation;
+                    }
+                }
+            }
+
+            return null;
+        } catch (Exception e) {
+            LOGGER.error("获取第一个用户任务节点默认审批人异常，流程定义ID: {}", processDefinition.getId(), e);
+            throw new CustomException("获取第一个用户任务节点默认审批人失败: " + e.getMessage());
+        }
     }
 
     /**

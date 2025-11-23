@@ -79,6 +79,15 @@ public class ActivitiProcessController {
         activitiProcessService.nextPrcessApproverByProcessDefinitionKey(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "nextPrcessDefaultApproverByProcessDefinitionKey", value = "启动流程时获取流程下一个用户节点的默认审批人", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "modelKey", name = "modelKey", value = "工作流模型的key", required = "required"),
+        @ApiImplicitParam(id = "businessData", name = "businessData", value = "业务数据,根据不同的业务数据走不同的工作流")})
+    @RequestMapping("/post/ActivitiProcessController/nextPrcessDefaultApproverByProcessDefinitionKey")
+    public void nextPrcessDefaultApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject) {
+        activitiProcessService.nextPrcessDefaultApproverByProcessDefinitionKey(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "startProcess", value = "启动流程", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = FlowableSubData.class)
     @RequestMapping("/post/ActivitiProcessController/startProcess")

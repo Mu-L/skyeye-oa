@@ -4,9 +4,9 @@
 
 package com.skyeye.activiti.service;
 
+import com.skyeye.activiti.entity.NextTaskInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.activiti.entity.NextTaskInfo;
 
 import java.util.Map;
 
@@ -46,4 +46,6 @@ public interface ActivitiProcessService {
     void revokeProcess(InputObject inputObject, OutputObject outputObject);
 
     void queryProcessInstance(InputObject inputObject, OutputObject outputObject);
+
+    void nextPrcessDefaultApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject);
 }
