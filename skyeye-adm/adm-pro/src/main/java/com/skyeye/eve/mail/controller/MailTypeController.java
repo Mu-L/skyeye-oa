@@ -32,21 +32,21 @@ public class MailTypeController {
     @Autowired
     private MailTypeService mailTypeService;
 
-    @ApiOperation(id = "queryMailTypeList", value = "获取通讯录类别列表", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryMailTypeList", value = "获取通讯录类别列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/MailTypeController/queryMailTypeList")
     public void queryMailTypeList(InputObject inputObject, OutputObject outputObject) {
         mailTypeService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "writeMailType", value = "新增/编辑通讯录类型信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeMailType", value = "新增/编辑通讯录类型信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = MailType.class)
     @RequestMapping("/post/MailTypeController/writeMailType")
     public void insertMailMationType(InputObject inputObject, OutputObject outputObject) {
         mailTypeService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteMailTypeById", value = "删除通讯录类型", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteMailTypeById", value = "删除通讯录类型", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/MailTypeController/deleteMailTypeById")

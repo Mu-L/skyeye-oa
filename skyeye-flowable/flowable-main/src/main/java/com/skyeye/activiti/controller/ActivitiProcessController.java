@@ -60,7 +60,7 @@ public class ActivitiProcessController {
         activitiProcessService.editProcessInstancePicToRefresh(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "activitiProcess001", value = "获取流程下一个节点的审批人", method = "POST", allUse = "2")
+    @ApiOperation(id = "activitiProcess001", value = "审批中，获取流程下一个节点的审批人", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程id", required = "required"),
         @ApiImplicitParam(id = "taskId", name = "taskId", value = "当前任务节点的任务id", required = "required"),
