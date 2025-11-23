@@ -41,11 +41,6 @@ public class ActivitiConstants {
     public static final String ASSIGNEE_USER_EXP = "${" + ASSIGNEE_USER + "}";
 
     /**
-     * form表单数据存储在task的varables的key
-     */
-    public static final String PROCESSINSTANCEID_TASK_VARABLES = "baseTask";
-
-    /**
      * 存储在流程信息中的审批/其他操作的历史意见
      */
     public static final String PROCESSINSTANCEID_TASK_LEAVE_OPINION_LIST_VARABLES = "leaveOpinionList";

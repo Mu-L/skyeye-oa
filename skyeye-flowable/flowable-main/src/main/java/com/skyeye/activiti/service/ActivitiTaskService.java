@@ -38,14 +38,6 @@ public interface ActivitiTaskService {
 
     List<String> getTaskAssignee(String processInstanceId);
 
-    /**
-     * 获取当前任务节点填写的表单数据
-     *
-     * @param taskId 任务id
-     * @return 当前任务节点填写的表单数据
-     */
-    Map<String, Object> getCurrentTaskParamsByTaskId(String taskId);
-
     void editActivitiModelToRun(InputObject inputObject, OutputObject outputObject);
 
     /**

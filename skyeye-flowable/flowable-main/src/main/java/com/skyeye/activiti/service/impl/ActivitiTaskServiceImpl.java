@@ -405,9 +405,9 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
         Boolean isMultiInstance = isMultiInstance(task.getId(), map);
         map.put("isMultiInstance", isMultiInstance);
         // 获取提交时候的信息
-        Map<String, Object> variable = getCurrentTaskParamsByTaskId(processInstanceId);
         if (!isMultiInstance) {
             // 因为获取下一个节点可能会遇到网关节点，所以默认设置审批结果为true
+            Map<String, Object> variable = new HashMap<>();
             variable.put("flag", 1);
             NextTaskInfo nextTaskInfo = activitiProcessService.getNextTaskInfo(taskId, variable);
             if (nextTaskInfo != null && nextTaskInfo.getUserTask() != null) {
@@ -419,9 +419,7 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
         map.put("pageTypes", userProcess.getPageTypes());
         map.put("title", userProcess.getTitle());
 
-        List<Map<String, Object>> beans = getParamsToDSFormShow(variable);
         outputObject.setBean(map);
-        outputObject.setBeans(beans);
     }
 
     @Override
@@ -432,42 +430,6 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
         }
         return tasks.stream().filter(bean -> StrUtil.isNotEmpty(bean.getAssignee()))
             .map(Task::getAssignee).distinct().collect(Collectors.toList());
-    }
-
-    /**
-     * 获取当前任务节点填写的表单数据
-     *
-     * @param processInstanceId 流程id
-     * @return 当前任务节点填写的表单数据
-     */
-    @Override
-    public Map<String, Object> getCurrentTaskParamsByTaskId(String processInstanceId) {
-        Map<String, Object> variable = (Map<String, Object>) runtimeService.getVariable(processInstanceId,
-            ActivitiConstants.PROCESSINSTANCEID_TASK_VARABLES);
-        return variable == null ? new HashMap<>() : variable;
-    }
-
-    /**
-     * 将工作流数据转为form表单类型的数据并作展示
-     *
-     * @return
-     */
-    private List<Map<String, Object>> getParamsToDSFormShow(Map<String, Object> params) {
-        List<Map<String, Object>> beans = new ArrayList<>();
-        // 遍历数据存入list集合
-        for (String key : params.keySet()) {
-            if (params.get(key) == null) {
-                continue;
-            }
-            String str = params.get(key).toString();
-            if (ToolUtil.isJson(str)) {
-                beans.add((Map<String, Object>) params.get(key));
-            }
-        }
-        // 升序排序
-        beans = beans.stream()
-            .sorted(Comparator.comparing(bean -> Integer.parseInt(bean.get("orderBy").toString()))).collect(Collectors.toList());
-        return beans;
     }
 
     /**
