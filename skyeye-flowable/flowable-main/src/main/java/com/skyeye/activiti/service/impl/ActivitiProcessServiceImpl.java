@@ -200,7 +200,7 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
-    public void nextPrcessApprover(InputObject inputObject, OutputObject outputObject) {
+    public void nextProcessApprover(InputObject inputObject, OutputObject outputObject) {
         try {
             Map<String, Object> params = inputObject.getParams();
             String taskId = params.get("taskId").toString();
@@ -350,7 +350,7 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
     }
 
     @Override
-    public void nextPrcessApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject) {
+    public void nextProcessApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String modelKey = params.get("modelKey").toString();
         // 获取业务数据
@@ -383,7 +383,7 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
     }
 
     @Override
-    public void nextPrcessDefaultApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject) {
+    public void nextProcessDefaultApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String modelKey = params.get("modelKey").toString();
         // 获取业务数据

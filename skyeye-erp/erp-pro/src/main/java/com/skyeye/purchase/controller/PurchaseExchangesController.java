@@ -30,12 +30,6 @@ public class PurchaseExchangesController {
     @Autowired
     private PurchaseExchangesService purchaseExchangesService;
 
-    /**
-     * 获取采购换货列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryPurchaseExchangesToList", value = "获取采购换货列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/PurchaseExchangesController/queryPurchaseExchangesToList")
@@ -43,12 +37,6 @@ public class PurchaseExchangesController {
         purchaseExchangesService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑采购换货信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeExchanges", value = "新增/编辑采购换货信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = PurchaseExchange.class)
     @RequestMapping("/post/PurchaseExchangesController/writePurchaseExchanges")
@@ -56,12 +44,6 @@ public class PurchaseExchangesController {
         purchaseExchangesService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 转采购到货单时，根据id查询采购换货信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryPurchaseExchangesTransToDeliveryById", value = "转采购到货单时，根据id查询采购换货信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -70,12 +52,6 @@ public class PurchaseExchangesController {
         purchaseExchangesService.queryPurchaseExchangesTransToDeliveryById(inputObject, outputObject);
     }
 
-    /**
-     * 采购换货单信息转采购到货单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertPurchaseExchangesToDelivery", value = "采购换货单信息转采购到货单", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = PurchaseDelivery.class, value = {
             @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

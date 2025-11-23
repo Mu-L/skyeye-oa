@@ -28,7 +28,7 @@ public interface ActivitiProcessService {
 
     void editProcessInstancePicToRefresh(InputObject inputObject, OutputObject outputObject);
 
-    void nextPrcessApprover(InputObject inputObject, OutputObject outputObject);
+    void nextProcessApprover(InputObject inputObject, OutputObject outputObject);
 
     /**
      * 获取下一个用户任务信息
@@ -39,7 +39,7 @@ public interface ActivitiProcessService {
      */
     NextTaskInfo getNextTaskInfo(String taskId, Map<String, Object> map);
 
-    void nextPrcessApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject);
+    void nextProcessApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject);
 
     void startProcess(InputObject inputObject, OutputObject outputObject);
 
@@ -47,7 +47,7 @@ public interface ActivitiProcessService {
 
     void queryProcessInstance(InputObject inputObject, OutputObject outputObject);
 
-    void nextPrcessDefaultApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject);
+    void nextProcessDefaultApproverByProcessDefinitionKey(InputObject inputObject, OutputObject outputObject);
 
     void nextProcessDefaultApprover(InputObject inputObject, OutputObject outputObject);
 }
