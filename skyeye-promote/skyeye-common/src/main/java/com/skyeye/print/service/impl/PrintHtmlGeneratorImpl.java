@@ -63,6 +63,10 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
         try {
             // 解析模板配置
             JSONObject config = JSON.parseObject(printTemplate.getConfigContent());
+            // 如果config为空，则返回空字符串
+            if (config == null) {
+                return "";
+            }
 
             // 准备模板元素
             List<PrintElement> elements = prepareElements(config.getJSONArray("elements"), data);

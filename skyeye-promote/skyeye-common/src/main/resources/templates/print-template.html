@@ -248,9 +248,11 @@
                 <div th:if="${element.barcodeType == 'barcode'}" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
                     <img th:if="${element.value != null}"
                         th:src="${element.value}"
-                        th:style="${'max-width:100%;max-height:' + (element.height != null ? (element.height - (element.showLabel ? 20 : 0)) : '100') + 'px;' +
-                                 'object-fit:contain;' +
-                                 'margin:' + (element.margin ?: 5) + 'px;'}" />
+                        th:style="${'max-width:100%;max-height:' + 
+                                 (element.height != null and element.height != '' ? 
+                                  (T(java.lang.Double).parseDouble(element.height.toString()) - (element.showLabel != null and element.showLabel == true ? 20 : 0)) : 
+                                  100) + 
+                                 'px;object-fit:contain;margin:5px;'}" />
                 </div>
                 <!-- 二维码 -->
                 <div th:if="${element.barcodeType == 'qrcode'}" class="qrcode-wrapper">
