@@ -26,7 +26,9 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.coupon.dao.CouponDao;
 import com.skyeye.coupon.entity.Coupon;
 import com.skyeye.coupon.entity.CouponMaterial;
+import com.skyeye.coupon.entity.CouponStore;
 import com.skyeye.coupon.entity.CouponUse;
+import com.skyeye.coupon.enums.CouponStoreCoverage;
 import com.skyeye.coupon.enums.CouponValidityType;
 import com.skyeye.coupon.enums.PromotionDiscountType;
 import com.skyeye.coupon.enums.PromotionMaterialScope;
@@ -128,9 +130,6 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
 
     @Override
     public void createPostpose(Coupon entity, String userId) {
-        if (CollectionUtil.isNotEmpty(entity.getStoreIdList())) {// 优惠券关联门店
-            couponStoreService.createEntity(entity.getId(), entity.getStoreIdList());
-        }
         if (StrUtil.isNotEmpty(entity.getTemplateId())) {// 优惠券
             if (Objects.equals(entity.getValidityType(), CouponValidityType.DATE.getKey())) {
                 log.info("优惠券id" + entity.getId() + "创建定时任务-- 开始");
@@ -175,6 +174,17 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
                 couponMaterialService.insertCouponMaterial(coupon.getId(), coupon.getCouponMaterialList(), userId);
             }
         }
+        if (coupon.getStoreCoverage() == CouponStoreCoverage.SPECIFIED_STORE.getKey()) {
+            // 指定门店
+            // 先删除原有关联门店
+            couponStoreService.deleteByCouponIds(Collections.singletonList(coupon.getId()));
+            if (CollectionUtil.isNotEmpty(coupon.getStoreIdList())) {// 优惠券关联门店
+                couponStoreService.createEntity(coupon.getId(), coupon.getStoreIdList());
+            }
+        } else if (coupon.getStoreCoverage() == CouponStoreCoverage.ALL_STORE.getKey()) {
+            // 全部门店
+            couponStoreService.deleteByCouponIds(Collections.singletonList(coupon.getId()));
+        }
     }
 
     @Override
@@ -182,7 +192,12 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
     public Coupon selectById(String id) {
         Coupon coupon = super.selectById(id);
         if (ObjectUtil.isNotEmpty(coupon)) {
-            coupon.setCouponStoreList(couponStoreService.queryListByCouponId(id));
+            List<CouponStore> couponStores = couponStoreService.queryListByCouponId(id);
+            coupon.setCouponStoreList(couponStores);
+            if (CollectionUtil.isNotEmpty(couponStores)) {
+                List<String> storeIds = couponStores.stream().map(CouponStore::getStoreId).distinct().collect(Collectors.toList());
+                coupon.setStoreIdList(storeIds);
+            }
         }
         return coupon;
     }

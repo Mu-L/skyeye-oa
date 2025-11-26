@@ -6,6 +6,7 @@ package com.skyeye.coupon.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
@@ -13,10 +14,7 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.common.enumeration.EnableEnum;
-import com.skyeye.coupon.enums.CouponTakeType;
-import com.skyeye.coupon.enums.CouponValidityType;
-import com.skyeye.coupon.enums.PromotionDiscountType;
-import com.skyeye.coupon.enums.PromotionMaterialScope;
+import com.skyeye.coupon.enums.*;
 import lombok.Data;
 
 import java.util.List;
@@ -30,7 +28,7 @@ import java.util.List;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
-@TableName(value = "shop_coupon")
+@TableName(value = "shop_coupon", autoResultMap = true)
 @RedisCacheField(name = "shop:coupon", cacheTime = RedisConstants.THIRTY_DAY_SECONDS)
 @ApiModel(value = "优惠券/模版信息管理实体类")
 public class Coupon extends BaseGeneralInfo {
@@ -123,5 +121,7 @@ public class Coupon extends BaseGeneralInfo {
     @Property(value = "是否可领取")
     private Boolean canDraw;
 
-
+    @TableField(value = "store_coverage")
+    @ApiModelProperty(value = "门店适用范围", enumClass = CouponStoreCoverage.class)
+    private Integer storeCoverage;
 }
