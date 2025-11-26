@@ -303,13 +303,21 @@ public class CouponServiceImpl extends SkyeyeBusinessServiceImpl<CouponDao, Coup
     @Override
     @IgnoreTenant
     public void queryCouponListByMaterialId(InputObject inputObject, OutputObject outputObject) {
-        String materialId = inputObject.getParams().get("materialId").toString();
+        Map<String, Object> params = inputObject.getParams();
+        String materialId = params.get("materialId").toString();
+        String storeId = params.get("storeId").toString();
+
         String typeKey = MybatisPlusUtil.toColumns(Coupon::getTemplateId);
         MPJLambdaWrapper<Coupon> wrapper = new MPJLambdaWrapper<Coupon>()
             .innerJoin(CouponMaterial.class, CouponMaterial::getCouponId, Coupon::getId)
             .eq(CouponMaterial::getMaterialId, materialId)
             .eq(MybatisPlusUtil.toColumns(Coupon::getEnabled), EnableEnum.ENABLE_USING.getKey())
-            .isNotNull(typeKey).ne(typeKey, StrUtil.EMPTY);
+            .isNotNull(typeKey).ne(typeKey, StrUtil.EMPTY)
+            .leftJoin(CouponStore.class, CouponStore::getCouponId, Coupon::getId)
+            .and(w -> w.eq(Coupon::getStoreCoverage, CouponStoreCoverage.ALL_STORE.getKey())
+                .or(w2 -> w2.eq(Coupon::getStoreCoverage, CouponStoreCoverage.SPECIFIED_STORE.getKey())
+                    .eq(CouponStore::getStoreId, storeId)))
+            .groupBy(Coupon::getId);
         List<Coupon> list = skyeyeBaseMapper.selectJoinList(Coupon.class, wrapper);
         setDrawState(list);// 设置是否可以领取状态
         outputObject.setBeans(list);
