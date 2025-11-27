@@ -375,6 +375,7 @@ public class ServiceBeanServiceImpl extends SkyeyeBusinessServiceImpl<ServiceBea
         QueryWrapper<ServiceBean> wrapper = new QueryWrapper<>();
         wrapper.in(MybatisPlusUtil.toColumns(ServiceBean::getEntityClassName), entityClassNames);
         wrapper.eq(MybatisPlusUtil.toColumns(ServiceBean::getAppId), appId);
+        wrapper.likeLeft(MybatisPlusUtil.toColumns(ServiceBean::getSpringApplicationName), springProfilesActive);
         List<ServiceBean> list = list(wrapper);
         return list.stream().collect(Collectors.toMap(item -> item.getEntityClassName(), bean -> bean));
     }
