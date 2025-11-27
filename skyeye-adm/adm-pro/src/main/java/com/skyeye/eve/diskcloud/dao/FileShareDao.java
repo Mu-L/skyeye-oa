@@ -27,7 +27,9 @@ public interface FileShareDao extends SkyeyeBaseMapper<FileShare> {
     List<Map<String, Object>> queryShareFileList(CommonPageInfo pageInfo);
 
     @IgnoreTenant
-    List<Map<String, Object>> queryShareFileFirstListByParentId(@Param("id") String id, @Param("tenantId") String tenantId);
+    List<Map<String, Object>> queryShareFileFirstListByParentId(@Param("id") String id,
+                                                                @Param("deleteFlag") Integer deleteFlag,
+                                                                @Param("tenantId") String tenantId);
 
     @IgnoreTenant
     List<Map<String, Object>> queryShareFileListByParentId(@Param("folderId") String folderId,

@@ -46,6 +46,7 @@
         WHERE a.id = #{id}
           AND a.file_id = b.id
           AND a.file_type = 'folder'
+          AND b.delete_flag = #{deleteFlag}
             <if test="tenantId != null and tenantId != ''">
                 AND b.tenant_id = #{tenantId}
                 AND a.tenant_id = #{tenantId}
@@ -63,6 +64,7 @@
         WHERE a.id = #{id}
           AND a.file_id = b.id
           AND a.file_type = 'file'
+          AND b.delete_flag = #{deleteFlag}
         <if test="tenantId != null and tenantId != ''">
             AND b.tenant_id = #{tenantId}
             AND a.tenant_id = #{tenantId}

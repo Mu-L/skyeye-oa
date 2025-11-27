@@ -138,7 +138,7 @@ public class FileShareServiceImpl extends SkyeyeBusinessServiceImpl<FileShareDao
         System.out.println(tenantId);
         if ("-1".equals(folderId)) {
             // 加载初始目录
-            beans = skyeyeBaseMapper.queryShareFileFirstListByParentId(id, tenantId);
+            beans = skyeyeBaseMapper.queryShareFileFirstListByParentId(id, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
         } else {
             // 加载子目录
             beans = skyeyeBaseMapper.queryShareFileListByParentId(folderId, DeleteFlagEnum.NOT_DELETE.getKey(), tenantId);
