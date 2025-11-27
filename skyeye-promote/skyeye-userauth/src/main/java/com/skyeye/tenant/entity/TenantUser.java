@@ -54,6 +54,10 @@ public class TenantUser extends OperatorUserInfo {
     private String staffId;
 
     @TableField(exist = false)
+    @Property(value = "员工的serviceClassName")
+    private String staffServiceClassName;
+
+    @TableField(exist = false)
     @Property(value = "员工信息")
     private Map<String, Object> staffMation;
 

@@ -163,9 +163,13 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         List<String> staffIds = beans.stream().map(bean -> bean.get("staffId").toString()).collect(Collectors.toList());
         Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
+
+        String staffServiceClassName = sysEveUserStaffService.getServiceClassName();
+
         beans.forEach(bean -> {
             String transferStaffId = bean.get("staffId").toString();
             bean.put("staffMation", staffMap.get(transferStaffId));
+            bean.put("staffServiceClassName", staffServiceClassName);
         });
 
         // 设置组织信息
