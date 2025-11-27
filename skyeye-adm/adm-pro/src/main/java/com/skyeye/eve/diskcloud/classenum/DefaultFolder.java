@@ -28,7 +28,7 @@ import java.util.Map;
 @AllArgsConstructor
 public enum DefaultFolder implements SkyeyeEnumClass {
 
-    FAVORITES("1", "收藏夹", true, false),
+    FAVORITES("1", "收藏夹", false, false),
     FOLDER("2", "我的文档", true, false),
     SKYDRIVE("3", "企业网盘", true, false);
 
@@ -43,7 +43,9 @@ public enum DefaultFolder implements SkyeyeEnumClass {
     public static List<Map<String, Object>> getFileConsoleISDefaultFolder() {
         List<Map<String, Object>> beans = new ArrayList<>();
         for (DefaultFolder bean : DefaultFolder.values()) {
-            beans.add(fileConsoleNode(bean));
+            if (bean.show) {
+                beans.add(fileConsoleNode(bean));
+            }
         }
         return beans;
     }

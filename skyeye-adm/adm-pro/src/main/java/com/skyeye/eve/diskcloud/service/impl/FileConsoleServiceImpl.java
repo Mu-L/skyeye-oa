@@ -123,7 +123,7 @@ public class FileConsoleServiceImpl extends SkyeyeBusinessServiceImpl<FileConsol
         // 父目录id
         String parentId = map.get("parentId").toString();
         if (ToolUtil.isBlank(parentId) || "0".equals(parentId)) {
-            // 加载一级目录，缓存30天
+            // 加载一级目录
             List<Map<String, Object>> beans = DefaultFolder.getFileConsoleISDefaultFolder();
             outputObject.setBeans(beans);
         } else {
