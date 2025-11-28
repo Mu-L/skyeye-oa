@@ -5,6 +5,7 @@
 package com.skyeye.lifecycle.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -40,6 +41,10 @@ public class LifecycleTemplateMasterServiceImpl extends SkyeyeBusinessServiceImp
     @Override
     protected void validatorEntity(LifecycleTemplateMaster entity) {
         super.validatorEntity(entity);
+        if (StrUtil.equals(entity.getAttrKey(), CommonConstants.ID)
+            || StrUtil.equals(entity.getLifecycleTemplateIdAttrKey(), CommonConstants.ID)) {
+            throw new CustomException("字段名不能为id");
+        }
         QueryWrapper<LifecycleTemplateMaster> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplateMaster::getAppId), entity.getAppId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(LifecycleTemplateMaster::getClassName), entity.getClassName());
