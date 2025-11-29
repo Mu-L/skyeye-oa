@@ -6,6 +6,7 @@ package com.skyeye.eve.notice.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -23,6 +24,7 @@ import com.skyeye.eve.notice.entity.UserMessage;
 import com.skyeye.eve.notice.entity.UserMessageBox;
 import com.skyeye.eve.notice.service.UserMessageService;
 import com.skyeye.eve.websocket.service.IWebSocketService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +41,7 @@ import java.util.Map;
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
+@Slf4j
 @Service
 @SkyeyeService(name = "用户消息管理", groupName = "内部消息模块")
 public class UserMessageServiceImpl extends SkyeyeBusinessServiceImpl<UserMessageDao, UserMessage> implements UserMessageService {
@@ -86,6 +89,7 @@ public class UserMessageServiceImpl extends SkyeyeBusinessServiceImpl<UserMessag
     public void insertUserMessage(InputObject inputObject, OutputObject outputObject) {
         UserMessageBox userMessageBox = inputObject.getParams(UserMessageBox.class);
         List<UserMessage> userMessageList = userMessageBox.getUserNoticeMationList();
+        log.info("userMessageList: {}", JSONUtil.toJsonStr(userMessageList));
         if (CollectionUtil.isEmpty(userMessageList)) {
             return;
         }
@@ -103,6 +107,7 @@ public class UserMessageServiceImpl extends SkyeyeBusinessServiceImpl<UserMessag
             map.put("msg", userMessage.getContent());
             list.add(map);
         }
+        log.info("list: {}", JSONUtil.toJsonStr(list));
         iWebSocketService.sendWebSocketPointMsgToUser(list, null);
     }
 

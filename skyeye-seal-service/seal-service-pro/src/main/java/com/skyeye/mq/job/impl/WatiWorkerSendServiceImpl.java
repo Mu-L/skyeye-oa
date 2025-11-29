@@ -23,10 +23,9 @@ import com.skyeye.eve.rest.notice.UserMessage;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.eve.service.IUserNoticeService;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.annotation.RocketMQMessageListener;
 import org.apache.rocketmq.spring.core.RocketMQListener;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -43,14 +42,13 @@ import java.util.Map;
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
+@Slf4j
 @Component
 @RocketMQMessageListener(
         topic = "${topic.wati-worker-send-service}",
         consumerGroup = "${topic.wati-worker-send-service}",
         selectorExpression = "${spring.profiles.active}")
 public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(WatiWorkerSendServiceImpl.class);
 
     @Autowired
     private AfterSealService afterSealService;
@@ -81,6 +79,7 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
             updateJobMation(jobId, MqConstants.JOB_TYPE_IS_PROCESSING, StrUtil.EMPTY);
             // 工单id
             String serviceId = map.get("serviceId").toString();
+            log.info("开始派工通知，工单id：{}，主题：{}，消息内容：{}", serviceId, MqConstants.JobMateMationJobType.WATI_WORKER_SEND, data);
             // 获取工单接收人和协助人id
             AfterSeal afterSeal = afterSealService.selectById(serviceId);
             // 如果工单信息不为空
@@ -88,6 +87,7 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
                 // 调用消息系统添加通知
                 List<UserMessage> userMessageBoxList = new ArrayList<>();
                 String content;
+                log.info("接收人是：{}", afterSeal.getServiceUserId());
                 // 1.接收人通知
                 if (StrUtil.isNotEmpty(afterSeal.getServiceUserId())) {
                     Map<String, Object> userMation = iAuthUserService.queryDataMationById(afterSeal.getServiceUserId());
@@ -103,6 +103,7 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
                         new MailUtil().send(email, NoticeUserMessageTypeEnum.WORK_ORDER_REMINDER.getValue(), content);
                     }
                 }
+                log.info("协助人是：{}", afterSeal.getCooperationUserId());
                 // 2.协助人通知
                 if (CollectionUtil.isNotEmpty(afterSeal.getCooperationUserId())) {
                     // 获取协助人
@@ -121,6 +122,7 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
                         }
                     }
                 }
+                log.info("通知列表：{}", JSONUtil.toJsonStr(userMessageBoxList));
                 if (!userMessageBoxList.isEmpty()) {
                     iUserNoticeService.insertUserNoticeMation(userMessageBoxList);
                 }
@@ -128,7 +130,7 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
             // 任务完成
             updateJobMation(jobId, MqConstants.JOB_TYPE_IS_SUCCESS, StrUtil.EMPTY);
         } catch (Exception e) {
-            LOGGER.warn("Dispatch notice failed, reason is {}.", e);
+            log.warn("Dispatch notice failed, reason is {}.", e);
             // 任务失败
             updateJobMation(jobId, MqConstants.JOB_TYPE_IS_FAIL, StrUtil.EMPTY);
         }
