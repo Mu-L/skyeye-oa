@@ -280,13 +280,14 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         resultMap.put("totalOrders", totalOrders);
         // 完成工单数
         queryWrapper.eq(MybatisPlusUtil.toColumns(AfterSeal::getState), AfterSealState.COMPLATE.getKey());
-        resultMap.put("completedOrders", count(queryWrapper));
+        Long completedOrders = count(queryWrapper);
+        resultMap.put("completedOrders", completedOrders);
         // 配件使用数
         resultMap.put("useCount", sealFaultUseMaterialService.queryUseCount(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime()));
         // 平均处理时长
-        if (totalOrders > CommonNumConstants.NUM_ZERO) {
+        if (completedOrders > CommonNumConstants.NUM_ZERO) {
             resultMap.put("avgProcessTime", CalculationUtil.divide(String.valueOf(sealFaultService.getAllFinishedServiceTime(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime())),
-                String.valueOf(totalOrders), CommonNumConstants.NUM_TWO));
+                String.valueOf(completedOrders), CommonNumConstants.NUM_TWO));
         } else {
             resultMap.put("avgProcessTime", CommonNumConstants.NUM_ZERO);
         }
@@ -321,7 +322,7 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         iSysDictDataService.setDataMation(resultList, AfterSeal::getTypeId);
         // 根据typeId去重
         List<AfterSeal> distinctList = resultList.stream().
-                collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(AfterSeal::getTypeId))), ArrayList::new));
+            collect(Collectors.collectingAndThen(Collectors.toCollection(() -> new TreeSet<>(Comparator.comparing(AfterSeal::getTypeId))), ArrayList::new));
         // 获取typeId对应的name
         Map<String, String> stringMap = distinctList.stream().collect(Collectors.toMap(AfterSeal::getTypeId, bean -> {
             if (CollectionUtil.isNotEmpty(bean.getTypeMation())) {
