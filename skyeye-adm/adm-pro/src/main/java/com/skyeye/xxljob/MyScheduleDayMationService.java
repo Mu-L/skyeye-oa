@@ -11,13 +11,15 @@ import com.skyeye.common.constans.MqConstants;
 import com.skyeye.common.enumeration.NoticeUserMessageTypeEnum;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.MapUtil;
-import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.rest.mq.JobMateMation;
 import com.skyeye.eve.rest.notice.UserMessage;
 import com.skyeye.eve.schedule.classenum.ScheduleState;
 import com.skyeye.eve.schedule.entity.ScheduleDay;
 import com.skyeye.eve.schedule.service.ScheduleDayService;
-import com.skyeye.eve.service.*;
+import com.skyeye.eve.service.IAuthUserService;
+import com.skyeye.eve.service.IJobMateMationService;
+import com.skyeye.eve.service.IQuartzService;
+import com.skyeye.eve.service.IUserNoticeService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,11 +73,8 @@ public class MyScheduleDayMationService {
         // 获取日程信息
         ScheduleDay scheduleDay = scheduleDayService.selectById(scheduleId);
         //发送消息
-        String content = "尊敬的" + userMation.get("userName").toString() + ",您好：<br/>您于" + scheduleDay.getCreateTime() + "设定的日程《" +
-            scheduleDay.getName() + "》即将于" + scheduleDay.getStartTime() + "开始，请做好准备哦。";
-        if (!ToolUtil.isBlank(scheduleDay.getRemark())) {
-            content += "<br>备注信息：" + scheduleDay.getRemark();
-        }
+        String content = NoticeUserMessageTypeEnum.getScheduleMessageContent(userMation.get("userName").toString(), scheduleDay.getName(),
+            scheduleDay.getStartTime(), scheduleDay.getEndTime(), scheduleDay.getRemark());
 
         // 调用消息系统添加通知
         insertUserNotice(userId, content);
@@ -83,7 +82,7 @@ public class MyScheduleDayMationService {
         // 发送邮件
         if (!MapUtil.checkKeyIsNull(userMation, "email")) {
             Map<String, Object> emailNotice = new HashMap<>();
-            emailNotice.put("title", "日程提醒");
+            emailNotice.put("title", NoticeUserMessageTypeEnum.SCHEDULE_MESSAGE.getValue());
             emailNotice.put("content", content);
             emailNotice.put("email", userMation.get("email").toString());
             emailNotice.put("type", MqConstants.JobMateMationJobType.ORDINARY_MAIL_DELIVERY.getJobType());
@@ -100,8 +99,8 @@ public class MyScheduleDayMationService {
 
     private void insertUserNotice(String userId, String content) {
         UserMessage userMessage = new UserMessage();
-        userMessage.setName("日程提醒");
-        userMessage.setRemark("您有一条新的日程信息，请及时阅读。");
+        userMessage.setName(NoticeUserMessageTypeEnum.SCHEDULE_MESSAGE.getValue());
+        userMessage.setRemark(NoticeUserMessageTypeEnum.SCHEDULE_MESSAGE.getRemark());
         userMessage.setContent(content);
         userMessage.setReceiveId(userId);
         userMessage.setType(NoticeUserMessageTypeEnum.SCHEDULE_MESSAGE.getKey());

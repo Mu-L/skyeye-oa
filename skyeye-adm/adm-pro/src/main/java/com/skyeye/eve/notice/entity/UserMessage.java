@@ -10,6 +10,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.NoticeUserMessageTypeEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
@@ -43,7 +44,7 @@ public class UserMessage extends BaseGeneralInfo {
     private String receiveId;
 
     @TableField("type")
-    @ApiModelProperty(value = "消息类型，参考#NoticeUserMessageTypeEnum", required = "required,num")
+    @ApiModelProperty(value = "消息类型", enumClass = NoticeUserMessageTypeEnum.class, required = "required,num")
     private Integer type;
 
     @TableField(exist = false)

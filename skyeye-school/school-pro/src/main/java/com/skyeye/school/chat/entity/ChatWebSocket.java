@@ -324,7 +324,6 @@ public class ChatWebSocket {
             } else if (WebSocketConstants.MessageType.Fifth.getType() == type) {
                 // 系统消息
                 LOGGER.info("收到系统消息: {}", jsonObject);
-                // TODO: 实现系统消息处理逻辑
             } else if (WebSocketConstants.MessageType.Sixth.getType() == type) {
                 // 全体消息
                 map1 = WebSocketConstants.sendAllPeopleMsg(jsonObject);

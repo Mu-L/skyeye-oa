@@ -20,4 +20,6 @@ public interface WebSocketMsgService {
     void sendWebSocketMsgToUser(InputObject inputObject, OutputObject outputObject);
 
     void sendWebSocketMsgToAll(InputObject inputObject, OutputObject outputObject);
+
+    void sendWebSocketPointMsgToUser(InputObject inputObject, OutputObject outputObject);
 }

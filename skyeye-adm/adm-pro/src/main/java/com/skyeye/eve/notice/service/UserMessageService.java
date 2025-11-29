@@ -19,8 +19,6 @@ import com.skyeye.eve.notice.entity.UserMessage;
  */
 public interface UserMessageService extends SkyeyeBusinessService<UserMessage> {
 
-    void getTopEightMessageList(InputObject inputObject, OutputObject outputObject);
-
     void editMessageById(InputObject inputObject, OutputObject outputObject);
 
     void deleteAllMessage(InputObject inputObject, OutputObject outputObject);

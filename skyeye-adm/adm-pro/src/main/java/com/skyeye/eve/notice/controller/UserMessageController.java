@@ -32,12 +32,6 @@ public class UserMessageController {
     @Autowired
     private UserMessageService userMessageService;
 
-    @ApiOperation(id = "getTopEightMessageList", value = "获取当前用户前8条未读的消息列表", method = "POST", allUse = "2")
-    @RequestMapping("/post/UserMessageController/getTopEightMessageList")
-    public void getTopEightMessageList(InputObject inputObject, OutputObject outputObject) {
-        userMessageService.getTopEightMessageList(inputObject, outputObject);
-    }
-
     @ApiOperation(id = "queryUnReadMessageCount", value = "获取当前用户未读消息数量", method = "GET", allUse = "2")
     @RequestMapping("/post/UserMessageController/queryUnReadMessageCount")
     public void queryUnReadMessageCount(InputObject inputObject, OutputObject outputObject) {

@@ -50,4 +50,13 @@ public class WebSocketMsgController {
         webSocketMsgService.sendWebSocketMsgToAll(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "sendWebSocketPointMsgToUser", value = "分别发送不同的websocket消息给指定用户", method = "POST", allUse = "0")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "userMsgList", name = "userMsgList", value = "用户id和消息内容的集合，集合形式，包括userId和msg两个属性", required = "required,json"),
+        @ApiImplicitParam(id = "messageType", name = "messageType", value = "消息类型", required = "required", enumClass = SocketConstants.MessageType.class, defaultValue = "5")})
+    @RequestMapping("/post/WebSocketMsgController/sendWebSocketPointMsgToUser")
+    public void sendWebSocketPointMsgToUser(InputObject inputObject, OutputObject outputObject) {
+        webSocketMsgService.sendWebSocketPointMsgToUser(inputObject, outputObject);
+    }
+
 }

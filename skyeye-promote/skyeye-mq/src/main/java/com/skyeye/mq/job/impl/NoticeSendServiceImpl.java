@@ -1,6 +1,7 @@
 /*******************************************************************************
  * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
  ******************************************************************************/
+
 package com.skyeye.mq.job.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
@@ -21,17 +22,19 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @author 卫志强
  * @ClassName: NoticeSendServiceImpl
- * @Description: 消息通知
- * @date 2020年8月22日
+ * @Description: 公告通知
+ * @author: skyeye云系列--卫志强
+ * @date: 2025/11/29 11:18
+ * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
+ * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 @Slf4j
 @Component
 @RocketMQMessageListener(
-        topic = "${topic.notice-send-service}",
-        consumerGroup = "${topic.notice-send-service}",
-        selectorExpression = "${spring.profiles.active}")
+    topic = "${topic.notice-send-service}",
+    consumerGroup = "${topic.notice-send-service}",
+    selectorExpression = "${spring.profiles.active}")
 public class NoticeSendServiceImpl implements RocketMQListener<String> {
 
     @Autowired
@@ -45,7 +48,7 @@ public class NoticeSendServiceImpl implements RocketMQListener<String> {
         Map<String, Object> map = JSONUtil.toBean(data, null);
         String jobId = map.get("jobMateId").toString();
         try {
-            String tenantId = StrUtil.EMPTY;
+            String tenantId;
             if (tenantEnable) {
                 tenantId = map.get("tenantId").toString();
                 TenantContext.setTenantId(tenantId);

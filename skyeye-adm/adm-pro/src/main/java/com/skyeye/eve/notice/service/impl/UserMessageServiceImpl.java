@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.notice.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -21,8 +22,12 @@ import com.skyeye.eve.notice.dao.UserMessageDao;
 import com.skyeye.eve.notice.entity.UserMessage;
 import com.skyeye.eve.notice.entity.UserMessageBox;
 import com.skyeye.eve.notice.service.UserMessageService;
+import com.skyeye.eve.websocket.service.IWebSocketService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,25 +43,8 @@ import java.util.Map;
 @SkyeyeService(name = "用户消息管理", groupName = "内部消息模块")
 public class UserMessageServiceImpl extends SkyeyeBusinessServiceImpl<UserMessageDao, UserMessage> implements UserMessageService {
 
-    /**
-     * 获取当前用户前8条未读的消息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
-    @Override
-    public void getTopEightMessageList(InputObject inputObject, OutputObject outputObject) {
-        String userId = inputObject.getLogParams().get("id").toString();
-        QueryWrapper<UserMessage> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(UserMessage::getCreateId), userId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(UserMessage::getState), WhetherEnum.DISABLE_USING.getKey());
-        queryWrapper.eq(MybatisPlusUtil.toColumns(UserMessage::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(UserMessage::getCreateTime));
-        queryWrapper.last("LIMIT 8");
-        List<UserMessage> userMessages = list(queryWrapper);
-        outputObject.setBeans(userMessages);
-        outputObject.settotal(userMessages.size());
-    }
+    @Autowired
+    private IWebSocketService iWebSocketService;
 
     @Override
     protected QueryWrapper<UserMessage> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -65,12 +53,6 @@ public class UserMessageServiceImpl extends SkyeyeBusinessServiceImpl<UserMessag
         return queryWrapper;
     }
 
-    /**
-     * 用户阅读消息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void editMessageById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -90,12 +72,6 @@ public class UserMessageServiceImpl extends SkyeyeBusinessServiceImpl<UserMessag
         }
     }
 
-    /**
-     * 用户删除全部消息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void deleteAllMessage(InputObject inputObject, OutputObject outputObject) {
         String userId = inputObject.getLogParams().get("id").toString();
@@ -106,22 +82,28 @@ public class UserMessageServiceImpl extends SkyeyeBusinessServiceImpl<UserMessag
         update(updateWrapper);
     }
 
-    /**
-     * 新增用户消息数据
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void insertUserMessage(InputObject inputObject, OutputObject outputObject) {
         UserMessageBox userMessageBox = inputObject.getParams(UserMessageBox.class);
         List<UserMessage> userMessageList = userMessageBox.getUserNoticeMationList();
+        if (CollectionUtil.isEmpty(userMessageList)) {
+            return;
+        }
         String userId = null;
         for (UserMessage userMessage : userMessageList) {
             userId = userMessage.getCreateUserId();
             userMessage.setState(WhetherEnum.DISABLE_USING.getKey());
         }
         createEntity(userMessageList, userId);
+        // 发送websocket消息
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (UserMessage userMessage : userMessageList) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("userId", userMessage.getReceiveId());
+            map.put("msg", userMessage.getContent());
+            list.add(map);
+        }
+        iWebSocketService.sendWebSocketPointMsgToUser(list, null);
     }
 
     @Override

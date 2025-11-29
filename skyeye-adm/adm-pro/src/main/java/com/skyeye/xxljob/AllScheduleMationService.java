@@ -73,11 +73,8 @@ public class AllScheduleMationService {
         List<Map<String, Object>> userJson = new ArrayList<>();
         for (Map<String, Object> user : users) {
             //发送消息
-            String content = "尊敬的" + user.get("userName").toString() + ",您好：<br/>《" + scheduleDay.getName() + "》放假时间为：" + scheduleDay.getStartTime() + " ~ "
-                + scheduleDay.getEndTime() + "<br/>请注意安排好您的工作时间，祝您出行愉快。";
-            if (!StrUtil.isBlank(scheduleDay.getRemark())) {
-                content += "<br>备注信息：" + scheduleDay.getRemark();
-            }
+            String content = NoticeUserMessageTypeEnum.getScheduleMessageContent(user.get("userName").toString(), scheduleDay.getName(),
+                scheduleDay.getStartTime(), scheduleDay.getEndTime(), scheduleDay.getRemark());
             Map<String, Object> uJson = new HashMap<>();
             uJson.put("content", content);
             uJson.put("userId", user.get("userId"));
@@ -85,7 +82,7 @@ public class AllScheduleMationService {
             //发送邮件
             if (!StrUtil.isBlank(user.get("email").toString()) && user.containsKey("email")) {
                 Map<String, Object> emailNotice = new HashMap<>();
-                emailNotice.put("title", "日程提醒");
+                emailNotice.put("title", NoticeUserMessageTypeEnum.SCHEDULE_MESSAGE.getValue());
                 emailNotice.put("content", content);
                 emailNotice.put("email", user.get("email").toString());
                 emailNotice.put("type", MqConstants.JobMateMationJobType.ORDINARY_MAIL_DELIVERY.getJobType());
@@ -109,8 +106,8 @@ public class AllScheduleMationService {
         for (int i = 0; i < userJson.size(); i++) {
             Map<String, Object> userJsonObject = userJson.get(i);
             UserMessage userMessage = new UserMessage();
-            userMessage.setName("日程提醒");
-            userMessage.setRemark("您有一条新的日程信息，请及时阅读。");
+            userMessage.setName(NoticeUserMessageTypeEnum.SCHEDULE_MESSAGE.getValue());
+            userMessage.setRemark(NoticeUserMessageTypeEnum.SCHEDULE_MESSAGE.getRemark());
             userMessage.setContent(userJsonObject.get("content").toString());
             userMessage.setReceiveId(userJsonObject.get("userId").toString());
             userMessage.setType(NoticeUserMessageTypeEnum.SCHEDULE_MESSAGE.getKey());

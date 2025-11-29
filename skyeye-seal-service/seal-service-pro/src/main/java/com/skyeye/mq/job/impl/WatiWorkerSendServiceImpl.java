@@ -18,7 +18,6 @@ import com.skyeye.common.enumeration.NoticeUserMessageTypeEnum;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.MailUtil;
 import com.skyeye.common.util.ToolUtil;
-import com.skyeye.constants.SealConstants;
 import com.skyeye.eve.rest.mq.JobMateUpdateMation;
 import com.skyeye.eve.rest.notice.UserMessage;
 import com.skyeye.eve.service.IAuthUserService;
@@ -73,7 +72,7 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
         Map<String, Object> map = JSONUtil.toBean(data, null);
         String jobId = map.get("jobMateId").toString();
         try {
-            String tenantId = StrUtil.EMPTY;
+            String tenantId;
             if (tenantEnable) {
                 tenantId = map.get("tenantId").toString();
                 TenantContext.setTenantId(tenantId);
@@ -93,7 +92,7 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
                 if (StrUtil.isNotEmpty(afterSeal.getServiceUserId())) {
                     Map<String, Object> userMation = iAuthUserService.queryDataMationById(afterSeal.getServiceUserId());
                     // 1.1内部消息
-                    content = SealConstants.getNoticeServiceUserContent(afterSeal.getOddNumber(), userMation.get("name").toString());
+                    content = NoticeUserMessageTypeEnum.getNoticeServiceUserContent(afterSeal.getOddNumber(), userMation.get("name").toString());
 
                     UserMessage userMessage = getUserNotice(afterSeal.getServiceUserId(), content);
                     userMessageBoxList.add(userMessage);
@@ -101,7 +100,7 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
                     // 1.2发送邮件
                     String email = userMation.get("email").toString();
                     if (ToolUtil.isEmail(email) && !ToolUtil.isBlank(email)) {
-                        new MailUtil().send(email, "工单派工提醒", content);
+                        new MailUtil().send(email, NoticeUserMessageTypeEnum.WORK_ORDER_REMINDER.getValue(), content);
                     }
                 }
                 // 2.协助人通知
@@ -112,13 +111,13 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
 
                     for (Map<String, Object> user : cooperationUser) {
                         // 2.1内部消息
-                        content = SealConstants.getNoticeCooperationUserContent(afterSeal.getOddNumber(), user.get("name").toString());
+                        content = NoticeUserMessageTypeEnum.getNoticeCooperationUserContent(afterSeal.getOddNumber(), user.get("name").toString());
                         UserMessage userMessage = getUserNotice(user.get("id").toString(), content);
                         userMessageBoxList.add(userMessage);
                         // 2.2发送邮件
                         String email = user.get("email").toString();
                         if (ToolUtil.isEmail(email) && !ToolUtil.isBlank(email)) {
-                            new MailUtil().send(email, "工单派工提醒", content);
+                            new MailUtil().send(email, NoticeUserMessageTypeEnum.WORK_ORDER_REMINDER.getValue(), content);
                         }
                     }
                 }
@@ -137,8 +136,8 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
 
     private UserMessage getUserNotice(String userId, String content) {
         UserMessage userMessage = new UserMessage();
-        userMessage.setName("工单派工提醒");
-        userMessage.setRemark("您有一条新的派工信息，请及时阅读。");
+        userMessage.setName(NoticeUserMessageTypeEnum.WORK_ORDER_REMINDER.getValue());
+        userMessage.setRemark(NoticeUserMessageTypeEnum.WORK_ORDER_REMINDER.getRemark());
         userMessage.setContent(content);
         userMessage.setReceiveId(userId);
         userMessage.setType(NoticeUserMessageTypeEnum.WORK_ORDER_REMINDER.getKey());

@@ -4,6 +4,7 @@
 
 package com.skyeye.websocket.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -55,6 +56,25 @@ public class WebSocketMsgServiceImpl implements WebSocketMsgService {
         String msgContent = JSONUtil.toJsonStr(getMsg(msg, messageType));
         // 发送消息
         talkWebSocket.sendMessageToAll(msgContent);
+    }
+
+    @Override
+    public void sendWebSocketPointMsgToUser(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        Integer messageType = Integer.parseInt(params.get("messageType").toString());
+        // 发送消息给指定用户
+        List<Map<String, Object>> userMsgList = JSONUtil.toList(params.get("userMsgList").toString(), null);
+        if (CollectionUtil.isEmpty(userMsgList)){
+            return;
+        }
+        userMsgList.forEach(userMsg -> {
+            String userId = userMsg.get("userId").toString();
+            String msg = userMsg.get("msg").toString();
+            // 组装消息内容
+            String msgContent = JSONUtil.toJsonStr(getMsg(msg, messageType));
+            // 发送消息
+            talkWebSocket.sendMessageTo(msgContent, userId, null);
+        });
     }
 
     private Map<String, Object> getMsg(String message, int messageType) {
