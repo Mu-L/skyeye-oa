@@ -5,6 +5,7 @@
 package com.skyeye.websocket.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -41,7 +42,7 @@ public class WebSocketMsgServiceImpl implements WebSocketMsgService {
         String msg = params.get("msg").toString();
         Integer messageType = Integer.parseInt(params.get("messageType").toString());
         // 组装消息内容
-        String msgContent = JSONUtil.toJsonStr(getMsg(msg, messageType));
+        String msgContent = JSONUtil.toJsonStr(getMsg(msg, messageType, StrUtil.EMPTY));
         // 发送消息
         for (String userId : userIdList) {
             talkWebSocket.sendMessageTo(msgContent, userId, null);
@@ -55,7 +56,7 @@ public class WebSocketMsgServiceImpl implements WebSocketMsgService {
         String msg = params.get("msg").toString();
         Integer messageType = Integer.parseInt(params.get("messageType").toString());
         // 组装消息内容
-        String msgContent = JSONUtil.toJsonStr(getMsg(msg, messageType));
+        String msgContent = JSONUtil.toJsonStr(getMsg(msg, messageType, StrUtil.EMPTY));
         // 发送消息
         talkWebSocket.sendMessageToAll(msgContent);
     }
@@ -74,18 +75,20 @@ public class WebSocketMsgServiceImpl implements WebSocketMsgService {
         userMsgList.forEach(userMsg -> {
             String userId = userMsg.get("userId").toString();
             String msg = userMsg.get("msg").toString();
+            String objectData = userMsg.getOrDefault("objectData", StrUtil.EMPTY).toString();
             // 组装消息内容
-            String msgContent = JSONUtil.toJsonStr(getMsg(msg, messageType));
+            String msgContent = JSONUtil.toJsonStr(getMsg(msg, messageType, objectData));
             log.info("发送消息给用户：{}，消息内容：{}", userId, msgContent);
             // 发送消息
             talkWebSocket.sendMessageTo(msgContent, userId, null);
         });
     }
 
-    private Map<String, Object> getMsg(String message, int messageType) {
+    private Map<String, Object> getMsg(String message, int messageType, String objectData) {
         Map<String, Object> result = new HashMap<>();
         result.put("messageType", messageType);
         result.put("message", message);
+        result.put("objectData", objectData);
         return result;
     }
 
