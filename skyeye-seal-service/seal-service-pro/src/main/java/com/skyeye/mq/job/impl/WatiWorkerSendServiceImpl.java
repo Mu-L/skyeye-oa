@@ -33,6 +33,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 /**
  * @ClassName: WatiWorkerSendServiceImpl
@@ -45,9 +46,9 @@ import java.util.Map;
 @Slf4j
 @Component
 @RocketMQMessageListener(
-        topic = "${topic.wati-worker-send-service}",
-        consumerGroup = "${topic.wati-worker-send-service}",
-        selectorExpression = "${spring.profiles.active}")
+    topic = "${topic.wati-worker-send-service}",
+    consumerGroup = "${topic.wati-worker-send-service}",
+    selectorExpression = "${spring.profiles.active}")
 public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
 
     @Autowired
@@ -61,6 +62,9 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
 
     @Autowired
     private IUserNoticeService iUserNoticeService;
+
+    @Autowired
+    private Executor watiWorkerSendEmailExecutor;
 
     @Value("${skyeye.tenant.enable}")
     protected boolean tenantEnable;
@@ -86,45 +90,41 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
             if (ObjectUtil.isNotEmpty(afterSeal)) {
                 // 调用消息系统添加通知
                 List<UserMessage> userMessageBoxList = new ArrayList<>();
-                String content;
                 log.info("接收人是：{}", afterSeal.getServiceUserId());
                 // 1.接收人通知
                 if (StrUtil.isNotEmpty(afterSeal.getServiceUserId())) {
                     Map<String, Object> userMation = iAuthUserService.queryDataMationById(afterSeal.getServiceUserId());
                     // 1.1内部消息
-                    content = NoticeUserMessageTypeEnum.getNoticeServiceUserContent(afterSeal.getOddNumber(), userMation.get("name").toString());
+                    String content = NoticeUserMessageTypeEnum.getNoticeServiceUserContent(afterSeal.getOddNumber(), userMation.get("name").toString());
 
-                    UserMessage userMessage = getUserNotice(afterSeal.getServiceUserId(), content);
+                    UserMessage userMessage = getUserNotice(afterSeal.getServiceUserId(), content, userMation.getOrDefault("email", StrUtil.EMPTY).toString());
                     userMessageBoxList.add(userMessage);
-
-                    // 1.2发送邮件
-                    String email = userMation.get("email").toString();
-                    if (ToolUtil.isEmail(email) && !ToolUtil.isBlank(email)) {
-                        new MailUtil().send(email, NoticeUserMessageTypeEnum.WORK_ORDER_REMINDER.getValue(), content);
-                    }
                 }
                 log.info("协助人是：{}", afterSeal.getCooperationUserId());
                 // 2.协助人通知
                 if (CollectionUtil.isNotEmpty(afterSeal.getCooperationUserId())) {
                     // 获取协助人
                     List<Map<String, Object>> cooperationUser = iAuthUserService
-                            .queryDataMationByIds(Joiner.on(CommonCharConstants.COMMA_MARK).join(afterSeal.getCooperationUserId()));
+                        .queryDataMationByIds(Joiner.on(CommonCharConstants.COMMA_MARK).join(afterSeal.getCooperationUserId()));
 
                     for (Map<String, Object> user : cooperationUser) {
                         // 2.1内部消息
-                        content = NoticeUserMessageTypeEnum.getNoticeCooperationUserContent(afterSeal.getOddNumber(), user.get("name").toString());
-                        UserMessage userMessage = getUserNotice(user.get("id").toString(), content);
+                        String content = NoticeUserMessageTypeEnum.getNoticeCooperationUserContent(afterSeal.getOddNumber(), user.get("name").toString());
+                        UserMessage userMessage = getUserNotice(user.get("id").toString(), content, user.getOrDefault("email", StrUtil.EMPTY).toString());
                         userMessageBoxList.add(userMessage);
-                        // 2.2发送邮件
-                        String email = user.get("email").toString();
-                        if (ToolUtil.isEmail(email) && !ToolUtil.isBlank(email)) {
-                            new MailUtil().send(email, NoticeUserMessageTypeEnum.WORK_ORDER_REMINDER.getValue(), content);
-                        }
                     }
                 }
                 log.info("通知列表：{}", JSONUtil.toJsonStr(userMessageBoxList));
                 if (!userMessageBoxList.isEmpty()) {
                     iUserNoticeService.insertUserNoticeMation(userMessageBoxList);
+                    // 发送邮件
+                    watiWorkerSendEmailExecutor.execute(() -> {
+                        for (UserMessage userMessage : userMessageBoxList) {
+                            if (ToolUtil.isEmail(userMessage.getEmail()) && !ToolUtil.isBlank(userMessage.getEmail())) {
+                                new MailUtil().send(userMessage.getEmail(), NoticeUserMessageTypeEnum.WORK_ORDER_REMINDER.getValue(), userMessage.getContent());
+                            }
+                        }
+                    });
                 }
             }
             // 任务完成
@@ -136,10 +136,11 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
         }
     }
 
-    private UserMessage getUserNotice(String userId, String content) {
+    private UserMessage getUserNotice(String userId, String content, String email) {
         UserMessage userMessage = new UserMessage();
         userMessage.setName(NoticeUserMessageTypeEnum.WORK_ORDER_REMINDER.getValue());
         userMessage.setRemark(NoticeUserMessageTypeEnum.WORK_ORDER_REMINDER.getRemark());
+        userMessage.setEmail(email);
         userMessage.setContent(content);
         userMessage.setReceiveId(userId);
         userMessage.setType(NoticeUserMessageTypeEnum.WORK_ORDER_REMINDER.getKey());
