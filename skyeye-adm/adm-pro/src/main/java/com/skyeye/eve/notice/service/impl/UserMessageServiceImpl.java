@@ -105,7 +105,7 @@ public class UserMessageServiceImpl extends SkyeyeBusinessServiceImpl<UserMessag
             Map<String, Object> map = new HashMap<>();
             map.put("userId", userMessage.getReceiveId());
             map.put("msg", userMessage.getContent());
-            map.put("itemObject", JSONUtil.toJsonStr(userMessage.getObjectData()));
+            map.put("itemObject", JSONUtil.toJsonStr(userMessage));
             list.add(map);
         }
         log.info("list: {}", JSONUtil.toJsonStr(list));

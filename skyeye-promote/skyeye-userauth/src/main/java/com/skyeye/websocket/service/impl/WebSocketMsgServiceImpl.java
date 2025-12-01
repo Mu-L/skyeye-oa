@@ -75,20 +75,20 @@ public class WebSocketMsgServiceImpl implements WebSocketMsgService {
         userMsgList.forEach(userMsg -> {
             String userId = userMsg.get("userId").toString();
             String msg = userMsg.get("msg").toString();
-            String objectData = userMsg.getOrDefault("objectData", StrUtil.EMPTY).toString();
+            String itemObject = userMsg.getOrDefault("itemObject", StrUtil.EMPTY).toString();
             // 组装消息内容
-            String msgContent = JSONUtil.toJsonStr(getMsg(msg, messageType, objectData));
+            String msgContent = JSONUtil.toJsonStr(getMsg(msg, messageType, itemObject));
             log.info("发送消息给用户：{}，消息内容：{}", userId, msgContent);
             // 发送消息
             talkWebSocket.sendMessageTo(msgContent, userId, null);
         });
     }
 
-    private Map<String, Object> getMsg(String message, int messageType, String objectData) {
+    private Map<String, Object> getMsg(String message, int messageType, String itemObject) {
         Map<String, Object> result = new HashMap<>();
         result.put("messageType", messageType);
         result.put("message", message);
-        result.put("objectData", objectData);
+        result.put("itemObject", itemObject);
         return result;
     }
 
