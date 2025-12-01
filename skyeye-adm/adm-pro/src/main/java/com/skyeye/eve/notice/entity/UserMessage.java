@@ -54,4 +54,8 @@ public class UserMessage extends BaseGeneralInfo {
     @TableField(value = "delete_flag")
     private Integer deleteFlag;
 
+    @TableField("object_data")
+    @ApiModelProperty(value = "关联的数据对象", required = "json")
+    private String objectData;
+
 }

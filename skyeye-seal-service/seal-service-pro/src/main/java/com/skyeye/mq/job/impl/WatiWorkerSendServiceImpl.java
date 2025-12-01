@@ -89,6 +89,7 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
             // 如果工单信息不为空
             if (ObjectUtil.isNotEmpty(afterSeal)) {
                 // 调用消息系统添加通知
+                String afterSealStr = JSONUtil.toJsonStr(afterSeal);
                 List<UserMessage> userMessageBoxList = new ArrayList<>();
                 log.info("接收人是：{}", afterSeal.getServiceUserId());
                 // 1.接收人通知
@@ -97,7 +98,7 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
                     // 1.1内部消息
                     String content = NoticeUserMessageTypeEnum.getNoticeServiceUserContent(afterSeal.getOddNumber(), userMation.get("name").toString());
 
-                    UserMessage userMessage = getUserNotice(afterSeal.getServiceUserId(), content, userMation.getOrDefault("email", StrUtil.EMPTY).toString());
+                    UserMessage userMessage = getUserNotice(afterSeal.getServiceUserId(), content, userMation.getOrDefault("email", StrUtil.EMPTY).toString(), afterSealStr);
                     userMessageBoxList.add(userMessage);
                 }
                 log.info("协助人是：{}", afterSeal.getCooperationUserId());
@@ -110,7 +111,7 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
                     for (Map<String, Object> user : cooperationUser) {
                         // 2.1内部消息
                         String content = NoticeUserMessageTypeEnum.getNoticeCooperationUserContent(afterSeal.getOddNumber(), user.get("name").toString());
-                        UserMessage userMessage = getUserNotice(user.get("id").toString(), content, user.getOrDefault("email", StrUtil.EMPTY).toString());
+                        UserMessage userMessage = getUserNotice(user.get("id").toString(), content, user.getOrDefault("email", StrUtil.EMPTY).toString(), afterSealStr);
                         userMessageBoxList.add(userMessage);
                     }
                 }
@@ -136,7 +137,7 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
         }
     }
 
-    private UserMessage getUserNotice(String userId, String content, String email) {
+    private UserMessage getUserNotice(String userId, String content, String email, String objectData) {
         UserMessage userMessage = new UserMessage();
         userMessage.setName(NoticeUserMessageTypeEnum.WORK_ORDER_REMINDER.getValue());
         userMessage.setRemark(NoticeUserMessageTypeEnum.WORK_ORDER_REMINDER.getRemark());
@@ -145,6 +146,7 @@ public class WatiWorkerSendServiceImpl implements RocketMQListener<String> {
         userMessage.setReceiveId(userId);
         userMessage.setType(NoticeUserMessageTypeEnum.WORK_ORDER_REMINDER.getKey());
         userMessage.setCreateUserId(CommonConstants.ADMIN_USER_ID);
+        userMessage.setObjectData(objectData);
         return userMessage;
     }
 
