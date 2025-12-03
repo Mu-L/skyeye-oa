@@ -9,6 +9,7 @@ import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.depot.entity.DepotStaffVO;
@@ -32,12 +33,6 @@ public class DepotStaffController {
     @Autowired
     private DepotStaffService depotStaffService;
 
-    /**
-     * 获取仓库下的员工信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDepotStaffList", value = "获取仓库下的员工信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DepotStaffController/queryDepotStaffList")
@@ -45,12 +40,6 @@ public class DepotStaffController {
         depotStaffService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 删除仓库下的员工信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteDepotStaffById", value = "删除仓库下的员工信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "仓库与员工的关系表主键id", required = "required")})
@@ -59,12 +48,6 @@ public class DepotStaffController {
         depotStaffService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 新增仓库下的员工信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertDepotStaff", value = "新增仓库下的员工信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = DepotStaffVO.class)
     @RequestMapping("/post/DepotStaffController/insertDepotStaff")
@@ -72,24 +55,14 @@ public class DepotStaffController {
         depotStaffService.insertDepotStaff(inputObject, outputObject);
     }
 
-    /**
-     * 获取当前登陆用户所属的仓库列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryStaffBelongDepotList", value = "获取当前登陆用户所属的仓库列表", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "enabled", name = "enabled", value = "启用状态", enumClass = EnableEnum.class)})
     @RequestMapping("/post/DepotStaffController/queryStaffBelongDepotList")
     public void queryStaffBelongDepotList(InputObject inputObject, OutputObject outputObject) {
         depotStaffService.queryStaffBelongDepotList(inputObject, outputObject);
     }
 
-    /**
-     * 根据员工id删除所有的所属仓库信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteDepotStaffByStaffId", value = "根据员工id删除所有的所属仓库信息", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "员工id", required = "required")})

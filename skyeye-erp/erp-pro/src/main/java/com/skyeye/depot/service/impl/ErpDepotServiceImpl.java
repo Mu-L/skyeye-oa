@@ -5,6 +5,7 @@
 package com.skyeye.depot.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.common.base.Joiner;
@@ -103,8 +104,13 @@ public class ErpDepotServiceImpl extends SkyeyeBusinessServiceImpl<ErpDepotDao, 
 
     @Override
     public void queryAllStoreHouseList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String enabled = params.get("enabled").toString();
         QueryWrapper<Depot> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(Depot::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
+        if (StrUtil.isNotBlank(enabled)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Depot::getEnabled), enabled);
+        }
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(Depot::getIsDefault));
         List<Depot> depotList = list(queryWrapper);
         outputObject.setBeans(depotList);
@@ -113,17 +119,22 @@ public class ErpDepotServiceImpl extends SkyeyeBusinessServiceImpl<ErpDepotDao, 
 
     @Override
     public void queryStoreHouseListByCurrentUserId(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String enabled = params.get("enabled").toString();
         String currentUserId = inputObject.getLogParams().get("id").toString();
-        List<Depot> depotList = queryDepotListByChargePerson(currentUserId);
+        List<Depot> depotList = queryDepotListByChargePerson(currentUserId, enabled);
         outputObject.setBeans(depotList);
         outputObject.settotal(depotList.size());
     }
 
     @Override
-    public List<Depot> queryDepotListByChargePerson(String userId) {
+    public List<Depot> queryDepotListByChargePerson(String userId, String enabled) {
         QueryWrapper<Depot> queryWrapper = new QueryWrapper<>();
         queryWrapper.apply("INSTR(CONCAT(',', REPLACE(REPLACE(" + MybatisPlusUtil.toColumns(Depot::getPrincipal) + ", '[', ''), ']', ''), ','), CONCAT(',\"', {0}, '\",'))", userId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Depot::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
+        if (StrUtil.isNotBlank(enabled)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Depot::getEnabled), enabled);
+        }
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(Depot::getIsDefault));
         List<Depot> depotList = list(queryWrapper);
         return depotList;

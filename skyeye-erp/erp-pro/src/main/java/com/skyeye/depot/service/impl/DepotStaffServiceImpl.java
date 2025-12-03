@@ -105,14 +105,17 @@ public class DepotStaffServiceImpl extends SkyeyeBusinessServiceImpl<DepotStaffD
 
     @Override
     public void queryStaffBelongDepotList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String enabled = params.get("enabled").toString();
+
         String staffId = inputObject.getLogParams().get("staffId").toString();
         String userId = inputObject.getLogParams().get("id").toString();
-        List<Depot> DepotList = getDepotListByStaffId(staffId, userId);
+        List<Depot> DepotList = getDepotListByStaffId(staffId, userId, enabled);
         outputObject.setBeans(DepotList);
         outputObject.settotal(DepotList.size());
     }
 
-    private List<Depot> getDepotListByStaffId(String staffId, String userId) {
+    private List<Depot> getDepotListByStaffId(String staffId, String userId, String enabled) {
         // 1. 查询员工所属的仓库
         QueryWrapper<DepotStaff> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DepotStaff::getStaffId), staffId);
@@ -122,7 +125,7 @@ public class DepotStaffServiceImpl extends SkyeyeBusinessServiceImpl<DepotStaffD
         // 查询仓库信息
         List<Depot> depotList = erpDepotService.selectByIds(depotIdList.toArray(new String[]{}));
         // 2. 查询当前用户所负责的仓库
-        List<Depot> chargeDepotList = erpDepotService.queryDepotListByChargePerson(userId);
+        List<Depot> chargeDepotList = erpDepotService.queryDepotListByChargePerson(userId, enabled);
         // 3. 合并仓库信息
         depotList.addAll(chargeDepotList);
         // 4. 去重

@@ -25,5 +25,5 @@ public interface ErpDepotService extends SkyeyeBusinessService<Depot> {
 
     void queryStoreHouseListByCurrentUserId(InputObject inputObject, OutputObject outputObject);
 
-    List<Depot> queryDepotListByChargePerson(String userId);
+    List<Depot> queryDepotListByChargePerson(String userId, String enabled);
 }

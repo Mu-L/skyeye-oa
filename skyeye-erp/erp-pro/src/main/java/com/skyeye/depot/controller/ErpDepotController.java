@@ -9,6 +9,7 @@ import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.depot.entity.Depot;
@@ -63,12 +64,16 @@ public class ErpDepotController {
     }
 
     @ApiOperation(id = "queryAllStoreHouseList", value = "获取所有仓库", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "enabled", name = "enabled", value = "启用状态", enumClass = EnableEnum.class)})
     @RequestMapping("/post/ErpDepotController/queryAllStoreHouseList")
     public void queryAllStoreHouseList(InputObject inputObject, OutputObject outputObject) {
         erpDepotService.queryAllStoreHouseList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "storehouse009", value = "获取当前登录用户管理的仓库列表", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "enabled", name = "enabled", value = "启用状态", enumClass = EnableEnum.class)})
     @RequestMapping("/post/ErpDepotController/queryStoreHouseListByCurrentUserId")
     public void queryStoreHouseListByCurrentUserId(InputObject inputObject, OutputObject outputObject) {
         erpDepotService.queryStoreHouseListByCurrentUserId(inputObject, outputObject);
