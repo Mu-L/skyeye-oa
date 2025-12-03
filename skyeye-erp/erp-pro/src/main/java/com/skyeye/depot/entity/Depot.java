@@ -14,6 +14,8 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.common.enumeration.IsDefaultEnum;
 import lombok.Data;
 
 import java.util.List;
@@ -58,7 +60,11 @@ public class Depot extends BaseGeneralInfo {
     private Integer deleteFlag;
 
     @TableField(value = "is_default")
-    @ApiModelProperty(value = "是否默认，参考#IsDefaultEnum", required = "required,num")
+    @ApiModelProperty(value = "是否默认", enumClass = IsDefaultEnum.class, required = "required,num")
     private Integer isDefault;
+
+    @TableField(value = "enabled")
+    @ApiModelProperty(value = "启用状态", enumClass = EnableEnum.class, required = "required,num")
+    private Integer enabled;
 
 }
