@@ -101,12 +101,6 @@ public class ErpDepotServiceImpl extends SkyeyeBusinessServiceImpl<ErpDepotDao, 
         return depots;
     }
 
-    /**
-     * 获取所有仓库
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryAllStoreHouseList(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<Depot> queryWrapper = new QueryWrapper<>();
@@ -117,12 +111,6 @@ public class ErpDepotServiceImpl extends SkyeyeBusinessServiceImpl<ErpDepotDao, 
         outputObject.settotal(depotList.size());
     }
 
-    /**
-     * 获取当前登录用户管理的仓库列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryStoreHouseListByCurrentUserId(InputObject inputObject, OutputObject outputObject) {
         String currentUserId = inputObject.getLogParams().get("id").toString();

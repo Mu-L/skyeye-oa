@@ -32,12 +32,6 @@ public class ErpDepotController {
     @Autowired
     private ErpDepotService erpDepotService;
 
-    /**
-     * 获取仓库信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "storehouse001", value = "获取仓库信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ErpDepotController/queryStoreHouseList")
@@ -45,12 +39,6 @@ public class ErpDepotController {
         erpDepotService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑仓库信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeDepotMation", value = "新增/编辑仓库信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Depot.class)
     @RequestMapping("/post/ErpDepotController/writeDepotMation")
@@ -58,12 +46,6 @@ public class ErpDepotController {
         erpDepotService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id批量获取仓库信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDepotByIds", value = "根据id批量获取仓库信息", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "ids", name = "ids", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class ErpDepotController {
         erpDepotService.selectByIds(inputObject, outputObject);
     }
 
-    /**
-     * 删除仓库信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "storehouse004", value = "删除仓库信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,24 +62,12 @@ public class ErpDepotController {
         erpDepotService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有仓库
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAllStoreHouseList", value = "获取所有仓库", method = "GET", allUse = "2")
     @RequestMapping("/post/ErpDepotController/queryAllStoreHouseList")
     public void queryAllStoreHouseList(InputObject inputObject, OutputObject outputObject) {
         erpDepotService.queryAllStoreHouseList(inputObject, outputObject);
     }
 
-    /**
-     * 获取当前登录用户管理的仓库列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "storehouse009", value = "获取当前登录用户管理的仓库列表", method = "GET", allUse = "2")
     @RequestMapping("/post/ErpDepotController/queryStoreHouseListByCurrentUserId")
     public void queryStoreHouseListByCurrentUserId(InputObject inputObject, OutputObject outputObject) {
