@@ -122,6 +122,8 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
             if ("table".equals(processedElement.getType())) {
                 processTableElement(processedElement, data);
                 processedElement.setPosition("relative");
+            } else if ("table-container".equals(processedElement.getType())) {
+                processTableContainerElement(processedElement, data);
             } else if ("barcode".equals(processedElement.getType())) {
                 processBarcodeElement(processedElement, data);
             } else if ("image".equals(processedElement.getType())) {
@@ -288,6 +290,74 @@ public class PrintHtmlGeneratorImpl implements PrintHtmlGenerator {
         // 设置图片填充方式
         if (StrUtil.isBlank(element.getFit())) {
             element.setFit("contain"); // 默认填充方式
+        }
+    }
+
+    /**
+     * 处理表格容器元素
+     *
+     * @param element 表格容器元素
+     * @param data    业务数据
+     */
+    private void processTableContainerElement(PrintElement element, Map<String, Object> data) {
+        // 处理单元格内的元素
+        if (element.getCells() != null) {
+            for (com.skyeye.print.entity.TableCell cell : element.getCells()) {
+                if (cell.getElements() != null) {
+                    // 递归处理单元格内的每个元素
+                    for (PrintElement cellElement : cell.getElements()) {
+                        // 处理定位属性
+                        if (cellElement.getX() != null) {
+                            cellElement.setMarginLeft(cellElement.getX() + "px");
+                        }
+                        if (cellElement.getY() != null) {
+                            cellElement.setMarginTop(cellElement.getY() + "px");
+                        }
+
+                        // 处理动态数据
+                        if (StrUtil.isNotBlank(cellElement.getContent())) {
+                            if ("text".equals(cellElement.getType())) {
+                                // 处理文本内容中的变量
+                                String content = cellElement.getContent();
+                                cellElement.setContent(parseContentVariables(content, data));
+                            }
+                        }
+
+                        // 处理特殊元素类型
+                        if ("table".equals(cellElement.getType())) {
+                            processTableElement(cellElement, data);
+                            cellElement.setPosition("relative");
+                        } else if ("barcode".equals(cellElement.getType())) {
+                            processBarcodeElement(cellElement, data);
+                        } else if ("image".equals(cellElement.getType())) {
+                            processImageElement(cellElement, data);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 设置默认值
+        if (element.getContainerRows() == null) {
+            element.setContainerRows(3);
+        }
+        if (element.getContainerCols() == null) {
+            element.setContainerCols(3);
+        }
+        if (element.getCellWidth() == null) {
+            element.setCellWidth(120);
+        }
+        if (element.getCellHeight() == null) {
+            element.setCellHeight(80);
+        }
+        if (StrUtil.isBlank(element.getBorderStyle())) {
+            element.setBorderStyle("solid");
+        }
+        if (element.getBorderWidth() == null) {
+            element.setBorderWidth(1);
+        }
+        if (StrUtil.isBlank(element.getBorderColor())) {
+            element.setBorderColor("#d9d9d9");
         }
     }
 

@@ -66,6 +66,15 @@ public class PrintElement {
     private String backgroundColor;
     private Integer borderRadius;
     private String borderRadiusUnit;
+
+    // 表格容器元素属性
+    private Integer containerRows;     // 行数
+    private Integer containerCols;      // 列数
+    private Integer cellWidth;          // 默认列宽
+    private Integer cellHeight;         // 默认行高
+    private List<Integer> rowHeights;   // 每行的单独高度
+    private List<Integer> colWidths;    // 每列的单独宽度
+    private List<TableCell> cells;      // 单元格列表
 }
 
 @Data

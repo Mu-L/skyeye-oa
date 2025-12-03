@@ -286,6 +286,126 @@
                          (element.borderRadius != null && element.borderRadius > 0 ? 'border-radius:' + element.borderRadius + (element.borderRadiusUnit ?: 'px') + ';' : '') +
                          'background-color:' + (element.backgroundColor ?: 'transparent') + ';'}">
             </div>
+
+            <!-- 表格容器元素 -->
+            <div th:if="${element.type == 'table-container'}" style="width:100%;height:100%;position:relative;overflow:visible;">
+                <table th:style="${'border-collapse:collapse;' +
+                                 'width:' + (element.width != null ? element.width.toString().replace('px', '') : '400') + 'px;' +
+                                 'height:' + (element.height != null ? element.height.toString().replace('px', '') : '300') + 'px;' +
+                                 'border:' + (element.borderWidth ?: 1) + 'px ' + (element.borderStyle ?: 'solid') + ' ' + (element.borderColor ?: '#d9d9d9') + ';' +
+                                 'margin:0;padding:0;table-layout:fixed;'}">
+                    <colgroup>
+                        <col th:each="colIndex : ${#numbers.sequence(0, element.containerCols - 1)}"
+                             th:style="${'width:' + ((element.colWidths != null && element.colWidths.size() > colIndex) ? element.colWidths[colIndex] : (element.cellWidth ?: 120)) + 'px;'}" />
+                    </colgroup>
+                    <tbody>
+                        <tr th:each="rowIndex : ${#numbers.sequence(0, element.containerRows - 1)}"
+                            th:style="${'height:' + ((element.rowHeights != null && element.rowHeights.size() > rowIndex) ? element.rowHeights[rowIndex] : (element.cellHeight ?: 80)) + 'px;'}">
+                            <th:block th:each="colIndex : ${#numbers.sequence(0, element.containerCols - 1)}">
+                                <th:block th:each="c : ${element.cells != null ? element.cells : {}}"
+                                          th:if="${c != null and c.row != null and c.row == rowIndex and c.col != null and c.col == colIndex and (c.isMerged == null or c.isMerged == false)}">
+                                    <td th:rowspan="${c.rowspan != null && c.rowspan > 1 ? c.rowspan : 1}"
+                                        th:colspan="${c.colspan != null && c.colspan > 1 ? c.colspan : 1}"
+                                        th:style="${'border:' + (element.borderWidth ?: 1) + 'px ' + (element.borderStyle ?: 'solid') + ' ' + (element.borderColor ?: '#d9d9d9') + ';' +
+                                                 'padding:4px;' +
+                                                 'position:relative;' +
+                                                 'vertical-align:top;' +
+                                                 'background-color:#fff;'}">
+                                        <div th:if="${c.elements != null && !c.elements.isEmpty()}" 
+                                             th:style="${'width:100%;' +
+                                                       'height:100%;' +
+                                                       'position:relative;' +
+                                                       'min-height:40px;' +
+                                              'overflow-x:hidden;overflow-y:auto;' +
+                                                       'display:flex;' +
+                                                       'justify-content:' + ((c.horizontalAlign != null) ? (c.horizontalAlign == 'left' ? 'flex-start' : (c.horizontalAlign == 'center' ? 'center' : 'flex-end')) : 'flex-start') + ';' +
+                                                       'align-items:' + ((c.verticalAlign != null) ? (c.verticalAlign == 'top' ? 'flex-start' : (c.verticalAlign == 'middle' ? 'center' : 'flex-end')) : 'flex-start') + ';' +
+                                                       'flex-direction:column;'}">
+                                            <!-- 渲染单元格内的元素 -->
+                                            <div th:each="cellElement : ${c.elements}"
+                                                 th:style="${'position:relative;' +
+                                                           'width:' + (cellElement.width != null ? cellElement.width.toString().replace('px', '') : '100') + 'px;' +
+                                                           'height:' + (cellElement.height != null ? cellElement.height.toString().replace('px', '') : 'auto') + 'px;' +
+                                                           'margin-bottom:4px;' +
+                                                           'overflow:hidden;'}">
+                                                <!-- 文本元素 -->
+                                                <div th:if="${cellElement.type == 'text'}"
+                                                     th:style="${'font-size:' + (cellElement.fontSize ?: 12) + 'px;' +
+                                                              'font-weight:' + (cellElement.bold ? 'bold' : 'normal') + ';' +
+                                                              'font-style:' + (cellElement.italic ? 'italic' : 'normal') + ';' +
+                                                              'text-decoration:' + (cellElement.underline ? 'underline' : 'none') + ';' +
+                                                              'text-align:' + (cellElement.align ?: 'left') + ';' +
+                                                              'width:100%;height:100%;padding:2px;'}"
+                                                     th:utext="${#strings.replace(cellElement.content != null ? cellElement.content : '', '\\n', '<br>')}">
+                                                </div>
+                                                <!-- 图片元素 -->
+                                                <div th:if="${cellElement.type == 'image'}" class="image-element">
+                                                    <img th:if="${cellElement.src != null}"
+                                                         th:src="${cellElement.src}"
+                                                         th:alt="${cellElement.alt ?: ''}"
+                                                         th:style="${'object-fit:' + (cellElement.fit ?: 'contain') + ';' +
+                                                                  'width:' + (cellElement.fit == 'contain' ? 'auto' : '100%') + ';' +
+                                                                  'height:' + (cellElement.fit == 'contain' ? 'auto' : '100%') + ';' +
+                                                                  'max-width:100%;max-height:100%;'}">
+                                                </div>
+                                                <!-- 表格元素 -->
+                                                <div th:if="${cellElement.type == 'table'}" style="width:100%;height:100%;">
+                                                    <table th:class="${'table-element' + ((cellElement.zebra != null && cellElement.zebra) ? ' zebra' : '')}"
+                                                           th:style="${'border-collapse:collapse;width:100%;table-layout:fixed;' +
+                                                                    (cellElement.rowHeight != null ? 'line-height:' + cellElement.rowHeight + 'px;' : '')}">
+                                                        <thead th:if="${cellElement.showHeader}">
+                                                            <tr>
+                                                                <th th:each="col : ${cellElement.columns}"
+                                                                    th:style="${'width:' + (col.width != null ? col.width - 16 : 'auto') + 'px;' +
+                                                                             'text-align:' + (col.align == 'flex-start' ? 'left' : (col.align == 'flex-end' ? 'right' : 'center')) + ';' +
+                                                                             'font-size:' + (col.fontSize != null ? col.fontSize : 12) + 'px;' +
+                                                                             'white-space:' + ((col.wrap != null && col.wrap) ? 'normal' : 'nowrap') + ';' +
+                                                                             'background-color: #f2f2f2;font-weight: 500;padding: 8px;word-break: break-all;'}"
+                                                                    th:text="${col.title}">
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr th:each="row : ${cellElement.rows}">
+                                                                <td th:each="col : ${cellElement.columns}"
+                                                                    th:style="${'text-align:' + (col.align == 'flex-start' ? 'left' : (col.align == 'flex-end' ? 'right' : 'center')) + ';' +
+                                                                             'font-size:' + (col.fontSize != null ? col.fontSize : 12) + 'px;' +
+                                                                             'white-space:' + ((col.wrap != null && col.wrap) ? 'normal' : 'nowrap') + ';' +
+                                                                             'padding: 8px;vertical-align: initial;word-break: break-all;'}"
+                                                                    th:text="${row[col.field]}">
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                                <!-- 条码元素 -->
+                                                <div th:if="${cellElement.type == 'barcode'}"
+                                                     th:class="${'barcode-element' + (cellElement.textPosition == 'top' ? ' top-text' : '')}"
+                                                     th:style="${'background-color:' + (cellElement.background ?: '#ffffff')}">
+                                                    <div th:if="${cellElement.barcodeType == 'barcode'}" style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;">
+                                                        <img th:if="${cellElement.value != null}"
+                                                             th:src="${cellElement.value}"
+                                                             style="max-width:100%;max-height:100%;object-fit:contain;margin:5px;" />
+                                                    </div>
+                                                    <div th:if="${cellElement.barcodeType == 'qrcode'}" class="qrcode-wrapper">
+                                                        <img th:if="${cellElement.value != null}"
+                                                             th:src="${cellElement.value}"
+                                                             style="max-width:100%;max-height:100%;object-fit:contain;" />
+                                                    </div>
+                                                    <div th:if="${cellElement.showLabel}" class="barcode-text"
+                                                         th:style="${'color:' + (cellElement.foreground ?: '#000000') + ';font-size:' + (cellElement.fontSize ?: 14) + 'px;'}"
+                                                         th:text="${cellElement.value}">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </th:block>
+                            </th:block>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </body>

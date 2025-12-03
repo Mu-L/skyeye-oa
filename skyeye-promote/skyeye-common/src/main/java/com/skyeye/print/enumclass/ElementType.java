@@ -25,7 +25,8 @@ public enum ElementType implements SkyeyeEnumClass {
     TEXT("text", "文本", true, true),
     IMAGE("image", "图片", true, false),
     BARCODE("barcode", "条形码", true, false),
-    TABLE("table", "表格", true, false);
+    TABLE("table", "表格", true, false),
+    TABLE_CONTAINER("table-container", "表格容器", true, false);
 
     private String key;
 
