@@ -68,6 +68,14 @@ public class MaterialNormsCode extends CommonInfo {
     @Property(value = "仓库信息")
     private Depot depotMation;
 
+    @TableField(value = "create_depot_id", updateStrategy = FieldStrategy.NEVER)
+    @Property(value = "由哪个仓库生成的")
+    private String createDepotId;
+
+    @TableField(exist = false)
+    @Property(value = "仓库信息")
+    private Depot createDepotMation;
+
     @TableField(value = "department_id")
     @ApiModelProperty(value = "部门id", required = "required")
     private String departmentId;
@@ -105,7 +113,7 @@ public class MaterialNormsCode extends CommonInfo {
     private Integer storeUseState;
 
     @TableField(value = "in_depot")
-    @Property(value = "库存状态", enumClass = MaterialNormsCodeInDepot.class)
+    @Property(value = "入库状态", enumClass = MaterialNormsCodeInDepot.class)
     private Integer inDepot;
 
     @TableField(value = "type")

@@ -97,7 +97,9 @@ public class MaterialNormsCodeServiceImpl extends SkyeyeBusinessServiceImpl<Mate
             wrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsCode::getNormsId), commonPageInfo.getNormsId());
         }
         if (StrUtil.isNotEmpty(commonPageInfo.getDepotId())) {
-            wrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsCode::getDepotId), commonPageInfo.getDepotId());
+            wrapper.and(wr ->
+                wr.eq(MybatisPlusUtil.toColumns(MaterialNormsCode::getDepotId), commonPageInfo.getDepotId())
+                    .or().eq(MybatisPlusUtil.toColumns(MaterialNormsCode::getCreateDepotId), commonPageInfo.getDepotId()));
         }
         if (StrUtil.isNotEmpty(commonPageInfo.getFromObjectId())) {
             wrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsCode::getFromObjectId), commonPageInfo.getFromObjectId());
@@ -176,10 +178,12 @@ public class MaterialNormsCodeServiceImpl extends SkyeyeBusinessServiceImpl<Mate
 
     @Override
     public void insertMaterialNormsCode(InputObject inputObject, OutputObject outputObject) {
-        List<Map<String, Object>> list = JSONUtil.toList(inputObject.getParams().get("list").toString(), null);
+        Map<String, Object> params = inputObject.getParams();
+        List<Map<String, Object>> list = JSONUtil.toList(params.get("list").toString(), null);
         if (CollectionUtil.isEmpty(list)) {
             return;
         }
+        String createDepotId = params.get("createDepotId").toString();
         List<String> normsIdList = list.stream().map(bean -> bean.get("normsId").toString()).distinct().collect(Collectors.toList());
         if (list.size() != normsIdList.size()) {
             throw new CustomException("存在重复的商品规格信息，请确认");
@@ -202,6 +206,7 @@ public class MaterialNormsCodeServiceImpl extends SkyeyeBusinessServiceImpl<Mate
         // 是否创建任务
         jobBody.put("whetherCreatTask", false);
         jobBody.put("list", JSONUtil.toJsonStr(list));
+        jobBody.put("createDepotId", createDepotId);
         jobBody.put("className", MaterialNormsCodeServiceImpl.class.getName());
         jobBody.put("tenantId", tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY);
         String topic = PropertiesUtil.getPropertiesValue("${topic.material-norms-code-generate-barcode}");

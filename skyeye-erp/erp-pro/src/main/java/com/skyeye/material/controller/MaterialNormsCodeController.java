@@ -40,6 +40,7 @@ public class MaterialNormsCodeController {
 
     @ApiOperation(id = "insertMaterialNormsCode", value = "生成条形码，自动过滤不需要生成条形码的商品", method = "POST", allUse = "2")
     @ApiImplicitParams({
+        @ApiImplicitParam(id = "createDepotId", name = "createDepotId", value = "创建仓库的id", required = "required"),
         @ApiImplicitParam(id = "list", name = "list", value = "商品信息，必须包含materialId,normsId,operNumber", required = "required,json")})
     @RequestMapping("/post/MaterialNormsCodeController/insertMaterialNormsCode")
     public void insertMaterialNormsCode(InputObject inputObject, OutputObject outputObject) {

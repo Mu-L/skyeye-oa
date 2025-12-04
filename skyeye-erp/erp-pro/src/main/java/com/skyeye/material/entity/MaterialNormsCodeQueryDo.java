@@ -6,6 +6,7 @@ package com.skyeye.material.entity;
 
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import lombok.Data;
 
@@ -35,7 +36,7 @@ public class MaterialNormsCodeQueryDo extends CommonPageInfo implements Serializ
     @ApiModelProperty(value = "车间id")
     private String farmId;
 
-    @ApiModelProperty(value = "仓库id")
+    @ApiModelProperty(value = "由这个仓库生成/所属仓库id")
     private String depotId;
 
     @ApiModelProperty(value = "来源单据的id")

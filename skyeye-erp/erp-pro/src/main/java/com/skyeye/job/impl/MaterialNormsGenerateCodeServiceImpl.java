@@ -75,8 +75,10 @@ public class MaterialNormsGenerateCodeServiceImpl implements RocketMQListener<St
         LOGGER.info("start material norms get Bar Code, data is {}", data);
         Map<String, Object> map = JSONUtil.toBean(data, null);
         List<Map<String, Object>> list = JSONUtil.toList(map.get("list").toString(), null);
+        // 所属仓库id
+        String createDepotId = map.get("createDepotId").toString();
         String className = map.get("className").toString();
-        String tenantId = StrUtil.EMPTY;
+        String tenantId;
         if (tenantEnable) {
             tenantId = map.get("tenantId").toString();
             TenantContext.setTenantId(tenantId);
@@ -120,6 +122,7 @@ public class MaterialNormsGenerateCodeServiceImpl implements RocketMQListener<St
             for (int i = startIndex; i < startIndex + operNumber; i++) {
                 MaterialNormsCode materialNormsCode = new MaterialNormsCode();
                 materialNormsCode.setCodeNum(codeList.get(i));
+                materialNormsCode.setCreateDepotId(createDepotId);
                 materialNormsCode.setMaterialId(materialId);
                 materialNormsCode.setNormsId(normsId);
                 materialNormsCode.setInDepot(MaterialNormsCodeInDepot.NOT_IN_STOCK.getKey());
