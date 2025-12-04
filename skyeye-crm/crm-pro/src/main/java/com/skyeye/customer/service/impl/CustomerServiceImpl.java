@@ -96,6 +96,15 @@ public class CustomerServiceImpl extends SkyeyeBusinessServiceImpl<CustomerDao, 
             // 我创建的
             queryWrapper.eq(MybatisPlusUtil.toColumns(CustomerMation::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
         }
+        if (StrUtil.isNotEmpty(commonPageInfo.getCustomParamsMapStr("typeId"))) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(CustomerMation::getTypeId), commonPageInfo.getCustomParamsMapStr("typeId"));
+        }
+        if (StrUtil.isNotEmpty(commonPageInfo.getCustomParamsMapStr("fromId"))) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(CustomerMation::getFromId), commonPageInfo.getCustomParamsMapStr("fromId"));
+        }
+        if (StrUtil.isNotEmpty(commonPageInfo.getCustomParamsMapStr("industryId"))) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(CustomerMation::getIndustryId), commonPageInfo.getCustomParamsMapStr("industryId"));
+        }
         return queryWrapper;
     }
 
