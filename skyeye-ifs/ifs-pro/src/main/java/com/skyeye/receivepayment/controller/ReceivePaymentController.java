@@ -4,11 +4,9 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
-import com.skyeye.common.entity.features.SubmitSkyeyeFlowable;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.order.entity.IncomeOrder;
 import com.skyeye.receivepayment.entity.ReceivePayment;
 import com.skyeye.receivepayment.service.ReceivePaymentService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,8 +37,8 @@ public class ReceivePaymentController {
 
     @ApiOperation(id = "updateReceivePayment", value = "编辑收付款", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id="fromId", name = "fromId", value = "来源ID（付款id,回款id）", required = "required"),
-            @ApiImplicitParam(id="invoicePrice", name = "invoicePrice", value = "开票金额", required = "required"),
+        @ApiImplicitParam(id = "fromId", name = "fromId", value = "来源ID（付款id,回款id）", required = "required"),
+        @ApiImplicitParam(id = "invoicePrice", name = "invoicePrice", value = "开票金额", required = "required"),
     })
     @RequestMapping("/post/ReceivePaymentController/updateReceivePayment")
     public void updateReceivePayment(InputObject inputObject, OutputObject outputObject) {
@@ -56,7 +54,7 @@ public class ReceivePaymentController {
 
     @ApiOperation(id = "queryReceivePaymentById", value = "根据id获取收付款详情", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
     })
     @RequestMapping("/post/ReceivePaymentController/queryReceivePaymentById")
     public void queryReceivePaymentById(InputObject inputObject, OutputObject outputObject) {
@@ -65,7 +63,7 @@ public class ReceivePaymentController {
 
     @ApiOperation(id = "queryReceivePaymentByContractId", value = "根据合同id获取应收事项列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "contractId", name = "contractId", value = "合同id")})
+        @ApiImplicitParam(id = "contractId", name = "contractId", value = "合同id")})
     @RequestMapping("/post/ReceivePaymentController/queryReceivePaymentByContractId")
     public void queryReceivePaymentByContractId(InputObject inputObject, OutputObject outputObject) {
         receivePaymentService.queryReceivePaymentByContractId(inputObject, outputObject);

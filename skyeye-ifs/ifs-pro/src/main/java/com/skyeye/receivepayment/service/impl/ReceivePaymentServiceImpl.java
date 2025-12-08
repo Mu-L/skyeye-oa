@@ -80,7 +80,6 @@ public class ReceivePaymentServiceImpl extends SkyeyeBusinessServiceImpl<Receive
     @Override
     protected void updatePrepose(ReceivePayment entity) {
         super.updatePrepose(entity);
-        ;
     }
 
     @Override
