@@ -32,12 +32,6 @@ public class TmsDriverController {
     @Autowired
     private TmsDriverService tmsDriverService;
 
-    /**
-     * 获取司机管理列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryTmsDriverList", value = "获取司机管理列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/TmsDriverController/queryTmsDriverList")
@@ -45,12 +39,6 @@ public class TmsDriverController {
         tmsDriverService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加或修改司机管理
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeTmsDriver", value = "新增/编辑司机管理", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = TmsDriver.class)
     @RequestMapping("/post/TmsDriverController/writeTmsDriver")
@@ -58,12 +46,6 @@ public class TmsDriverController {
         tmsDriverService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除司机管理
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteTmsDriverById", value = "根据ID删除司机管理", method = "DELETE", allUse = "1")
     @ApiImplicitParams({@ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/TmsDriverController/deleteTmsDriverById")
@@ -71,12 +53,6 @@ public class TmsDriverController {
         tmsDriverService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取已启用的司机
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryEnabledTmsDriverList", value = "获取已启用的司机", method = "GET", allUse = "2")
     @RequestMapping("/post/TmsDriverController/queryEnabledTmsDriverList")
     public void queryEnabledTmsDriverList(InputObject inputObject, OutputObject outputObject) {

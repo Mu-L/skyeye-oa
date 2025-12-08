@@ -4,6 +4,8 @@
 
 package com.skyeye.tms.driver.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -18,10 +20,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: TmsDriverServiceImpl
- * @Description: 司机管理服务层
+ * @Description: 司机管理服务层---强隔离
  * @author: skyeye云系列--卫志强
  * @date: 2021/5/16 23:20
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye-report Inc. All rights reserved.
@@ -61,8 +64,12 @@ public class TmsDriverServiceImpl extends SkyeyeBusinessServiceImpl<TmsDriverDao
         tmsDriverList.forEach(tmsCarType -> {
             tmsCarType.setId(tmsCarType.getUserId());
             Map<String, Object> userMation = tmsCarType.getUserMation();
-            tmsCarType.setName(userMation.get("name").toString());
+            if (CollectionUtil.isNotEmpty(userMation)) {
+                tmsCarType.setName(userMation.get("name").toString());
+            }
         });
+        tmsDriverList = tmsDriverList.stream().filter(tmsDriver -> StrUtil.isNotEmpty(tmsDriver.getName()))
+            .collect(Collectors.toList());
         outputObject.setBeans(tmsDriverList);
         outputObject.settotal(tmsDriverList.size());
     }
