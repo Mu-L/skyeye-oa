@@ -54,7 +54,7 @@ public class FarmStaffController {
         farmStaffService.insertFarmStaff(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryStaffBelongFarmList", value = "获取当前登陆用户所属的车间列表", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryStaffBelongFarmList", value = "获取当前登陆用户所属的/所负责的车间列表", method = "GET", allUse = "2")
     @RequestMapping("/post/FarmStaffController/queryStaffBelongFarmList")
     public void queryStaffBelongFarmList(InputObject inputObject, OutputObject outputObject) {
         farmStaffService.queryStaffBelongFarmList(inputObject, outputObject);
