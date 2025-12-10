@@ -20,7 +20,7 @@ public class CalculateCostController {
 
     @ApiOperation(id = "calculateMachinProcedureAcceptCost", value = "工序验收核算", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "machinProcedureAcceptId", name = "machinProcedureAcceptId", value = "工序验收单主键id", required = "required")})
+        @ApiImplicitParam(id = "machinProcedureAcceptId", name = "machinProcedureAcceptId", value = "工序验收单主键id", required = "required")})
     @RequestMapping("/post/CalculateCostController/calculateMachinProcedureAcceptCost")
     public void calculateMachinProcedureAcceptCost(InputObject inputObject, OutputObject outputObject) {
         calculateCostService.calculateMachinProcedureAcceptCost(inputObject, outputObject);
@@ -28,7 +28,7 @@ public class CalculateCostController {
 
     @ApiOperation(id = "calculateMachinProcedureCost", value = "工序核算", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "machinProcedureId", name = "machinProcedureId", value = "加工单子单据工序id", required = "required")})
+        @ApiImplicitParam(id = "machinProcedureId", name = "machinProcedureId", value = "加工单子单据工序id", required = "required")})
     @RequestMapping("/post/CalculateCostController/calculateMachinProcedureCost")
     public void calculateMachinProcedureCost(InputObject inputObject, OutputObject outputObject) {
         calculateCostService.calculateMachinProcedureCost(inputObject, outputObject);
@@ -36,15 +36,15 @@ public class CalculateCostController {
 
     @ApiOperation(id = "calculateMachinPutCost", value = "加工入库单核算", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "machinPutId", name = "machinPutId", value = "加工入库单id", required = "required")})
+        @ApiImplicitParam(id = "machinPutId", name = "machinPutId", value = "加工入库单id", required = "required")})
     @RequestMapping("/post/CalculateCostController/calculateMachinPutCost")
-    public void calculateMachinPutCost(InputObject inputObject, OutputObject outputObject){
+    public void calculateMachinPutCost(InputObject inputObject, OutputObject outputObject) {
         calculateCostService.calculateMachinPutCost(inputObject, outputObject);
     }
 
     @ApiOperation(id = "calculateMachinCost", value = "部门加工单核算", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "machinId", name = "machinId", value = "加工单id", required = "required")})
+        @ApiImplicitParam(id = "machinId", name = "machinId", value = "加工单id", required = "required")})
     @RequestMapping("/post/CalculateCostController/calculateMachinCost")
     public void calculateMachinCost(InputObject inputObject, OutputObject outputObject) {
         calculateCostService.calculateMachinCost(inputObject, outputObject);

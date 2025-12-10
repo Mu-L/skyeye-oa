@@ -185,6 +185,7 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         }
         // 设置工序/工序信息,车间任务
         Map<String, MachinProcedure> machinProcedureMap = machinProcedureService.queryMachinProcedureMapByMachinId(id);
+        // 根据加工单ID查询车间任务 Map<加工单子单据工序id, List<车间任务>>
         Map<String, List<MachinProcedureFarm>> procedureFarmMap = machinProcedureFarmService.queryMachinProcedureFarmMapByMachinId(id);
         // 查询bom方案
         List<String> bomIds = machin.getMachinChildList().stream().filter(bean -> StrUtil.isNotEmpty(bean.getBomId()))
@@ -276,6 +277,7 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
             .collect(Collectors.toList()).toArray(new String[]{}));
 
         Map<String, Map<String, MachinProcedure>> machinProcedureListMap = machinProcedureService.queryMachinProcedureMapByMachinIds(machinIdList);
+        // 根据加工单ID查询车间任务 Map<加工单id, Map<加工单子单据工序id, List<车间任务>>>
         Map<String, Map<String, List<MachinProcedureFarm>>> machinProcedureFarmListMap = machinProcedureFarmService.queryMachinProcedureFarmMapByMachinIds(machinIdList);
 
         // 为每个加工单设置完整信息
@@ -308,6 +310,7 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
 
                 // 为每个加工单单独查询工序信息（因为现有方法只支持单条查询）
                 Map<String, MachinProcedure> machinProcedureMap = machinProcedureListMap.get(machin.getId());
+                // 获取车间任务信息
                 Map<String, List<MachinProcedureFarm>> procedureFarmMap = machinProcedureFarmListMap.get(machin.getId());
 
                 if (machinProcedureMap != null && procedureFarmMap != null) {
@@ -341,6 +344,18 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         return machinList;
     }
 
+    /**
+     * @param wayProcedureId     工艺id
+     * @param materialId         商品id
+     * @param normsId            规格id
+     * @param childId            加工单子单据id
+     * @param bomChildId         bom子件清单id
+     * @param machinProcedureMap 加工单子单据产品规格其中的工序信息Map<加工单子单据产品规格其中的工序id, 加工单子单据产品规格其中的工序信息>
+     * @param procedureFarmMap   车间任务Map<加工单子单据工序id, List<车间任务>>
+     * @param checkComplateFlag  工序是否完成加工的状态，true:完成，false:未完成
+     * @param lastProcedureNum   最后加工完成的数量
+     * @return
+     */
     private WayProcedure resetMachinProcedure(String wayProcedureId, String materialId, String normsId, String childId,
                                               String bomChildId, Map<String, MachinProcedure> machinProcedureMap,
                                               Map<String, List<MachinProcedureFarm>> procedureFarmMap, Boolean[] checkComplateFlag,
@@ -351,9 +366,11 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
             wayProcedure.getWorkProcedureList().forEach(wayProcedureChild -> {
                 String key = String.format(Locale.ROOT, "%s-%s-%s-%s-%s-%s",
                     childId, bomChildId, materialId, normsId, wayProcedureId, wayProcedureChild.getProcedureId());
+                // 加工单子单据工序信息
                 MachinProcedure machinProcedure = machinProcedureMap.get(key);
-                if (machinProcedure.getState() == MachinProcedureState.WAIT_STARTED.getKey()) {
-                    // 工序未开始
+                if (machinProcedure.getState() == MachinProcedureState.WAIT_STARTED.getKey()
+                    || machinProcedure.getState() == MachinProcedureState.PARTIAL_COMPLETION.getKey()) {
+                    // 工序未开始/部分完成
                     checkComplateFlag[0] = false;
                 }
                 // 设置工序关联的车间任务
@@ -947,6 +964,8 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         if (ObjectUtil.isEmpty(machinChild)) {
             return false;
         }
+        // 整体是先走的bom子件清单，再走的工艺路线，所以先判断工艺路线，再判断bom子件清单
+        // 判断是否绑定工艺
         if (ObjectUtil.isNotEmpty(machinChild.getWayProcedureMation())) {
             // 判断是否为最后一道工序
             if (StrUtil.isNotEmpty(bomChildId)) {
@@ -963,6 +982,7 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
             }
         }
 
+        // 判断是否绑定bom清单
         if (StrUtil.isNotEmpty(machinChild.getBomId())) {
             Bom bom = machinChild.getBomMation();
             // 获取bom子件清单中绑定了工艺的id

@@ -92,6 +92,7 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         farmService.setMationForMap(beans, "farmId", "farmMation");
+        // 加工单子单据工序信息
         machinProcedureService.setMationForMap(beans, "machinProcedureId", "machinProcedureMation");
         // 获取加工单信息
         List<String> machinIds = beans.stream().map(bean -> MapUtil.getStr(bean, "machinId"))
@@ -178,6 +179,7 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
         machinProcedureFarmList.forEach(machinProcedureFarm -> {
             machinProcedureFarm.setMachinProcedureAcceptList(machinProcedureAcceptMap.get(machinProcedureFarm.getId()));
         });
+
         Map<String, List<MachinProcedureFarm>> machinProcedureFarmMap = machinProcedureFarmList.stream()
             .collect(Collectors.groupingBy(MachinProcedureFarm::getMachinProcedureId));
         return machinProcedureFarmMap;
