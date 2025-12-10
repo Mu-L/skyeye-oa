@@ -587,7 +587,8 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
             Map<String, Object> materialNode = getNode(machinChild.getNewId(), machinChild.getMaterialMation().getName(), CommonNumConstants.NUM_ZERO.toString(),
                 machinChild.getPlanStartTime(), machinChild.getPlanEndTime(), true, machinChild);
             node.add(materialNode);
-            resetMachinProcedure(machinChild.getWayProcedureMation(), node, link, machinChild.getNewId(), mathinTime, materialNode);
+            // 加工单子单据的产品信息不重新计算开始和结束时间，直接用计划时间
+            resetMachinProcedure(machinChild.getWayProcedureMation(), node, link, machinChild.getNewId(), mathinTime, null);
             // bom清单
             if (StrUtil.isNotEmpty(machinChild.getBomId())) {
                 Bom bom = machinChild.getBomMation();
@@ -670,9 +671,11 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
                 if (StrUtil.isNotEmpty(machinProcedure.getPlanEndTime())) {
                     dateArray.add(machinProcedure.getPlanEndTime());
                 }
-                dateArray.add(materialNode.get("start_date").toString());
-                dateArray.add(materialNode.get("end_date").toString());
-                showResult(dateArray.toArray(new String[]{}), materialNode);
+                if (CollectionUtil.isNotEmpty(materialNode)) {
+                    dateArray.add(materialNode.getOrDefault("start_date", StrUtil.EMPTY).toString());
+                    dateArray.add(materialNode.getOrDefault("end_date", StrUtil.EMPTY).toString());
+                    showResult(dateArray.toArray(new String[]{}), materialNode);
+                }
             }
             link.add(getLink(prveId, wayProcedureChild.getNewId()));
             link.get(link.size() - 1).put("color", "#FFB800");

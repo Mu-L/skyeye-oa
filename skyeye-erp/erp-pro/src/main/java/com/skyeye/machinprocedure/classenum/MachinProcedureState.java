@@ -22,13 +22,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum MachinProcedureState implements SkyeyeEnumClass {
 
-    WAIT_STARTED(1, "待开工", true, false),
-    PARTIAL_COMPLETION(2, "部分完工", true, false),
-    ALL_COMPLETED(3, "全部完工", true, false);
+    WAIT_STARTED(1, "待开工", "red", true, false),
+    PARTIAL_COMPLETION(2, "部分完工", "orange", true, false),
+    ALL_COMPLETED(3, "全部完工", "green",  true, false);
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 
