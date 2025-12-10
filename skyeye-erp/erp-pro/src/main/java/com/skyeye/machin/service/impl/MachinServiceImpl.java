@@ -4,6 +4,7 @@
 
 package com.skyeye.machin.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -592,7 +593,9 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
             // bom清单
             if (StrUtil.isNotEmpty(machinChild.getBomId())) {
                 Bom bom = machinChild.getBomMation();
-                bom.getBomChildList().forEach(bomChild -> {
+                // 计算BOM子件的实际需要数量（考虑树结构和加工数量）
+                List<BomChild> calculatedBomChildList = calculateBomChildNeedNum(bom, machinChild.getOperNumber());
+                calculatedBomChildList.forEach(bomChild -> {
                     Map<String, Object> childMaterialNode = getNode(bomChild.getNewId(), bomChild.getMaterialMation().getName(), bomChild.getNewParentId(),
                         machinChild.getPlanStartTime(), machinChild.getPlanEndTime(), true, bomChild);
                     node.add(childMaterialNode);
@@ -735,6 +738,84 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
 
         outputObject.setBean(machin);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    /**
+     * 计算BOM子件的实际需要数量（考虑树结构和加工数量）
+     *
+     * @param bom        BOM方案
+     * @param operNumber 预加工数量
+     * @return 计算后的BOM子件列表
+     */
+    public static List<BomChild> calculateBomChildNeedNum(Bom bom, Integer operNumber) {
+        if (bom == null || CollectionUtil.isEmpty(bom.getBomChildList()) || operNumber == null || operNumber <= 0) {
+            return bom != null ? bom.getBomChildList() : new ArrayList<>();
+        }
+
+        // 深拷贝BOM子件列表，避免修改原始数据
+        List<BomChild> bomChildList = bom.getBomChildList().stream()
+            .map(bomChild -> {
+                BomChild newBomChild = new BomChild();
+                BeanUtil.copyProperties(bomChild, newBomChild);
+                return newBomChild;
+            })
+            .collect(Collectors.toList());
+
+        // 构建父子关系Map，key为materialId，value为BomChild
+        Map<String, BomChild> bomChildMap = bomChildList.stream()
+            .collect(Collectors.toMap(BomChild::getMaterialId, child -> child, (k1, k2) -> k1));
+
+        // 计算单元所需数量 = 加工数量 / BOM制造数量
+        String unitRatio = CalculationUtil.divide(String.valueOf(operNumber), String.valueOf(bom.getMakeNum()), CommonNumConstants.NUM_TWO);
+
+        // 找到所有根节点（parentId为"0"）
+        List<BomChild> rootNodes = bomChildList.stream()
+            .filter(child -> StrUtil.equals(child.getParentId(), CommonNumConstants.NUM_ZERO.toString()))
+            .collect(Collectors.toList());
+
+        // 递归计算每个节点的实际需要数量
+        // 所有层级的子节点都使用相同的unitRatio（预加工数量 / BOM制造数量）
+        for (BomChild rootNode : rootNodes) {
+            calculateChildNeedNum(rootNode, bomChildMap, unitRatio);
+        }
+
+        return bomChildList;
+    }
+
+    /**
+     * 递归计算子节点的实际需要数量
+     * <p>
+     * 计算公式：实际需要数量 = (预加工数量 / BOM制造数量) * BOM子件的needNum
+     * 不管多少级的子节点，都使用相同的单元比例（预加工数量 / BOM制造数量）
+     *
+     * @param bomChild    当前BOM子件
+     * @param bomChildMap BOM子件Map（key为materialId）
+     * @param unitRatio   单元比例（预加工数量 / BOM制造数量），所有层级共用
+     */
+    private static void calculateChildNeedNum(BomChild bomChild, Map<String, BomChild> bomChildMap,
+                                              String unitRatio) {
+        if (bomChild == null || bomChild.getNeedNum() == null) {
+            return;
+        }
+
+        // 计算当前节点的实际需要数量 = 单元比例 * 当前节点的needNum
+        // 例如：预加工20个，BOM制造数量10个，needNum=100
+        // 实际需要数量 = (20/10) * 100 = 2 * 100 = 200
+        String actualNeedNumStr = CalculationUtil.multiply(unitRatio, String.valueOf(bomChild.getNeedNum()), CommonNumConstants.NUM_ZERO);
+        Integer actualNeedNum = Integer.parseInt(actualNeedNumStr);
+        bomChild.setNeedNum(actualNeedNum);
+
+        // 查找当前节点的所有子节点（parentId等于当前节点的materialId）
+        List<BomChild> childNodes = bomChildMap.values().stream()
+            .filter(child -> StrUtil.equals(child.getParentId(), bomChild.getMaterialId()))
+            .collect(Collectors.toList());
+
+        // 递归处理子节点，使用相同的unitRatio
+        if (CollectionUtil.isNotEmpty(childNodes)) {
+            for (BomChild childNode : childNodes) {
+                calculateChildNeedNum(childNode, bomChildMap, unitRatio);
+            }
+        }
     }
 
     /**
