@@ -677,6 +677,7 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         String prveId = parentId;
         // 获取工艺信息
         for (WayProcedureChild wayProcedureChild : wayProcedureMation.getWorkProcedureList()) {
+            // 加工单子单据工序信息
             MachinProcedure machinProcedure = wayProcedureChild.getMachinProcedureMation();
             if (ObjectUtil.isEmpty(machinProcedure)) {
                 node.add(getNode(wayProcedureChild.getNewId(), wayProcedureChild.getProcedureMation().getName(), parentId,
