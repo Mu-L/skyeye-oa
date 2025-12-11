@@ -389,6 +389,7 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         if (CollectionUtil.isEmpty(machinProcedureFarmList)) {
             return CommonNumConstants.NUM_ZERO;
         }
+        // TODO 这里要改成加工入库单的数量计算方式
         // 获取已经审批通过的工序验收单
         List<MachinProcedureAccept> machinProcedureAcceptList = machinProcedureFarmList.stream()
             .filter(bean -> CollectionUtil.isNotEmpty(bean.getMachinProcedureAcceptList()))
