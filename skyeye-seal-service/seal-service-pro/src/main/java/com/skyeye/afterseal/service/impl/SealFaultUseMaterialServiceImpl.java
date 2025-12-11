@@ -136,7 +136,7 @@ public class SealFaultUseMaterialServiceImpl extends SkyeyeLinkDataServiceImpl<S
                     .applyFunc("date_format(%s, '%%Y-%%m-%%d') >= date_format({0}, '%%Y-%%m-%%d')", arg -> arg.accept(SealFaultUseMaterial::getCreateTime), startTime);
         }
         if (CollectionUtil.isNotEmpty(userIdList)) {
-            wrapper.in(SealFault::getCreateId, userIdList);
+            wrapper.in(SealFaultUseMaterial::getCreateId, userIdList);
         }
         if (tenantEnable) {
             String tenantId = TenantContext.getTenantId();
