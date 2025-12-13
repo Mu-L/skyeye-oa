@@ -13,6 +13,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.dsform.entity.DsFormPage;
 import com.skyeye.menu.classenum.MenuType;
 import com.skyeye.menu.classenum.UrlType;
 import com.skyeye.operate.classenum.AppMenuPageType;
@@ -64,6 +65,14 @@ public class AppWorkPage extends OperatorUserInfo {
     @TableField("page_type")
     @ApiModelProperty(value = "页面类型", enumClass = AppMenuPageType.class, required = "required")
     private Integer pageType;
+
+    @TableField("page_id")
+    @ApiModelProperty(value = "表单布局id")
+    private String pageId;
+
+    @TableField(exist = false)
+    @Property(value = "当 pageType 为表单布局时，存储的表单布局信息")
+    private DsFormPage pageMation;
 
     @TableField(value = "parent_id")
     @ApiModelProperty(value = "所属目录id", defaultValue = "0")

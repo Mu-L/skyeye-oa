@@ -32,12 +32,6 @@ public class AppWorkPageController {
     @Autowired
     private AppWorkPageService appWorkPageService;
 
-    /**
-     * 获取菜单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAppWorkPageList", value = "获取菜单列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/AppWorkPageController/queryAppWorkPageList")
@@ -45,12 +39,6 @@ public class AppWorkPageController {
         appWorkPageService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑手机端菜单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeAppWorkPageMation", value = "新增/编辑手机端菜单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = AppWorkPage.class)
     @RequestMapping("/post/AppWorkPageController/writeAppWorkPageMation")
@@ -58,12 +46,6 @@ public class AppWorkPageController {
         appWorkPageService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询菜单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAppWorkPageById", value = "根据id查询菜单", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class AppWorkPageController {
         appWorkPageService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 删除菜单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteAppWorkPageById", value = "删除菜单", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,12 +62,6 @@ public class AppWorkPageController {
         appWorkPageService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据桌面id获取目录集合
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAppWorkPageListByDesktopId", value = "根据桌面id获取目录集合", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "desktopId", name = "desktopId", value = "桌面id")})

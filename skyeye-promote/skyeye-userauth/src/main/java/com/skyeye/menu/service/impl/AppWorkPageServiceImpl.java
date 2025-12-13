@@ -18,10 +18,15 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.tenant.TenantTypeEnum;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.dsform.entity.DsFormPage;
+import com.skyeye.dsform.service.DsFormPageService;
 import com.skyeye.menu.classenum.MenuType;
 import com.skyeye.menu.dao.AppWorkPageDao;
 import com.skyeye.menu.entity.AppWorkPage;
 import com.skyeye.menu.service.AppWorkPageService;
+import com.skyeye.operate.classenum.AppMenuPageType;
+import com.skyeye.server.entity.ServiceBeanCustom;
+import com.skyeye.server.service.ServiceBeanCustomService;
 import com.skyeye.win.service.SysEveDesktopService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +51,12 @@ public class AppWorkPageServiceImpl extends SkyeyeBusinessServiceImpl<AppWorkPag
 
     @Autowired
     private SysEveDesktopService sysEveDesktopService;
+
+    @Autowired
+    private DsFormPageService dsFormPageService;
+
+    @Autowired
+    private ServiceBeanCustomService serviceBeanCustomService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -86,6 +97,15 @@ public class AppWorkPageServiceImpl extends SkyeyeBusinessServiceImpl<AppWorkPag
     public AppWorkPage selectById(String id) {
         AppWorkPage appWorkPage = super.selectById(id);
         sysEveDesktopService.setDataMation(appWorkPage, AppWorkPage::getDesktopId);
+        if (appWorkPage.getPageType() == AppMenuPageType.LAYOUT.getKey()) {
+            // 表单布局
+            DsFormPage dsFormPage = dsFormPageService.getDataFromDb(appWorkPage.getPageId());
+            if (dsFormPage != null) {
+                ServiceBeanCustom serviceBeanCustom = serviceBeanCustomService.selectServiceBeanCustom(dsFormPage.getAppId(), dsFormPage.getClassName());
+                dsFormPage.setServiceBeanCustom(serviceBeanCustom);
+                appWorkPage.setPageMation(dsFormPage);
+            }
+        }
         if (!appWorkPage.getParentId().equals("0")) {
             appWorkPage.setParentMation(selectById(appWorkPage.getParentId()));
         }
