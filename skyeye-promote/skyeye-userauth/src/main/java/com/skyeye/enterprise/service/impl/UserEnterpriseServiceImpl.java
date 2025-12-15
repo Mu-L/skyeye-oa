@@ -104,6 +104,21 @@ public class UserEnterpriseServiceImpl extends SkyeyeBusinessServiceImpl<UserEnt
     }
 
     @Override
+    protected void writePostpose(UserEnterprise entity, String userId) {
+        super.writePostpose(entity, userId);
+
+        entity.setPassword(null);
+        // 更新PC端登录缓存
+        if (SysUserAuthConstants.exitUserLoginRedisCache(entity.getId())) {
+            SysUserAuthConstants.setUserLoginRedisCache(entity.getId(), BeanUtil.beanToMap(entity));
+        }
+        // 更新APP端登录缓存
+        if (SysUserAuthConstants.exitUserLoginRedisCache(entity.getId() + SysUserAuthConstants.APP_IDENTIFYING)) {
+            SysUserAuthConstants.setUserLoginRedisCache(entity.getId() + SysUserAuthConstants.APP_IDENTIFYING, BeanUtil.beanToMap(entity));
+        }
+    }
+
+    @Override
     public void loginUserEnterprise(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String phone = map.get("phone").toString();
