@@ -48,6 +48,10 @@ public class SupplierContract extends SkyeyeFlowable {
     @Property(value = "适用对象信息")
     private Map<String, Object> objectMation;
 
+    @TableField(value = "project_id", updateStrategy = FieldStrategy.NEVER)
+    @ApiModelProperty(value = "项目ID")
+    private String projectId;
+
     @TableField(value = "title")
     @ApiModelProperty(value = "合同名称", required = "required", fuzzyLike = true)
     private String title;
