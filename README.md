@@ -4,6 +4,13 @@
 
 # 为我投票可获取免费体验账号：https://gitee.com/dromara/skyeye/issues/ID3GFF
 
+<div align="center">
+  <img src="https://gitee.com/dromara/skyeye/badge/star.svg?theme=blue" alt="gitee Star" height="20">
+  <img src="https://img.shields.io/github/stars/dromara/skyeye.svg?style=social&label=Stars" alt="Github Star" height="20">
+  <img src="https://gitcode.com/doc_wei/erp-pro/star/badge.svg?style=flat-square&logoSize=14" alt="GitCode Star" height="20">
+  <img src="https://gitcode.com/doc_wei/erp-pro/star/2025top.svg?style=flat-square&logoSize=14"
+  alt="GitCode Star 2025" height="20">
+</div>
 **郑重声明：** 
 
 **1. Skyeye会员（只有 `Skyeye会员` 才能获取完整源代码，扫描下方付款码成为会员吧）拿到源码后可进行学习、毕设、企业等使用。**
