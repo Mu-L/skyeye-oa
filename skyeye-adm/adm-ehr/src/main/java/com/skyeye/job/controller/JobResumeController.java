@@ -32,12 +32,6 @@ public class JobResumeController {
     @Autowired
     private JobResumeService jobResumeService;
 
-    /**
-     * 查询工作履历列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryJobResumeList", value = "查询工作履历列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/JobResumeController/queryJobResumeList")
@@ -45,12 +39,6 @@ public class JobResumeController {
         jobResumeService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑员工工作履历信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeJobResume", value = "新增/编辑员工工作履历信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = JobResume.class)
     @RequestMapping("/post/JobResumeController/writeJobResume")
@@ -58,12 +46,6 @@ public class JobResumeController {
         jobResumeService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除员工工作履历信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteJobResumeById", value = "根据id删除员工工作履历信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
