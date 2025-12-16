@@ -77,7 +77,7 @@ public class UserEnterpriseServiceImpl extends SkyeyeBusinessServiceImpl<UserEnt
     public String updateEntity(UserEnterprise entity, String userId) {
         UserEnterprise oldUserEnterprise = selectById(userId);
         if (ObjectUtil.isEmpty(oldUserEnterprise) || StrUtil.isEmpty(oldUserEnterprise.getId())) {
-            throw new CustomException("用户不存在！");
+            throw new CustomException("企业用户不存在！");
         }
         if (!UserEnterpriseState.CERTIFIED_FAILURE.getKey().equals(oldUserEnterprise.getState())) {
             // 只有认证失败的才能重新认证
@@ -146,6 +146,25 @@ public class UserEnterpriseServiceImpl extends SkyeyeBusinessServiceImpl<UserEnt
         updateWrapper.set(MybatisPlusUtil.toColumns(UserEnterprise::getPassword), password);
         update(updateWrapper);
         refreshCache(userId);
+    }
+
+    @Override
+    public void editUserEnterpriseState(String id, Integer state) {
+        UpdateWrapper<UserEnterprise> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(UserEnterprise::getState), state);
+        update(updateWrapper);
+        refreshCache(id);
+
+        UserEnterprise userEnterprise = selectById(id);
+        // 更新PC端登录缓存
+        if (SysUserAuthConstants.exitUserLoginRedisCache(userEnterprise.getId())) {
+            SysUserAuthConstants.setUserLoginRedisCache(userEnterprise.getId(), BeanUtil.beanToMap(userEnterprise));
+        }
+        // 更新APP端登录缓存
+        if (SysUserAuthConstants.exitUserLoginRedisCache(userEnterprise.getId() + SysUserAuthConstants.APP_IDENTIFYING)) {
+            SysUserAuthConstants.setUserLoginRedisCache(userEnterprise.getId() + SysUserAuthConstants.APP_IDENTIFYING, BeanUtil.beanToMap(userEnterprise));
+        }
     }
 
     public UserEnterprise queryUserByUserCode(String userCode) {
