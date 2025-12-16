@@ -157,6 +157,8 @@ public class UserEnterpriseServiceImpl extends SkyeyeBusinessServiceImpl<UserEnt
         refreshCache(id);
 
         UserEnterprise userEnterprise = selectById(id);
+
+        userEnterprise.setPassword(null);
         // 更新PC端登录缓存
         if (SysUserAuthConstants.exitUserLoginRedisCache(userEnterprise.getId())) {
             SysUserAuthConstants.setUserLoginRedisCache(userEnterprise.getId(), BeanUtil.beanToMap(userEnterprise));
