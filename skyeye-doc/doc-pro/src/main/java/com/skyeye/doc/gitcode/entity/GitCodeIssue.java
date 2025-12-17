@@ -75,6 +75,14 @@ public class GitCodeIssue extends OperatorUserInfo {
     @Property(value = "版本信息")
     private CodeVersion versionMation;
 
+    @TableField(exist = false)
+    @Property(value = "创建人姓名")
+    private String memberName;
+
+    @TableField(exist = false)
+    @Property(value = "创建人星球编号")
+    private String planetNum;
+
     @TableField(value = "due_date")
     @ApiModelProperty(value = "截止日期")
     private String dueDate;
@@ -86,4 +94,8 @@ public class GitCodeIssue extends OperatorUserInfo {
     @TableField(value = "discussion_locked")
     @ApiModelProperty(value = "是否锁定讨论", enumClass = WhetherEnum.class, defaultValue = "0")
     private Integer discussionLocked;
+
+    @TableField(value = "comment_count")
+    @Property(value = "评论数量")
+    private Integer commentCount;
 }

@@ -23,6 +23,7 @@ import com.skyeye.doc.gitcode.dao.GitCodeIssueDao;
 import com.skyeye.doc.gitcode.entity.GitCodeIssue;
 import com.skyeye.doc.gitcode.service.GitCodeIssueService;
 import com.skyeye.doc.gitcode.util.GitCodeApiClient;
+import com.skyeye.doc.member.entity.DocMember;
 import com.skyeye.doc.member.service.DocMemberService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: GitCodeIssueServiceImpl
@@ -57,7 +59,17 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
     @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        docMemberService.setNameMationForMap(beans, "createId", "memberName", StrUtil.EMPTY);
+        List<String> createIds = beans.stream().map(bean -> bean.get("createId").toString()).distinct().collect(Collectors.toList());
+        Map<String, DocMember> memberMap = docMemberService.selectMapByIds(createIds);
+        beans.forEach(bean -> {
+            String createId = bean.get("createId").toString();
+            DocMember docMember = memberMap.get(createId);
+            if (ObjectUtil.isNull(docMember)) {
+                return;
+            }
+            bean.put("memberName", docMember.getName().substring(0, 1).toUpperCase() + "**");
+            bean.put("planetNum", docMember.getPlanetNum());
+        });
         codeVersionService.setMationForMap(beans, "versionId", "versionMation");
         return beans;
     }
@@ -103,6 +115,11 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
     public GitCodeIssue selectById(String id) {
         GitCodeIssue gitCodeIssue = super.selectById(id);
         codeVersionService.setDataMation(gitCodeIssue, GitCodeIssue::getVersionId);
+        DocMember docMember = docMemberService.selectById(gitCodeIssue.getCreateId());
+        if (ObjectUtil.isNotEmpty(docMember)) {
+            gitCodeIssue.setMemberName(docMember.getName().substring(0, 1).toUpperCase() + "**");
+            gitCodeIssue.setPlanetNum(docMember.getPlanetNum());
+        }
         return gitCodeIssue;
     }
 
@@ -157,5 +174,23 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
             outputObject.setreturnMessage("上传图片失败: " + e.getMessage());
         }
     }
+
+    @Override
+    public void updateIssueCommentCount(String id, boolean isAdd) {
+        GitCodeIssue gitCodeIssue = selectById(id);
+        if (ObjectUtil.isEmpty(gitCodeIssue) || StrUtil.isEmpty(gitCodeIssue.getId())) {
+            return;
+        }
+        UpdateWrapper<GitCodeIssue> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        if (isAdd) {
+            updateWrapper.set(MybatisPlusUtil.toColumns(GitCodeIssue::getCommentCount), gitCodeIssue.getCommentCount() + 1);
+        } else {
+            updateWrapper.set(MybatisPlusUtil.toColumns(GitCodeIssue::getCommentCount), gitCodeIssue.getCommentCount() - 1);
+        }
+        update(updateWrapper);
+        refreshCache(id);
+    }
+
 
 }

@@ -26,4 +26,12 @@ public interface GitCodeIssueService extends SkyeyeBusinessService<GitCodeIssue>
      */
     void insertUploadImageToIssue(InputObject inputObject, OutputObject outputObject);
 
+    /**
+     * 更新Issue评论数量
+     *
+     * @param id    Issue ID
+     * @param isAdd 是否增加, true 增加, false 减少
+     */
+    void updateIssueCommentCount(String id, boolean isAdd);
+
 }

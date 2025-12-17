@@ -94,6 +94,11 @@ public class GitCodeIssueCommentServiceImpl extends SkyeyeBusinessServiceImpl<Gi
     }
 
     @Override
+    protected void createPostpose(GitCodeIssueComment entity, String userId) {
+        gitCodeIssueService.updateIssueCommentCount(entity.getIssueId(), true);
+    }
+
+    @Override
     protected void updatePostpose(GitCodeIssueComment entity, String userId) {
         GitCodeIssueComment oldGitIssueComment = selectById(entity.getId());
         GitCodeIssue gitCodeIssue = gitCodeIssueService.selectById(entity.getIssueId());
@@ -106,6 +111,8 @@ public class GitCodeIssueCommentServiceImpl extends SkyeyeBusinessServiceImpl<Gi
         GitCodeIssue gitCodeIssue = gitCodeIssueService.selectById(entity.getIssueId());
         // 调用GitCode API删除Issue评论
         gitCodeApiClient.deleteIssueComment(gitCodeIssue.getIssueId(), entity.getCommentId());
+        // 更新Issue评论数量
+        gitCodeIssueService.updateIssueCommentCount(entity.getIssueId(), false);
     }
 
 }
