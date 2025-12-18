@@ -17,11 +17,13 @@
 
 **1. Skyeye会员（只有 `Skyeye会员` 才能获取完整源代码，扫描下方付款码成为会员吧）拿到源码后可进行学习、毕设、企业等使用。**
 
-**2. [官方网站](http://ip.makerview.cn:30003/skyPortal)    [二开文档](https://articles.zsxq.com/id_xi3xhacte72g.html)     [二开视频教程](https://www.bilibili.com/video/BV1w34y1M7ZH/?spm_id_from=333.1387.collection.video_card.click&vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [操作视频](https://www.bilibili.com/video/BV16mwVeKE4X/?vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [功能清单](https://kdocs.cn/l/cbf2cgCLrUyz)**
+**2. [官方网站](http://ip.makerview.cn:30003/skyPortal)    [二开文档](https://articles.zsxq.com/id_xi3xhacte72g.html)     [二开视频教程](https://www.bilibili.com/video/BV1w34y1M7ZH/?spm_id_from=333.1387.collection.video_card.click&vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [操作视频](https://www.bilibili.com/video/BV16mwVeKE4X/?vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [功能清单](https://kdocs.cn/l/cbf2cgCLrUyz)      [价格-全网最低](http://ip.makerview.cn:30003/skyPortal/#/price)**
 
 **3. 基础功能包括但不限于：低代码、动态属性、布局设计器、工作流设计器、编码设计器、打印模板设计器、灵活性权限管控、代码生成器、多终端适配等**
 
 **4. 零代码操作讲解视频：https://www.bilibili.com/video/BV1rv2CB3E3P**
+
+**5. Skyeye云流程图（还在补充中）：https://www.kdocs.cn/l/ctDzURtzHWXE**
 
 **为什么推荐使用本项目？**
 
