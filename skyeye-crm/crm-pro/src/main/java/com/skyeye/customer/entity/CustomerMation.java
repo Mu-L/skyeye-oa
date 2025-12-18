@@ -4,7 +4,6 @@
 
 package com.skyeye.customer.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -13,7 +12,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
-import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.entity.features.AreaGeneralInfo;
 import lombok.Data;
 
 /**
@@ -29,7 +28,7 @@ import lombok.Data;
 @RedisCacheField(name = CacheConstants.CRM_CUSTOMER_CACHE_KEY)
 @TableName(value = "crm_customer", autoResultMap = true)
 @ApiModel("客户信息实体类")
-public class CustomerMation extends BaseGeneralInfo {
+public class CustomerMation extends AreaGeneralInfo {
 
     @TableField(value = "combine")
     @ApiModelProperty(value = "拼音")
@@ -55,17 +54,17 @@ public class CustomerMation extends BaseGeneralInfo {
     @ApiModelProperty(value = "客户网址")
     private String cusUrl;
 
-    @TableField(value = "country")
-    @ApiModelProperty(value = "国家/地区")
-    private String country;
+    @TableField(value = "longitude")
+    @ApiModelProperty(value = "经度")
+    private String longitude;
 
-    @TableField(value = "city")
-    @ApiModelProperty(value = "所在城市")
-    private String city;
+    @TableField(value = "latitude")
+    @ApiModelProperty(value = "纬度")
+    private String latitude;
 
-    @TableField(value = "detail_address")
-    @ApiModelProperty(value = "详细地址")
-    private String detailAddress;
+    @TableField(value = "social_credit_code")
+    @ApiModelProperty(value = "营业执照注册号", fuzzyLike = true)
+    private String socialCreditCode;
 
     @TableField(value = "postal_code")
     @ApiModelProperty(value = "邮政编码")

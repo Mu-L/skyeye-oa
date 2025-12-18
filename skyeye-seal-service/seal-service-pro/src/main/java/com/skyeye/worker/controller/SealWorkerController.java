@@ -32,12 +32,6 @@ public class SealWorkerController {
     @Autowired
     private SealWorkerService sealWorkerService;
 
-    /**
-     * 获取工人信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sealseserviceworker001", value = "获取工人信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SealWorkerController/querySealWorkerList")
@@ -45,12 +39,6 @@ public class SealWorkerController {
         sealWorkerService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑工人资料信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSealWorker", value = "新增/编辑工人资料信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SealWorker.class)
     @RequestMapping("/post/SealWorkerController/writeSealWorker")
@@ -58,12 +46,6 @@ public class SealWorkerController {
         sealWorkerService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除工人资料信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteSealWorkerById", value = "删除工人资料信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class SealWorkerController {
         sealWorkerService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有工人信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAllSealWorkerList", value = "获取所有工人信息", method = "GET", allUse = "2")
     @RequestMapping("/post/SealWorkerController/queryAllSealWorkerList")
     public void queryAllSealWorkerList(InputObject inputObject, OutputObject outputObject) {

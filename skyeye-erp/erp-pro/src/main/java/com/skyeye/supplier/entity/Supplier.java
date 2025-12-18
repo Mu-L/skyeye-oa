@@ -13,6 +13,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
+import com.skyeye.common.entity.features.AreaGeneralInfo;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import lombok.Data;
 
@@ -29,7 +30,7 @@ import lombok.Data;
 @RedisCacheField(name = CacheConstants.ERP_SUPPLIER_CACHE_KEY)
 @TableName(value = "erp_supplier")
 @ApiModel("供应商信息实体类")
-public class Supplier extends BaseGeneralInfo {
+public class Supplier extends AreaGeneralInfo {
 
     @TableField(value = "fax")
     @ApiModelProperty(value = "传真")
@@ -47,13 +48,21 @@ public class Supplier extends BaseGeneralInfo {
     @ApiModelProperty(value = "税号")
     private String dutyParagraph;
 
-    @TableField(value = "address")
-    @ApiModelProperty(value = "地址")
-    private String address;
-
     @TableField(value = "cus_url")
     @ApiModelProperty(value = "供应商网址")
     private String cusUrl;
+
+    @TableField(value = "longitude")
+    @ApiModelProperty(value = "经度")
+    private String longitude;
+
+    @TableField(value = "latitude")
+    @ApiModelProperty(value = "纬度")
+    private String latitude;
+
+    @TableField(value = "social_credit_code")
+    @ApiModelProperty(value = "营业执照注册号", fuzzyLike = true)
+    private String socialCreditCode;
 
     @TableField(value = "cor_representative")
     @ApiModelProperty(value = "法人代表")
