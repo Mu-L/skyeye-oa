@@ -9,21 +9,16 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.ResultEntity;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.crm.service.IContractService;
 import com.skyeye.crm.service.ICustomerService;
-import com.skyeye.erp.service.ISupplierContractService;
 import com.skyeye.erp.service.ISupplierService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.organization.service.IDepmentService;
@@ -38,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -67,12 +61,6 @@ public class ProProjectServiceImpl extends SkyeyeBusinessServiceImpl<ProProjectD
     @Autowired
     private ISupplierService iSupplierService;
 
-    @Autowired
-    private IContractService iContractService;
-
-    @Autowired
-    private ISupplierContractService iSupplierContractService;
-
     @Override
     public void queryProProjectList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
@@ -93,6 +81,10 @@ public class ProProjectServiceImpl extends SkyeyeBusinessServiceImpl<ProProjectD
             projectList.forEach(project -> {
                 project.setServiceClassName(serviceClassName);
             });
+
+            // 设置往来单位信息
+            iSupplierService.setDataMation(projectList, Project::getHolderId);
+            iCustomerService.setDataMation(projectList, Project::getHolderId);
             outputObject.setBeans(projectList);
             outputObject.settotal(resultEnt.getTotal());
         } else {
@@ -115,6 +107,10 @@ public class ProProjectServiceImpl extends SkyeyeBusinessServiceImpl<ProProjectD
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+
+        // 设置往来单位信息
+        iSupplierService.setMationForMap(beans, "holderId", "holderMation");
+        iCustomerService.setMationForMap(beans, "holderId", "holderMation");
         return beans;
     }
 
@@ -151,17 +147,6 @@ public class ProProjectServiceImpl extends SkyeyeBusinessServiceImpl<ProProjectD
         Project project = super.selectById(id);
         // 部门
         iDepmentService.setDataMation(project, Project::getDepartmentId);
-        // 往来单位
-        Map<String, Object> contractMation = new HashMap<>();
-        if (StrUtil.equals(project.getHolderKey(), CorrespondentEnterEnum.CUSTOM.getKey())) {
-            project.setHolderMation(iCustomerService.queryDataMationById(project.getHolderId()));
-            contractMation = iContractService.queryDataMationById(project.getContractId());
-        } else if (StrUtil.equals(project.getHolderKey(), CorrespondentEnterEnum.SUPPLIER.getKey())) {
-            project.setHolderMation(iSupplierService.queryDataMationById(project.getHolderId()));
-            contractMation = iSupplierContractService.queryDataMationById(project.getContractId());
-        }
-        contractMation.put("name", contractMation.get("title"));
-        project.setContractMation(contractMation);
         return project;
     }
 
@@ -170,37 +155,9 @@ public class ProProjectServiceImpl extends SkyeyeBusinessServiceImpl<ProProjectD
         List<Project> projects = super.selectByIds(ids);
         // 部门
         iDepmentService.setDataMation(projects, Project::getDepartmentId);
-        // 往来单位
-        // 供应商
-        List<String> supplierIds = projects.stream()
-            .filter(project -> StrUtil.equals(CorrespondentEnterEnum.SUPPLIER.getKey(), project.getHolderKey()))
-            .map(Project::getHolderId).distinct().collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(supplierIds)) {
-            Map<String, Map<String, Object>> supplierMap = iSupplierService.queryDataMationForMapByIds(
-                Joiner.on(CommonCharConstants.COMMA_MARK).join(supplierIds));
-            projects.forEach(project -> {
-                if (StrUtil.equals(CorrespondentEnterEnum.SUPPLIER.getKey(), project.getHolderKey())) {
-                    Map<String, Object> tempMap = supplierMap.get(project.getHolderId());
-                    tempMap.put("name", tempMap.get("title"));
-                    project.setHolderMation(tempMap);
-                }
-            });
-        }
-        // 客户
-        List<String> customerIds = projects.stream()
-            .filter(project -> StrUtil.equals(CorrespondentEnterEnum.CUSTOM.getKey(), project.getHolderKey()))
-            .map(Project::getHolderId).distinct().collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(customerIds)) {
-            Map<String, Map<String, Object>> customerMap = iCustomerService.queryDataMationForMapByIds(
-                Joiner.on(CommonCharConstants.COMMA_MARK).join(customerIds));
-            projects.forEach(project -> {
-                if (StrUtil.equals(CorrespondentEnterEnum.CUSTOM.getKey(), project.getHolderKey())) {
-                    Map<String, Object> tempMap = customerMap.get(project.getHolderId());
-                    tempMap.put("name", tempMap.get("title"));
-                    project.setHolderMation(tempMap);
-                }
-            });
-        }
+        // 设置往来单位信息
+        iSupplierService.setDataMation(projects, Project::getHolderId);
+        iCustomerService.setDataMation(projects, Project::getHolderId);
         return projects;
     }
 

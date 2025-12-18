@@ -16,6 +16,8 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
+import com.skyeye.contract.classenum.SupplierContractChildStateEnum;
+import com.skyeye.contract.classenum.SupplierContractFromType;
 import lombok.Data;
 
 import java.util.List;
@@ -51,6 +53,10 @@ public class SupplierContract extends SkyeyeFlowable {
     @TableField(value = "project_id", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "项目ID")
     private String projectId;
+
+    @TableField(exist = false)
+    @Property("项目信息")
+    private Map<String, Object> projectMation;
 
     @TableField(value = "title")
     @ApiModelProperty(value = "合同名称", required = "required", fuzzyLike = true)
@@ -125,7 +131,7 @@ public class SupplierContract extends SkyeyeFlowable {
     private List<SupplierContractChild> supplierContractChildList;
 
     @TableField(value = "from_type_id", updateStrategy = FieldStrategy.NEVER)
-    @ApiModelProperty(value = "来源单据类型，参考#SupplierContractFromType")
+    @ApiModelProperty(value = "来源单据类型", enumClass = SupplierContractFromType.class)
     private Integer fromTypeId;
 
     @TableField(value = "from_id", updateStrategy = FieldStrategy.NEVER)
@@ -137,7 +143,7 @@ public class SupplierContract extends SkyeyeFlowable {
     private Map<String, Object> fromMation;
 
     @TableField("child_state")
-    @Property(value = "合同产品状态，参考#SupplierContractChildStateEnum")
+    @Property(value = "合同产品状态", enumClass = SupplierContractChildStateEnum.class)
     private String childState;
 
 }

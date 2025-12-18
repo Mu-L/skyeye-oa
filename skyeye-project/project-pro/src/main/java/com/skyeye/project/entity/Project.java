@@ -75,14 +75,6 @@ public class Project extends SkyeyeFlowable {
     @ApiModelProperty(value = "关联的客户/供应商的className")
     private String holderKey;
 
-    @TableField("contract_id")
-    @ApiModelProperty(value = "关联的合同id", required = "required")
-    private String contractId;
-
-    @TableField(exist = false)
-    @Property(value = "关联的合同信息")
-    private Map<String, Object> contractMation;
-
     @TableField(value = "estimated_workload")
     @ApiModelProperty(value = "预估工作量")
     private String estimatedWorkload;

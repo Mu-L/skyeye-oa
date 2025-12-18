@@ -33,6 +33,7 @@ import com.skyeye.erp.service.IMaterialService;
 import com.skyeye.eve.contacts.service.IContactsService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.organization.service.IDepmentService;
+import com.skyeye.rest.project.service.IProProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -70,6 +71,9 @@ public class CrmContractServiceImpl extends SkyeyeBusinessServiceImpl<CrmContrac
     @Autowired
     private IMaterialNormsService iMaterialNormsService;
 
+    @Autowired
+    private IProProjectService iProProjectService;
+
     @Override
     public Class getAuthEnumClass() {
         return CrmContractAuthEnum.class;
@@ -91,12 +95,16 @@ public class CrmContractServiceImpl extends SkyeyeBusinessServiceImpl<CrmContrac
         if (StrUtil.isNotEmpty(commonPageInfo.getFromId())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(CrmContract::getFromId), commonPageInfo.getFromId());
         }
+        if (StrUtil.isNotEmpty(commonPageInfo.getCustomParamsMapStr("projectId"))) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(CrmContract::getProjectId), commonPageInfo.getCustomParamsMapStr("projectId"));
+        }
         return queryWrapper;
     }
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        iProProjectService.setMationForMap(beans, "projectId", "projectMation");
         return beans;
     }
 
@@ -171,6 +179,8 @@ public class CrmContractServiceImpl extends SkyeyeBusinessServiceImpl<CrmContrac
         // 设置合同商品详情信息
         iMaterialService.setDataMation(crmContract.getCrmContractChildList(), CrmContractChild::getMaterialId);
         iMaterialNormsService.setDataMation(crmContract.getCrmContractChildList(), CrmContractChild::getNormsId);
+        // 关联项目
+        iProProjectService.setDataMation(crmContract, CrmContract::getProjectId);
         return crmContract;
     }
 

@@ -45,6 +45,7 @@ import com.skyeye.request.classenum.PurchaseRequestStateEnum;
 import com.skyeye.request.entity.PurchaseRequest;
 import com.skyeye.request.entity.PurchaseRequestFixedChild;
 import com.skyeye.request.service.PurchaseRequestService;
+import com.skyeye.rest.project.service.IProProjectService;
 import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -90,6 +91,9 @@ public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<Suppl
     @Autowired
     private SupplierService supplierService;
 
+    @Autowired
+    private IProProjectService iProProjectService;
+
     @Override
     public Class getAuthEnumClass() {
         return SupplierContractAuthEnum.class;
@@ -111,6 +115,9 @@ public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<Suppl
         if (StrUtil.isNotEmpty(commonPageInfo.getFromId())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(SupplierContract::getFromId), commonPageInfo.getFromId());
         }
+        if (StrUtil.isNotEmpty(commonPageInfo.getCustomParamsMapStr("projectId"))) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SupplierContract::getProjectId), commonPageInfo.getCustomParamsMapStr("projectId"));
+        }
         return queryWrapper;
     }
 
@@ -118,6 +125,7 @@ public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<Suppl
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         purchaseRequestService.setRequestMationByFromId(beans, "fromId", "fromMation");
+        iProProjectService.setMationForMap(beans, "projectId", "projectMation");
         return beans;
     }
 
@@ -245,6 +253,8 @@ public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<Suppl
             // 采购申请单
             purchaseRequestService.setDataMation(supplierContract, SupplierContract::getFromId);
         }
+
+        iProProjectService.setDataMation(supplierContract, SupplierContract::getProjectId);
         return supplierContract;
     }
 
@@ -557,8 +567,8 @@ public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<Suppl
         if (StrUtil.equals(erpContract.getState(), SupplierContractStateEnum.EXECUTING.getKey())) {
             // 只有执行中的合同才可以进行付款
             price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
-                    StrUtil.isEmpty(erpContract.getPaidPrice()) ? "0" : erpContract.getPaidPrice(),
-                    price);
+                StrUtil.isEmpty(erpContract.getPaidPrice()) ? "0" : erpContract.getPaidPrice(),
+                price);
             UpdateWrapper<SupplierContract> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(CommonConstants.ID, contractId);
             updateWrapper.set(MybatisPlusUtil.toColumns(SupplierContract::getPaidPrice), price);
@@ -573,8 +583,8 @@ public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<Suppl
     public void updateInvoicePrice(String contractId, String invoicePrice) {
         SupplierContract erpContract = selectById(contractId);
         invoicePrice = CalculationUtil.add(CommonNumConstants.NUM_TWO,
-                StrUtil.isEmpty(erpContract.getInvoicePrice()) ? "0" : erpContract.getInvoicePrice(),
-                invoicePrice);
+            StrUtil.isEmpty(erpContract.getInvoicePrice()) ? "0" : erpContract.getInvoicePrice(),
+            invoicePrice);
         UpdateWrapper<SupplierContract> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, contractId);
         updateWrapper.set(MybatisPlusUtil.toColumns(SupplierContract::getInvoicePrice), invoicePrice);

@@ -48,6 +48,10 @@ public class CrmContract extends SkyeyeFlowable {
     @ApiModelProperty(value = "项目ID")
     private String projectId;
 
+    @TableField(exist = false)
+    @Property("项目信息")
+    private Map<String, Object> projectMation;
+
     @TableField(value = "title")
     @ApiModelProperty(value = "合同名称", required = "required", fuzzyLike = true)
     private String title;
