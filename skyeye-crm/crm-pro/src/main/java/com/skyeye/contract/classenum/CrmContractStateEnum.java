@@ -26,13 +26,15 @@ import java.util.List;
 @AllArgsConstructor
 public enum CrmContractStateEnum implements SkyeyeEnumClass {
 
-    EXECUTING("executing", "执行中", true, false),
-    CLOSE("close", "关闭", true, false),
-    LAY_ASIDE("layAside", "搁置", true, false);
+    EXECUTING("executing", "执行中", "#FFA07A", true, false),
+    CLOSE("close", "关闭", "red", true, false),
+    LAY_ASIDE("layAside", "搁置", "orange", true, false);
 
     private String key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 

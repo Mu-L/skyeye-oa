@@ -22,7 +22,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.contract.classenum.SupplierContractAuthEnum;
 import com.skyeye.contract.classenum.SupplierContractChildStateEnum;
 import com.skyeye.contract.classenum.SupplierContractFromType;
 import com.skyeye.contract.classenum.SupplierContractStateEnum;
@@ -64,7 +63,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 @Service
-@SkyeyeService(name = "供应商合同管理", groupName = "供应商合同管理", flowable = true, teamAuth = true)
+@SkyeyeService(name = "供应商合同管理", groupName = "供应商合同管理", flowable = true)
 public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<SupplierContractDao, SupplierContract> implements SupplierContractService {
 
     @Autowired
@@ -93,18 +92,6 @@ public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<Suppl
 
     @Autowired
     private IProProjectService iProProjectService;
-
-    @Override
-    public Class getAuthEnumClass() {
-        return SupplierContractAuthEnum.class;
-    }
-
-    @Override
-    public List<String> getAuthPermissionKeyList() {
-        return Arrays.asList(SupplierContractAuthEnum.ADD.getKey(), SupplierContractAuthEnum.EDIT.getKey(), SupplierContractAuthEnum.DELETE.getKey(),
-            SupplierContractAuthEnum.REVOKE.getKey(), SupplierContractAuthEnum.INVALID.getKey(), SupplierContractAuthEnum.SUBMIT_TO_APPROVAL.getKey(), SupplierContractAuthEnum.LIST.getKey(),
-            SupplierContractAuthEnum.PERFORM.getKey(), SupplierContractAuthEnum.CLOSE.getKey(), SupplierContractAuthEnum.LAY_ASIDE.getKey(), SupplierContractAuthEnum.RECOVERY.getKey());
-    }
 
     @Override
     public QueryWrapper<SupplierContract> getQueryWrapper(CommonPageInfo commonPageInfo) {

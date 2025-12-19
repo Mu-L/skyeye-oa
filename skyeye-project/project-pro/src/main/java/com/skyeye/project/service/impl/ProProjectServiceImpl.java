@@ -101,6 +101,10 @@ public class ProProjectServiceImpl extends SkyeyeBusinessServiceImpl<ProProjectD
             // 我创建的
             queryWrapper.eq(MybatisPlusUtil.toColumns(Project::getCreateId), userId);
         }
+        if (StrUtil.isNotEmpty(commonPageInfo.getHolderId())) {
+            // 根据客户/供应商查询
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Project::getHolderId), commonPageInfo.getHolderId());
+        }
         return queryWrapper;
     }
 

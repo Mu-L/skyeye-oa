@@ -25,9 +25,9 @@ import java.util.List;
 @AllArgsConstructor
 public enum TeamObjectTypeEnum implements SkyeyeEnumClass {
 
-    CUSTOMER(1, "客户团队", Arrays.asList("crmContractAuthEnum", "contactsAuthEnum", "crmOpportunityAuthEnum", "crmDocumentaryAuthEnum", "documentAuthEnum",
+    CUSTOMER(1, "客户团队", Arrays.asList("contactsAuthEnum", "crmOpportunityAuthEnum", "crmDocumentaryAuthEnum", "documentAuthEnum",
         "disCussionAuthEnum", "crmFollowUpAuthEnum", "crmPaymentCollectionAuthEnum", "crmInvoiceHeaderAuthEnum", "crmInvoiceAuthEnum","crmReceivableAuthEnum"), true, true),
-    SUPPLIER(2, "供应商团队", Arrays.asList("supplierContractAuthEnum", "contactsAuthEnum", "documentAuthEnum","erpSupplierPayableAuthEnum","erpPaymentAuthEnum","erpInvoiceAuthEnum","erpInvoiceHeaderAuthEnum"), true, false),
+    SUPPLIER(2, "供应商团队", Arrays.asList("contactsAuthEnum", "documentAuthEnum","erpSupplierPayableAuthEnum","erpPaymentAuthEnum","erpInvoiceAuthEnum","erpInvoiceHeaderAuthEnum"), true, false),
     PROJECT(3, "项目团队", Arrays.asList("milestoneAuthEnum", "taskAuthEnum", "documentAuthEnum", "disCussionAuthEnum"), true, false),
     PRO_PROJECT(4, "产品项目团队", Arrays.asList("documentAuthEnum", "bugAuthEnum", "autoDataBaseAuthEnum", "moduleAuthEnum", "autoEnvironmentAuthEnum",
         "autoMicroserviceAuthEnum", "autoServerAuthEnum", "autoApiAuthEnum", "autoVariableAuthEnum", "autoVersionAuthEnum", "autoDemandAuthEnum"), true, false);

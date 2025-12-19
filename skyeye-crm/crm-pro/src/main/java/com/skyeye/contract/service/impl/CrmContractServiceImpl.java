@@ -20,7 +20,6 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.contract.classenum.CrmContractAuthEnum;
 import com.skyeye.contract.classenum.CrmContractChildStateEnum;
 import com.skyeye.contract.classenum.CrmContractStateEnum;
 import com.skyeye.contract.dao.CrmContractDao;
@@ -39,7 +38,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -53,7 +51,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 @Service
-@SkyeyeService(name = "合同管理", groupName = "合同管理", flowable = true, teamAuth = true)
+@SkyeyeService(name = "合同管理", groupName = "合同管理", flowable = true)
 public class CrmContractServiceImpl extends SkyeyeBusinessServiceImpl<CrmContractDao, CrmContract> implements CrmContractService {
 
     @Autowired
@@ -73,18 +71,6 @@ public class CrmContractServiceImpl extends SkyeyeBusinessServiceImpl<CrmContrac
 
     @Autowired
     private IProProjectService iProProjectService;
-
-    @Override
-    public Class getAuthEnumClass() {
-        return CrmContractAuthEnum.class;
-    }
-
-    @Override
-    public List<String> getAuthPermissionKeyList() {
-        return Arrays.asList(CrmContractAuthEnum.ADD.getKey(), CrmContractAuthEnum.EDIT.getKey(), CrmContractAuthEnum.DELETE.getKey(),
-            CrmContractAuthEnum.REVOKE.getKey(), CrmContractAuthEnum.INVALID.getKey(), CrmContractAuthEnum.SUBMIT_TO_APPROVAL.getKey(), CrmContractAuthEnum.LIST.getKey(),
-            CrmContractAuthEnum.PERFORM.getKey(), CrmContractAuthEnum.CLOSE.getKey(), CrmContractAuthEnum.LAY_ASIDE.getKey(), CrmContractAuthEnum.RECOVERY.getKey());
-    }
 
     @Override
     public QueryWrapper<CrmContract> getQueryWrapper(CommonPageInfo commonPageInfo) {
