@@ -22,12 +22,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum PaymentHistoryState implements SkyeyeEnumClass {
 
-    UNISSUED(1, "未发放", true, true),
-    ISSUED(2, "已发放", true, false);
+    UNISSUED(1, "未发放", "red", true, true),
+    ISSUED(2, "已发放", "green", true, false);
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 

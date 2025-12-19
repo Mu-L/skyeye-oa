@@ -13,6 +13,8 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.eve.payment.classenum.PaymentHistoryState;
+import com.skyeye.eve.payment.classenum.PaymentHistoryType;
 import lombok.Data;
 
 import java.util.List;
@@ -38,7 +40,7 @@ public class WagesPaymentHistory extends CommonInfo {
 
     @TableField(exist = false)
     @Property(value = "员工信息")
-    private Map<String,Object> staffMation;
+    private Map<String, Object> staffMation;
 
     @TableField("pay_month")
     @ApiModelProperty(value = "发放的薪资年月", required = "required")
@@ -61,11 +63,11 @@ public class WagesPaymentHistory extends CommonInfo {
     private String grantTime;
 
     @TableField("type")
-    @ApiModelProperty(value = "核算类型，参考#PaymentHistoryType", required = "required")
+    @ApiModelProperty(value = "核算类型", enumClass = PaymentHistoryType.class, required = "required")
     private Integer type;
 
     @TableField("state")
-    @ApiModelProperty(value = "是否发放，参考#PaymentHistoryState", required = "required")
+    @ApiModelProperty(value = "是否发放", enumClass = PaymentHistoryState.class, required = "required")
     private Integer state;
 
 }

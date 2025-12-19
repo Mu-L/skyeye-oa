@@ -22,12 +22,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum PaymentHistoryType implements SkyeyeEnumClass {
 
-    MANUAL_ACCOUNTING(1, "人工核算", true, true),
-    SYSTEM_ACCOUNTING(2, "系统核算", true, false);
+    MANUAL_ACCOUNTING(1, "人工核算", "#D69E2E", true, true),
+    SYSTEM_ACCOUNTING(2, "系统核算", "#38A169", true, false);
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 
