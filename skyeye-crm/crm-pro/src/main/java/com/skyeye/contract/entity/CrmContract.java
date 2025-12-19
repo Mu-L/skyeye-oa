@@ -16,6 +16,8 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
+import com.skyeye.contract.classenum.CrmContractChildStateEnum;
+import com.skyeye.contract.classenum.CrmContractFromType;
 import lombok.Data;
 
 import java.util.List;
@@ -125,7 +127,7 @@ public class CrmContract extends SkyeyeFlowable {
     private List<CrmContractChild> crmContractChildList;
 
     @TableField("from_type_id")
-    @ApiModelProperty(value = "来源单据类型，参考#CrmContractFromType")
+    @ApiModelProperty(value = "来源单据类型", enumClass = CrmContractFromType.class)
     private Integer fromTypeId;
 
     @TableField("from_id")
@@ -137,7 +139,7 @@ public class CrmContract extends SkyeyeFlowable {
     private Map<String, Object> fromMation;
 
     @TableField("child_state")
-    @Property(value = "合同产品状态，参考#CrmContractChildStateEnum")
+    @Property(value = "合同产品状态", enumClass = CrmContractChildStateEnum.class)
     private String childState;
 
 }
