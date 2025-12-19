@@ -26,7 +26,7 @@ import java.util.List;
 @AllArgsConstructor
 public enum CrmContractStateEnum implements SkyeyeEnumClass {
 
-    EXECUTING("executing", "执行中", "#FFA07A", true, false),
+    EXECUTING("executing", "执行中", "green", true, false),
     CLOSE("close", "关闭", "red", true, false),
     LAY_ASIDE("layAside", "搁置", "orange", true, false);
 
