@@ -36,11 +36,11 @@ import java.util.Map;
 public class Project extends SkyeyeFlowable {
 
     @TableField("`name`")
-    @ApiModelProperty(value = "名称", required = "required")
+    @ApiModelProperty(value = "名称", required = "required", fuzzyLike = true)
     private String name;
 
     @TableField(value = "number_code")
-    @ApiModelProperty(value = "项目编号")
+    @ApiModelProperty(value = "项目编号", fuzzyLike = true)
     private String numberCode;
 
     @TableField(value = "type_id")
