@@ -9,6 +9,7 @@ import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.customer.entity.CustomerMation;
@@ -68,6 +69,13 @@ public class CustomerController {
     @RequestMapping("/post/CustomerController/queryInternationalCustomerList")
     public void queryInternationalCustomerList(InputObject inputObject, OutputObject outputObject) {
         customerService.queryInternationalCustomerList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryAllCustomerList", value = "获取所有客户信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = TableSelectInfo.class)
+    @RequestMapping("/post/CustomerController/queryAllCustomerList")
+    public void queryAllCustomerList(InputObject inputObject, OutputObject outputObject) {
+        customerService.queryList(inputObject, outputObject);
     }
 
 }

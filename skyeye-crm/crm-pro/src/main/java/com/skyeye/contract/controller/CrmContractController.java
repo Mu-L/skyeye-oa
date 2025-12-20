@@ -33,12 +33,6 @@ public class CrmContractController {
     @Autowired
     private CrmContractService crmContractService;
 
-    /**
-     * 获取合同列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryCrmContractList", value = "获取合同列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/CrmContractController/queryCrmContractList")
@@ -46,12 +40,6 @@ public class CrmContractController {
         crmContractService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑合同信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeCrmContract", value = "新增/编辑合同信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CrmContract.class)
     @RequestMapping("/post/CrmContractController/writeCrmContract")
@@ -59,12 +47,6 @@ public class CrmContractController {
         crmContractService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除合同信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteCrmContractById", value = "删除合同信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class CrmContractController {
         crmContractService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id批量获取客户合同信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryCrmContractByIds", value = "根据id批量获取客户合同信息", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "ids", name = "ids", value = "主键id", required = "required")})
@@ -87,12 +63,6 @@ public class CrmContractController {
         crmContractService.selectByIds(inputObject, outputObject);
     }
 
-    /**
-     * 根据客户id获取合同管理列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "mycrmcontract008", value = "根据客户id获取合同管理列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "所属第三方业务数据id")})
@@ -101,12 +71,6 @@ public class CrmContractController {
         crmContractService.queryCrmContractListByObjectId(inputObject, outputObject);
     }
 
-    /**
-     * 合同提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "mycrmcontract009", value = "合同提交审批", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/CrmContractController/submitToApproval")
@@ -114,12 +78,6 @@ public class CrmContractController {
         crmContractService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 合同执行
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "mycrmcontract010", value = "合同执行", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -128,12 +86,6 @@ public class CrmContractController {
         crmContractService.performCrmContract(inputObject, outputObject);
     }
 
-    /**
-     * 合同关闭
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "mycrmcontract011", value = "合同关闭", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -142,12 +94,6 @@ public class CrmContractController {
         crmContractService.closeCrmContract(inputObject, outputObject);
     }
 
-    /**
-     * 合同搁置
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "mycrmcontract012", value = "合同搁置", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -156,12 +102,6 @@ public class CrmContractController {
         crmContractService.shelveCrmContract(inputObject, outputObject);
     }
 
-    /**
-     * 合同恢复
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "mycrmcontract013", value = "合同恢复", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -170,12 +110,6 @@ public class CrmContractController {
         crmContractService.recoveryCrmContract(inputObject, outputObject);
     }
 
-    /**
-     * 作废合同信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "mycrmcontract015", value = "作废合同信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -184,12 +118,6 @@ public class CrmContractController {
         crmContractService.invalid(inputObject, outputObject);
     }
 
-    /**
-     * 撤销合同审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "mycrmcontract016", value = "撤销合同审批", method = "PUT", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
@@ -198,12 +126,6 @@ public class CrmContractController {
         crmContractService.revoke(inputObject, outputObject);
     }
 
-    /**
-     * 修改合同产品状态
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "editCrmContractChildState", value = "修改合同产品状态", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),

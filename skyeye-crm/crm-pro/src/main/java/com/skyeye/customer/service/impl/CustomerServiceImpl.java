@@ -13,6 +13,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.enumeration.DeleteFlagEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -96,16 +97,27 @@ public class CustomerServiceImpl extends SkyeyeBusinessServiceImpl<CustomerDao, 
             // 我创建的
             queryWrapper.eq(MybatisPlusUtil.toColumns(CustomerMation::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
         }
-        if (StrUtil.isNotEmpty(commonPageInfo.getCustomParamsMapStr("typeId"))) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(CustomerMation::getTypeId), commonPageInfo.getCustomParamsMapStr("typeId"));
-        }
-        if (StrUtil.isNotEmpty(commonPageInfo.getCustomParamsMapStr("fromId"))) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(CustomerMation::getFromId), commonPageInfo.getCustomParamsMapStr("fromId"));
-        }
-        if (StrUtil.isNotEmpty(commonPageInfo.getCustomParamsMapStr("industryId"))) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(CustomerMation::getIndustryId), commonPageInfo.getCustomParamsMapStr("industryId"));
-        }
+        commonQueryCondition(commonPageInfo, queryWrapper);
         return queryWrapper;
+    }
+
+    @Override
+    protected QueryWrapper<CustomerMation> getQueryWrapper(TableSelectInfo tableSelectInfo) {
+        QueryWrapper<CustomerMation> queryWrapper = super.getQueryWrapper(tableSelectInfo);
+        commonQueryCondition(tableSelectInfo, queryWrapper);
+        return queryWrapper;
+    }
+
+    private static void commonQueryCondition(TableSelectInfo tableSelectInfo, QueryWrapper<CustomerMation> queryWrapper) {
+        if (StrUtil.isNotEmpty(tableSelectInfo.getCustomParamsMapStr("typeId"))) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(CustomerMation::getTypeId), tableSelectInfo.getCustomParamsMapStr("typeId"));
+        }
+        if (StrUtil.isNotEmpty(tableSelectInfo.getCustomParamsMapStr("fromId"))) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(CustomerMation::getFromId), tableSelectInfo.getCustomParamsMapStr("fromId"));
+        }
+        if (StrUtil.isNotEmpty(tableSelectInfo.getCustomParamsMapStr("industryId"))) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(CustomerMation::getIndustryId), tableSelectInfo.getCustomParamsMapStr("industryId"));
+        }
     }
 
     @Override
