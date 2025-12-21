@@ -151,6 +151,9 @@ public class ProProjectServiceImpl extends SkyeyeBusinessServiceImpl<ProProjectD
         Project project = super.selectById(id);
         // 部门
         iDepmentService.setDataMation(project, Project::getDepartmentId);
+        // 设置往来单位信息
+        iSupplierService.setDataMation(project, Project::getHolderId);
+        iCustomerService.setDataMation(project, Project::getHolderId);
         return project;
     }
 
