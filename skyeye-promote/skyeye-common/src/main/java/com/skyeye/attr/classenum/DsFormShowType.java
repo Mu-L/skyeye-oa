@@ -22,20 +22,22 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum DsFormShowType implements SkyeyeEnumClass {
 
-    CUSTOMER(-1, "自定义", true, false),
-    TEXT(1, "文本展示", true, false),
-    ENCLOSURE(2, "附件展示", true, false),
-    RICH_TEXT(3, "富文本展示", true, false),
-    PICTURE(4, "图片展示", true, false),
-    TABLE(5, "表格展示", true, false),
-    VOUCHER(6, "凭证展示", true, false),
-    SCRIPT(7, "脚本展示", true, false),
-    ID_TURN_MATION(8, "Id转Mation取值转换", true, false),
-    ERP_SKU(9, "ERP商品规格", true, false);
+    CUSTOMER(-1, "自定义", "geekblue", true, false),
+    TEXT(1, "文本展示", "geekblue", true, false),
+    ENCLOSURE(2, "附件展示", "geekblue", true, false),
+    RICH_TEXT(3, "富文本展示", "geekblue", true, false),
+    PICTURE(4, "图片展示", "geekblue", true, false),
+    TABLE(5, "表格展示", "geekblue", true, false),
+    VOUCHER(6, "凭证展示", "geekblue", true, false),
+    SCRIPT(7, "脚本展示", "geekblue", true, false),
+    ID_TURN_MATION(8, "Id转Mation取值转换", "geekblue", true, false),
+    ERP_SKU(9, "ERP商品规格", "geekblue", true, false);
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 
