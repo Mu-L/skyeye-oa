@@ -5,14 +5,17 @@
 package com.skyeye.scheme.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.scheme.dao.ProSchemeDao;
 import com.skyeye.scheme.entity.ProScheme;
@@ -66,6 +69,8 @@ public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao
 
     @Override
     protected void createPrepose(ProScheme entity) {
+        // 计算预算明细小计和总预算
+        calculateBudget(entity);
         if (StrUtil.isNotEmpty(entity.getId())) {
             // 查询上一个版本的信息
             ProScheme preVersionProScheme = selectById(entity.getId());
@@ -92,6 +97,33 @@ public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao
 
         // 保存预算明细
         budgetDetailService.saveList(entity.getId(), entity.getBudgetDetailList());
+    }
+
+    /**
+     * 计算预算明细小计和总预算
+     *
+     * @param entity 方案实体
+     */
+    private void calculateBudget(ProScheme entity) {
+        if (CollectionUtil.isEmpty(entity.getBudgetDetailList())) {
+            entity.setBudget("0");
+            return;
+        }
+
+        String totalBudget = "0";
+        // 计算每个明细的小计（数量 * 单价）
+        for (ProSchemeBudgetDetail detail : entity.getBudgetDetailList()) {
+            String quantity = StrUtil.isEmpty(detail.getQuantity()) ? "0" : detail.getQuantity();
+            String unitPrice = StrUtil.isEmpty(detail.getUnitPrice()) ? "0" : detail.getUnitPrice();
+            // 计算小计：数量 * 单价
+            String subtotal = CalculationUtil.multiply(quantity, unitPrice, CommonNumConstants.NUM_TWO);
+            detail.setSubtotal(subtotal);
+            // 累加总预算
+            totalBudget = CalculationUtil.add(totalBudget, subtotal, CommonNumConstants.NUM_TWO);
+        }
+
+        // 设置总预算
+        entity.setBudget(totalBudget);
     }
 
     @Override
@@ -148,7 +180,7 @@ public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao
     public void querySchemeListBySchemeCode(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String schemeCode = map.get("schemeCode").toString();
-        
+
         QueryWrapper<ProScheme> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ProScheme::getSchemeCode), schemeCode);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ProScheme::getLargeVersion));

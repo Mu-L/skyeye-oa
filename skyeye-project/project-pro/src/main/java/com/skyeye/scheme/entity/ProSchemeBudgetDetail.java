@@ -51,7 +51,7 @@ public class ProSchemeBudgetDetail extends CommonInfo {
     private String unitPrice;
 
     @TableField(value = "subtotal")
-    @ApiModelProperty(value = "小计")
+    @Property(value = "小计")
     private String subtotal;
 
     @TableField(value = "remark")
