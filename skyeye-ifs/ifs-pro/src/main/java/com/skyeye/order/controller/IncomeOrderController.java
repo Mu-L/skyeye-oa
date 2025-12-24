@@ -33,12 +33,6 @@ public class IncomeOrderController {
     @Autowired
     private IncomeOrderService incomeService;
 
-    /**
-     * 查询明细账列表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "income001", value = "查询明细账列表信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/IncomeController/queryIncomeByList")
@@ -46,12 +40,6 @@ public class IncomeOrderController {
         incomeService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑明细账
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeIncomeOrder", value = "新增/编辑明细账", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = IncomeOrder.class)
     @RequestMapping("/post/IncomeController/writeIncomeOrder")
@@ -59,12 +47,6 @@ public class IncomeOrderController {
         incomeService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除明细账信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "income005", value = "删除明细账信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class IncomeOrderController {
         incomeService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "income008", value = "明细账申请提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/IncomeController/submitToApproval")
@@ -86,12 +62,6 @@ public class IncomeOrderController {
         incomeService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 撤销申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "income009", value = "撤销明细账申请", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
