@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -34,6 +35,15 @@ import java.util.List;
 @Service
 @SkyeyeService(name = "售后服务项目", groupName = "售后服务项目")
 public class ServiceItemsServiceImpl extends SkyeyeBusinessServiceImpl<ServiceItemsDao, ServiceItems> implements ServiceItemsService {
+
+    @Override
+    protected QueryWrapper<ServiceItems> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<ServiceItems> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getType())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ServiceItems::getType), commonPageInfo.getType());
+        }
+        return queryWrapper;
+    }
 
     @Override
     public void queryEnabledServiceItemsList(InputObject inputObject, OutputObject outputObject) {

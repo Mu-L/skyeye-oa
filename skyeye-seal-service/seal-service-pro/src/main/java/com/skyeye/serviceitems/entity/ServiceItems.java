@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
@@ -30,12 +31,16 @@ import lombok.Data;
 public class ServiceItems extends BaseGeneralInfo {
 
     @TableField(value = "odd_number")
-    @ApiModelProperty(value = "服务编码")
+    @ApiModelProperty(value = "服务编码", fuzzyLike = true)
     private String oddNumber;
 
     @TableField(value = "enabled")
     @ApiModelProperty(value = "状态", enumClass = EnableEnum.class, required = "required,num")
     private Integer enabled;
+
+    @TableField(value = "type")
+    @ApiModelProperty(value = "项目分类", required = "required")
+    private String type;
 
     @TableField(value = "seals_price")
     @ApiModelProperty(value = "销售价格", required = "required,double", defaultValue = "0")
