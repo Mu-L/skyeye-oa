@@ -32,12 +32,6 @@ public class FarmController {
     @Autowired
     private FarmService farmService;
 
-    /**
-     * 获取车间列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "erpfarm001", value = "获取车间列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/FarmController/queryFarmList")
@@ -45,12 +39,6 @@ public class FarmController {
         farmService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑车间信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeFarm", value = "新增/编辑车间信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Farm.class)
     @RequestMapping("/post/FarmController/writeFarm")
@@ -58,12 +46,6 @@ public class FarmController {
         farmService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id获取车间信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryFarmById", value = "根据id获取车间信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class FarmController {
         farmService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 根据ID删除车间信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteFarmById", value = "根据ID删除车间信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,24 +62,12 @@ public class FarmController {
         farmService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取我负责的车间信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMyChargeFarmList", value = "获取我负责的车间信息", method = "GET", allUse = "2")
     @RequestMapping("/post/FarmController/queryMyChargeFarmList")
     public void queryMyChargeFarmList(InputObject inputObject, OutputObject outputObject) {
         farmService.queryMyChargeFarmList(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有启用的车间信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryEnabledFarmList", value = "获取所有启用的车间信息", method = "GET", allUse = "2")
     @RequestMapping("/post/FarmController/queryEnabledFarmList")
     public void queryEnabledFarmList(InputObject inputObject, OutputObject outputObject) {

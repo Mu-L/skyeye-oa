@@ -115,7 +115,7 @@ public class FarmStaffServiceImpl extends SkyeyeBusinessServiceImpl<FarmStaffDao
      * 校验计件工价
      */
     private Boolean checkPieceWorkPrice(Map<String, Object> staffMatin, Map<String, Object> insertMap) {
-        if (!staffMatin.get("workstationType").toString().equals("3")) {
+        if (!staffMatin.get("workstationType").toString().equals(UserStaffWorkstationType.PIECE_WORKER.getKey().toString())) {
             // 不是计件工
             return false;
         }

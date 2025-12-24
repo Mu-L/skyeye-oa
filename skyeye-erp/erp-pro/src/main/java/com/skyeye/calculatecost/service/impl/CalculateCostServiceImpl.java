@@ -11,6 +11,7 @@ import com.skyeye.calculatecost.entity.MachinPutCost;
 import com.skyeye.calculatecost.service.CalculateCostService;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.UserStaffWorkstationType;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
@@ -698,7 +699,8 @@ public class CalculateCostServiceImpl implements CalculateCostService {
      */
     private String calculateOneStaffCost(MachinProcedureAcceptProductNum staffNumMap, Map<String, Object> staffMation
         , Map<String, String> workHoursMap, String pieceWorkPrice, String startTime, String endTime) {
-        if (staffMation.getOrDefault("workstationType", -1).toString().equals("1")) {
+        String workstationType = staffMation.getOrDefault("workstationType", StrUtil.EMPTY).toString();
+        if (workstationType.equals(UserStaffWorkstationType.CONTRACT_WORKER.getKey().toString())) {
             // 合同工 月薪 / 30 * 工序时长
             if (staffMation.getOrDefault("designWages", CommonNumConstants.NUM_ONE).toString().equals("1")) {
                 // 薪资未定
@@ -710,12 +712,12 @@ public class CalculateCostServiceImpl implements CalculateCostService {
             String actWages = CalculationUtil.divide(staffMation.get("actWages").toString(), "30", CommonNumConstants.NUM_SIX);
             int actualDuration = DateUtil.getDistanceDay(startTime, endTime);
             return CalculationUtil.multiply(actWages, String.valueOf(actualDuration), CommonNumConstants.NUM_SIX);
-        } else if (staffMation.get("workstationType").toString().equals("2")) {
+        } else if (workstationType.equals(UserStaffWorkstationType.HOURLY_WORKER.getKey().toString())) {
             // 小时工      小时工的小时单价 * 工时
             String hourlyPrice = staffMation.getOrDefault("hourlyPrice", CommonNumConstants.NUM_ZERO).toString();
             String workHour = workHoursMap.getOrDefault(staffMation.get("id").toString(), CommonNumConstants.NUM_ZERO.toString());
             return CalculationUtil.multiply(hourlyPrice, workHour, CommonNumConstants.NUM_SIX);
-        } else if (staffMation.get("workstationType").toString().equals("3")) {
+        } else if (workstationType.equals(UserStaffWorkstationType.PIECE_WORKER.getKey().toString())) {
             // 计件工
             return CalculationUtil.multiply(pieceWorkPrice, staffNumMap.getAllNumber().toString(), CommonNumConstants.NUM_SIX);
         }
