@@ -214,6 +214,15 @@ public class AttrDefinitionServiceImpl extends SkyeyeBusinessServiceImpl<AttrDef
                 bean.setWhetherInputParams(attrDefinition.getWhetherInputParams());
                 bean.setEnumClassStr(attrDefinition.getEnumClassStr());
                 bean.setLastUpdateTime(currentTime);
+                bean.setIsUniqueField(attrDefinition.getIsUniqueField());
+                bean.setIsFuzzyLike(attrDefinition.getIsFuzzyLike());
+
+                bean.setDbFieldName(attrDefinition.getDbFieldName());
+                bean.setFieldType(attrDefinition.getFieldType());
+                bean.setFieldLength(attrDefinition.getFieldLength());
+                bean.setDecimalPlaces(attrDefinition.getDecimalPlaces());
+                bean.setDbDefaultValue(attrDefinition.getDbDefaultValue());
+                bean.setIsPrimaryKey(attrDefinition.getIsPrimaryKey());
             });
             updateEntity(editBeans, StrUtil.EMPTY);
         }
