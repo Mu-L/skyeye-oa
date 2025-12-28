@@ -46,19 +46,19 @@ public class MachinProcedureAcceptProductNum extends CommonInfo {
 
     @TableField(value = "all_number")
     @ApiModelProperty(value = "总数量", required = "required,num", defaultValue = "0")
-    private Integer allNumber;
+    private String allNumber;
 
     @TableField("qualified_num")
     @ApiModelProperty(value = "合格数量", required = "required,num", defaultValue = "0")
-    private Integer qualifiedNum;
+    private String qualifiedNum;
 
     @TableField("rework_num")
     @ApiModelProperty(value = "返工数量", required = "required,num", defaultValue = "0")
-    private Integer reworkNum;
+    private String reworkNum;
 
     @TableField("scrap_num")
     @ApiModelProperty(value = "报废数量", required = "required,num", defaultValue = "0")
-    private Integer scrapNum;
+    private String scrapNum;
 
     @TableField(value = "staff_id")
     @ApiModelProperty(value = "员工id")

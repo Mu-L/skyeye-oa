@@ -31,11 +31,11 @@ public interface ShopStockService extends SkyeyeBusinessService<ShopStock> {
      * @param operNumber 变化数量
      * @param type       出入库类型，参考#DepotPutOutType
      */
-    void updateShopStock(String storeId, String materialId, String normsId, Integer operNumber, int type);
+    void updateShopStock(String storeId, String materialId, String normsId, String operNumber, int type);
 
     ShopStock queryShopStock(String storeId, String normsId);
 
-    Map<String, Integer> queryNormsShopStock(String storeId, List<String> normsIds);
+    Map<String, String> queryNormsShopStock(String storeId, List<String> normsIds);
 
     void queryShopStockList(InputObject inputObject, OutputObject outputObject);
 }

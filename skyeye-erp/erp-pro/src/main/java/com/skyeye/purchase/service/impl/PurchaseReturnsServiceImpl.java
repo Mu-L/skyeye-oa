@@ -15,6 +15,8 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotOutFromType;
 import com.skyeye.depot.classenum.DepotOutState;
 import com.skyeye.depot.classenum.DepotPutOutType;
@@ -42,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -134,10 +137,10 @@ public class PurchaseReturnsServiceImpl extends SkyeyeErpOrderServiceImpl<Purcha
             return;
         }
         // 当前采购退货单的商品数量
-        Map<String, Integer> orderNormsNum = entity.getErpOrderItemList().stream()
+        Map<String, String> orderNormsNum = entity.getErpOrderItemList().stream()
             .collect(Collectors.toMap(ErpOrderItem::getNormsId, ErpOrderItem::getOperNumber));
         // 获取已经下达采购退货单的商品信息
-        Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
         if (entity.getFromTypeId() == PurchaseReturnsFromType.PURCHASE_ORDER.getKey()) {
             // 采购订单
@@ -151,22 +154,23 @@ public class PurchaseReturnsServiceImpl extends SkyeyeErpOrderServiceImpl<Purcha
         }
     }
 
-    private void checkAndUpdateWholeOrderOutState(PurchaseReturn entity, boolean setData, Map<String, Integer> orderNormsNum, Map<String, Integer> executeNum, List<String> inSqlNormsId) {
+    private void checkAndUpdateWholeOrderOutState(PurchaseReturn entity, boolean setData, Map<String, String> orderNormsNum, Map<String, String> executeNum, List<String> inSqlNormsId) {
         WholeOrderOut wholeOrderOut = wholeOrderOutService.selectById(entity.getFromId());
         if (CollectionUtil.isEmpty(wholeOrderOut.getErpOrderItemList())) {
             throw new CustomException("该整单委外单下未包含商品.");
         }
         super.checkFromOrderMaterialNorms(wholeOrderOut.getErpOrderItemList(), inSqlNormsId);
         // 获取已经下达采购入库单的商品信息
-        Map<String, Integer> putExecuteNum = purchasePutService.calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> putExecuteNum = purchasePutService.calcMaterialNormsNumByFromId(entity.getFromId());
         // 获取已经下达采购换货单的商品信息
-        Map<String, Integer> exchangeExecuteNum = purchaseExchangesService.calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> exchangeExecuteNum = purchaseExchangesService.calcMaterialNormsNumByFromId(entity.getFromId());
         // 来源单据的商品数量 - 当前单据的商品数量 - 已经退货的商品数量 - 已经入库的商品数量 - 已经换货的商品数量
         super.setOrCheckOperNumber(wholeOrderOut.getErpOrderItemList(), setData, orderNormsNum, executeNum, putExecuteNum, exchangeExecuteNum);
         if (setData) {
             // 过滤掉剩余数量为0的商品
             List<ErpOrderItem> erpOrderItemList = wholeOrderOut.getErpOrderItemList().stream()
-                .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
+                .filter(erpOrderItem -> CalculationUtil.compareTo(erpOrderItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+                .collect(Collectors.toList());
             // 如果该整单委外单的商品(免检)已经全部退货完成，那说明已经完成了整单委外单的入库内容
             if (CollectionUtil.isEmpty(erpOrderItemList)) {
                 wholeOrderOutService.editStateById(wholeOrderOut.getId(), ErpOrderStateEnum.COMPLETED.getKey());
@@ -176,7 +180,7 @@ public class PurchaseReturnsServiceImpl extends SkyeyeErpOrderServiceImpl<Purcha
         }
     }
 
-    private void checkAndUpdateQualityInspectionPutState(PurchaseReturn entity, boolean setData, Map<String, Integer> orderNormsNum, Map<String, Integer> executeNum, List<String> inSqlNormsId) {
+    private void checkAndUpdateQualityInspectionPutState(PurchaseReturn entity, boolean setData, Map<String, String> orderNormsNum, Map<String, String> executeNum, List<String> inSqlNormsId) {
         QualityInspection qualityInspection = qualityInspectionService.selectById(entity.getFromId());
         if (CollectionUtil.isEmpty(qualityInspection.getQualityInspectionItemList())) {
             throw new CustomException("该质检单下未包含商品.");
@@ -186,7 +190,7 @@ public class PurchaseReturnsServiceImpl extends SkyeyeErpOrderServiceImpl<Purcha
         super.checkIdFromOrderMaterialNorms(fromNormsIds, inSqlNormsId);
         qualityInspection.getQualityInspectionItemList().forEach(qualityInspectionItem -> {
             // 验收退回的商品数量 - 当前单据的商品数量 - 已经退货的商品数量
-            Integer surplusNum = ErpOrderUtil.checkOperNumber(qualityInspectionItem.getReturnNumber(),
+            String surplusNum = ErpOrderUtil.checkOperNumber(qualityInspectionItem.getReturnNumber(),
                 qualityInspectionItem.getNormsId(), orderNormsNum, executeNum);
             if (setData) {
                 qualityInspectionItem.setOperNumber(surplusNum);
@@ -195,7 +199,8 @@ public class PurchaseReturnsServiceImpl extends SkyeyeErpOrderServiceImpl<Purcha
         if (setData) {
             // 过滤掉剩余数量为0的商品
             List<QualityInspectionItem> qualityInspectionItemList = qualityInspection.getQualityInspectionItemList().stream()
-                .filter(qualityInspectionItem -> qualityInspectionItem.getOperNumber() > 0).collect(Collectors.toList());
+                .filter(qualityInspectionItem -> CalculationUtil.compareTo(qualityInspectionItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+                .collect(Collectors.toList());
             // 如果该质检单的商品已经退货完成，那说明已经完成了质检单的内容
             if (CollectionUtil.isEmpty(qualityInspectionItemList)) {
                 qualityInspectionService.editReturnState(qualityInspection.getId(), QualityInspectionReturnState.COMPLATE_RETURN.getKey());
@@ -205,22 +210,23 @@ public class PurchaseReturnsServiceImpl extends SkyeyeErpOrderServiceImpl<Purcha
         }
     }
 
-    private void checkAndUpdatePurchaseOrderState(PurchaseReturn entity, boolean setData, Map<String, Integer> orderNormsNum, Map<String, Integer> executeNum, List<String> inSqlNormsId) {
+    private void checkAndUpdatePurchaseOrderState(PurchaseReturn entity, boolean setData, Map<String, String> orderNormsNum, Map<String, String> executeNum, List<String> inSqlNormsId) {
         PurchaseOrder purchaseOrder = purchaseOrderService.selectById(entity.getFromId());
         if (CollectionUtil.isEmpty(purchaseOrder.getErpOrderItemList())) {
             throw new CustomException("该采购订单下未包含商品.");
         }
         super.checkFromOrderMaterialNorms(purchaseOrder.getErpOrderItemList(), inSqlNormsId);
         // 获取已经下达采购入库单的商品信息
-        Map<String, Integer> putExecuteNum = purchasePutService.calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> putExecuteNum = purchasePutService.calcMaterialNormsNumByFromId(entity.getFromId());
         // 获取已经下达采购换货单的商品信息
-        Map<String, Integer> exchangeExecuteNum = purchaseExchangesService.calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> exchangeExecuteNum = purchaseExchangesService.calcMaterialNormsNumByFromId(entity.getFromId());
         // 来源单据的商品数量 - 当前单据的商品数量 - 已经退货的商品数量 - 已经入库的商品数量 - 已经换货的商品数量
         super.setOrCheckOperNumber(purchaseOrder.getErpOrderItemList(), setData, orderNormsNum, executeNum, putExecuteNum, exchangeExecuteNum);
         if (setData) {
             // 过滤掉剩余数量为0的商品
             List<ErpOrderItem> erpOrderItemList = purchaseOrder.getErpOrderItemList().stream()
-                .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
+                .filter(erpOrderItem -> CalculationUtil.compareTo(erpOrderItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+                .collect(Collectors.toList());
             // 如果该采购订单的商品已经退货完成，那说明已经完成了采购订单的内容
             if (CollectionUtil.isEmpty(erpOrderItemList)) {
                 purchaseOrderService.editStateById(purchaseOrder.getId(), ErpOrderStateEnum.COMPLETED.getKey());
@@ -245,12 +251,13 @@ public class PurchaseReturnsServiceImpl extends SkyeyeErpOrderServiceImpl<Purcha
             throw new CustomException("该采购退货单无需进行转出库操作");
         }
         // 该采购退货单下的已经下达仓库出库单(审核通过)的数量
-        Map<String, Integer> depotNumMap = depotOutService.calcMaterialNormsNumByFromId(purchaseReturn.getId());
+        Map<String, String> depotNumMap = depotOutService.calcMaterialNormsNumByFromId(purchaseReturn.getId());
         // 设置未下达商品数量-----采购退货单数量 - 已出库数量
         super.setOrCheckOperNumber(purchaseReturn.getErpOrderItemList(), true, depotNumMap);
         // 过滤掉数量为0的商品信息
         purchaseReturn.setErpOrderItemList(purchaseReturn.getErpOrderItemList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> CalculationUtil.compareTo(erpOrderItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+            .collect(Collectors.toList()));
         outputObject.setBean(purchaseReturn);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

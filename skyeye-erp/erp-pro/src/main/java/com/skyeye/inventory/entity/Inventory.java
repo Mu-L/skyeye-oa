@@ -39,11 +39,11 @@ public class Inventory extends SkyeyeFlowable {
 
     @TableField(value = "all_num")
     @ApiModelProperty(value = "盘点总数量")
-    private Integer allNum;
+    private String allNum;
 
     @TableField(value = "inventory_num")
     @ApiModelProperty(value = "已盘点数量")
-    private Integer inventoryNum;
+    private String inventoryNum;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "盘点任务明细信息", required = "required,json")

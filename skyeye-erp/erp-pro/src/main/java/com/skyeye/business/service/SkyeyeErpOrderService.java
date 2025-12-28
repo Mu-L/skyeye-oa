@@ -25,7 +25,7 @@ public interface SkyeyeErpOrderService<T> extends SkyeyeBusinessService<T> {
      * @param fromId 来源单据id
      * @return
      */
-    Map<String, Integer> calcMaterialNormsNumByFromId(String fromId);
+    Map<String, String> calcMaterialNormsNumByFromId(String fromId);
 
     void setOrderMationByFromId(List<Map<String, Object>> beans, String idKey, String mationKey);
 

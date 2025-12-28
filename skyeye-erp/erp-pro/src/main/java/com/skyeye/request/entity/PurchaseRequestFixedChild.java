@@ -79,7 +79,7 @@ public class PurchaseRequestFixedChild extends CommonInfo {
 
     @TableField("oper_number")
     @ApiModelProperty(value = "询价数量", required = "required,num")
-    private Integer operNumber;
+    private String operNumber;
 
     @TableField("last_supplier_id")
     @ApiModelProperty(value = "最后供应商id")

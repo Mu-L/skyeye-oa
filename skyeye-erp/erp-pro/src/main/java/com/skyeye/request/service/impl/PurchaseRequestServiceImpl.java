@@ -17,8 +17,10 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.contract.classenum.SupplierContractFromType;
 import com.skyeye.contract.entity.SupplierContract;
 import com.skyeye.contract.service.SupplierContractService;
@@ -44,6 +46,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -315,20 +318,31 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
 
     private PurchaseRequest getPurchaseRequest(PurchaseRequest purchaseRequest) {
         // 获取已经签订合同的商品信息
-        Map<String, Integer> executeNum = supplierContractService.calcMaterialNormsNumByFromId(purchaseRequest.getId());
+        Map<String, String> executeNum = supplierContractService.calcMaterialNormsNumByFromId(purchaseRequest.getId());
         if (CollectionUtil.isEmpty(purchaseRequest.getPurchaseRequestFixedChildList())) {
             purchaseRequest.setPurchaseRequestFixedChildList(CollectionUtil.newArrayList());
             return purchaseRequest;
         }
         purchaseRequest.getPurchaseRequestFixedChildList().forEach(purchaseRequestFixedChild -> {
-            Integer surplusNum = purchaseRequestFixedChild.getOperNumber()
-                - (executeNum.containsKey(purchaseRequestFixedChild.getNormsId()) ? executeNum.get(purchaseRequestFixedChild.getNormsId()) : 0);
+            String operNumber = StrUtil.isEmpty(purchaseRequestFixedChild.getOperNumber()) 
+                ? CommonNumConstants.NUM_ZERO.toString() 
+                : purchaseRequestFixedChild.getOperNumber();
+            String contractNum = executeNum.getOrDefault(purchaseRequestFixedChild.getNormsId(), CommonNumConstants.NUM_ZERO.toString());
+            if (StrUtil.isEmpty(contractNum)) {
+                contractNum = CommonNumConstants.NUM_ZERO.toString();
+            }
             // 设置未签合同的商品数量
+            String surplusNum = CalculationUtil.subtract(operNumber, contractNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
             purchaseRequestFixedChild.setOperNumber(surplusNum);
         });
         // 过滤掉申请数量为0的进行生成合同
         purchaseRequest.setPurchaseRequestFixedChildList(purchaseRequest.getPurchaseRequestFixedChildList().stream()
-            .filter(purchaseRequestChild -> purchaseRequestChild.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(purchaseRequestChild -> {
+                String operNumber = StrUtil.isEmpty(purchaseRequestChild.getOperNumber()) 
+                    ? CommonNumConstants.NUM_ZERO.toString() 
+                    : purchaseRequestChild.getOperNumber();
+                return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+            }).collect(Collectors.toList()));
         return purchaseRequest;
     }
 

@@ -4,8 +4,12 @@
 
 package com.skyeye.util;
 
+import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.exception.CustomException;
 
+import java.math.RoundingMode;
 import java.util.Map;
 
 /**
@@ -18,11 +22,11 @@ import java.util.Map;
  */
 public class ErpOrderUtil {
 
-    public static Integer checkOperNumber(Integer surplusNum, String normsId, Map<String, Integer>... nums) {
-        for (Map<String, Integer> num : nums) {
-            surplusNum -= num.containsKey(normsId) ? num.get(normsId) : 0;
+    public static String checkOperNumber(String surplusNum, String normsId, Map<String, String>... nums) {
+        for (Map<String, String> num : nums) {
+            surplusNum = CalculationUtil.subtract(surplusNum, num.containsKey(normsId) ? num.get(normsId) : CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT);
         }
-        if (surplusNum < 0) {
+        if (CalculationUtil.compareTo(surplusNum, CommonNumConstants.NUM_ZERO.toString(), 0, RoundingMode.UP) < 0) {
             throw new CustomException("超出来源单据的商品数量.");
         }
         return surplusNum;

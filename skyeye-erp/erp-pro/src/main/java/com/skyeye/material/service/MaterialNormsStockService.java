@@ -5,6 +5,8 @@
 package com.skyeye.material.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.depot.classenum.DepotPutOutType;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.material.entity.MaterialNormsStock;
 
 import java.util.List;
@@ -69,8 +71,9 @@ public interface MaterialNormsStockService extends SkyeyeBusinessService<Materia
      * @param depotId    仓库id
      * @param normsId    规格id
      * @param stock      库存数量
+     * @param type       商品规格库存类型 {@link MaterialNormsStockType}
      */
-    Integer saveMaterialNormsOrderStock(String materialId, String depotId, String normsId, int stock);
+    String saveMaterialNormsStock(String materialId, String depotId, String normsId, String stock, int type);
 
     /**
      * 保存初始化库存信息

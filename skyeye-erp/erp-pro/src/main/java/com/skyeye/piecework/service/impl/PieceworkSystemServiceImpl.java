@@ -15,8 +15,10 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.UserStaffWorkstationType;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.farm.entity.Farm;
 import com.skyeye.farm.entity.FarmStaff;
 import com.skyeye.farm.entity.FarmStation;
@@ -38,6 +40,7 @@ import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.HashMap;
@@ -184,11 +187,12 @@ public class PieceworkSystemServiceImpl extends SkyeyeBusinessServiceImpl<Piecew
                                 acceptCreateDateMap.put(accept.getId(), createDate);
                             }
 
-                            int totalPieces = 0;
+                            String totalPieces = CommonNumConstants.NUM_ZERO.toString();
                             for (MachinProcedureAcceptProductNum piece : allPieces) {
                                 String createDate = acceptCreateDateMap.get(piece.getParentId());
                                 if (yesterdayStr.equals(createDate)) {
-                                    totalPieces += piece.getAllNumber();
+                                    String allNumber = StrUtil.isEmpty(piece.getAllNumber()) ? CommonNumConstants.NUM_ZERO.toString() : piece.getAllNumber();
+                                    totalPieces = CalculationUtil.add(totalPieces, allNumber, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
                                 }
                             }
                             dayValue = "A-" + totalPieces;

@@ -15,6 +15,8 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutFromType;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.depot.classenum.DepotPutState;
@@ -44,6 +46,7 @@ import com.skyeye.util.ErpOrderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -141,10 +144,10 @@ public class ReturnPutServiceImpl extends SkyeyeErpOrderServiceImpl<ReturnPutDao
             return;
         }
         // 当前退料入库单的商品数量
-        Map<String, Integer> orderNormsNum = entity.getErpOrderItemList().stream()
+        Map<String, String> orderNormsNum = entity.getErpOrderItemList().stream()
             .collect(Collectors.toMap(ErpOrderItem::getNormsId, ErpOrderItem::getOperNumber));
         // 获取已经下达退料入库单的商品信息
-        Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
         if (entity.getFromTypeId() == ReturnPutFromType.RETURN_PUT.getKey()) {
             // 退料需求单
@@ -152,7 +155,7 @@ public class ReturnPutServiceImpl extends SkyeyeErpOrderServiceImpl<ReturnPutDao
         }
     }
 
-    private void checkAndUpdateFromState(ReturnPut entity, boolean setData, Map<String, Integer> orderNormsNum, Map<String, Integer> executeNum, List<String> inSqlNormsId) {
+    private void checkAndUpdateFromState(ReturnPut entity, boolean setData, Map<String, String> orderNormsNum, Map<String, String> executeNum, List<String> inSqlNormsId) {
         ReturnMaterial returnMaterial = returnMaterialService.selectById(entity.getFromId());
         if (CollectionUtil.isEmpty(returnMaterial.getPickChildList())) {
             throw new CustomException("该退料单下未包含商品.");
@@ -163,7 +166,7 @@ public class ReturnPutServiceImpl extends SkyeyeErpOrderServiceImpl<ReturnPutDao
 
         returnMaterial.getPickChildList().forEach(pickChild -> {
             // 退料需求单数量 - 当前单据数量 - 已经下达退料入库单的数量
-            Integer surplusNum = ErpOrderUtil.checkOperNumber(pickChild.getNeedNum(), pickChild.getNormsId(), orderNormsNum, executeNum);
+            String surplusNum = ErpOrderUtil.checkOperNumber(pickChild.getNeedNum(), pickChild.getNormsId(), orderNormsNum, executeNum);
             if (setData) {
                 pickChild.setNeedNum(surplusNum);
             }
@@ -173,7 +176,8 @@ public class ReturnPutServiceImpl extends SkyeyeErpOrderServiceImpl<ReturnPutDao
         if (setData) {
             // 过滤掉剩余数量为0的商品
             List<PickChild> pickChildList = returnMaterial.getPickChildList().stream()
-                .filter(pickChild -> pickChild.getNeedNum() > 0).collect(Collectors.toList());
+                .filter(pickChild -> CalculationUtil.compareTo(pickChild.getNeedNum(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+                .collect(Collectors.toList());
             // 如果该退料需求单的商品已经全部生成了退料入库单，那说明已经完成
             if (CollectionUtil.isEmpty(pickChildList)) {
                 returnMaterialService.editOtherState(returnMaterial.getId(), OutLetState.COMPLATE_OUTLET.getKey());
@@ -194,12 +198,16 @@ public class ReturnPutServiceImpl extends SkyeyeErpOrderServiceImpl<ReturnPutDao
 
     private void checkDepartStockWhetherOutstrip(String departmentId, String farmId, List<ErpOrderItem> erpOrderItemList) {
         List<String> normsIds = erpOrderItemList.stream().map(ErpOrderItem::getNormsId).collect(Collectors.toList());
-        Map<String, Integer> normsDepartmentStock = departmentStockService.queryNormsDepartmentStock(departmentId, farmId, normsIds);
+        Map<String, String> normsDepartmentStock = departmentStockService.queryNormsDepartmentStock(departmentId, farmId, normsIds);
         for (ErpOrderItem bean : erpOrderItemList) {
             // 部门库存存量
-            int departMentTock = normsDepartmentStock.get(bean.getNormsId());
+            String departMentTock = normsDepartmentStock.get(bean.getNormsId());
+            if (StrUtil.isEmpty(departMentTock)) {
+                departMentTock = CommonNumConstants.NUM_ZERO.toString();
+            }
             // 单据数量 小于 仓储数量
-            if (departMentTock - bean.getOperNumber() < 0) {
+            String subtractResult = CalculationUtil.subtract(departMentTock, bean.getOperNumber(), ErpConstants.NUM_AFTER_DOT);
+            if (CalculationUtil.compareTo(subtractResult, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
                 throw new CustomException("单据储量小于仓储数量，请确认");
             }
         }
@@ -277,12 +285,13 @@ public class ReturnPutServiceImpl extends SkyeyeErpOrderServiceImpl<ReturnPutDao
         String id = inputObject.getParams().get("id").toString();
         ReturnPut returnPut = selectById(id);
         // 该退料入库单下的已经下达仓库入库单(审核通过)的数量
-        Map<String, Integer> depotNumMap = depotPutService.calcMaterialNormsNumByFromId(returnPut.getId());
+        Map<String, String> depotNumMap = depotPutService.calcMaterialNormsNumByFromId(returnPut.getId());
         // 设置未下达商品数量-----退料入库单数量 - 已入库数量
         super.setOrCheckOperNumber(returnPut.getErpOrderItemList(), true, depotNumMap);
         // 过滤掉数量为0的商品信息
         returnPut.setErpOrderItemList(returnPut.getErpOrderItemList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> CalculationUtil.compareTo(erpOrderItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+            .collect(Collectors.toList()));
         outputObject.setBean(returnPut);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

@@ -22,6 +22,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.contract.classenum.SupplierContractChildStateEnum;
 import com.skyeye.contract.classenum.SupplierContractFromType;
 import com.skyeye.contract.classenum.SupplierContractStateEnum;
@@ -51,6 +52,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -151,10 +153,11 @@ public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<Suppl
             throw new CustomException("合同下无商品信息，请确认.");
         }
         // 当前订单的商品数量
-        Map<String, Integer> orderNormsNum = entity.getSupplierContractChildList().stream()
-            .collect(Collectors.toMap(SupplierContractChild::getNormsId, SupplierContractChild::getOperNumber));
+        Map<String, String> orderNormsNum = entity.getSupplierContractChildList().stream()
+            .collect(Collectors.toMap(SupplierContractChild::getNormsId, 
+                child -> StrUtil.isEmpty(child.getOperNumber()) ? CommonNumConstants.NUM_ZERO.toString() : child.getOperNumber()));
         // 获取已经签订合同的商品信息
-        Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
         if (entity.getFromTypeId() == SupplierContractFromType.PURCHASE_REQUEST.getKey()) {
             PurchaseRequest purchaseRequest = purchaseRequestService.selectById(entity.getFromId());
@@ -170,10 +173,21 @@ public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<Suppl
                     Joiner.on(CommonCharConstants.COMMA_MARK).join(normsNames)));
             }
             purchaseRequest.getPurchaseRequestFixedChildList().forEach(purchaseRequestFixedChild -> {
-                Integer surplusNum = purchaseRequestFixedChild.getOperNumber()
-                    - (orderNormsNum.containsKey(purchaseRequestFixedChild.getNormsId()) ? orderNormsNum.get(purchaseRequestFixedChild.getNormsId()) : 0)
-                    - (executeNum.containsKey(purchaseRequestFixedChild.getNormsId()) ? executeNum.get(purchaseRequestFixedChild.getNormsId()) : 0);
-                if (surplusNum < 0) {
+                String purchaseRequestOperNumber = StrUtil.isEmpty(purchaseRequestFixedChild.getOperNumber()) 
+                    ? CommonNumConstants.NUM_ZERO.toString() 
+                    : purchaseRequestFixedChild.getOperNumber();
+                String orderNum = orderNormsNum.getOrDefault(purchaseRequestFixedChild.getNormsId(), CommonNumConstants.NUM_ZERO.toString());
+                if (StrUtil.isEmpty(orderNum)) {
+                    orderNum = CommonNumConstants.NUM_ZERO.toString();
+                }
+                String executeNumValue = executeNum.getOrDefault(purchaseRequestFixedChild.getNormsId(), CommonNumConstants.NUM_ZERO.toString());
+                if (StrUtil.isEmpty(executeNumValue)) {
+                    executeNumValue = CommonNumConstants.NUM_ZERO.toString();
+                }
+                String surplusNum = CalculationUtil.subtract(
+                    CalculationUtil.subtract(purchaseRequestOperNumber, orderNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP),
+                    executeNumValue, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+                if (CalculationUtil.compareTo(surplusNum, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
                     throw new CustomException("超出采购申请单的商品数量.");
                 }
                 if (setData) {
@@ -183,7 +197,12 @@ public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<Suppl
             if (setData) {
                 // 过滤掉剩余数量为0的商品
                 List<PurchaseRequestFixedChild> purchaseRequestFixedChildList = purchaseRequest.getPurchaseRequestFixedChildList().stream()
-                    .filter(purchaseRequestFixedChild -> purchaseRequestFixedChild.getOperNumber() > 0).collect(Collectors.toList());
+                    .filter(purchaseRequestFixedChild -> {
+                        String operNumber = StrUtil.isEmpty(purchaseRequestFixedChild.getOperNumber()) 
+                            ? CommonNumConstants.NUM_ZERO.toString() 
+                            : purchaseRequestFixedChild.getOperNumber();
+                        return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+                    }).collect(Collectors.toList());
                 // 如果该采购申请单的商品已经全部签订合同，那说明已经完成了申请单的内容
                 if (CollectionUtil.isEmpty(purchaseRequestFixedChildList)) {
                     purchaseRequestService.editStateById(purchaseRequest.getId(), PurchaseRequestStateEnum.PROCUREMENT_COMPLETED.getKey());
@@ -449,7 +468,7 @@ public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<Suppl
     }
 
     @Override
-    public Map<String, Integer> calcMaterialNormsNumByFromId(String fromId) {
+    public Map<String, String> calcMaterialNormsNumByFromId(String fromId) {
         QueryWrapper<SupplierContract> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SupplierContract::getFromId), fromId);
         // 只查询审批通过，执行中，关闭，搁置状态的
@@ -466,7 +485,10 @@ public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<Suppl
         if (CollectionUtil.isNotEmpty(supplierContractChildList)) {
             // 分组计算已经签订合同的数量
             return supplierContractChildList.stream()
-                .collect(Collectors.groupingBy(SupplierContractChild::getNormsId, Collectors.summingInt(SupplierContractChild::getOperNumber)));
+                .collect(Collectors.groupingBy(SupplierContractChild::getNormsId,
+                    Collectors.reducing(CommonNumConstants.NUM_ZERO.toString(),
+                        child -> StrUtil.isEmpty(child.getOperNumber()) ? CommonNumConstants.NUM_ZERO.toString() : child.getOperNumber(),
+                        (a, b) -> CalculationUtil.add(a, b, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP))));
         }
         return cn.hutool.core.map.MapUtil.newHashMap();
     }
@@ -485,16 +507,27 @@ public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<Suppl
             throw new CustomException("合同下无商品信息，无需转采购订单.");
         }
         // 获取已经下达采购订单的商品信息
-        Map<String, Integer> executeNum = purchaseOrderService.calcMaterialNormsNumByFromId(supplierContract.getId());
+        Map<String, String> executeNum = purchaseOrderService.calcMaterialNormsNumByFromId(supplierContract.getId());
         supplierContract.getSupplierContractChildList().forEach(supplierContractChild -> {
-            Integer surplusNum = supplierContractChild.getOperNumber()
-                - (executeNum.containsKey(supplierContractChild.getNormsId()) ? executeNum.get(supplierContractChild.getNormsId()) : 0);
+            String supplierContractOperNumber = StrUtil.isEmpty(supplierContractChild.getOperNumber()) 
+                ? CommonNumConstants.NUM_ZERO.toString() 
+                : supplierContractChild.getOperNumber();
+            String executeNumValue = executeNum.getOrDefault(supplierContractChild.getNormsId(), CommonNumConstants.NUM_ZERO.toString());
+            if (StrUtil.isEmpty(executeNumValue)) {
+                executeNumValue = CommonNumConstants.NUM_ZERO.toString();
+            }
+            String surplusNum = CalculationUtil.subtract(supplierContractOperNumber, executeNumValue, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
             // 设置未下达采购订单的商品数量
             supplierContractChild.setOperNumber(surplusNum);
         });
         // 过滤掉数量为0的进行生成采购订单
         supplierContract.setSupplierContractChildList(supplierContract.getSupplierContractChildList().stream()
-            .filter(purchaseRequestChild -> purchaseRequestChild.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(purchaseRequestChild -> {
+                String operNumber = StrUtil.isEmpty(purchaseRequestChild.getOperNumber()) 
+                    ? CommonNumConstants.NUM_ZERO.toString() 
+                    : purchaseRequestChild.getOperNumber();
+                return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+            }).collect(Collectors.toList()));
 
         supplierService.setDataMation(supplierContract, SupplierContract::getObjectId);
 
@@ -553,9 +586,11 @@ public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<Suppl
         SupplierContract erpContract = selectById(contractId);
         if (StrUtil.equals(erpContract.getState(), SupplierContractStateEnum.EXECUTING.getKey())) {
             // 只有执行中的合同才可以进行付款
-            price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
-                StrUtil.isEmpty(erpContract.getPaidPrice()) ? "0" : erpContract.getPaidPrice(),
-                price);
+            String paidPrice = StrUtil.isEmpty(erpContract.getPaidPrice()) ? CommonNumConstants.NUM_ZERO.toString() : erpContract.getPaidPrice();
+            if (StrUtil.isEmpty(price)) {
+                price = CommonNumConstants.NUM_ZERO.toString();
+            }
+            price = CalculationUtil.add(paidPrice, price, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
             UpdateWrapper<SupplierContract> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(CommonConstants.ID, contractId);
             updateWrapper.set(MybatisPlusUtil.toColumns(SupplierContract::getPaidPrice), price);
@@ -569,9 +604,11 @@ public class SupplierContractServiceImpl extends SkyeyeBusinessServiceImpl<Suppl
     @Override
     public void updateInvoicePrice(String contractId, String invoicePrice) {
         SupplierContract erpContract = selectById(contractId);
-        invoicePrice = CalculationUtil.add(CommonNumConstants.NUM_TWO,
-            StrUtil.isEmpty(erpContract.getInvoicePrice()) ? "0" : erpContract.getInvoicePrice(),
-            invoicePrice);
+        String currentInvoicePrice = StrUtil.isEmpty(erpContract.getInvoicePrice()) ? CommonNumConstants.NUM_ZERO.toString() : erpContract.getInvoicePrice();
+        if (StrUtil.isEmpty(invoicePrice)) {
+            invoicePrice = CommonNumConstants.NUM_ZERO.toString();
+        }
+        invoicePrice = CalculationUtil.add(currentInvoicePrice, invoicePrice, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
         UpdateWrapper<SupplierContract> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, contractId);
         updateWrapper.set(MybatisPlusUtil.toColumns(SupplierContract::getInvoicePrice), invoicePrice);

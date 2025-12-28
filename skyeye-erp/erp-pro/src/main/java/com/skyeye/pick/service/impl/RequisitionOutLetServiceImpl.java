@@ -13,6 +13,8 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotOutFromType;
 import com.skyeye.depot.classenum.DepotOutState;
 import com.skyeye.depot.classenum.DepotPutOutType;
@@ -36,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -107,10 +110,10 @@ public class RequisitionOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<Requ
             return;
         }
         // 当前领料出库单的商品数量
-        Map<String, Integer> orderNormsNum = entity.getErpOrderItemList().stream()
+        Map<String, String> orderNormsNum = entity.getErpOrderItemList().stream()
             .collect(Collectors.toMap(ErpOrderItem::getNormsId, ErpOrderItem::getOperNumber));
         // 获取已经下达领料出库单的商品信息
-        Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
         if (entity.getFromTypeId() == RequisitionOutLetFromType.REQUISITION_MATERIAL.getKey()) {
             // 领料需求单
@@ -118,7 +121,7 @@ public class RequisitionOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<Requ
         }
     }
 
-    private void checkAndUpdateFromState(RequisitionOutLet entity, boolean setData, Map<String, Integer> orderNormsNum, Map<String, Integer> executeNum, List<String> inSqlNormsId) {
+    private void checkAndUpdateFromState(RequisitionOutLet entity, boolean setData, Map<String, String> orderNormsNum, Map<String, String> executeNum, List<String> inSqlNormsId) {
         RequisitionMaterial requisitionMaterial = requisitionMaterialService.selectById(entity.getFromId());
         if (CollectionUtil.isEmpty(requisitionMaterial.getPickChildList())) {
             throw new CustomException("该领料单下未包含商品.");
@@ -129,7 +132,7 @@ public class RequisitionOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<Requ
 
         requisitionMaterial.getPickChildList().forEach(pickChild -> {
             // 领料需求单数量 - 当前单据数量 - 已经下达领料出库单的数量
-            Integer surplusNum = ErpOrderUtil.checkOperNumber(pickChild.getNeedNum(), pickChild.getNormsId(), orderNormsNum, executeNum);
+            String surplusNum = ErpOrderUtil.checkOperNumber(pickChild.getNeedNum(), pickChild.getNormsId(), orderNormsNum, executeNum);
             if (setData) {
                 pickChild.setNeedNum(surplusNum);
             }
@@ -137,7 +140,8 @@ public class RequisitionOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<Requ
         if (setData) {
             // 过滤掉剩余数量为0的商品
             List<PickChild> pickChildList = requisitionMaterial.getPickChildList().stream()
-                .filter(pickChild -> pickChild.getNeedNum() > 0).collect(Collectors.toList());
+                .filter(pickChild -> CalculationUtil.compareTo(pickChild.getNeedNum(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+                .collect(Collectors.toList());
             // 如果该领料需求单的商品已经全部生成了领料出库单，那说明已经完成
             if (CollectionUtil.isEmpty(pickChildList)) {
                 requisitionMaterialService.editOtherState(requisitionMaterial.getId(), OutLetState.COMPLATE_OUTLET.getKey());
@@ -159,12 +163,13 @@ public class RequisitionOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<Requ
         String id = inputObject.getParams().get("id").toString();
         RequisitionOutLet requisitionOutLet = selectById(id);
         // 该领料出库单下的已经下达仓库出库单(审核通过)的数量
-        Map<String, Integer> depotNumMap = depotOutService.calcMaterialNormsNumByFromId(requisitionOutLet.getId());
+        Map<String, String> depotNumMap = depotOutService.calcMaterialNormsNumByFromId(requisitionOutLet.getId());
         // 设置未下达商品数量-----领料出库单数量 - 已出库数量
         super.setOrCheckOperNumber(requisitionOutLet.getErpOrderItemList(), true, depotNumMap);
         // 过滤掉数量为0的商品信息
         requisitionOutLet.setErpOrderItemList(requisitionOutLet.getErpOrderItemList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> CalculationUtil.compareTo(erpOrderItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+            .collect(Collectors.toList()));
         outputObject.setBean(requisitionOutLet);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

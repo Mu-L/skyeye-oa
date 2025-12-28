@@ -1,13 +1,11 @@
 package com.skyeye.depot.service.impl;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.business.service.SkyeyeErpOrderItemService;
@@ -15,8 +13,10 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotOutFromType;
 import com.skyeye.depot.classenum.DepotOutPutStateEnum;
 import com.skyeye.depot.dao.DepotOutPutRecordDao;
@@ -26,7 +26,6 @@ import com.skyeye.depot.entity.DepotPut;
 import com.skyeye.depot.service.DepotOutPutRecordService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
-import com.skyeye.material.entity.Material;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.product.entity.ProductLead;
@@ -37,12 +36,10 @@ import com.skyeye.product.service.ProductLeadOutStockService;
 import com.skyeye.product.service.ProductLeadService;
 import com.skyeye.product.service.ProductReturnInStockService;
 import com.skyeye.product.service.ProductReturnService;
-import com.skyeye.supplier.service.SupplierService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -100,8 +97,8 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
     }
 
     @Override
-    public void writeOutPutRecord(Object o,Integer fromTypeId) {
-        if(fromTypeId == DepotOutFromType.LOANOUT.getKey()){
+    public void writeOutPutRecord(Object o, Integer fromTypeId) {
+        if (fromTypeId == DepotOutFromType.LOANOUT.getKey()) {
             // 新增
             DepotOut entity = (DepotOut) o;
             // 借出单
@@ -116,10 +113,10 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
                 if (StrUtil.isNotEmpty(erpOrderItem.getNormsCode())) {
                     // 解析编码
                     List<String> normsCode = Arrays.asList(erpOrderItem.getNormsCode().split("\n")).stream()
-                            .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
+                        .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
                     for (String code : normsCode) {
                         DepotOutPutRecord depotOutPutRecord = new DepotOutPutRecord();
-                        depotOutPutRecord.setOutCount(CommonNumConstants.NUM_ONE);
+                        depotOutPutRecord.setOutCount(CommonNumConstants.NUM_ONE.toString());
 
                         depotOutPutRecord.setObjectId(entity.getHolderId());
                         depotOutPutRecord.setObjectKey(entity.getHolderKey());
@@ -151,7 +148,7 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
                 }
             }
             createEntity(depotOutPutRecordList, null);
-        }else {
+        } else {
             // 编辑
             DepotPut entity = (DepotPut) o;
             // 归还入库单
@@ -177,10 +174,10 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
             for (ErpOrderItem erpOrderItem : erpOrderItemList) {
                 if (StrUtil.isNotEmpty(erpOrderItem.getNormsCode())) {
                     List<String> normsCode = Arrays.asList(erpOrderItem.getNormsCode().split("\n")).stream()
-                            .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
+                        .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
                     for (String code : normsCode) {
                         DepotOutPutRecord depotOutPutRecord = outPutCodeRecordMap.get(code).get(CommonNumConstants.NUM_ZERO);
-                        depotOutPutRecord.setPutCount(CommonNumConstants.NUM_ONE);
+                        depotOutPutRecord.setPutCount(CommonNumConstants.NUM_ONE.toString());
                         depotOutPutRecord.setState(DepotOutPutStateEnum.RETURNED.getKey());
                         depotOutPutRecord.setPutDepotTime(DateUtil.getPointTime(DateUtil.YYYY_MM_DD));
                         depotOutPutRecord.setRepayId(ObjectUtil.isNotEmpty(productReturn) ? productReturn.getId() : StrUtil.EMPTY);
@@ -189,10 +186,21 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
                     }
                 } else {
                     DepotOutPutRecord depotOutPutRecord = outPutRecordMap.get(erpOrderItem.getMaterialId()).get(erpOrderItem.getNormsId()).get(CommonNumConstants.NUM_ZERO);
-                    depotOutPutRecord.setPutCount(erpOrderItem.getOperNumber() + depotOutPutRecord.getPutCount());
-                    if (depotOutPutRecord.getPutCount() == depotOutPutRecord.getOutCount()) {
+                    String operNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber())
+                        ? CommonNumConstants.NUM_ZERO.toString()
+                        : erpOrderItem.getOperNumber();
+                    String putCount = StrUtil.isEmpty(depotOutPutRecord.getPutCount())
+                        ? CommonNumConstants.NUM_ZERO.toString()
+                        : depotOutPutRecord.getPutCount();
+                    String newPutCount = CalculationUtil.add(operNumber, putCount, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+                    depotOutPutRecord.setPutCount(newPutCount);
+                    String outCount = StrUtil.isEmpty(depotOutPutRecord.getOutCount())
+                        ? CommonNumConstants.NUM_ZERO.toString()
+                        : depotOutPutRecord.getOutCount();
+                    if (CalculationUtil.compareTo(newPutCount, outCount, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) == 0) {
                         depotOutPutRecord.setState(DepotOutPutStateEnum.RETURNED.getKey());
-                    } else if (depotOutPutRecord.getPutCount() > 0 && depotOutPutRecord.getPutCount() < depotOutPutRecord.getOutCount()) {
+                    } else if (CalculationUtil.compareTo(newPutCount, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0
+                        && CalculationUtil.compareTo(newPutCount, outCount, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
                         depotOutPutRecord.setState(DepotOutPutStateEnum.PART_RETURN.getKey());
                     }
                     depotOutPutRecord.setPutDepotTime(DateUtil.getPointTime(DateUtil.YYYY_MM_DD));
@@ -207,14 +215,14 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
 
     @Override
     public void queryOutPutRecordDetailList(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo  = inputObject.getParams(CommonPageInfo.class);
-        if(StrUtil.isEmpty(commonPageInfo.getObjectId())){
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        if (StrUtil.isEmpty(commonPageInfo.getObjectId())) {
             throw new CustomException("客户/供应商id不能为空");
         }
-        if(StrUtil.isEmpty(commonPageInfo.getFirstTypeId())){
+        if (StrUtil.isEmpty(commonPageInfo.getFirstTypeId())) {
             throw new CustomException("商品id不能为空");
         }
-        if(StrUtil.isEmpty(commonPageInfo.getSecondTypeId())){
+        if (StrUtil.isEmpty(commonPageInfo.getSecondTypeId())) {
             throw new CustomException("规格id不能为空");
         }
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
@@ -234,24 +242,27 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
     public void queryHolderOutPutNormsList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        if(StrUtil.isEmpty(commonPageInfo.getHolderId())) {
+        if (StrUtil.isEmpty(commonPageInfo.getHolderId())) {
             throw new CustomException("holderId不能为空");
         }
         if (StrUtil.isEmpty(commonPageInfo.getHolderKey())) {
             throw new CustomException("holderKey不能为空");
         }
-        if(StrUtil.isEmpty(commonPageInfo.getType())) {
+        if (StrUtil.isEmpty(commonPageInfo.getType())) {
             throw new CustomException("type不能为空");
         }
-        List<ErpOrderItem> beans = skyeyeErpOrderItemService.queryHolderOutPutNormsList(commonPageInfo.getHolderKey(), commonPageInfo.getType(),commonPageInfo.getHolderId(),commonPageInfo.getKeyword());
+        List<ErpOrderItem> beans = skyeyeErpOrderItemService.queryHolderOutPutNormsList(commonPageInfo.getHolderKey(), commonPageInfo.getType(), commonPageInfo.getHolderId(), commonPageInfo.getKeyword());
         List<Map<String, Object>> result = new ArrayList<>();
         Map<String, List<ErpOrderItem>> groupByMaterialId = beans.stream()
-                .collect(Collectors.groupingBy(ErpOrderItem::getMaterialId));
+            .collect(Collectors.groupingBy(ErpOrderItem::getMaterialId));
         for (Map.Entry<String, List<ErpOrderItem>> entry : groupByMaterialId.entrySet()) {
             Map<String, Object> map = new HashMap<>();
             map.put("normsId", entry.getValue().get(CommonNumConstants.NUM_ZERO).getNormsId());
             map.put("materialId", entry.getKey());
-            int totalNum = entry.getValue().stream().mapToInt(ErpOrderItem::getOperNumber).sum();
+            String totalNum = entry.getValue().stream()
+                .map(item -> StrUtil.isEmpty(item.getOperNumber()) ? CommonNumConstants.NUM_ZERO.toString() : item.getOperNumber())
+                .reduce(CommonNumConstants.NUM_ZERO.toString(),
+                    (a, b) -> CalculationUtil.add(a, b, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP));
             double totalPrice = entry.getValue().stream().mapToDouble(item -> Double.parseDouble(item.getAllPrice())).sum();
             map.put("totalNum", totalNum);
             map.put("totalPrice", totalPrice);
@@ -279,7 +290,7 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
 
         for (ErpOrderItem erpOrderItem : erpOrderItemList) {
             List<String> normsCode = Arrays.asList(erpOrderItem.getNormsCode().split("\n")).stream()
-                    .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
+                .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
 
             if (CollectionUtils.isNotEmpty(normsCode)) {
                 // 一物一码
@@ -300,8 +311,17 @@ public class DepotOutPutRecordServiceImpl extends SkyeyeBusinessServiceImpl<Depo
                 }
                 DepotOutPutRecord depotOutPutRecord = list.get(CommonNumConstants.NUM_ZERO);
                 // 带归还入库单数量
-                int putCount = depotOutPutRecord.getOutCount() - depotOutPutRecord.getPutCount();
-                if (erpOrderItem.getOperNumber() > putCount) {
+                String outCount = StrUtil.isEmpty(depotOutPutRecord.getOutCount())
+                    ? CommonNumConstants.NUM_ZERO.toString()
+                    : depotOutPutRecord.getOutCount();
+                String putCount = StrUtil.isEmpty(depotOutPutRecord.getPutCount())
+                    ? CommonNumConstants.NUM_ZERO.toString()
+                    : depotOutPutRecord.getPutCount();
+                String surplusCount = CalculationUtil.subtract(outCount, putCount, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+                String operNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber())
+                    ? CommonNumConstants.NUM_ZERO.toString()
+                    : erpOrderItem.getOperNumber();
+                if (CalculationUtil.compareTo(operNumber, surplusCount, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0) {
                     throw new CustomException("归还数量过多");
                 }
             }

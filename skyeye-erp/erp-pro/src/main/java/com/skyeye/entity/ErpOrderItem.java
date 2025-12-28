@@ -50,11 +50,11 @@ public class ErpOrderItem extends SkyeyeLinkData {
 
     @TableField("oper_number")
     @ApiModelProperty(value = "数量", required = "required,num")
-    private Integer operNumber;
+    private String operNumber;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "未出入库数量")
-    private Integer notUseNumber;
+    private String notUseNumber;
 
     @TableField(value = "unit_price")
     @ApiModelProperty(value = "单价", required = "double", defaultValue = "0")

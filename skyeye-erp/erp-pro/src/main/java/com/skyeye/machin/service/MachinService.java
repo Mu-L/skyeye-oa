@@ -26,7 +26,7 @@ public interface MachinService extends SkyeyeBusinessService<Machin> {
 
     void editPickStateById(String id, String pickState);
 
-    Map<String, Integer> calcMaterialNormsNumByFromId(String fromId);
+    Map<String, String> calcMaterialNormsNumByFromId(String fromId);
 
     void setMachinMationByFromId(List<Map<String, Object>> beans, String idKey, String mationKey);
 

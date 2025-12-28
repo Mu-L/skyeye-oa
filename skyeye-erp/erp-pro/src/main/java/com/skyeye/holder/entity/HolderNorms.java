@@ -71,11 +71,11 @@ public class HolderNorms extends CommonInfo {
 
     @TableField("oper_number")
     @ApiModelProperty(value = "交易数量", required = "required")
-    private Integer operNumber;
+    private String operNumber;
 
     @TableField(value = "sum(oper_number)", insertStrategy = FieldStrategy.NEVER, updateStrategy = FieldStrategy.NEVER)
     @Property(value = "交易数量合计")
-    private Integer allOperNumber;
+    private String allOperNumber;
 
     @TableField("create_time")
     @Property(value = "创建时间")

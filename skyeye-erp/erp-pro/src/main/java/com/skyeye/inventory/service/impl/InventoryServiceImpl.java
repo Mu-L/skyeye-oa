@@ -12,7 +12,9 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableChildStateEnum;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.inventory.dao.InventoryDao;
@@ -57,9 +59,9 @@ public class InventoryServiceImpl extends SkyeyeBusinessServiceImpl<InventoryDao
     @Override
     protected void validatorEntity(Inventory entity) {
         chectErpOrderItem(entity.getInventoryChildList());
-        Integer allPlanInventoryNum = inventoryChildService.calcAllPlanInventoryNum(entity.getInventoryChildList());
+        String allPlanInventoryNum = inventoryChildService.calcAllPlanInventoryNum(entity.getInventoryChildList());
         entity.setAllNum(allPlanInventoryNum);
-        entity.setInventoryNum(CommonNumConstants.NUM_ZERO);
+        entity.setInventoryNum(CommonNumConstants.NUM_ZERO.toString());
     }
 
     private void chectErpOrderItem(List<InventoryChild> inventoryChildList) {
@@ -140,11 +142,11 @@ public class InventoryServiceImpl extends SkyeyeBusinessServiceImpl<InventoryDao
     }
 
     @Override
-    public void setInventoriedNum(String id, Integer addNum) {
+    public void setInventoriedNum(String id, String addNum) {
         Inventory inventory = selectById(id);
         UpdateWrapper<Inventory> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
-        updateWrapper.set(MybatisPlusUtil.toColumns(Inventory::getInventoryNum), inventory.getInventoryNum() + addNum);
+        updateWrapper.set(MybatisPlusUtil.toColumns(Inventory::getInventoryNum), CalculationUtil.add(inventory.getInventoryNum(), addNum, ErpConstants.NUM_AFTER_DOT));
         update(updateWrapper);
         refreshCache(id);
     }

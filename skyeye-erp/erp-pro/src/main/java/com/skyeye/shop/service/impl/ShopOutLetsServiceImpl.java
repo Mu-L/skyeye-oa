@@ -14,7 +14,9 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotOutFromType;
 import com.skyeye.depot.classenum.DepotOutState;
 import com.skyeye.depot.classenum.DepotPutOutType;
@@ -32,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -108,12 +111,13 @@ public class ShopOutLetsServiceImpl extends SkyeyeErpOrderServiceImpl<ShopOutLet
         String id = inputObject.getParams().get("id").toString();
         ShopOutLets shopOutLets = selectById(id);
         // 该门店申领单下的已经下达仓库出库单(审核通过)的数量
-        Map<String, Integer> depotNumMap = depotOutService.calcMaterialNormsNumByFromId(shopOutLets.getId());
+        Map<String, String> depotNumMap = depotOutService.calcMaterialNormsNumByFromId(shopOutLets.getId());
         // 设置未下达商品数量-----门店申领单数量 - 已出库数量
         super.setOrCheckOperNumber(shopOutLets.getErpOrderItemList(), true, depotNumMap);
         // 过滤掉数量为0的商品信息
         shopOutLets.setErpOrderItemList(shopOutLets.getErpOrderItemList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> CalculationUtil.compareTo(erpOrderItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+            .collect(Collectors.toList()));
         outputObject.setBean(shopOutLets);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

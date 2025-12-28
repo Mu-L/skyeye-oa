@@ -10,9 +10,12 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
@@ -25,6 +28,7 @@ import com.skyeye.pick.service.DepartmentStockService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -81,29 +85,29 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
     }
 
     @Override
-    public void updateDepartmentStock(String departmentId, String farmId, String materialId, String normsId, Integer operNumber, int type) {
+    public void updateDepartmentStock(String departmentId, String farmId, String materialId, String normsId, String operNumber, int type) {
         DepartmentStock departmentStock = queryDepartmentStock(departmentId, farmId, normsId);
         // 如果该规格在指定部门中已经有存储数据，则直接做修改
         if (ObjectUtil.isNotEmpty(departmentStock)) {
-            int stock = departmentStock.getStock();
+            String stock = StrUtil.isEmpty(departmentStock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : departmentStock.getStock();
             if (type == DepotPutOutType.PUT.getKey()) {
                 // 入库
-                stock = stock + operNumber;
+                stock = CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, stock, StrUtil.isEmpty(operNumber) ? CommonNumConstants.NUM_ZERO.toString() : operNumber);
             } else if (type == DepotPutOutType.OUT.getKey()) {
                 // 出库
-                stock = stock - operNumber;
+                stock = CalculationUtil.subtract(stock, StrUtil.isEmpty(operNumber) ? CommonNumConstants.NUM_ZERO.toString() : operNumber, ErpConstants.NUM_AFTER_DOT);
             }
             editDepartmentStock(departmentId, farmId, normsId, stock);
         } else {
-            int stockNum = 0;
+            String stockNum = CommonNumConstants.NUM_ZERO.toString();
             if (type == DepotPutOutType.PUT.getKey()) {
                 // 入库
-                stockNum = operNumber;
+                stockNum = StrUtil.isEmpty(operNumber) ? CommonNumConstants.NUM_ZERO.toString() : operNumber;
             } else if (type == DepotPutOutType.OUT.getKey()) {
                 // 出库
-                stockNum = stockNum - operNumber;
+                stockNum = CalculationUtil.subtract(CommonNumConstants.NUM_ZERO.toString(), StrUtil.isEmpty(operNumber) ? CommonNumConstants.NUM_ZERO.toString() : operNumber, ErpConstants.NUM_AFTER_DOT);
             }
-            if (stockNum < 0) {
+            if (CalculationUtil.compareTo(stockNum, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
                 throw new CustomException("部门库存存量不足.");
             }
             saveDepartmentStock(departmentId, farmId, materialId, normsId, stockNum);
@@ -126,7 +130,7 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
         return getOne(queryWrapper);
     }
 
-    private void editDepartmentStock(String departmentId, String farmId, String normsId, int stock) {
+    private void editDepartmentStock(String departmentId, String farmId, String normsId, String stock) {
         UpdateWrapper<DepartmentStock> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
         if (StrUtil.isNotEmpty(farmId)) {
@@ -142,7 +146,7 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
         update(updateWrapper);
     }
 
-    private void saveDepartmentStock(String departmentId, String farmId, String materialId, String normsId, int stock) {
+    private void saveDepartmentStock(String departmentId, String farmId, String materialId, String normsId, String stock) {
         DepartmentStock departmentStock = new DepartmentStock();
         departmentStock.setDepartmentId(departmentId);
         departmentStock.setFarmId(farmId);
@@ -153,7 +157,7 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
     }
 
     @Override
-    public Map<String, Integer> queryNormsDepartmentStock(String departmentId, String farmId, List<String> normsIds) {
+    public Map<String, String> queryNormsDepartmentStock(String departmentId, String farmId, List<String> normsIds) {
         QueryWrapper<DepartmentStock> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
         if (StrUtil.isNotEmpty(farmId)) {
@@ -167,11 +171,14 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
         queryWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds);
         List<DepartmentStock> departmentStockList = list(queryWrapper);
 
-        Map<String, Integer> stockMap = departmentStockList.stream()
-            .collect(Collectors.toMap(DepartmentStock::getNormsId, DepartmentStock::getStock));
+        Map<String, String> stockMap = departmentStockList.stream()
+            .collect(Collectors.toMap(
+                DepartmentStock::getNormsId,
+                stock -> StrUtil.isEmpty(stock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : stock.getStock()
+            ));
         normsIds.forEach(normsId -> {
             if (!stockMap.containsKey(normsId)) {
-                stockMap.put(normsId, 0);
+                stockMap.put(normsId, CommonNumConstants.NUM_ZERO.toString());
             }
         });
         return stockMap;

@@ -26,6 +26,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
@@ -33,6 +34,7 @@ import com.skyeye.procedure.service.WayProcedureService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -99,7 +101,10 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
             throw new CustomException("子件清单中不能包含父件信息");
         }
         entity.getBomChildList().forEach(bomChild -> {
-            if (bomChild.getNeedNum() == 0) {
+            String needNum = StrUtil.isEmpty(bomChild.getNeedNum()) 
+                ? CommonNumConstants.NUM_ZERO.toString() 
+                : bomChild.getNeedNum();
+            if (CalculationUtil.compareTo(needNum, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) == 0) {
                 throw new CustomException("子件数量不能为0");
             }
         });

@@ -20,8 +20,10 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.exception.CustomException;
 import com.skyeye.machin.classenum.MachinFromType;
 import com.skyeye.machin.entity.Machin;
@@ -47,6 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -208,10 +211,10 @@ public class ProductionServiceImpl extends SkyeyeBusinessServiceImpl<ProductionD
             return;
         }
         // 当前生产计划单的商品数量
-        Map<String, Integer> orderNormsNum = entity.getProductionChildList().stream()
+        Map<String, String> orderNormsNum = entity.getProductionChildList().stream()
             .collect(Collectors.toMap(ProductionChild::getNormsId, ProductionChild::getOperNumber));
         // 获取同一个来源单据下已经审批通过的生产计划单的商品信息
-        Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
         if (entity.getFromTypeId() == ProductionFromType.DELIVERY_PLAN.getKey()) {
             // 出货计划单
@@ -233,7 +236,7 @@ public class ProductionServiceImpl extends SkyeyeBusinessServiceImpl<ProductionD
             }
             productionPlanChildList.forEach(productionPlanChild -> {
                 // 出货计划单数量 - 当前生产计划单数量 - 已经审批通过的生产计划单数量
-                Integer surplusNum = ErpOrderUtil.checkOperNumber(productionPlanChild.getOperNumber(), productionPlanChild.getNormsId(),
+                String surplusNum = ErpOrderUtil.checkOperNumber(productionPlanChild.getOperNumber(), productionPlanChild.getNormsId(),
                     orderNormsNum, executeNum);
                 if (setData) {
                     productionPlanChild.setOperNumber(surplusNum);
@@ -242,7 +245,8 @@ public class ProductionServiceImpl extends SkyeyeBusinessServiceImpl<ProductionD
             if (setData) {
                 // 过滤掉剩余数量为0的商品
                 List<ProductionPlanChild> list = productionPlanChildList.stream()
-                    .filter(productionPlanChild -> productionPlanChild.getOperNumber() > 0).collect(Collectors.toList());
+                    .filter(productionPlanChild -> CalculationUtil.compareTo(productionPlanChild.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+                    .collect(Collectors.toList());
                 // 该出货计划单的商品已经全部下达了生产计划单
                 if (CollectionUtil.isEmpty(list)) {
                     productionPlanService.editProduceState(productionPlan.getId(), ProductionPlanProduceState.COMPLATE.getKey());
@@ -272,7 +276,7 @@ public class ProductionServiceImpl extends SkyeyeBusinessServiceImpl<ProductionD
     }
 
     @Override
-    public Map<String, Integer> calcMaterialNormsNumByFromId(String fromId) {
+    public Map<String, String> calcMaterialNormsNumByFromId(String fromId) {
         QueryWrapper<Production> queryWrapper = new QueryWrapper<>();
         queryWrapper.select(CommonConstants.ID);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Production::getFromId), fromId);
@@ -283,8 +287,19 @@ public class ProductionServiceImpl extends SkyeyeBusinessServiceImpl<ProductionD
             return new HashMap<>();
         }
         List<ProductionChild> productionChildList = productionChildService.selectByParentId(ids);
-        Map<String, Integer> collect = productionChildList.stream()
-            .collect(Collectors.groupingBy(ProductionChild::getNormsId, Collectors.summingInt(ProductionChild::getOperNumber)));
+        Map<String, String> collect = productionChildList.stream()
+            .collect(Collectors.groupingBy(
+                ProductionChild::getNormsId,
+                Collectors.reducing(
+                    CommonNumConstants.NUM_ZERO.toString(),
+                    ProductionChild::getOperNumber,
+                    (sum, operNumber) -> CalculationUtil.add(
+                        ErpConstants.NUM_AFTER_DOT,
+                        StrUtil.isEmpty(sum) ? CommonNumConstants.NUM_ZERO.toString() : sum,
+                        StrUtil.isEmpty(operNumber) ? CommonNumConstants.NUM_ZERO.toString() : operNumber
+                    )
+                )
+            ));
         return collect;
     }
 
@@ -293,18 +308,21 @@ public class ProductionServiceImpl extends SkyeyeBusinessServiceImpl<ProductionD
         String id = inputObject.getParams().get("id").toString();
         Production production = selectById(id);
         // 获取已经下达加工单的数量
-        Map<String, Integer> normsNum = machinService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> normsNum = machinService.calcMaterialNormsNumByFromId(id);
         production.getProductionChildList().forEach(productionChild -> {
             // 生产计划单数量 - 已经下达加工单的数量
-            Integer surplusNum = productionChild.getOperNumber()
-                - (normsNum.containsKey(productionChild.getNormsId()) ? normsNum.get(productionChild.getNormsId()) : 0);
+            String normsNumValue = normsNum.containsKey(productionChild.getNormsId()) 
+                ? normsNum.get(productionChild.getNormsId()) 
+                : CommonNumConstants.NUM_ZERO.toString();
+            String surplusNum = CalculationUtil.subtract(productionChild.getOperNumber(), normsNumValue, ErpConstants.NUM_AFTER_DOT);
             // 设置未下达加工单的商品数量
             productionChild.setOperNumber(surplusNum);
         });
         // 过滤掉数量为0的进行生成加工单
         production.setProductionChildList(production.getProductionChildList().stream()
-            .filter(productionChild -> productionChild.getOperNumber() > 0
-                && productionChild.getProductionType() == ProductionChildType.SELF_CONTROL.getKey()).collect(Collectors.toList()));
+            .filter(productionChild -> CalculationUtil.compareTo(productionChild.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0
+                && productionChild.getProductionType() == ProductionChildType.SELF_CONTROL.getKey())
+            .collect(Collectors.toList()));
         // 获取规格对应的所有bom信息
         List<String> normsId = production.getProductionChildList().stream()
             .map(ProductionChild::getNormsId).distinct().collect(Collectors.toList());
@@ -342,18 +360,21 @@ public class ProductionServiceImpl extends SkyeyeBusinessServiceImpl<ProductionD
         String id = inputObject.getParams().get("id").toString();
         Production production = selectById(id);
         // 获取已经下达整单委外单的数量
-        Map<String, Integer> normsNum = wholeOrderOutService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> normsNum = wholeOrderOutService.calcMaterialNormsNumByFromId(id);
         production.getProductionChildList().forEach(productionChild -> {
             // 生产计划单数量 - 已经下达整单委外单的数量
-            Integer surplusNum = productionChild.getOperNumber()
-                - (normsNum.containsKey(productionChild.getNormsId()) ? normsNum.get(productionChild.getNormsId()) : 0);
+            String normsNumValue = normsNum.containsKey(productionChild.getNormsId()) 
+                ? normsNum.get(productionChild.getNormsId()) 
+                : CommonNumConstants.NUM_ZERO.toString();
+            String surplusNum = CalculationUtil.subtract(productionChild.getOperNumber(), normsNumValue, ErpConstants.NUM_AFTER_DOT);
             // 设置未下达整单委外单的商品数量
             productionChild.setOperNumber(surplusNum);
         });
         // 过滤掉数量为0的进行生成整单委外单
         production.setProductionChildList(production.getProductionChildList().stream()
-            .filter(productionChild -> productionChild.getOperNumber() > 0
-                && productionChild.getProductionType() == ProductionChildType.OUTSOURCING.getKey()).collect(Collectors.toList()));
+            .filter(productionChild -> CalculationUtil.compareTo(productionChild.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0
+                && productionChild.getProductionType() == ProductionChildType.OUTSOURCING.getKey())
+            .collect(Collectors.toList()));
         outputObject.setBean(production);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

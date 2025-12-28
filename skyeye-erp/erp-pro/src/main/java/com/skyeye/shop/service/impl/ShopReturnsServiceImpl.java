@@ -17,7 +17,9 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutFromType;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.depot.classenum.DepotPutState;
@@ -42,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -157,12 +160,16 @@ public class ShopReturnsServiceImpl extends SkyeyeErpOrderServiceImpl<ShopReturn
 
     private void checkStoreStockWhetherOutstrip(String storeId, List<ErpOrderItem> erpOrderItemList) {
         List<String> normsIds = erpOrderItemList.stream().map(ErpOrderItem::getNormsId).collect(Collectors.toList());
-        Map<String, Integer> normsStoreStock = shopStockService.queryNormsShopStock(storeId, normsIds);
+        Map<String, String> normsStoreStock = shopStockService.queryNormsShopStock(storeId, normsIds);
         for (ErpOrderItem bean : erpOrderItemList) {
             // 门店库存存量
-            int departMentTock = normsStoreStock.get(bean.getNormsId());
+            String departMentTock = normsStoreStock.get(bean.getNormsId());
+            if (StrUtil.isEmpty(departMentTock)) {
+                departMentTock = CommonNumConstants.NUM_ZERO.toString();
+            }
             // 单据数量 小于 仓储数量
-            if (departMentTock - bean.getOperNumber() < 0) {
+            String subtractResult = CalculationUtil.subtract(departMentTock, bean.getOperNumber(), ErpConstants.NUM_AFTER_DOT);
+            if (CalculationUtil.compareTo(subtractResult, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
                 throw new CustomException("单据储量小于仓储数量，请确认");
             }
         }
@@ -232,12 +239,13 @@ public class ShopReturnsServiceImpl extends SkyeyeErpOrderServiceImpl<ShopReturn
         String id = inputObject.getParams().get("id").toString();
         ShopReturns shopReturns = selectById(id);
         // 该门店退货单下的已经下达仓库入库单(审核通过)的数量
-        Map<String, Integer> depotNumMap = depotPutService.calcMaterialNormsNumByFromId(shopReturns.getId());
+        Map<String, String> depotNumMap = depotPutService.calcMaterialNormsNumByFromId(shopReturns.getId());
         // 设置未下达商品数量-----门店退货单数量 - 已入库数量
         super.setOrCheckOperNumber(shopReturns.getErpOrderItemList(), true, depotNumMap);
         // 过滤掉数量为0的商品信息
         shopReturns.setErpOrderItemList(shopReturns.getErpOrderItemList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> CalculationUtil.compareTo(erpOrderItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+            .collect(Collectors.toList()));
         outputObject.setBean(shopReturns);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

@@ -62,7 +62,7 @@ public class PickChild extends CommonInfo {
 
     @TableField(value = "need_num")
     @ApiModelProperty(value = "领料/退料数量", required = "required,num")
-    private Integer needNum;
+    private String needNum;
 
     @TableField("remark")
     @ApiModelProperty(value = "描述")

@@ -30,7 +30,7 @@ public interface ErpCommonService {
      * @param operNumber 变化数量
      * @param type       出入库类型，参考#DepotPutOutType
      */
-    void editMaterialNormsDepotStock(String depotId, String materialId, String normsId, Integer operNumber, int type);
+    void editMaterialNormsDepotStock(String depotId, String materialId, String normsId, String operNumber, int type);
 
     void editDepotHeadToRevoke(InputObject inputObject, OutputObject outputObject);
 

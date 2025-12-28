@@ -45,7 +45,7 @@ public interface PurchaseOrderService extends SkyeyeErpOrderService<PurchaseOrde
      */
     void editQualityInspection(String id, Integer qualityInspection);
 
-    Map<String, Integer> calcMaterialNormsNumByFromId(String fromId);
+    Map<String, String> calcMaterialNormsNumByFromId(String fromId);
 
     void queryPurchaseOrderTransById(InputObject inputObject, OutputObject outputObject);
 

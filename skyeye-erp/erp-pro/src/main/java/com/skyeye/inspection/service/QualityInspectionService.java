@@ -22,7 +22,7 @@ import java.util.Map;
  */
 public interface QualityInspectionService extends SkyeyeBusinessService<QualityInspection> {
 
-    Map<String, Integer> calcMaterialNormsNumByFromId(String... fromId);
+    Map<String, String> calcMaterialNormsNumByFromId(String... fromId);
 
     /**
      * 修改入库状态

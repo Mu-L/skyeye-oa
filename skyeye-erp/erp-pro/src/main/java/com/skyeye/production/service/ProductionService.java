@@ -28,7 +28,7 @@ public interface ProductionService extends SkyeyeBusinessService<Production> {
 
     void editMachinOrderState(String id, Integer machinOrderState);
 
-    Map<String, Integer> calcMaterialNormsNumByFromId(String fromId);
+    Map<String, String> calcMaterialNormsNumByFromId(String fromId);
 
     void queryProductionTransById(InputObject inputObject, OutputObject outputObject);
 

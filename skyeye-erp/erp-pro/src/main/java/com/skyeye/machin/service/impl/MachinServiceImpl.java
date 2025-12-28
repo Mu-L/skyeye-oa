@@ -26,6 +26,7 @@ import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.exception.CustomException;
 import com.skyeye.machin.classenum.MachinFromType;
 import com.skyeye.machin.classenum.MachinPickStateEnum;
@@ -65,6 +66,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -201,7 +203,7 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
             // 判断产品的所有工序是否已完成
             Boolean[] checkComplateFlag = new Boolean[]{true};
             // 最后一个工序所完成的数量
-            Integer[] lastProcedureNum = new Integer[]{0};
+            String[] lastProcedureNum = new String[]{CommonNumConstants.NUM_ZERO.toString()};
             // 1. 设置加工单子单据bom清单的工序信息
             if (StrUtil.isNotEmpty(machinChild.getBomId())) {
                 Bom bom = bomMap.get(machinChild.getBomId());
@@ -318,7 +320,7 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
                         // 判断产品的所有工序是否已完成
                         Boolean[] checkComplateFlag = new Boolean[]{true};
                         // 最后一个工序所完成的数量
-                        Integer[] lastProcedureNum = new Integer[]{0};
+                        String[] lastProcedureNum = new String[]{CommonNumConstants.NUM_ZERO.toString()};
 
                         // 1. 设置加工单子单据bom清单的工序信息
                         if (StrUtil.isNotEmpty(machinChild.getBomId()) && machinChild.getBomMation() != null) {
@@ -359,7 +361,7 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
     private WayProcedure resetMachinProcedure(String wayProcedureId, String materialId, String normsId, String childId,
                                               String bomChildId, Map<String, MachinProcedure> machinProcedureMap,
                                               Map<String, List<MachinProcedureFarm>> procedureFarmMap, Boolean[] checkComplateFlag,
-                                              Integer[] lastProcedureNum) {
+                                              String[] lastProcedureNum) {
         if (StrUtil.isNotEmpty(wayProcedureId)) {
             // 获取工艺信息
             WayProcedure wayProcedure = wayProcedureService.selectById(wayProcedureId);
@@ -385,9 +387,9 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         return null;
     }
 
-    private Integer calcMachinProcedureFarmPassNum(List<MachinProcedureFarm> machinProcedureFarmList) {
+    private String calcMachinProcedureFarmPassNum(List<MachinProcedureFarm> machinProcedureFarmList) {
         if (CollectionUtil.isEmpty(machinProcedureFarmList)) {
-            return CommonNumConstants.NUM_ZERO;
+            return CommonNumConstants.NUM_ZERO.toString();
         }
         // TODO 这里要改成加工入库单的数量计算方式
         // 获取已经审批通过的工序验收单
@@ -396,9 +398,15 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
             .flatMap(bean -> bean.getMachinProcedureAcceptList().stream())
             .filter(bean -> StrUtil.equals(bean.getState(), FlowableStateEnum.PASS.getKey())).collect(Collectors.toList());
         if (CollectionUtil.isEmpty(machinProcedureAcceptList)) {
-            return CommonNumConstants.NUM_ZERO;
+            return CommonNumConstants.NUM_ZERO.toString();
         }
-        return machinProcedureAcceptList.stream().collect(Collectors.summingInt(MachinProcedureAccept::getQualifiedNum));
+        return machinProcedureAcceptList.stream()
+            .map(MachinProcedureAccept::getQualifiedNum)
+            .reduce(CommonNumConstants.NUM_ZERO.toString(), (sum, qualifiedNum) -> CalculationUtil.add(
+                ErpConstants.NUM_AFTER_DOT,
+                StrUtil.isEmpty(sum) ? CommonNumConstants.NUM_ZERO.toString() : sum,
+                StrUtil.isEmpty(qualifiedNum) ? CommonNumConstants.NUM_ZERO.toString() : qualifiedNum
+            ));
     }
 
     @Override
@@ -455,10 +463,10 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
             return;
         }
         // 当前加工单的商品数量
-        Map<String, Integer> orderNormsNum = entity.getMachinChildList().stream()
+        Map<String, String> orderNormsNum = entity.getMachinChildList().stream()
             .collect(Collectors.toMap(MachinChild::getNormsId, MachinChild::getOperNumber));
         // 获取同一个来源单据下已经审批通过的加工单的商品信息
-        Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
         if (entity.getFromTypeId() == MachinFromType.PRODUCTION.getKey()) {
             // 生产计划单
@@ -482,7 +490,7 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
             }
             productionChildList.forEach(productionChild -> {
                 // 生产计划单数量 - 当前加工单数量 - 已经审批通过的加工单数量
-                Integer surplusNum = ErpOrderUtil.checkOperNumber(productionChild.getOperNumber(), productionChild.getNormsId(),
+                String surplusNum = ErpOrderUtil.checkOperNumber(productionChild.getOperNumber(), productionChild.getNormsId(),
                     orderNormsNum, executeNum);
                 if (setData) {
                     productionChild.setOperNumber(surplusNum);
@@ -491,7 +499,8 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
             if (setData) {
                 // 过滤掉剩余数量为0的商品
                 productionChildList = productionChildList.stream()
-                    .filter(productionChild -> productionChild.getOperNumber() > 0).collect(Collectors.toList());
+                    .filter(productionChild -> CalculationUtil.compareTo(productionChild.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+                    .collect(Collectors.toList());
                 // 该生产计划单的商品已经全部下达了加工单
                 if (CollectionUtil.isEmpty(productionChildList)) {
                     productionService.editMachinOrderState(production.getId(), ProductionMachinOrderState.COMPLATE_ISSUE.getKey());
@@ -512,7 +521,7 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
     }
 
     @Override
-    public Map<String, Integer> calcMaterialNormsNumByFromId(String fromId) {
+    public Map<String, String> calcMaterialNormsNumByFromId(String fromId) {
         QueryWrapper<Machin> queryWrapper = new QueryWrapper<>();
         queryWrapper.select(CommonConstants.ID);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Machin::getFromId), fromId);
@@ -523,8 +532,19 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
             return new HashMap<>();
         }
         List<MachinChild> machinChildList = machinChildService.selectByParentId(ids);
-        Map<String, Integer> collect = machinChildList.stream()
-            .collect(Collectors.groupingBy(MachinChild::getNormsId, Collectors.summingInt(MachinChild::getOperNumber)));
+        Map<String, String> collect = machinChildList.stream()
+            .collect(Collectors.groupingBy(
+                MachinChild::getNormsId,
+                Collectors.reducing(
+                    CommonNumConstants.NUM_ZERO.toString(),
+                    MachinChild::getOperNumber,
+                    (sum, operNumber) -> CalculationUtil.add(
+                        ErpConstants.NUM_AFTER_DOT,
+                        StrUtil.isEmpty(sum) ? CommonNumConstants.NUM_ZERO.toString() : sum,
+                        StrUtil.isEmpty(operNumber) ? CommonNumConstants.NUM_ZERO.toString() : operNumber
+                    )
+                )
+            ));
         return collect;
     }
 
@@ -736,18 +756,23 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         // 获取需要的原材料
         List<BomChild> needRawMaterial = getNeedRawMaterial(machin);
         // 获取已经领料的数量
-        Map<String, Integer> requestNum = requisitionMaterialService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> requestNum = requisitionMaterialService.calcMaterialNormsNumByFromId(id);
         // 获取已经补料的数量
-        Map<String, Integer> patchNum = patchMaterialService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> patchNum = patchMaterialService.calcMaterialNormsNumByFromId(id);
         // 设置未申领的原材料信息
         needRawMaterial.forEach(machinChild -> {
             // 设置未下达领料单/补料单的商品数量-----原材料需求数量 - 已领料的数量 - 已补料的数量
-            Integer surplusNum = machinChild.getNeedNum()
-                - (requestNum.containsKey(machinChild.getNormsId()) ? requestNum.get(machinChild.getNormsId()) : 0)
-                - (patchNum.containsKey(machinChild.getNormsId()) ? patchNum.get(machinChild.getNormsId()) : 0);
-            if (surplusNum < 0) {
+            String requestNumValue = requestNum.containsKey(machinChild.getNormsId()) 
+                ? requestNum.get(machinChild.getNormsId()) 
+                : CommonNumConstants.NUM_ZERO.toString();
+            String patchNumValue = patchNum.containsKey(machinChild.getNormsId()) 
+                ? patchNum.get(machinChild.getNormsId()) 
+                : CommonNumConstants.NUM_ZERO.toString();
+            String tempNum = CalculationUtil.subtract(machinChild.getNeedNum(), requestNumValue, ErpConstants.NUM_AFTER_DOT);
+            String surplusNum = CalculationUtil.subtract(tempNum, patchNumValue, ErpConstants.NUM_AFTER_DOT);
+            if (CalculationUtil.compareTo(surplusNum, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
                 // 超出需求数量，设置为0，方便补料时进行补料
-                surplusNum = 0;
+                surplusNum = CommonNumConstants.NUM_ZERO.toString();
             }
             // 设置未下达领料单/补料单的数量
             machinChild.setNeedNum(surplusNum);
@@ -766,8 +791,9 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
      * @param operNumber 预加工数量
      * @return 计算后的BOM子件列表
      */
-    public static List<BomChild> calculateBomChildNeedNum(Bom bom, Integer operNumber) {
-        if (bom == null || CollectionUtil.isEmpty(bom.getBomChildList()) || operNumber == null || operNumber <= 0) {
+    public static List<BomChild> calculateBomChildNeedNum(Bom bom, String operNumber) {
+        if (bom == null || CollectionUtil.isEmpty(bom.getBomChildList()) || StrUtil.isEmpty(operNumber) 
+            || CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) <= 0) {
             return bom != null ? bom.getBomChildList() : new ArrayList<>();
         }
 
@@ -820,9 +846,8 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         // 计算当前节点的实际需要数量 = 单元比例 * 当前节点的needNum
         // 例如：预加工20个，BOM制造数量10个，needNum=100
         // 实际需要数量 = (20/10) * 100 = 2 * 100 = 200
-        String actualNeedNumStr = CalculationUtil.multiply(unitRatio, String.valueOf(bomChild.getNeedNum()), CommonNumConstants.NUM_ZERO);
-        Integer actualNeedNum = Integer.parseInt(actualNeedNumStr);
-        bomChild.setNeedNum(actualNeedNum);
+        String actualNeedNumStr = CalculationUtil.multiply(unitRatio, bomChild.getNeedNum(), ErpConstants.NUM_AFTER_DOT);
+        bomChild.setNeedNum(actualNeedNumStr);
 
         // 查找当前节点的所有子节点（parentId等于当前节点的materialId）
         List<BomChild> childNodes = bomChildMap.values().stream()
@@ -851,9 +876,9 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
                 List<BomChild> bomChildList = new ArrayList<>(bom.getBomChildList());
                 bomChildList.forEach(bomChild -> {
                     // 计算需要的原材料数量 = 订单数量 / bom方案制造的数量 * bom子项的需求数量
-                    String divide = CalculationUtil.divide(String.valueOf(machinChild.getOperNumber()), String.valueOf(bom.getMakeNum()), CommonNumConstants.NUM_TWO);
-                    divide = CalculationUtil.multiply(divide, String.valueOf(bomChild.getNeedNum()), CommonNumConstants.NUM_ZERO);
-                    bomChild.setNeedNum(Integer.parseInt(divide));
+                    String divide = CalculationUtil.divide(machinChild.getOperNumber(), String.valueOf(bom.getMakeNum()), CommonNumConstants.NUM_TWO);
+                    divide = CalculationUtil.multiply(divide, bomChild.getNeedNum(), ErpConstants.NUM_AFTER_DOT);
+                    bomChild.setNeedNum(divide);
                 });
                 needRawMaterial.addAll(bomChildList);
             }
@@ -863,7 +888,8 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         needRawMaterial.forEach(bomChild -> {
             if (needRawMaterialMap.containsKey(bomChild.getNormsId())) {
                 BomChild existBomChild = needRawMaterialMap.get(bomChild.getNormsId());
-                existBomChild.setNeedNum(existBomChild.getNeedNum() + bomChild.getNeedNum());
+                String sum = CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, existBomChild.getNeedNum(), bomChild.getNeedNum());
+                existBomChild.setNeedNum(sum);
             } else {
                 needRawMaterialMap.put(bomChild.getNormsId(), bomChild);
             }
@@ -917,17 +943,28 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         String id = inputObject.getParams().get("id").toString();
         Machin machin = selectById(id);
         // 获取已经领料的数量
-        Map<String, Integer> requestNum = requisitionMaterialService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> requestNum = requisitionMaterialService.calcMaterialNormsNumByFromId(id);
         // 获取已经补料的数量
-        Map<String, Integer> patchNum = patchMaterialService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> patchNum = patchMaterialService.calcMaterialNormsNumByFromId(id);
         // 获取已经退料的数量
-        Map<String, Integer> returnNum = returnMaterialService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> returnNum = returnMaterialService.calcMaterialNormsNumByFromId(id);
         machin.getMachinChildList().forEach(machinChild -> {
             // 设置未下达退料单的商品数量-----已领料的数量 + 已补料的数量 - 订单数量 - 已退料的数量
-            Integer surplusNum = (requestNum.containsKey(machinChild.getNormsId()) ? requestNum.get(machinChild.getNormsId()) : 0)
-                + (patchNum.containsKey(machinChild.getNormsId()) ? patchNum.get(machinChild.getNormsId()) : 0)
-                - machinChild.getLastProcedureNum()
-                - (returnNum.containsKey(machinChild.getNormsId()) ? returnNum.get(machinChild.getNormsId()) : 0);
+            String requestNumValue = requestNum.containsKey(machinChild.getNormsId()) 
+                ? requestNum.get(machinChild.getNormsId()) 
+                : CommonNumConstants.NUM_ZERO.toString();
+            String patchNumValue = patchNum.containsKey(machinChild.getNormsId()) 
+                ? patchNum.get(machinChild.getNormsId()) 
+                : CommonNumConstants.NUM_ZERO.toString();
+            String returnNumValue = returnNum.containsKey(machinChild.getNormsId()) 
+                ? returnNum.get(machinChild.getNormsId()) 
+                : CommonNumConstants.NUM_ZERO.toString();
+            String lastProcedureNumValue = StrUtil.isEmpty(machinChild.getLastProcedureNum()) 
+                ? CommonNumConstants.NUM_ZERO.toString() 
+                : machinChild.getLastProcedureNum();
+            String tempNum = CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, requestNumValue, patchNumValue);
+            String tempNum2 = CalculationUtil.subtract(tempNum, lastProcedureNumValue, ErpConstants.NUM_AFTER_DOT);
+            String surplusNum = CalculationUtil.subtract(tempNum2, returnNumValue, ErpConstants.NUM_AFTER_DOT);
             // 设置未下达退料单的数量
             machinChild.setOperNumber(surplusNum);
         });

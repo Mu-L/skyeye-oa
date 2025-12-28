@@ -13,10 +13,13 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
@@ -39,6 +42,7 @@ import com.skyeye.pick.service.DepartmentStockService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -101,8 +105,14 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         }
 
         // 实际验收总数量 = 合格数量 + 返工数量 + 报废数量
-        int tempNum = entity.getQualifiedNum() + entity.getReworkNum() + entity.getScrapNum();
-        if (entity.getAcceptNum() != tempNum) {
+        String qualifiedNum = StrUtil.isEmpty(entity.getQualifiedNum()) ? CommonNumConstants.NUM_ZERO.toString() : entity.getQualifiedNum();
+        String reworkNum = StrUtil.isEmpty(entity.getReworkNum()) ? CommonNumConstants.NUM_ZERO.toString() : entity.getReworkNum();
+        String scrapNum = StrUtil.isEmpty(entity.getScrapNum()) ? CommonNumConstants.NUM_ZERO.toString() : entity.getScrapNum();
+        String tempNum = CalculationUtil.add(
+            CalculationUtil.add(qualifiedNum, reworkNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP),
+            scrapNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+        String acceptNum = StrUtil.isEmpty(entity.getAcceptNum()) ? CommonNumConstants.NUM_ZERO.toString() : entity.getAcceptNum();
+        if (CalculationUtil.compareTo(acceptNum, tempNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) != 0) {
             throw new CustomException("验收数量不等于【合格数量】 + 【返工数量】 + 【报废数量】，请确认.");
         }
 
@@ -121,22 +131,35 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         if (CollectionUtil.isEmpty(entity.getMachinProcedureAcceptProductNumList())) {
             throw new CustomException("请填写验收人生产数量列表");
         }
-        int allNumLast = 0;
-        int qualifiedNumLast = 0;
-        int reworkNumLast = 0;
-        int scrapNumLast = 0;
+        String allNumLast = CommonNumConstants.NUM_ZERO.toString();
+        String qualifiedNumLast = CommonNumConstants.NUM_ZERO.toString();
+        String reworkNumLast = CommonNumConstants.NUM_ZERO.toString();
+        String scrapNumLast = CommonNumConstants.NUM_ZERO.toString();
         for (MachinProcedureAcceptProductNum ProductNum : entity.getMachinProcedureAcceptProductNumList()) {
             // 如果总数量 != 合格数量 +返工数量 +报废数量 则提示
-            if (ProductNum.getAllNumber() != (ProductNum.getQualifiedNum() + ProductNum.getReworkNum() + ProductNum.getScrapNum())) {
+            String allNumber = StrUtil.isEmpty(ProductNum.getAllNumber()) ? CommonNumConstants.NUM_ZERO.toString() : String.valueOf(ProductNum.getAllNumber());
+            String qualifiedNum = StrUtil.isEmpty(ProductNum.getQualifiedNum()) ? CommonNumConstants.NUM_ZERO.toString() : String.valueOf(ProductNum.getQualifiedNum());
+            String reworkNum = StrUtil.isEmpty(ProductNum.getReworkNum()) ? CommonNumConstants.NUM_ZERO.toString() : String.valueOf(ProductNum.getReworkNum());
+            String scrapNum = StrUtil.isEmpty(ProductNum.getScrapNum()) ? CommonNumConstants.NUM_ZERO.toString() : String.valueOf(ProductNum.getScrapNum());
+            String sumNum = CalculationUtil.add(
+                CalculationUtil.add(qualifiedNum, reworkNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP),
+                scrapNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            if (CalculationUtil.compareTo(allNumber, sumNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) != 0) {
                 throw new CustomException("总数量 != 合格数量 + 返工数量 + 报废数量");
             }
-            allNumLast = allNumLast + ProductNum.getAllNumber();
-            qualifiedNumLast = qualifiedNumLast + ProductNum.getQualifiedNum();
-            reworkNumLast = reworkNumLast + ProductNum.getReworkNum();
-            scrapNumLast = scrapNumLast + ProductNum.getScrapNum();
+            allNumLast = CalculationUtil.add(allNumLast, allNumber, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            qualifiedNumLast = CalculationUtil.add(qualifiedNumLast, qualifiedNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            reworkNumLast = CalculationUtil.add(reworkNumLast, reworkNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            scrapNumLast = CalculationUtil.add(scrapNumLast, scrapNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
         }
-        if (entity.getAcceptNum() != allNumLast || entity.getQualifiedNum() != qualifiedNumLast
-            || entity.getReworkNum() != reworkNumLast || entity.getScrapNum() != scrapNumLast) {
+        String acceptNum = StrUtil.isEmpty(entity.getAcceptNum()) ? CommonNumConstants.NUM_ZERO.toString() : entity.getAcceptNum();
+        String entityQualifiedNum = StrUtil.isEmpty(entity.getQualifiedNum()) ? CommonNumConstants.NUM_ZERO.toString() : entity.getQualifiedNum();
+        String entityReworkNum = StrUtil.isEmpty(entity.getReworkNum()) ? CommonNumConstants.NUM_ZERO.toString() : entity.getReworkNum();
+        String entityScrapNum = StrUtil.isEmpty(entity.getScrapNum()) ? CommonNumConstants.NUM_ZERO.toString() : entity.getScrapNum();
+        if (CalculationUtil.compareTo(acceptNum, allNumLast, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) != 0
+            || CalculationUtil.compareTo(entityQualifiedNum, qualifiedNumLast, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) != 0
+            || CalculationUtil.compareTo(entityReworkNum, reworkNumLast, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) != 0
+            || CalculationUtil.compareTo(entityScrapNum, scrapNumLast, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) != 0) {
             throw new CustomException("员工生产数量需要与验收数量一致");
         }
     }
@@ -194,7 +217,10 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
                 // 过滤掉空的，并且去重
                 List<String> normsCodeList = Arrays.asList(machinProcedureAcceptChild.getNormsCode().split("\n")).stream()
                     .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
-                if (machinProcedureAcceptChild.getOperNumber() != normsCodeList.size()) {
+                String operNumber = StrUtil.isEmpty(machinProcedureAcceptChild.getOperNumber())
+                    ? CommonNumConstants.NUM_ZERO.toString()
+                    : String.valueOf(machinProcedureAcceptChild.getOperNumber());
+                if (CalculationUtil.compareTo(operNumber, String.valueOf(normsCodeList.size()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) != 0) {
                     throw new CustomException(
                         String.format(Locale.ROOT, "商品【%s】的条形码数量与明细数量不一致，请确认", material.getName()));
                 }
@@ -216,7 +242,10 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
                 // 过滤掉空的，并且去重
                 List<String> normsCodeList = Arrays.asList(machinProcedureAcceptChild.getNormsCode().split("\n")).stream()
                     .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
-                if (machinProcedureAcceptChild.getOperNumber() != normsCodeList.size()) {
+                String operNumber = StrUtil.isEmpty(machinProcedureAcceptChild.getOperNumber())
+                    ? CommonNumConstants.NUM_ZERO.toString()
+                    : String.valueOf(machinProcedureAcceptChild.getOperNumber());
+                if (CalculationUtil.compareTo(operNumber, String.valueOf(normsCodeList.size()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) != 0) {
                     throw new CustomException(
                         String.format(Locale.ROOT, "商品【%s】的条形码数量与明细数量不一致，请确认", material.getName()));
                 }
@@ -305,14 +334,23 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         // 获取车间任务
         MachinProcedureFarm machinProcedureFarm = machinProcedureFarmService.selectById(realEntity.getMachinProcedureFarmId());
         // 获取该任务下已经完成的量
-        Integer allComplateNum = calcNumByMachinProcedureFarmId(realEntity.getMachinProcedureFarmId());
+        String allComplateNum = calcNumByMachinProcedureFarmId(realEntity.getMachinProcedureFarmId());
         // 计算未完成的量 = 车间任务目标量 - 已完成的量 - 当前单据合格的量
-        Integer noComplateNum = machinProcedureFarm.getTargetNum() - allComplateNum - realEntity.getQualifiedNum();
-        if (noComplateNum == 0) {
+        String targetNum = StrUtil.isEmpty(machinProcedureFarm.getTargetNum())
+            ? CommonNumConstants.NUM_ZERO.toString()
+            : machinProcedureFarm.getTargetNum();
+        String qualifiedNum = StrUtil.isEmpty(realEntity.getQualifiedNum())
+            ? CommonNumConstants.NUM_ZERO.toString()
+            : realEntity.getQualifiedNum();
+        String noComplateNum = CalculationUtil.subtract(
+            CalculationUtil.subtract(targetNum, allComplateNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP),
+            qualifiedNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+        int compareResult = CalculationUtil.compareTo(noComplateNum, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+        if (compareResult == 0) {
             machinProcedureFarmService.editStateById(machinProcedureFarm.getId(), MachinProcedureFarmState.ALL_COMPLETED.getKey());
-        } else if (noComplateNum > 0) {
+        } else if (compareResult > 0) {
             machinProcedureFarmService.editStateById(machinProcedureFarm.getId(), MachinProcedureFarmState.PARTIAL_COMPLETION.getKey());
-        } else if (noComplateNum < 0) {
+        } else {
             machinProcedureFarmService.editStateById(machinProcedureFarm.getId(), MachinProcedureFarmState.EXCESS_COMPLETED.getKey());
         }
         // 校验并修改条形码信息
@@ -344,12 +382,18 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
                 throw new CustomException("商品明细中存在相同的条形码编号，请确认");
             }
             // 1. 校验数量
-            Map<String, Integer> stock = departmentStockService.queryNormsDepartmentStock(entity.getDepartmentId(), entity.getFarmId(), normsIdList);
-            Map<String, Integer> collect = childList.stream()
-                .collect(Collectors.groupingBy(MachinProcedureAcceptChild::getNormsId, Collectors.summingInt(MachinProcedureAcceptChild::getOperNumber)));
+            Map<String, String> stock = departmentStockService.queryNormsDepartmentStock(entity.getDepartmentId(), entity.getFarmId(), normsIdList);
+            Map<String, String> collect = childList.stream()
+                .collect(Collectors.groupingBy(MachinProcedureAcceptChild::getNormsId,
+                    Collectors.reducing(CommonNumConstants.NUM_ZERO.toString(),
+                        child -> StrUtil.isEmpty(child.getOperNumber()) ? CommonNumConstants.NUM_ZERO.toString() : String.valueOf(child.getOperNumber()),
+                        (a, b) -> CalculationUtil.add(a, b, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP))));
             collect.forEach((normsId, changeNum) -> {
-                Integer departmentFarmStock = stock.containsKey(normsId) ? stock.get(normsId) : 0;
-                if (changeNum > departmentFarmStock) {
+                String departmentFarmStock = stock.getOrDefault(normsId, CommonNumConstants.NUM_ZERO.toString());
+                if (StrUtil.isEmpty(departmentFarmStock)) {
+                    departmentFarmStock = CommonNumConstants.NUM_ZERO.toString();
+                }
+                if (CalculationUtil.compareTo(changeNum, departmentFarmStock, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0) {
                     throw new CustomException(
                         String.format(Locale.ROOT, "商品【%s】超出当前仓库的库存，请确认", normsMap.get(normsId).getName()));
                 }
@@ -406,7 +450,10 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         for (MachinProcedureAcceptChild acceptChild : childList) {
             Material material = materialMap.get(acceptChild.getMaterialId());
             MaterialNorms norms = normsMap.get(acceptChild.getNormsId());
-            if (acceptChild.getOperNumber() == 0) {
+            String operNumber = StrUtil.isEmpty(acceptChild.getOperNumber())
+                ? CommonNumConstants.NUM_ZERO.toString()
+                : String.valueOf(acceptChild.getOperNumber());
+            if (CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) == 0) {
                 throw new CustomException(
                     String.format(Locale.ROOT, "商品【%s】【%s】的数量不能为0，请确认", material.getName(), norms.getName()));
             }
@@ -415,7 +462,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
                 // 过滤掉空的，并且去重
                 List<String> normsCodeList = Arrays.asList(acceptChild.getNormsCode().split("\n")).stream()
                     .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
-                if (acceptChild.getOperNumber() != normsCodeList.size()) {
+                if (CalculationUtil.compareTo(operNumber, String.valueOf(normsCodeList.size()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) != 0) {
                     throw new CustomException(
                         String.format(Locale.ROOT, "商品【%s】【%s】的条形码数量与明细数量不一致，请确认", material.getName(), norms.getName()));
                 }
@@ -446,23 +493,27 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
     }
 
     @Override
-    public Integer calcNumByMachinProcedureFarmId(String machinProcedureFarmId) {
+    public String calcNumByMachinProcedureFarmId(String machinProcedureFarmId) {
         QueryWrapper<MachinProcedureAccept> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedureAccept::getMachinProcedureFarmId), machinProcedureFarmId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Machin::getState), FlowableStateEnum.PASS.getKey());
         List<MachinProcedureAccept> machinList = list(queryWrapper);
-        Integer allNum = machinList.stream()
-            .collect(Collectors.summingInt(MachinProcedureAccept::getQualifiedNum));
+        String allNum = machinList.stream()
+            .map(accept -> StrUtil.isEmpty(accept.getQualifiedNum()) ? CommonNumConstants.NUM_ZERO.toString() : accept.getQualifiedNum())
+            .reduce(CommonNumConstants.NUM_ZERO.toString(),
+                (a, b) -> CalculationUtil.add(a, b, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP));
         return allNum;
     }
 
     @Override
-    public Integer calcAllNumByMachinProcedureFarmId(String machinProcedureFarmId) {
+    public String calcAllNumByMachinProcedureFarmId(String machinProcedureFarmId) {
         QueryWrapper<MachinProcedureAccept> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedureAccept::getMachinProcedureFarmId), machinProcedureFarmId);
         List<MachinProcedureAccept> machinList = list(queryWrapper);
-        Integer allNum = machinList.stream()
-            .collect(Collectors.summingInt(MachinProcedureAccept::getQualifiedNum));
+        String allNum = machinList.stream()
+            .map(accept -> StrUtil.isEmpty(accept.getQualifiedNum()) ? CommonNumConstants.NUM_ZERO.toString() : accept.getQualifiedNum())
+            .reduce(CommonNumConstants.NUM_ZERO.toString(),
+                (a, b) -> CalculationUtil.add(a, b, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP));
         return allNum;
     }
 

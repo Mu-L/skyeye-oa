@@ -11,6 +11,8 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.exception.CustomException;
 import com.skyeye.pick.classenum.OutLetState;
 import com.skyeye.pick.classenum.PatchOutLetFromType;
@@ -23,6 +25,7 @@ import com.skyeye.util.ErpOrderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -52,16 +55,17 @@ public class PatchMaterialServiceImpl extends ErpPickServiceImpl<PatchMaterialDa
         String id = inputObject.getParams().get("id").toString();
         PatchMaterial patchMaterial = selectById(id);
         // 该补料单下的已经下达补料出库单(审核通过)的数量
-        Map<String, Integer> executeNum = patchOutLetService.calcMaterialNormsNumByFromId(patchMaterial.getId());
+        Map<String, String> executeNum = patchOutLetService.calcMaterialNormsNumByFromId(patchMaterial.getId());
         // 设置未下达商品数量-----补料单数量 - 补料出库单数量
         patchMaterial.getPickChildList().forEach(pickChild -> {
             // 补料单数量 - 已经下达补料出库单的数量
-            Integer surplusNum = ErpOrderUtil.checkOperNumber(pickChild.getNeedNum(), pickChild.getNormsId(), executeNum);
+            String surplusNum = ErpOrderUtil.checkOperNumber(pickChild.getNeedNum(), pickChild.getNormsId(), executeNum);
             pickChild.setNeedNum(surplusNum);
         });
         // 过滤掉数量为0的商品信息
         patchMaterial.setPickChildList(patchMaterial.getPickChildList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getNeedNum() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> CalculationUtil.compareTo(erpOrderItem.getNeedNum(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+            .collect(Collectors.toList()));
         outputObject.setBean(patchMaterial);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

@@ -21,7 +21,7 @@ import java.util.List;
  */
 public interface InventoryChildService extends SkyeyeLinkDataService<InventoryChild> {
 
-    Integer calcAllPlanInventoryNum(List<InventoryChild> inventoryChildList);
+    String calcAllPlanInventoryNum(List<InventoryChild> inventoryChildList);
 
     void complateInventoryChild(InputObject inputObject, OutputObject outputObject);
 }

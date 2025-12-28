@@ -171,7 +171,7 @@ public class MaterialNormsStockServiceImpl extends SkyeyeBusinessServiceImpl<Mat
      * @param stock      库存数量
      */
     @Override
-    public Integer saveMaterialNormsOrderStock(String materialId, String depotId, String normsId, int stock) {
+    public String saveMaterialNormsStock(String materialId, String depotId, String normsId, String stock, int type) {
         QueryWrapper<MaterialNormsStock> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsStock::getNormsId), normsId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsStock::getDepotId), depotId);

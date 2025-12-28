@@ -12,6 +12,8 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutFromType;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.depot.classenum.DepotPutState;
@@ -25,6 +27,7 @@ import com.skyeye.retail.service.RetailReturnsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -62,12 +65,17 @@ public class RetailReturnsServiceImpl extends SkyeyeErpOrderServiceImpl<RetailRe
         String id = inputObject.getParams().get("id").toString();
         RetailReturns retailReturns = selectById(id);
         // 该零售退货单下的已经下达仓库入库单(审核通过)的数量
-        Map<String, Integer> depotNumMap = depotPutService.calcMaterialNormsNumByFromId(retailReturns.getId());
+        Map<String, String> depotNumMap = depotPutService.calcMaterialNormsNumByFromId(retailReturns.getId());
         // 设置未下达商品数量-----零售退货单数量 - 已入库数量
         super.setOrCheckOperNumber(retailReturns.getErpOrderItemList(), true, depotNumMap);
         // 过滤掉数量为0的商品信息
         retailReturns.setErpOrderItemList(retailReturns.getErpOrderItemList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> {
+                String operNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber()) 
+                    ? CommonNumConstants.NUM_ZERO.toString() 
+                    : erpOrderItem.getOperNumber();
+                return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+            }).collect(Collectors.toList()));
         outputObject.setBean(retailReturns);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

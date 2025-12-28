@@ -45,15 +45,15 @@ public class MachinProcedureAccept extends SkyeyeFlowable {
 
     @TableField("accept_num")
     @ApiModelProperty(value = "验收数量", required = "required,num")
-    private Integer acceptNum;
+    private String acceptNum;
 
     @TableField("qualified_num")
     @ApiModelProperty(value = "合格数量", required = "required,num")
-    private Integer qualifiedNum;
+    private String qualifiedNum;
 
     @TableField("rework_num")
     @ApiModelProperty(value = "返工数量", required = "required,num")
-    private Integer reworkNum;
+    private String reworkNum;
 
     @TableField(value = "rework_reason")
     @ApiModelProperty(value = "返工原因")
@@ -61,7 +61,7 @@ public class MachinProcedureAccept extends SkyeyeFlowable {
 
     @TableField("scrap_num")
     @ApiModelProperty(value = "报废数量", required = "required,num")
-    private Integer scrapNum;
+    private String scrapNum;
 
     @TableField(value = "scrap_reason")
     @ApiModelProperty(value = "报废原因")

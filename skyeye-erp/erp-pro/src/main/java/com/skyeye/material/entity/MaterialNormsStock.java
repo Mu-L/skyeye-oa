@@ -45,10 +45,10 @@ public class MaterialNormsStock extends CommonInfo {
 
     @TableField(value = "stock")
     @ApiModelProperty(value = "数量", required = "required,num")
-    private Integer stock;
+    private String stock;
 
     @TableField(value = "type")
-    @Property("商品规格库存类型，参考#MaterialNormsStockType")
+    @Property(value = "商品规格库存类型", enumClass = MaterialNormsStockType.class)
     private Integer type = MaterialNormsStockType.INIT_STOCK.getKey();
 
 }

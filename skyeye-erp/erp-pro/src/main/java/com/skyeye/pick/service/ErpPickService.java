@@ -23,5 +23,5 @@ public interface ErpPickService<T> extends SkyeyeBusinessService<T> {
 
     void editOtherState(String id, Integer otherState);
 
-    Map<String, Integer> calcMaterialNormsNumByFromId(String fromId);
+    Map<String, String> calcMaterialNormsNumByFromId(String fromId);
 }

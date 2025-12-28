@@ -22,15 +22,15 @@ import lombok.Data;
 public class NormsCalcStock extends CommonInfo {
 
     @Property(value = "总库存")
-    private Integer allStock;
+    private String allStock;
 
     @Property(value = "初始化的总库存")
-    private Integer initialTock;
+    private String initialTock;
 
     @Property(value = "可盘点的总库存")
-    private Integer inventoryTock;
+    private String inventoryTock;
 
-    public NormsCalcStock(int allStock, int initialTock, int inventoryTock) {
+    public NormsCalcStock(String allStock, String initialTock, String inventoryTock) {
         this.allStock = allStock;
         this.initialTock = initialTock;
         this.inventoryTock = inventoryTock;

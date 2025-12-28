@@ -12,6 +12,8 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotOutFromType;
 import com.skyeye.depot.entity.DepotOut;
 import com.skyeye.depot.service.DepotOutService;
@@ -23,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.RoundingMode;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -54,12 +57,17 @@ public class OtherWiseOrderServiceImpl extends SkyeyeErpOrderServiceImpl<OtherWi
         String id = inputObject.getParams().get("id").toString();
         OtherWiseOrder otherWiseOrder = selectById(id);
         // 该其他微服务订单下的已经下达仓库出库单(审核通过)的数量
-        Map<String, Integer> depotNumMap = depotOutService.calcMaterialNormsNumByFromId(otherWiseOrder.getId());
+        Map<String, String> depotNumMap = depotOutService.calcMaterialNormsNumByFromId(otherWiseOrder.getId());
         // 设置未下达商品数量-----其他微服务订单数量 - 已出库数量
         super.setOrCheckOperNumber(otherWiseOrder.getErpOrderItemList(), true, depotNumMap);
         // 过滤掉数量为0的商品信息
         otherWiseOrder.setErpOrderItemList(otherWiseOrder.getErpOrderItemList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> {
+                String operNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber())
+                    ? CommonNumConstants.NUM_ZERO.toString()
+                    : erpOrderItem.getOperNumber();
+                return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+            }).collect(Collectors.toList()));
         outputObject.setBean(otherWiseOrder);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

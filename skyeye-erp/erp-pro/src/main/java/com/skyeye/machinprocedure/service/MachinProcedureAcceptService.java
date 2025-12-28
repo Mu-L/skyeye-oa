@@ -20,9 +20,9 @@ import java.util.Map;
  */
 public interface MachinProcedureAcceptService extends SkyeyeBusinessService<MachinProcedureAccept> {
 
-    Integer calcNumByMachinProcedureFarmId(String machinProcedureFarmId);
+    String calcNumByMachinProcedureFarmId(String machinProcedureFarmId);
 
-    Integer calcAllNumByMachinProcedureFarmId(String machinProcedureFarmId);
+    String calcAllNumByMachinProcedureFarmId(String machinProcedureFarmId);
 
     Map<String, List<MachinProcedureAccept>> queryMachinProcedureAcceptByMachinProcedureFarmId(String... machinProcedureFarmId);
 

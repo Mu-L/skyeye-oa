@@ -19,7 +19,9 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotOutOtherState;
 import com.skyeye.depot.classenum.DepotPutFromType;
 import com.skyeye.depot.classenum.DepotPutOutType;
@@ -41,13 +43,13 @@ import com.skyeye.organization.service.IDepmentService;
 import com.skyeye.rest.shop.service.IShopStoreService;
 import com.skyeye.shop.classenum.ShopConfirmFromType;
 import com.skyeye.shop.dao.ShopConfirmReturnDao;
-import com.skyeye.shop.entity.ShopConfirmPut;
 import com.skyeye.shop.entity.ShopConfirmReturn;
 import com.skyeye.shop.service.ShopConfirmPutService;
 import com.skyeye.shop.service.ShopConfirmReturnService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -161,10 +163,10 @@ public class ShopConfirmReturnServiceImpl extends SkyeyeErpOrderServiceImpl<Shop
 
     private void checkMaterialNorms(ShopConfirmReturn entity, boolean setData) {
         // 当前物料退货单的商品数量
-        Map<String, Integer> orderNormsNum = entity.getErpOrderItemList().stream()
+        Map<String, String> orderNormsNum = entity.getErpOrderItemList().stream()
             .collect(Collectors.toMap(ErpOrderItem::getNormsId, ErpOrderItem::getOperNumber));
         // 获取已经下达物料退货单的商品信息
-        Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
         if (entity.getFromTypeId() == ShopConfirmFromType.DEPOT_OUT.getKey()) {
             // 仓库出库单
@@ -172,21 +174,22 @@ public class ShopConfirmReturnServiceImpl extends SkyeyeErpOrderServiceImpl<Shop
         }
     }
 
-    private void checkAndUpdateFromState(ShopConfirmReturn entity, boolean setData, Map<String, Integer> orderNormsNum, Map<String, Integer> executeNum, List<String> inSqlNormsId) {
+    private void checkAndUpdateFromState(ShopConfirmReturn entity, boolean setData, Map<String, String> orderNormsNum, Map<String, String> executeNum, List<String> inSqlNormsId) {
         DepotOut depotOut = depotOutService.selectById(entity.getFromId());
         if (CollectionUtil.isEmpty(depotOut.getErpOrderItemList())) {
             throw new CustomException("该仓库出库单下未包含商品.");
         }
         super.checkFromOrderMaterialNorms(depotOut.getErpOrderItemList(), inSqlNormsId);
         // 获取已经下达物料接收单的商品信息
-        Map<String, Integer> putExecuteNum = shopConfirmPutService.calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> putExecuteNum = shopConfirmPutService.calcMaterialNormsNumByFromId(entity.getFromId());
         // 仓库出库单数量 - 当前单据数量 - 已经下达物料退货单的数量 - 已经下达物料接收单的数量
         super.setOrCheckOperNumber(depotOut.getErpOrderItemList(), setData, orderNormsNum, executeNum, putExecuteNum);
 
         if (setData) {
             // 过滤掉剩余数量为0的商品
             List<ErpOrderItem> erpOrderItemList = depotOut.getErpOrderItemList().stream()
-                .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
+                .filter(erpOrderItem -> CalculationUtil.compareTo(erpOrderItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+                .collect(Collectors.toList());
             if (CollectionUtil.isEmpty(erpOrderItemList)) {
                 depotOutService.editOtherState(depotOut.getId(), DepotOutOtherState.COMPLATE_CONFIRM.getKey());
             } else {
@@ -259,12 +262,13 @@ public class ShopConfirmReturnServiceImpl extends SkyeyeErpOrderServiceImpl<Shop
         String id = inputObject.getParams().get("id").toString();
         ShopConfirmReturn shopConfirmReturn = selectById(id);
         // 该物料退货单下的已经下达仓库入库单(审核通过)的数量
-        Map<String, Integer> depotNumMap = depotPutService.calcMaterialNormsNumByFromId(shopConfirmReturn.getId());
+        Map<String, String> depotNumMap = depotPutService.calcMaterialNormsNumByFromId(shopConfirmReturn.getId());
         // 设置未下达商品数量-----物料退货单数量 - 已入库数量
         super.setOrCheckOperNumber(shopConfirmReturn.getErpOrderItemList(), true, depotNumMap);
         // 过滤掉数量为0的商品信息
         shopConfirmReturn.setErpOrderItemList(shopConfirmReturn.getErpOrderItemList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> CalculationUtil.compareTo(erpOrderItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+            .collect(Collectors.toList()));
         outputObject.setBean(shopConfirmReturn);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

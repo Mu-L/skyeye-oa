@@ -24,16 +24,17 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.SpringUtils;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotOutFromType;
 import com.skyeye.depot.classenum.DepotOutOtherState;
 import com.skyeye.depot.classenum.DepotOutState;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.depot.dao.DepotOutDao;
 import com.skyeye.depot.entity.DepotOut;
-import com.skyeye.depot.entity.DepotOutPutRecord;
 import com.skyeye.depot.service.DepotOutPutRecordService;
 import com.skyeye.depot.service.DepotOutService;
 import com.skyeye.entity.ErpOrderCommon;
@@ -59,7 +60,6 @@ import com.skyeye.pickconfirm.entity.ConfirmPut;
 import com.skyeye.pickconfirm.entity.ConfirmReturn;
 import com.skyeye.pickconfirm.service.ConfirmPutService;
 import com.skyeye.pickconfirm.service.ConfirmReturnService;
-import com.skyeye.product.entity.ProductLead;
 import com.skyeye.product.entity.ProductLeadOutStock;
 import com.skyeye.product.service.ProductLeadOutStockService;
 import com.skyeye.product.service.ProductLeadService;
@@ -77,6 +77,7 @@ import com.skyeye.shop.service.ShopOutLetsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -169,7 +170,7 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
             queryWrapper.in(MybatisPlusUtil.toColumns(ErpOrderCommon::getOtherState), otherStateList);
             // 只查询审批通过，部分完成，已完成的
             List<String> stateList = Arrays.asList(new String[]{FlowableStateEnum.PASS.getKey(), ErpOrderStateEnum.PARTIALLY_COMPLETED.getKey(),
-                    ErpOrderStateEnum.COMPLETED.getKey()});
+                ErpOrderStateEnum.COMPLETED.getKey()});
             queryWrapper.in(MybatisPlusUtil.toColumns(ErpOrderCommon::getState), stateList);
         } else if (StrUtil.equals(commonPageInfo.getType(), "AllComplate")) {
             // 所有已出库的单据信息
@@ -223,8 +224,8 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
         checkMaterialNorms(entity, fromTypeIdKey, false);
         checkNormsCodeAndOutbound(entity, true);
         if (StrUtil.equals(fromTypeIdKey, DepotOutFromType.REQUISITION_OUTLET.getIdKey())
-                || StrUtil.equals(fromTypeIdKey, DepotOutFromType.PATCH_OUTLET.getIdKey())
-                || StrUtil.equals(fromTypeIdKey, DepotOutFromType.SHOP_OUTLET.getIdKey())) {
+            || StrUtil.equals(fromTypeIdKey, DepotOutFromType.PATCH_OUTLET.getIdKey())
+            || StrUtil.equals(fromTypeIdKey, DepotOutFromType.SHOP_OUTLET.getIdKey())) {
             // 领料出库单/补料出库单/门店申领单
             entity.setOtherState(DepotOutOtherState.NEED_CONFIRM.getKey());
         }
@@ -245,7 +246,7 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
         // 查询数据库里的值
         DepotOut oldDepotOut = selectById(entity.getId());
         if (oldDepotOut.getFromTypeId() == DepotOutFromType.REQUISITION_OUTLET.getKey()
-                || oldDepotOut.getFromTypeId() == DepotOutFromType.PATCH_OUTLET.getKey()) {
+            || oldDepotOut.getFromTypeId() == DepotOutFromType.PATCH_OUTLET.getKey()) {
             // 领料出库单/补料出库单
             entity.setFarmId(oldDepotOut.getFarmId());
             entity.setDepartmentId(oldDepotOut.getDepartmentId());
@@ -328,24 +329,24 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
             // 配件申领单
             updateSealApply(entity, normsCodeList, result);
         } else if (entity.getFromTypeId() == DepotOutFromType.LOANOUT.getKey()) {
-            depotOutPutRecordService.writeOutPutRecord(entity,entity.getFromTypeId());
+            depotOutPutRecordService.writeOutPutRecord(entity, entity.getFromTypeId());
         }
         // 修改库存信息以及记录客户/供应商/会员关联的商品
         super.depotOutOrPutSuccess(entity.getHolderId(), entity.getHolderKey(), entity.getErpOrderItemList(), DepotPutOutType.OUT.getKey(),
-                entity.getFromId(), fromTypeIdKey);
+            entity.getFromId(), fromTypeIdKey);
     }
 
     private void updateSealApply(DepotOut entity, List<String> normsCodeList, boolean result) {
         List<MaterialNormsCode> materialNormsCodeList = materialNormsCodeService.queryMaterialNormsCodeByCodeNum(StrUtil.EMPTY, normsCodeList);
         Map<String, List<MaterialNormsCode>> listMap = materialNormsCodeList.stream()
-                .collect(Collectors.groupingBy(MaterialNormsCode::getNormsId));
+            .collect(Collectors.groupingBy(MaterialNormsCode::getNormsId));
         Map<String, Object> outNumMap = new HashMap<>();
         List<Map<String, Object>> applyLinkList = new ArrayList<>();
         for (ErpOrderItem erpOrderItem : entity.getErpOrderItemList()) {
             String normsId = erpOrderItem.getNormsId();
             Map<String, Object> applyLink = BeanUtil.beanToMap(erpOrderItem);
             List<String> list = listMap.get(normsId).stream()
-                    .map(MaterialNormsCode::getCodeNum).collect(Collectors.toList());
+                .map(MaterialNormsCode::getCodeNum).collect(Collectors.toList());
             applyLink.put("normsCodeList", list);
             applyLinkList.add(applyLink);
         }
@@ -385,10 +386,11 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
             fromMation = (ErpOrderHead) skyeyeErpOrderService.selectById(entity.getFromId());
         }
         // 当前出库单的商品数量
-        Map<String, Integer> orderNormsNum = entity.getErpOrderItemList().stream()
-                .collect(Collectors.toMap(ErpOrderItem::getNormsId, ErpOrderItem::getOperNumber));
+        Map<String, String> orderNormsNum = entity.getErpOrderItemList().stream()
+            .collect(Collectors.toMap(ErpOrderItem::getNormsId,
+                item -> StrUtil.isEmpty(item.getOperNumber()) ? CommonNumConstants.NUM_ZERO.toString() : item.getOperNumber()));
         // 获取已经下达出库单的商品信息
-        Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
         super.checkFromOrderMaterialNorms(fromMation.getErpOrderItemList(), inSqlNormsId);
 
@@ -397,7 +399,12 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
         if (setData) {
             // 过滤掉剩余数量为0的商品
             List<ErpOrderItem> erpOrderItemList = fromMation.getErpOrderItemList().stream()
-                    .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
+                .filter(erpOrderItem -> {
+                    String operNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber())
+                        ? CommonNumConstants.NUM_ZERO.toString()
+                        : erpOrderItem.getOperNumber();
+                    return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+                }).collect(Collectors.toList());
             // 该来源单据的商品数量已经全部出库
             if (entity.getFromTypeId() == DepotOutFromType.SEAL_APPLY.getKey()) {
                 // 配件申领单
@@ -449,18 +456,18 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
             }
             // 从数据库查询入库状态的条形码信息
             List<MaterialNormsCode> materialNormsCodeList = materialNormsCodeService.queryMaterialNormsCodeByCodeNum(StrUtil.EMPTY, allNormsCodeList,
-                    MaterialNormsCodeInDepot.WAREHOUSING.getKey());
+                MaterialNormsCodeInDepot.WAREHOUSING.getKey());
             List<String> inSqlNormsCodeList = materialNormsCodeList.stream().map(MaterialNormsCode::getCodeNum).collect(Collectors.toList());
             // 获取所有前端传递过来的条形码信息，求差集(在入参中有，但是在数据库中不包含的条形码信息)
             List<String> diffList = allNormsCodeList.stream()
-                    .filter(num -> !inSqlNormsCodeList.contains(num)).collect(Collectors.toList());
+                .filter(num -> !inSqlNormsCodeList.contains(num)).collect(Collectors.toList());
             if (CollectionUtil.isNotEmpty(diffList)) {
                 throw new CustomException(
-                        String.format(Locale.ROOT, "编码【%s】不存在/未入库/已经出库，请确认", Joiner.on(CommonCharConstants.COMMA_MARK).join(diffList)));
+                    String.format(Locale.ROOT, "编码【%s】不存在/未入库/已经出库，请确认", Joiner.on(CommonCharConstants.COMMA_MARK).join(diffList)));
             }
             // 判断条形码是否就在出库仓库里面
             Map<String, MaterialNormsCode> materialNormsCodeMap = materialNormsCodeList.stream()
-                    .collect(Collectors.toMap(MaterialNormsCode::getCodeNum, bean -> bean));
+                .collect(Collectors.toMap(MaterialNormsCode::getCodeNum, bean -> bean));
             for (ErpOrderItem erpOrderItem : entity.getErpOrderItemList()) {
                 Material material = materialMap.get(erpOrderItem.getMaterialId());
                 if (material.getItemCode() == MaterialItemCode.ONE_ITEM_CODE.getKey()) {
@@ -469,7 +476,7 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
                         MaterialNormsCode materialNormsCode = materialNormsCodeMap.get(normsCode);
                         if (!StrUtil.equals(materialNormsCode.getDepotId(), erpOrderItem.getDepotId())) {
                             throw new CustomException(
-                                    String.format(Locale.ROOT, "条形码【%s】不在指定出库仓库，请确认", normsCode));
+                                String.format(Locale.ROOT, "条形码【%s】不在指定出库仓库，请确认", normsCode));
                         }
                         if (!StrUtil.equals(materialNormsCode.getNormsId(), erpOrderItem.getNormsId())) {
                             throw new CustomException(String.format(Locale.ROOT, "条形码【%s】与商品规格不匹配，请确认", normsCode));
@@ -538,9 +545,9 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
         // 部门
         iDepmentService.setDataMation(depotOut, DepotOut::getDepartmentId);
         // 获取物料接收单的数量
-        Map<String, Integer> normsNum = confirmPutService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> normsNum = confirmPutService.calcMaterialNormsNumByFromId(id);
         // 获取物料退货单的数量
-        Map<String, Integer> normsReturnsNum = confirmReturnService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> normsReturnsNum = confirmReturnService.calcMaterialNormsNumByFromId(id);
         // 设置未下达物料接收单/物料退货单的商品数量-----订单数量 - 物料接收单的数量 - 物料退货单的数量
         super.setOrCheckOperNumber(depotOut.getErpOrderItemList(), true, normsNum, normsReturnsNum);
 
@@ -559,11 +566,11 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
             List<String> codeList = erpOrderItem.getNormsCodeList();
             if (CollectionUtil.isNotEmpty(putCodeList)) {
                 codeList = codeList.stream()
-                        .filter(num -> !putCodeList.contains(num)).collect(Collectors.toList());
+                    .filter(num -> !putCodeList.contains(num)).collect(Collectors.toList());
             }
             if (CollectionUtil.isNotEmpty(returnCodeList)) {
                 codeList = codeList.stream()
-                        .filter(num -> !returnCodeList.contains(num)).collect(Collectors.toList());
+                    .filter(num -> !returnCodeList.contains(num)).collect(Collectors.toList());
             }
             erpOrderItem.setNormsCode(Joiner.on("\n").join(codeList));
             erpOrderItem.setNormsCodeList(codeList);
@@ -571,7 +578,12 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
 
         // 过滤掉数量为0的商品
         depotOut.setErpOrderItemList(depotOut.getErpOrderItemList().stream()
-                .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> {
+                String operNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber())
+                    ? CommonNumConstants.NUM_ZERO.toString()
+                    : erpOrderItem.getOperNumber();
+                return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+            }).collect(Collectors.toList()));
         outputObject.setBean(depotOut);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -662,9 +674,9 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
         // 门店
         iShopStoreService.setDataMation(depotOut, DepotOut::getStoreId);
         // 获取物料接收单的数量
-        Map<String, Integer> normsNum = shopConfirmPutService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> normsNum = shopConfirmPutService.calcMaterialNormsNumByFromId(id);
         // 获取物料退货单的数量
-        Map<String, Integer> normsReturnsNum = shopConfirmReturnService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> normsReturnsNum = shopConfirmReturnService.calcMaterialNormsNumByFromId(id);
         // 设置未下达物料接收单/物料退货单的商品数量-----订单数量 - 物料接收单的数量 - 物料退货单的数量
         super.setOrCheckOperNumber(depotOut.getErpOrderItemList(), true, normsNum, normsReturnsNum);
 
@@ -683,11 +695,11 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
             List<String> codeList = erpOrderItem.getNormsCodeList();
             if (CollectionUtil.isNotEmpty(putCodeList)) {
                 codeList = codeList.stream()
-                        .filter(num -> !putCodeList.contains(num)).collect(Collectors.toList());
+                    .filter(num -> !putCodeList.contains(num)).collect(Collectors.toList());
             }
             if (CollectionUtil.isNotEmpty(returnCodeList)) {
                 codeList = codeList.stream()
-                        .filter(num -> !returnCodeList.contains(num)).collect(Collectors.toList());
+                    .filter(num -> !returnCodeList.contains(num)).collect(Collectors.toList());
             }
             erpOrderItem.setNormsCode(Joiner.on("\n").join(codeList));
             erpOrderItem.setNormsCodeList(codeList);
@@ -695,7 +707,12 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
 
         // 过滤掉数量为0的商品
         depotOut.setErpOrderItemList(depotOut.getErpOrderItemList().stream()
-                .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> {
+                String operNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber())
+                    ? CommonNumConstants.NUM_ZERO.toString()
+                    : erpOrderItem.getOperNumber();
+                return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+            }).collect(Collectors.toList()));
         outputObject.setBean(depotOut);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -759,10 +776,10 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
         List<String> collect = depotOuts.stream().map(DepotOut::getId).collect(Collectors.toList());
         List<DepotOut> depot = new ArrayList<>();
         collect.forEach(
-                id -> {
-                    DepotOut depotOut = super.selectById(id);
-                    depot.add(depotOut);
-                }
+            id -> {
+                DepotOut depotOut = super.selectById(id);
+                depot.add(depotOut);
+            }
         );
         return depot;
     }

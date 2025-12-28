@@ -69,7 +69,7 @@ public class BomChild extends CommonInfo {
 
     @TableField(value = "need_num")
     @ApiModelProperty(value = "需要的数量", required = "required,num")
-    private Integer needNum;
+    private String needNum;
 
     @TableField(value = "consumables_price")
     @ApiModelProperty(value = "耗材总费用")

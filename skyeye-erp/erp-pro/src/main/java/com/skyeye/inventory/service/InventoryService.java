@@ -23,6 +23,6 @@ public interface InventoryService extends SkyeyeBusinessService<Inventory> {
      * @param id     盘点单据id
      * @param addNum 新增的盘点数量
      */
-    void setInventoriedNum(String id, Integer addNum);
+    void setInventoriedNum(String id, String addNum);
 
 }

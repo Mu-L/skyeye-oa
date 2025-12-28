@@ -30,6 +30,7 @@ import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.crm.service.ICustomerService;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.entity.*;
@@ -55,6 +56,7 @@ import com.skyeye.util.ErpOrderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -433,9 +435,9 @@ public class SkyeyeErpOrderServiceImpl<D extends SkyeyeBaseMapper<T>, T extends 
      * @param setData
      * @param nums
      */
-    protected void setOrCheckOperNumber(List<ErpOrderItem> erpOrderItemList, boolean setData, Map<String, Integer>... nums) {
+    protected void setOrCheckOperNumber(List<ErpOrderItem> erpOrderItemList, boolean setData, Map<String, String>... nums) {
         erpOrderItemList.forEach(erpOrderItem -> {
-            Integer surplusNum = ErpOrderUtil.checkOperNumber(erpOrderItem.getOperNumber(), erpOrderItem.getNormsId(), nums);
+            String surplusNum = ErpOrderUtil.checkOperNumber(erpOrderItem.getOperNumber(), erpOrderItem.getNormsId(), nums);
             if (setData) {
                 erpOrderItem.setOperNumber(surplusNum);
             }
@@ -447,7 +449,7 @@ public class SkyeyeErpOrderServiceImpl<D extends SkyeyeBaseMapper<T>, T extends 
         for (ErpOrderItem erpOrderItem : entity.getErpOrderItemList()) {
             Material material = materialMap.get(erpOrderItem.getMaterialId());
             MaterialNorms norms = normsMap.get(erpOrderItem.getNormsId());
-            if (erpOrderItem.getOperNumber() == 0) {
+            if (CalculationUtil.compareTo(erpOrderItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), 0, RoundingMode.UP) == 0) {
                 throw new CustomException(
                     String.format(Locale.ROOT, "商品【%s】【%s】的数量不能为0，请确认", material.getName(), norms.getName()));
             }
@@ -456,7 +458,8 @@ public class SkyeyeErpOrderServiceImpl<D extends SkyeyeBaseMapper<T>, T extends 
                 // 过滤掉空的，并且去重
                 List<String> normsCodeList = Arrays.asList(erpOrderItem.getNormsCode().split("\n")).stream()
                     .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
-                if (erpOrderItem.getOperNumber() != normsCodeList.size()) {
+                // 如果开启了一物一码，那么这个数量就默认是整型的
+                if (Integer.parseInt(erpOrderItem.getOperNumber()) != normsCodeList.size()) {
                     throw new CustomException(
                         String.format(Locale.ROOT, "商品【%s】【%s】的条形码数量与明细数量不一致，请确认", material.getName(), norms.getName()));
                 }
@@ -469,7 +472,7 @@ public class SkyeyeErpOrderServiceImpl<D extends SkyeyeBaseMapper<T>, T extends 
     }
 
     @Override
-    public Map<String, Integer> calcMaterialNormsNumByFromId(String fromId) {
+    public Map<String, String> calcMaterialNormsNumByFromId(String fromId) {
         QueryWrapper<T> queryWrapper = new QueryWrapper<>();
         queryWrapper.select(CommonConstants.ID);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ErpOrderCommon::getFromId), fromId);
@@ -484,8 +487,19 @@ public class SkyeyeErpOrderServiceImpl<D extends SkyeyeBaseMapper<T>, T extends 
             return new HashMap<>();
         }
         List<ErpOrderItem> erpOrderItemList = skyeyeErpOrderItemService.queryErpOrderItemByPIds(ids);
-        Map<String, Integer> collect = erpOrderItemList.stream()
-            .collect(Collectors.groupingBy(ErpOrderItem::getNormsId, Collectors.summingInt(ErpOrderItem::getOperNumber)));
+        Map<String, String> collect = erpOrderItemList.stream()
+            .collect(Collectors.groupingBy(
+                ErpOrderItem::getNormsId,
+                Collectors.reducing(
+                    CommonNumConstants.NUM_ZERO.toString(),
+                    ErpOrderItem::getOperNumber,
+                    (sum, operNumber) -> {
+                        String operNum = StrUtil.isEmpty(operNumber) ? CommonNumConstants.NUM_ZERO.toString() : operNumber;
+                        String sumValue = StrUtil.isEmpty(sum) ? CommonNumConstants.NUM_ZERO.toString() : sum;
+                        return CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, sumValue, operNum);
+                    }
+                )
+            ));
         return collect;
     }
 

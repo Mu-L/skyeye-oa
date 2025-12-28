@@ -11,11 +11,14 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.farm.service.FarmService;
@@ -178,7 +181,7 @@ public class ErpPickServiceImpl<D extends SkyeyeBaseMapper<T>, T extends Pick> e
     }
 
     @Override
-    public Map<String, Integer> calcMaterialNormsNumByFromId(String fromId) {
+    public Map<String, String> calcMaterialNormsNumByFromId(String fromId) {
         QueryWrapper<T> queryWrapper = new QueryWrapper<>();
         queryWrapper.select(CommonConstants.ID);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Pick::getFromId), fromId);
@@ -191,8 +194,19 @@ public class ErpPickServiceImpl<D extends SkyeyeBaseMapper<T>, T extends Pick> e
             return new HashMap<>();
         }
         List<PickChild> pickChildList = pickChildService.queryPickChildListByParentIds(ids);
-        Map<String, Integer> collect = pickChildList.stream()
-            .collect(Collectors.groupingBy(PickChild::getNormsId, Collectors.summingInt(PickChild::getNeedNum)));
+        Map<String, String> collect = pickChildList.stream()
+            .collect(Collectors.groupingBy(
+                PickChild::getNormsId,
+                Collectors.reducing(
+                    CommonNumConstants.NUM_ZERO.toString(),
+                    PickChild::getNeedNum,
+                    (sum, needNum) -> CalculationUtil.add(
+                        ErpConstants.NUM_AFTER_DOT,
+                        StrUtil.isEmpty(sum) ? CommonNumConstants.NUM_ZERO.toString() : sum,
+                        StrUtil.isEmpty(needNum) ? CommonNumConstants.NUM_ZERO.toString() : needNum
+                    )
+                )
+            ));
         return collect;
     }
 

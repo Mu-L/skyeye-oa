@@ -17,8 +17,10 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.crm.service.IContractService;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.entity.ErpOrderItem;
@@ -45,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -122,10 +125,11 @@ public class SalesOrderServiceImpl extends SkyeyeErpOrderServiceImpl<SalesOrderD
             return;
         }
         // 当前销售订单的商品数量
-        Map<String, Integer> orderNormsNum = entity.getErpOrderItemList().stream()
-            .collect(Collectors.toMap(ErpOrderItem::getNormsId, ErpOrderItem::getOperNumber));
+        Map<String, String> orderNormsNum = entity.getErpOrderItemList().stream()
+            .collect(Collectors.toMap(ErpOrderItem::getNormsId, 
+                item -> StrUtil.isEmpty(item.getOperNumber()) ? CommonNumConstants.NUM_ZERO.toString() : item.getOperNumber()));
         // 获取已经下达订单的商品信息
-        Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
         if (entity.getFromTypeId() == SealOrderFromType.CUSTOMER_CONTRACT.getKey()) {
             Map<String, Object> crmContract = iContractService.queryDataMationById(entity.getFromId());
@@ -140,9 +144,12 @@ public class SalesOrderServiceImpl extends SkyeyeErpOrderServiceImpl<SalesOrderD
             super.checkIdFromOrderMaterialNorms(fromNormsIds, inSqlNormsId);
 
             contractChildList.forEach(contractChild -> {
-                Integer operNumber = Integer.parseInt(contractChild.get("operNumber").toString());
+                String operNumber = contractChild.get("operNumber").toString();
+                if (StrUtil.isEmpty(operNumber)) {
+                    operNumber = CommonNumConstants.NUM_ZERO.toString();
+                }
                 String normsId = contractChild.get("normsId").toString();
-                Integer surplusNum = ErpOrderUtil.checkOperNumber(operNumber, normsId, orderNormsNum, executeNum);
+                String surplusNum = ErpOrderUtil.checkOperNumber(operNumber, normsId, orderNormsNum, executeNum);
                 if (setData) {
                     contractChild.put("operNumber", surplusNum);
                 }
@@ -150,7 +157,13 @@ public class SalesOrderServiceImpl extends SkyeyeErpOrderServiceImpl<SalesOrderD
             if (setData) {
                 // 过滤掉剩余数量为0的商品
                 contractChildList = contractChildList.stream()
-                    .filter(contractChild -> Integer.parseInt(contractChild.get("operNumber").toString()) > 0).collect(Collectors.toList());
+                    .filter(contractChild -> {
+                        String operNumber = contractChild.get("operNumber").toString();
+                        if (StrUtil.isEmpty(operNumber)) {
+                            operNumber = CommonNumConstants.NUM_ZERO.toString();
+                        }
+                        return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+                    }).collect(Collectors.toList());
                 // 如果该合同的商品已经全部下达订单，那说明已经完成了合同的内容
                 if (CollectionUtil.isEmpty(contractChildList)) {
                     iContractService.editCrmContractChildState(entity.getFromId(), "allIssued");
@@ -208,16 +221,21 @@ public class SalesOrderServiceImpl extends SkyeyeErpOrderServiceImpl<SalesOrderD
         String id = inputObject.getParams().get("id").toString();
         SalesOrder salesOrder = selectById(id);
         // 获取已经入库的数量
-        Map<String, Integer> normsNum = salesOutLetService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> normsNum = salesOutLetService.calcMaterialNormsNumByFromId(id);
         // 获取已经退货的数量
-        Map<String, Integer> normsReturnsNum = salesReturnsService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> normsReturnsNum = salesReturnsService.calcMaterialNormsNumByFromId(id);
         // 获取已经换货的数量
-        Map<String, Integer> normsExchangeNum = salesExchangesService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> normsExchangeNum = salesExchangesService.calcMaterialNormsNumByFromId(id);
         // 设置未下达销售出库单/销售退货单的商品数量-----订单数量 - 已入库的数量 - 已退货的数量 - 已换货的数量
         super.setOrCheckOperNumber(salesOrder.getErpOrderItemList(), true, normsNum, normsReturnsNum, normsExchangeNum);
         // 过滤掉数量为0的进行生成销售出库单/销售退货单
         salesOrder.setErpOrderItemList(salesOrder.getErpOrderItemList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> {
+                String operNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber()) 
+                    ? CommonNumConstants.NUM_ZERO.toString() 
+                    : erpOrderItem.getOperNumber();
+                return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+            }).collect(Collectors.toList()));
         outputObject.setBean(salesOrder);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -298,18 +316,30 @@ public class SalesOrderServiceImpl extends SkyeyeErpOrderServiceImpl<SalesOrderD
         }
         List<Map<String, Object>> contractChildList = JSONUtil.toList(crmContractChildListStr, null);
         // 获取已经下达销售订单的商品信息
-        Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(id);
+        Map<String, String> executeNum = calcMaterialNormsNumByFromId(id);
         contractChildList.forEach(contractChild -> {
-            Integer operNumber = Integer.parseInt(contractChild.get("operNumber").toString());
+            String operNumber = contractChild.get("operNumber").toString();
+            if (StrUtil.isEmpty(operNumber)) {
+                operNumber = CommonNumConstants.NUM_ZERO.toString();
+            }
             String normsId = contractChild.get("normsId").toString();
-            Integer surplusNum = operNumber
-                - (executeNum.containsKey(normsId) ? executeNum.get(normsId) : 0);
+            String executeNumValue = executeNum.getOrDefault(normsId, CommonNumConstants.NUM_ZERO.toString());
+            if (StrUtil.isEmpty(executeNumValue)) {
+                executeNumValue = CommonNumConstants.NUM_ZERO.toString();
+            }
+            String surplusNum = CalculationUtil.subtract(operNumber, executeNumValue, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
             // 设置未下达销售订单的商品数量
             contractChild.put("operNumber", surplusNum);
         });
         // 过滤掉剩余数量为0的商品
         contractChildList = contractChildList.stream()
-            .filter(contractChild -> Integer.parseInt(contractChild.get("operNumber").toString()) > 0).collect(Collectors.toList());
+            .filter(contractChild -> {
+                String operNumber = contractChild.get("operNumber").toString();
+                if (StrUtil.isEmpty(operNumber)) {
+                    operNumber = CommonNumConstants.NUM_ZERO.toString();
+                }
+                return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+            }).collect(Collectors.toList());
 
         crmContract.put("crmContractChildList", contractChildList);
         outputObject.setBean(crmContract);
@@ -337,12 +367,17 @@ public class SalesOrderServiceImpl extends SkyeyeErpOrderServiceImpl<SalesOrderD
         String id = inputObject.getParams().get("id").toString();
         SalesOrder salesOrder = selectById(id);
         // 获取已经下达出货计划单的数量
-        Map<String, Integer> normsNum = productionPlanService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> normsNum = productionPlanService.calcMaterialNormsNumByFromId(id);
         // 设置未下达销售出库单/销售退货单的商品数量-----订单数量 - 已经下达出货计划单的数量
         super.setOrCheckOperNumber(salesOrder.getErpOrderItemList(), true, normsNum);
         // 过滤掉数量为0的进行生成出货计划单
         salesOrder.setErpOrderItemList(salesOrder.getErpOrderItemList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> {
+                String operNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber()) 
+                    ? CommonNumConstants.NUM_ZERO.toString() 
+                    : erpOrderItem.getOperNumber();
+                return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+            }).collect(Collectors.toList()));
         outputObject.setBean(salesOrder);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

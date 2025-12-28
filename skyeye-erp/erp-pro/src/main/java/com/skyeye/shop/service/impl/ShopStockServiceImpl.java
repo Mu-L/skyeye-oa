@@ -16,11 +16,14 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.tenant.context.TenantContext;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.entity.Material;
@@ -33,6 +36,7 @@ import com.skyeye.shop.service.ShopStockService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -91,29 +95,29 @@ public class ShopStockServiceImpl extends SkyeyeBusinessServiceImpl<ShopStockDao
     }
 
     @Override
-    public void updateShopStock(String storeId, String materialId, String normsId, Integer operNumber, int type) {
+    public void updateShopStock(String storeId, String materialId, String normsId, String operNumber, int type) {
         ShopStock shopStock = queryShopStock(storeId, normsId);
         // 如果该规格在指定门店中已经有存储数据，则直接做修改
         if (ObjectUtil.isNotEmpty(shopStock)) {
-            int stock = shopStock.getStock();
+            String stock = shopStock.getStock();
             if (type == DepotPutOutType.PUT.getKey()) {
                 // 入库
-                stock = stock + operNumber;
+                stock = CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, stock, operNumber);
             } else if (type == DepotPutOutType.OUT.getKey()) {
                 // 出库
-                stock = stock - operNumber;
+                stock = CalculationUtil.subtract(stock, operNumber, ErpConstants.NUM_AFTER_DOT);
             }
             editShopStock(storeId, normsId, stock);
         } else {
-            int stockNum = 0;
+            String stockNum = CommonNumConstants.NUM_ZERO.toString();
             if (type == DepotPutOutType.PUT.getKey()) {
                 // 入库
                 stockNum = operNumber;
             } else if (type == DepotPutOutType.OUT.getKey()) {
                 // 出库
-                stockNum = stockNum - operNumber;
+                stockNum = CalculationUtil.subtract(stockNum, operNumber, ErpConstants.NUM_AFTER_DOT);
             }
-            if (stockNum < 0) {
+            if (CalculationUtil.compareTo(stockNum, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
                 throw new CustomException("门店库存存量不足.");
             }
             saveShopStock(storeId, materialId, normsId, stockNum);
@@ -128,7 +132,7 @@ public class ShopStockServiceImpl extends SkyeyeBusinessServiceImpl<ShopStockDao
         return getOne(queryWrapper);
     }
 
-    private void editShopStock(String storeId, String normsId, int stock) {
+    private void editShopStock(String storeId, String normsId, String stock) {
         UpdateWrapper<ShopStock> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(ShopStock::getStoreId), storeId);
         updateWrapper.eq(MybatisPlusUtil.toColumns(ShopStock::getNormsId), normsId);
@@ -136,7 +140,7 @@ public class ShopStockServiceImpl extends SkyeyeBusinessServiceImpl<ShopStockDao
         update(updateWrapper);
     }
 
-    private void saveShopStock(String storeId, String materialId, String normsId, int stock) {
+    private void saveShopStock(String storeId, String materialId, String normsId, String stock) {
         ShopStock departmentStock = new ShopStock();
         departmentStock.setStoreId(storeId);
         departmentStock.setMaterialId(materialId);
@@ -146,17 +150,17 @@ public class ShopStockServiceImpl extends SkyeyeBusinessServiceImpl<ShopStockDao
     }
 
     @Override
-    public Map<String, Integer> queryNormsShopStock(String storeId, List<String> normsIds) {
+    public Map<String, String> queryNormsShopStock(String storeId, List<String> normsIds) {
         QueryWrapper<ShopStock> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ShopStock::getStoreId), storeId);
         queryWrapper.in(MybatisPlusUtil.toColumns(ShopStock::getNormsId), normsIds);
         List<ShopStock> departmentStockList = list(queryWrapper);
 
-        Map<String, Integer> stockMap = departmentStockList.stream()
+        Map<String, String> stockMap = departmentStockList.stream()
             .collect(Collectors.toMap(ShopStock::getNormsId, ShopStock::getStock));
         normsIds.forEach(normsId -> {
             if (!stockMap.containsKey(normsId)) {
-                stockMap.put(normsId, 0);
+                stockMap.put(normsId, CommonNumConstants.NUM_ZERO.toString());
             }
         });
         return stockMap;

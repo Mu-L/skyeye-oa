@@ -21,6 +21,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.exception.CustomException;
@@ -45,6 +46,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -115,16 +117,16 @@ public class InventoryChildServiceImpl extends SkyeyeLinkDataServiceImpl<Invento
     }
 
     @Override
-    public Integer calcAllPlanInventoryNum(List<InventoryChild> inventoryChildList) {
-        Integer allPlanInventoryNum = 0;
+    public String calcAllPlanInventoryNum(List<InventoryChild> inventoryChildList) {
+        String allPlanInventoryNum = CommonNumConstants.NUM_ZERO.toString();
         for (InventoryChild inventoryChild : inventoryChildList) {
             // 查询规格库存信息
             MaterialNorms materialNorms = materialNormsService.queryMaterialNorms(inventoryChild.getNormsId(), inventoryChild.getDepotId());
-            int depotAllStock = ObjectUtil.isNotEmpty(materialNorms.getDepotTock()) ? materialNorms.getDepotTock().getAllStock() : CommonNumConstants.NUM_ZERO;
+            String depotAllStock = ObjectUtil.isNotEmpty(materialNorms.getDepotTock()) ? materialNorms.getDepotTock().getAllStock() : CommonNumConstants.NUM_ZERO.toString();
             inventoryChild.setPlanNumber(depotAllStock);
-            inventoryChild.setRealNumber(CommonNumConstants.NUM_ZERO);
-            inventoryChild.setProfitNum(CommonNumConstants.NUM_ZERO);
-            inventoryChild.setLossNum(CommonNumConstants.NUM_ZERO);
+            inventoryChild.setRealNumber(CommonNumConstants.NUM_ZERO.toString());
+            inventoryChild.setProfitNum(CommonNumConstants.NUM_ZERO.toString());
+            inventoryChild.setLossNum(CommonNumConstants.NUM_ZERO.toString());
             inventoryChild.setProfitPrice(CommonNumConstants.NUM_ZERO.toString());
             inventoryChild.setLossPrice(CommonNumConstants.NUM_ZERO.toString());
 
@@ -164,37 +166,47 @@ public class InventoryChildServiceImpl extends SkyeyeLinkDataServiceImpl<Invento
     public void complateInventoryChild(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String id = params.get("id").toString();
-        Integer realNumber = Integer.parseInt(params.get("realNumber").toString());
+        String realNumber = params.get("realNumber").toString();
         String profitNormsCode = params.get("profitNormsCode").toString();
         String lossNormsCode = params.get("lossNormsCode").toString();
         // 盘盈信息
-        Integer profitNum = Integer.parseInt(params.get("profitNum").toString());
+        String profitNum = params.get("profitNum").toString();
         List<String> profitNormsCodeList = Arrays.asList(profitNormsCode.split("\n")).stream()
             .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
         // 盘亏信息
-        Integer lossNum = Integer.parseInt(params.get("lossNum").toString());
+        String lossNum = params.get("lossNum").toString();
         List<String> lossNormsCodeList = Arrays.asList(lossNormsCode.split("\n")).stream()
             .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
         // 查询盘点子单据
         InventoryChild inventoryChild = selectById(id);
 
         // 校验盘点数量 计划数量 + 盘盈数量 - 盘亏数量
-        Integer checkNumber = inventoryChild.getPlanNumber() + profitNum - lossNum;
-        if (realNumber.compareTo(checkNumber) != 0) {
+        String checkNumber = CalculationUtil.subtract(CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, inventoryChild.getPlanNumber(), profitNum), lossNum, ErpConstants.NUM_AFTER_DOT);
+        if (CalculationUtil.compareTo(realNumber, checkNumber, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) != 0) {
             throw new CustomException("盘点后数量错误，须遵守计划数量 + 盘盈数量 - 盘亏数量 = 实际盘点数量，请确认");
         }
 
         Material material = materialService.selectById(inventoryChild.getMaterialId());
         MaterialNorms norms = materialNormsService.selectById(inventoryChild.getNormsId());
         if (material.getItemCode() == MaterialItemCode.ONE_ITEM_CODE.getKey()) {
-            // 单品盘点
-            if (profitNum != profitNormsCodeList.size() && CommonNumConstants.NUM_ZERO.compareTo(profitNum) != 0) {
-                throw new CustomException(
-                    String.format(Locale.ROOT, "商品【%s】【%s】的盘盈数量与明细数量不一致，请确认", material.getName(), norms.getName()));
+            // 单品盘点-一物一码
+            // 如果开启了一物一码，那么这个数量就默认是整型的
+            String profitNumValue = StrUtil.isEmpty(profitNum) ? CommonNumConstants.NUM_ZERO.toString() : profitNum;
+            String lossNumValue = StrUtil.isEmpty(lossNum) ? CommonNumConstants.NUM_ZERO.toString() : lossNum;
+            
+            // 检查盘盈数量与明细数量是否一致
+            if (CalculationUtil.compareTo(profitNumValue, CommonNumConstants.NUM_ZERO.toString(), 0, RoundingMode.UP) != 0) {
+                if (Integer.parseInt(profitNumValue) != profitNormsCodeList.size()) {
+                    throw new CustomException(
+                        String.format(Locale.ROOT, "商品【%s】【%s】的盘盈数量与明细数量不一致，请确认", material.getName(), norms.getName()));
+                }
             }
-            if (lossNum != lossNormsCodeList.size() && CommonNumConstants.NUM_ZERO.compareTo(lossNum) != 0) {
-                throw new CustomException(
-                    String.format(Locale.ROOT, "商品【%s】【%s】的盘亏数量与明细数量不一致，请确认", material.getName(), norms.getName()));
+            // 检查盘亏数量与明细数量是否一致
+            if (CalculationUtil.compareTo(lossNumValue, CommonNumConstants.NUM_ZERO.toString(), 0, RoundingMode.UP) != 0) {
+                if (Integer.parseInt(lossNumValue) != lossNormsCodeList.size()) {
+                    throw new CustomException(
+                        String.format(Locale.ROOT, "商品【%s】【%s】的盘亏数量与明细数量不一致，请确认", material.getName(), norms.getName()));
+                }
             }
             // 获取本次盘点的商品条形码
             List<InventoryChildCode> inventoryChildCodeList = inventoryChildCodeService.selectByParentId(inventoryChild.getId());
@@ -206,12 +218,15 @@ public class InventoryChildServiceImpl extends SkyeyeLinkDataServiceImpl<Invento
             handleLossNorms(lossNormsCodeList, inventoryChild, inventoryChildCodeNumList);
         }
 
-        Integer changeNumber = realNumber - inventoryChild.getPlanNumber();
-        if (changeNumber < 0) {
-            // 盘点数量减少，库存数量减少
+        // 变化数量 = 实际盘点数量(实盘后的数量) - 计划判断数量
+        String changeNumber = CalculationUtil.subtract(realNumber, inventoryChild.getPlanNumber(), ErpConstants.NUM_AFTER_DOT);
+        // 使用工具函数比较String类型的数值
+        if (CalculationUtil.compareTo(changeNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
+            // 盘点数量减少，库存数量减少（changeNumber为负数，需要转为正数）
+            String absChangeNumber = CalculationUtil.subtract(CommonNumConstants.NUM_ZERO.toString(), changeNumber, ErpConstants.NUM_AFTER_DOT);
             erpCommonService.editMaterialNormsDepotStock(inventoryChild.getDepotId(), inventoryChild.getMaterialId(),
-                inventoryChild.getNormsId(), changeNumber, DepotPutOutType.OUT.getKey());
-        } else if (changeNumber > 0) {
+                inventoryChild.getNormsId(), absChangeNumber, DepotPutOutType.OUT.getKey());
+        } else if (CalculationUtil.compareTo(changeNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0) {
             // 盘点数量增加，库存数量增加
             erpCommonService.editMaterialNormsDepotStock(inventoryChild.getDepotId(), inventoryChild.getMaterialId(),
                 inventoryChild.getNormsId(), changeNumber, DepotPutOutType.PUT.getKey());
@@ -286,15 +301,15 @@ public class InventoryChildServiceImpl extends SkyeyeLinkDataServiceImpl<Invento
         }
     }
 
-    private void updateInventory(InventoryChild inventoryChild, Integer realNumber, Integer profitNum, Integer lossNum, String profitNormsCode, String lossNormsCode) {
+    private void updateInventory(InventoryChild inventoryChild, String realNumber, String profitNum, String lossNum, String profitNormsCode, String lossNormsCode) {
         // 根据id查询盘点子单据并更新相关信息
         inventoryChild.setRealNumber(realNumber);
         inventoryChild.setProfitNum(profitNum);
         inventoryChild.setProfitNormsCode(profitNormsCode);
         inventoryChild.setLossNum(lossNum);
         inventoryChild.setLossNormsCode(lossNormsCode);
-        inventoryChild.setProfitPrice(CalculationUtil.multiply(CommonNumConstants.NUM_TWO, String.valueOf(profitNum), inventoryChild.getUnitPrice()));
-        inventoryChild.setLossPrice(CalculationUtil.multiply(CommonNumConstants.NUM_TWO, String.valueOf(lossNum), inventoryChild.getUnitPrice()));
+        inventoryChild.setProfitPrice(CalculationUtil.multiply(CommonNumConstants.NUM_TWO, profitNum, inventoryChild.getUnitPrice()));
+        inventoryChild.setLossPrice(CalculationUtil.multiply(CommonNumConstants.NUM_TWO, lossNum, inventoryChild.getUnitPrice()));
         inventoryChild.setState(InventoryChildState.COMPLATE.getKey());
         updateEntity(inventoryChild, StrUtil.EMPTY);
         // 更新盘点任务单据的已盘点数量

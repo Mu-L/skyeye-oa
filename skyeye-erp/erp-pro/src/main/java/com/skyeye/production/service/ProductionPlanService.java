@@ -24,7 +24,7 @@ public interface ProductionPlanService extends SkyeyeBusinessService<ProductionP
 
     void setOrderMationByFromId(List<Map<String, Object>> beans, String idKey, String mationKey);
 
-    Map<String, Integer> calcMaterialNormsNumByFromId(String fromId);
+    Map<String, String> calcMaterialNormsNumByFromId(String fromId);
 
     /**
      * 修改采购状态

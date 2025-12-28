@@ -101,15 +101,15 @@ public class QualityInspectionItem extends CommonInfo {
 
     @TableField("oper_number")
     @ApiModelProperty(value = "质检数量", required = "required,num")
-    private Integer operNumber;
+    private String operNumber;
 
     @TableField("qualified_number")
     @ApiModelProperty(value = "合格数量", required = "required,num")
-    private Integer qualifiedNumber;
+    private String qualifiedNumber;
 
     @TableField("return_number")
     @ApiModelProperty(value = "验收退回数量", required = "required,num")
-    private Integer returnNumber;
+    private String returnNumber;
 
     @TableField("return_reason")
     @ApiModelProperty(value = "验收退回原因")
@@ -117,7 +117,7 @@ public class QualityInspectionItem extends CommonInfo {
 
     @TableField("concession_number")
     @ApiModelProperty(value = "让步接收数量", required = "required,num")
-    private Integer concessionNumber;
+    private String concessionNumber;
 
     @TableField(value = "inspector_id")
     @ApiModelProperty(value = "质检员id")
@@ -133,7 +133,7 @@ public class QualityInspectionItem extends CommonInfo {
 
     @TableField("exchanges_number")
     @ApiModelProperty(value = "换货数量", required = "required,num")
-    private Integer exchangesNumber;
+    private String exchangesNumber;
 
     @TableField("exchanges_reason")
     @ApiModelProperty(value = "换货原因")

@@ -11,10 +11,13 @@ import com.skyeye.business.service.SkyeyeErpOrderService;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.SpringUtils;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
 import com.skyeye.jedis.util.RedisLock;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.entity.MaterialNormsStock;
 import com.skyeye.material.service.MaterialNormsService;
@@ -26,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.RoundingMode;
 import java.util.Map;
 
 /**
@@ -96,10 +100,10 @@ public class ErpCommonServiceImpl implements ErpCommonService {
      * @param materialId 商品id
      * @param normsId    规格id
      * @param operNumber 变化数量
-     * @param type       出入库类型，参考#DepotPutOutType
+     * @param type       出入库类型， {@link DepotPutOutType}
      */
     @Override
-    public void editMaterialNormsDepotStock(String depotId, String materialId, String normsId, Integer operNumber, int type) {
+    public void editMaterialNormsDepotStock(String depotId, String materialId, String normsId, String operNumber, int type) {
         String lockKey = String.format("%s_%s", depotId, normsId);
         RedisLock lock = new RedisLock(lockKey);
         try {
@@ -110,17 +114,17 @@ public class ErpCommonServiceImpl implements ErpCommonService {
             LOGGER.info("get lock success, lockKey is {}.", lockKey);
             // 查询规格库存信息
             MaterialNorms materialNorms = materialNormsService.queryMaterialNorms(normsId, depotId);
-            int depotAllStock = ObjectUtil.isNotEmpty(materialNorms.getDepotTock()) ? materialNorms.getDepotTock().getAllStock() : CommonNumConstants.NUM_ZERO;
+            String depotAllStock = ObjectUtil.isNotEmpty(materialNorms.getDepotTock()) ? materialNorms.getDepotTock().getAllStock() : CommonNumConstants.NUM_ZERO.toString();
             depotAllStock = getNewStockNum(type, operNumber, depotAllStock);
             // 减去初始库存
             if (CollectionUtil.isNotEmpty(materialNorms.getNormsStock())) {
                 MaterialNormsStock materialNormsStock = materialNorms.getNormsStock().stream()
                     .filter(normsStock -> StrUtil.equals(normsStock.getDepotId(), depotId)).findFirst().orElse(null);
                 if (ObjectUtil.isNotEmpty(materialNormsStock)) {
-                    depotAllStock = depotAllStock - materialNormsStock.getStock();
+                    depotAllStock = CalculationUtil.subtract(depotAllStock, materialNormsStock.getStock(), ErpConstants.NUM_AFTER_DOT);
                 }
             }
-            materialNormsStockService.saveMaterialNormsOrderStock(materialId, depotId, normsId, depotAllStock);
+            materialNormsStockService.saveMaterialNormsStock(materialId, depotId, normsId, depotAllStock, MaterialNormsStockType.ORDER_STOCK.getKey());
             LOGGER.info("editMaterialNormsDepotStock is success.");
         } catch (Exception ee) {
             LOGGER.warn("editMaterialNormsDepotStock error, because {}", ee);
@@ -133,15 +137,16 @@ public class ErpCommonServiceImpl implements ErpCommonService {
         }
     }
 
-    private int getNewStockNum(int type, int changeNumber, int depotAllStock) {
+    private String getNewStockNum(int type, String changeNumber, String depotAllStock) {
         if (type == DepotPutOutType.PUT.getKey()) {
             // 入库
-            depotAllStock = depotAllStock + changeNumber;
+            depotAllStock = CalculationUtil.add(depotAllStock, changeNumber, ErpConstants.NUM_AFTER_DOT);
         } else if (type == DepotPutOutType.OUT.getKey()) {
             // 出库
-            depotAllStock = depotAllStock - changeNumber;
+            depotAllStock = CalculationUtil.subtract(depotAllStock, changeNumber, ErpConstants.NUM_AFTER_DOT);
         }
-        if (depotAllStock < 0) {
+        if (CalculationUtil.compareTo(depotAllStock, CommonNumConstants.NUM_ZERO.toString(), 0, RoundingMode.UP) < 0) {
+            // 库存不足
             throw new CustomException("当前库存不足，无法操作.");
         }
         return depotAllStock;

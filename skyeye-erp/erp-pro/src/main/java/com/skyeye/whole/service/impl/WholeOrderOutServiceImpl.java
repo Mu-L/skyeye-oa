@@ -4,16 +4,11 @@
 
 package com.skyeye.whole.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONObject;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
-import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.business.classenum.OrderItemQualityInspectionType;
 import com.skyeye.business.classenum.OrderQualityInspectionType;
@@ -26,10 +21,9 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
-import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutOutType;
-import com.skyeye.entity.ErpOrderCommon;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.classenum.MaterialInOrderType;
@@ -57,8 +51,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.RoundingMode;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -177,10 +171,11 @@ public class WholeOrderOutServiceImpl extends SkyeyeErpOrderServiceImpl<WholeOrd
             return;
         }
         // 当前整单委外单的商品数量
-        Map<String, Integer> orderNormsNum = entity.getErpOrderItemList().stream()
-            .collect(Collectors.toMap(ErpOrderItem::getNormsId, ErpOrderItem::getOperNumber));
+        Map<String, String> orderNormsNum = entity.getErpOrderItemList().stream()
+            .collect(Collectors.toMap(ErpOrderItem::getNormsId,
+                item -> StrUtil.isEmpty(item.getOperNumber()) ? CommonNumConstants.NUM_ZERO.toString() : item.getOperNumber()));
         // 获取已经下达整单委外单的商品信息
-        Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
         if (entity.getFromTypeId() == WholeOrderOutFromType.PRODUCTION.getKey()) {
             Production production = productionService.selectById(entity.getFromId());
@@ -195,7 +190,10 @@ public class WholeOrderOutServiceImpl extends SkyeyeErpOrderServiceImpl<WholeOrd
             super.checkIdFromOrderMaterialNorms(fromNormsIds, inSqlNormsId);
             productionChildList.forEach(productionChild -> {
                 // 生产计划单数量 - 当前订单数量 - 已经下达整单委外单数量
-                Integer surplusNum = ErpOrderUtil.checkOperNumber(productionChild.getOperNumber(), productionChild.getNormsId(), orderNormsNum, executeNum);
+                String productionChildOperNumber = StrUtil.isEmpty(productionChild.getOperNumber())
+                    ? CommonNumConstants.NUM_ZERO.toString()
+                    : productionChild.getOperNumber();
+                String surplusNum = ErpOrderUtil.checkOperNumber(productionChildOperNumber, productionChild.getNormsId(), orderNormsNum, executeNum);
                 if (setData) {
                     productionChild.setOperNumber(surplusNum);
                 }
@@ -203,7 +201,12 @@ public class WholeOrderOutServiceImpl extends SkyeyeErpOrderServiceImpl<WholeOrd
             if (setData) {
                 // 过滤掉剩余数量为0的商品
                 productionChildList = productionChildList.stream()
-                    .filter(productionChild -> productionChild.getOperNumber() > 0).collect(Collectors.toList());
+                    .filter(productionChild -> {
+                        String operNumber = StrUtil.isEmpty(productionChild.getOperNumber())
+                            ? CommonNumConstants.NUM_ZERO.toString()
+                            : productionChild.getOperNumber();
+                        return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+                    }).collect(Collectors.toList());
                 // 如果该生产计划单的商品已经全部下达整单委外单，那说明已经完成了生产计划单的内容
                 if (CollectionUtil.isEmpty(productionChildList)) {
                     productionService.editOutState(production.getId(), ProductionOutState.COMPLATE_OUT.getKey());
@@ -237,31 +240,42 @@ public class WholeOrderOutServiceImpl extends SkyeyeErpOrderServiceImpl<WholeOrd
         String id = inputObject.getParams().get("id").toString();
         WholeOrderOut wholeOrderOut = selectById(id);
         // 该整单委外单下的已经下达采购退货单(审核通过)的数量
-        Map<String, Integer> normsReturnMap = purchaseReturnsService.calcMaterialNormsNumByFromId(wholeOrderOut.getId());
+        Map<String, String> normsReturnMap = purchaseReturnsService.calcMaterialNormsNumByFromId(wholeOrderOut.getId());
         // 该整单委外单下的已经下达采购换货单(审核通过)的数量
-        Map<String, Integer> normsExchangeMap = purchaseExchangesService.calcMaterialNormsNumByFromId(wholeOrderOut.getId());
+        Map<String, String> normsExchangeMap = purchaseExchangesService.calcMaterialNormsNumByFromId(wholeOrderOut.getId());
         if (wholeOrderOut.getQualityInspection() == OrderQualityInspectionType.NEED_QUALITYINS_INS.getKey()) {
             // 需要质检，计算未到货数量
-            Map<String, Integer> normsNum = purchaseDeliveryService.calcMaterialNormsNumByFromId(id);
+            Map<String, String> normsNum = purchaseDeliveryService.calcMaterialNormsNumByFromId(id);
             wholeOrderOut.getErpOrderItemList().forEach(erpOrderItem -> {
                 // 整单委外单数量 - 已到货数量 - 已退货数量 - 已换货数量
-                Integer surplusNum = ErpOrderUtil.checkOperNumber(erpOrderItem.getOperNumber(), erpOrderItem.getNormsId(), normsNum, normsReturnMap, normsExchangeMap);
+                String erpOrderItemOperNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber())
+                    ? CommonNumConstants.NUM_ZERO.toString()
+                    : erpOrderItem.getOperNumber();
+                String surplusNum = ErpOrderUtil.checkOperNumber(erpOrderItemOperNumber, erpOrderItem.getNormsId(), normsNum, normsReturnMap, normsExchangeMap);
                 // 设置未下达到货单的商品数量
                 erpOrderItem.setOperNumber(surplusNum);
             });
         } else {
             // 免检，计算未入库的数量
-            Map<String, Integer> normsNum = purchasePutService.calcMaterialNormsNumByFromId(id);
+            Map<String, String> normsNum = purchasePutService.calcMaterialNormsNumByFromId(id);
             wholeOrderOut.getErpOrderItemList().forEach(erpOrderItem -> {
                 // 整单委外单数量 - 已入库数量 - 已退货数量 - 已换货数量
-                Integer surplusNum = ErpOrderUtil.checkOperNumber(erpOrderItem.getOperNumber(), erpOrderItem.getNormsId(), normsNum, normsReturnMap, normsExchangeMap);
+                String erpOrderItemOperNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber())
+                    ? CommonNumConstants.NUM_ZERO.toString()
+                    : erpOrderItem.getOperNumber();
+                String surplusNum = ErpOrderUtil.checkOperNumber(erpOrderItemOperNumber, erpOrderItem.getNormsId(), normsNum, normsReturnMap, normsExchangeMap);
                 // 设置未下达采购入库单的商品数量
                 erpOrderItem.setOperNumber(surplusNum);
             });
         }
         // 过滤掉数量为0的进行生成采购入库单/到货单/退货单
         wholeOrderOut.setErpOrderItemList(wholeOrderOut.getErpOrderItemList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> {
+                String operNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber())
+                    ? CommonNumConstants.NUM_ZERO.toString()
+                    : erpOrderItem.getOperNumber();
+                return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+            }).collect(Collectors.toList()));
         outputObject.setBean(wholeOrderOut);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

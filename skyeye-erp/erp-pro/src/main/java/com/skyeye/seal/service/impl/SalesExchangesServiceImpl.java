@@ -13,6 +13,8 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutFromType;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.depot.classenum.DepotPutState;
@@ -34,6 +36,7 @@ import com.skyeye.seal.service.SalesOutLetService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -100,10 +103,11 @@ public class SalesExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<SalesEx
             return;
         }
         // 当前销售换货单的商品数量
-        Map<String, Integer> orderNormsNum = entity.getErpOrderItemList().stream()
-                .collect(Collectors.toMap(ErpOrderItem::getNormsId, ErpOrderItem::getOperNumber));
+        Map<String, String> orderNormsNum = entity.getErpOrderItemList().stream()
+                .collect(Collectors.toMap(ErpOrderItem::getNormsId, 
+                    item -> StrUtil.isEmpty(item.getOperNumber()) ? CommonNumConstants.NUM_ZERO.toString() : item.getOperNumber()));
         // 获取已经下达销售换货单的商品信息
-        Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
         if (entity.getFromTypeId() == SalesExchangesFromType.SEAL_ORDER.getKey()) {
             // 销售订单
@@ -111,22 +115,27 @@ public class SalesExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<SalesEx
         }
     }
 
-    private void checkAndUpdateSalesOrderState(SalesExchanges entity, boolean setData, Map<String, Integer> orderNormsNum, Map<String, Integer> executeNum, List<String> inSqlNormsId) {
+    private void checkAndUpdateSalesOrderState(SalesExchanges entity, boolean setData, Map<String, String> orderNormsNum, Map<String, String> executeNum, List<String> inSqlNormsId) {
         SalesOrder salesOrder = salesOrderService.selectById(entity.getFromId());
         if (CollectionUtil.isEmpty(salesOrder.getErpOrderItemList())) {
             throw new CustomException("该销售订单下未包含商品.");
         }
         super.checkFromOrderMaterialNorms(salesOrder.getErpOrderItemList(), inSqlNormsId);
         // 获取已经下达销售出库单的商品信息
-        Map<String, Integer> returnExecuteNum = salesOutLetService.calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> returnExecuteNum = salesOutLetService.calcMaterialNormsNumByFromId(entity.getFromId());
         // 获取已经下达销售换货单的商品信息
-        Map<String, Integer> returnExchangesNum = salesExchangesService.calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> returnExchangesNum = salesExchangesService.calcMaterialNormsNumByFromId(entity.getFromId());
         // 来源单据的商品数量 - 当前单据的商品数量 - 已经出库的商品数量 - 已经退货的商品数量 - 已经换货的商品数量
         super.setOrCheckOperNumber(salesOrder.getErpOrderItemList(), setData, orderNormsNum, executeNum, returnExecuteNum, returnExchangesNum);
         if (setData) {
             // 过滤掉剩余数量为0的商品
             List<ErpOrderItem> erpOrderItemList = salesOrder.getErpOrderItemList().stream()
-                    .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
+                    .filter(erpOrderItem -> {
+                        String operNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber()) 
+                            ? CommonNumConstants.NUM_ZERO.toString() 
+                            : erpOrderItem.getOperNumber();
+                        return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+                    }).collect(Collectors.toList());
             // 如果该销售订单的商品已经全部生成了销售出库单/销售退货单，那说明已经完成了销售订单的内容
             if (CollectionUtil.isEmpty(erpOrderItemList)) {
                 salesOrderService.editStateById(salesOrder.getId(), ErpOrderStateEnum.COMPLETED.getKey());
@@ -164,12 +173,17 @@ public class SalesExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<SalesEx
             throw new CustomException("该销售退货单无需进行转入库操作");
         }
         // 该销售换货单下的已经下达仓库入库单(审核通过)的数量
-        Map<String, Integer> depotNumMap = depotPutService.calcMaterialNormsNumByFromId(salesExchanges.getId());
+        Map<String, String> depotNumMap = depotPutService.calcMaterialNormsNumByFromId(salesExchanges.getId());
         // 设置未下达商品数量-----销售换货单数量 - 已入库数量
         super.setOrCheckOperNumber(salesExchanges.getErpOrderItemList(), true, depotNumMap);
         // 过滤掉数量为0的商品信息
         salesExchanges.setErpOrderItemList(salesExchanges.getErpOrderItemList().stream()
-                .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+                .filter(erpOrderItem -> {
+                    String operNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber()) 
+                        ? CommonNumConstants.NUM_ZERO.toString() 
+                        : erpOrderItem.getOperNumber();
+                    return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+                }).collect(Collectors.toList()));
         outputObject.setBean(salesExchanges);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -203,12 +217,17 @@ public class SalesExchangesServiceImpl extends SkyeyeErpOrderServiceImpl<SalesEx
             throw new CustomException("该销售退货单无需进行转入库操作");
         }
         // 该销售换货单下的已经下达销售出库单(审核通过)的数量
-        Map<String, Integer> depotNumMap = salesOutLetService.calcMaterialNormsNumByFromId(salesExchanges.getId());
+        Map<String, String> depotNumMap = salesOutLetService.calcMaterialNormsNumByFromId(salesExchanges.getId());
         // 设置未下达商品数量-----销售换货单数量 - 已出库数量
         super.setOrCheckOperNumber(salesExchanges.getErpOrderItemList(), true, depotNumMap);
         // 过滤掉数量为0的商品信息
         salesExchanges.setErpOrderItemList(salesExchanges.getErpOrderItemList().stream()
-                .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+                .filter(erpOrderItem -> {
+                    String operNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber()) 
+                        ? CommonNumConstants.NUM_ZERO.toString() 
+                        : erpOrderItem.getOperNumber();
+                    return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+                }).collect(Collectors.toList()));
         outputObject.setBean(salesExchanges);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

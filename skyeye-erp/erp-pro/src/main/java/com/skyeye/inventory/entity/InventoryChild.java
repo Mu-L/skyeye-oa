@@ -77,19 +77,19 @@ public class InventoryChild extends SkyeyeLinkData {
 
     @TableField(value = "plan_number")
     @Property(value = "计划盘点数量(账面数量)")
-    private Integer planNumber;
+    private String planNumber;
 
     @TableField(value = "real_number")
     @Property(value = "实际盘点数量(实盘后的数量)")
-    private Integer realNumber;
+    private String realNumber;
 
     @TableField(value = "profit_num")
     @Property(value = "盘盈数量")
-    private Integer profitNum;
+    private String profitNum;
 
     @TableField(value = "loss_num")
     @Property(value = "盘亏数量")
-    private Integer lossNum;
+    private String lossNum;
 
     @TableField(value = "unit_price")
     @ApiModelProperty(value = "单价", required = "double", defaultValue = "0")

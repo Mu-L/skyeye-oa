@@ -16,6 +16,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.farm.entity.FarmStaff;
 import com.skyeye.farm.service.FarmStaffService;
@@ -37,6 +38,7 @@ import com.skyeye.rest.checkwork.checkwork.ICheckWorkService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -96,10 +98,14 @@ public class CalculateCostServiceImpl implements CalculateCostService {
             String staffId = productNum.getStaffId();
             if (productNumMap.containsKey(staffId)) {
                 // 求和
-                productNumMap.get(staffId).setAllNumber(productNumMap.get(staffId).getAllNumber() + productNum.getAllNumber());
-                productNumMap.get(staffId).setQualifiedNum(productNumMap.get(staffId).getQualifiedNum() + productNum.getQualifiedNum());
-                productNumMap.get(staffId).setReworkNum(productNumMap.get(staffId).getReworkNum() + productNum.getReworkNum());
-                productNumMap.get(staffId).setScrapNum(productNumMap.get(staffId).getScrapNum() + productNum.getScrapNum());
+                String allNumber = CalculationUtil.add(productNumMap.get(staffId).getAllNumber(), productNum.getAllNumber(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+                productNumMap.get(staffId).setAllNumber(allNumber);
+                String qualifiedNum = CalculationUtil.add(productNumMap.get(staffId).getQualifiedNum(), productNum.getQualifiedNum(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+                productNumMap.get(staffId).setQualifiedNum(qualifiedNum);
+                String reworkNum = CalculationUtil.add(productNumMap.get(staffId).getReworkNum(), productNum.getReworkNum(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+                productNumMap.get(staffId).setReworkNum(reworkNum);
+                String scrapNum = CalculationUtil.add(productNumMap.get(staffId).getScrapNum(), productNum.getScrapNum(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+                productNumMap.get(staffId).setScrapNum(scrapNum);
                 productNumMap.get(staffId).setStaffMation(productNum.getStaffMation());
             } else {
                 productNumMap.put(staffId, productNum);
@@ -379,7 +385,9 @@ public class CalculateCostServiceImpl implements CalculateCostService {
     }
 
     private MachinPutCost setMachinPutDate(MachinPut machinPut, List<MachinProcedureCost> MPCostList, MachinChild machinChild) {
-        Integer currentOperNumber = machinPut.getErpOrderItemList().get(CommonNumConstants.NUM_ZERO).getOperNumber();
+        String currentOperNumber = StrUtil.isEmpty(machinPut.getErpOrderItemList().get(CommonNumConstants.NUM_ZERO).getOperNumber())
+            ? CommonNumConstants.NUM_ZERO.toString()
+            : machinPut.getErpOrderItemList().get(CommonNumConstants.NUM_ZERO).getOperNumber();
         Material materialMation = machinPut.getErpOrderItemList().get(CommonNumConstants.NUM_ZERO).getMaterialMation();
         String materialName = StrUtil.isEmpty(materialMation.getId()) ? null : materialMation.getName();
         MachinPutCost machinPutCost = new MachinPutCost();
@@ -388,10 +396,10 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         machinPutCost.setConsumablePrice("0");
         machinPutCost.setScrapConsumablePrice("0");
         machinPutCost.setNormalConsumablePrice("0");
-        machinPutCost.setAllNum(currentOperNumber);
+        machinPutCost.setAllNum(Integer.parseInt(currentOperNumber));
         machinPutCost.setWage("0");
         machinPutCost.setTotalPrice("0");
-        if (currentOperNumber <= CommonNumConstants.NUM_ZERO) {
+        if (CalculationUtil.compareTo(currentOperNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) <= 0) {
             return machinPutCost;
         }
         for (MachinProcedureCost machinProcedureCost : MPCostList) {
@@ -407,7 +415,10 @@ public class CalculateCostServiceImpl implements CalculateCostService {
             machinPutCost.setTotalPrice(CalculationUtil.add(machinPutCost.getTotalPrice(), machinProcedureCost.getTotalPrice(), CommonNumConstants.NUM_SIX));
         }
         // 计算此次加工入库单占加工单子单据生产数量的比例
-        String proportion = CalculationUtil.divide(String.valueOf(currentOperNumber), String.valueOf(machinChild.getOperNumber()), CommonNumConstants.NUM_SIX);
+        String machinChildOperNumber = StrUtil.isEmpty(machinChild.getOperNumber())
+            ? CommonNumConstants.NUM_ZERO.toString()
+            : machinChild.getOperNumber();
+        String proportion = CalculationUtil.divide(currentOperNumber, machinChildOperNumber, CommonNumConstants.NUM_SIX);
         // 计算占的耗材成本、报废耗材成本、正常耗材成本、加工单价、工资金额、总价
         machinPutCost.setConsumablePrice(CalculationUtil.multiply(machinPutCost.getConsumablePrice(), proportion, CommonNumConstants.NUM_SIX));
         machinPutCost.setScrapConsumablePrice(CalculationUtil.multiply(machinPutCost.getScrapConsumablePrice(), proportion, CommonNumConstants.NUM_SIX));
@@ -426,10 +437,14 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         machinPutCost.setConsumablePrice("0");
         machinPutCost.setScrapConsumablePrice("0");
         machinPutCost.setNormalConsumablePrice("0");
-        machinPutCost.setAllNum(machinChild.getOperNumber());
+        String machinChildOperNumber = StrUtil.isEmpty(machinChild.getOperNumber())
+            ? CommonNumConstants.NUM_ZERO.toString()
+            : machinChild.getOperNumber();
+        machinPutCost.setAllNum(Integer.parseInt(machinChildOperNumber));
         machinPutCost.setWage("0");
         machinPutCost.setTotalPrice("0");
         machinPutCost.setNowNum(CommonNumConstants.NUM_ZERO);
+        String nowNumStr = CommonNumConstants.NUM_ZERO.toString();
         for (MachinProcedureCost machinProcedureCost : MPCostList) {
             // 耗材成本
             machinPutCost.setConsumablePrice(CalculationUtil.add(machinPutCost.getConsumablePrice(), machinProcedureCost.getConsumablePrice(), CommonNumConstants.NUM_SIX));
@@ -443,9 +458,10 @@ public class CalculateCostServiceImpl implements CalculateCostService {
             machinPutCost.setTotalPrice(CalculationUtil.add(machinPutCost.getTotalPrice(), machinProcedureCost.getTotalPrice(), CommonNumConstants.NUM_SIX));
             // 当前已经生产的数量
             if (machinChild.getMaterialId().equals(machinProcedureCost.getMaterialId()) && machinChild.getNormsId().equals(machinProcedureCost.getNormsId())) {
-                machinPutCost.setNowNum(machinPutCost.getNowNum() + machinProcedureCost.getAllNum());
+                nowNumStr = CalculationUtil.add(nowNumStr, String.valueOf(machinProcedureCost.getAllNum()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
             }
         }
+        machinPutCost.setNowNum(Integer.parseInt(nowNumStr));
         return machinPutCost;
     }
 
@@ -522,17 +538,25 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         bean.setWage("0");
         bean.setTotalPrice("0");
         bean.setAcceptCostList(acceptCostList);
+        String allNumStr = CommonNumConstants.NUM_ZERO.toString();
+        String qualifiedNumStr = CommonNumConstants.NUM_ZERO.toString();
+        String reworkNumStr = CommonNumConstants.NUM_ZERO.toString();
+        String scrapNumStr = CommonNumConstants.NUM_ZERO.toString();
         for (MachinProcedureAcceptCost acceptCost : acceptCostList) {
             bean.setConsumablePrice(CalculationUtil.add(bean.getConsumablePrice(), acceptCost.getConsumablePrice(), CommonNumConstants.NUM_SIX));
             bean.setNormalConsumablePrice(CalculationUtil.add(bean.getNormalConsumablePrice(), acceptCost.getNormalConsumablePrice(), CommonNumConstants.NUM_SIX));
             bean.setScrapConsumablePrice(CalculationUtil.add(bean.getScrapConsumablePrice(), acceptCost.getScrapConsumablePrice(), CommonNumConstants.NUM_SIX));
-            bean.setAllNum(bean.getAllNum() + acceptCost.getAllNum());
-            bean.setQualifiedNum(bean.getQualifiedNum() + acceptCost.getQualifiedNum());
-            bean.setReworkNum(bean.getReworkNum() + acceptCost.getReworkNum());
-            bean.setScrapNum(bean.getScrapNum() + acceptCost.getScrapNum());
+            allNumStr = CalculationUtil.add(allNumStr, String.valueOf(acceptCost.getAllNum()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            qualifiedNumStr = CalculationUtil.add(qualifiedNumStr, String.valueOf(acceptCost.getQualifiedNum()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            reworkNumStr = CalculationUtil.add(reworkNumStr, String.valueOf(acceptCost.getReworkNum()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            scrapNumStr = CalculationUtil.add(scrapNumStr, String.valueOf(acceptCost.getScrapNum()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
             bean.setWage(CalculationUtil.add(bean.getWage(), acceptCost.getWage(), CommonNumConstants.NUM_SIX));
             bean.setTotalPrice(CalculationUtil.add(bean.getTotalPrice(), acceptCost.getTotalPrice(), CommonNumConstants.NUM_SIX));
         }
+        bean.setAllNum(Integer.parseInt(allNumStr));
+        bean.setQualifiedNum(Integer.parseInt(qualifiedNumStr));
+        bean.setReworkNum(Integer.parseInt(reworkNumStr));
+        bean.setScrapNum(Integer.parseInt(scrapNumStr));
         return bean;
     }
 
@@ -613,8 +637,14 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         }
         for (MachinProcedureAcceptChild child : childList) {
             // 计算每一个耗材的成本     数量 * 采购价
-            String operNumber = child.getOperNumber() == null ? "0" : String.valueOf(child.getOperNumber());
-            String estimatePurchasePrice = ObjectUtil.isEmpty(child.getNormsMation()) ? "0" : child.getNormsMation().getEstimatePurchasePrice();
+            String operNumber = child.getOperNumber() == null ? CommonNumConstants.NUM_ZERO.toString() : String.valueOf(child.getOperNumber());
+            if (StrUtil.isEmpty(operNumber)) {
+                operNumber = CommonNumConstants.NUM_ZERO.toString();
+            }
+            String estimatePurchasePrice = ObjectUtil.isEmpty(child.getNormsMation()) ? CommonNumConstants.NUM_ZERO.toString() : child.getNormsMation().getEstimatePurchasePrice();
+            if (StrUtil.isEmpty(estimatePurchasePrice)) {
+                estimatePurchasePrice = CommonNumConstants.NUM_ZERO.toString();
+            }
             String multiply = CalculationUtil.multiply(operNumber, estimatePurchasePrice, CommonNumConstants.NUM_SIX);
             result = CalculationUtil.add(result, multiply, CommonNumConstants.NUM_SIX);
         }
@@ -642,6 +672,10 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         machinProcedureCost.setQualifiedNum(CommonNumConstants.NUM_ZERO);
         machinProcedureCost.setReworkNum(CommonNumConstants.NUM_ZERO);
         machinProcedureCost.setScrapNum(CommonNumConstants.NUM_ZERO);
+        String allNumStr = CommonNumConstants.NUM_ZERO.toString();
+        String qualifiedNumStr = CommonNumConstants.NUM_ZERO.toString();
+        String reworkNumStr = CommonNumConstants.NUM_ZERO.toString();
+        String scrapNumStr = CommonNumConstants.NUM_ZERO.toString();
         machinProcedureCost.setProcedureName(machinProcedure.getProcedureMation().getName());
         machinProcedureCost.setProcedureNumber(machinProcedure.getProcedureMation().getNumber());
         machinProcedureCost.setProductNumMationList(new ArrayList<>());
@@ -665,10 +699,10 @@ public class CalculateCostServiceImpl implements CalculateCostService {
             MachinProcedureAcceptProductNum staffProductNum = productNum.getValue();
             Map<String, Object> staffMation = staffMap.getOrDefault(productNum.getKey(), new HashMap<>());
             // 计算数量信息
-            machinProcedureCost.setAllNum(machinProcedureCost.getAllNum() + staffProductNum.getAllNumber());
-            machinProcedureCost.setQualifiedNum(machinProcedureCost.getQualifiedNum() + staffProductNum.getQualifiedNum());
-            machinProcedureCost.setReworkNum(machinProcedureCost.getReworkNum() + staffProductNum.getReworkNum());
-            machinProcedureCost.setScrapNum(machinProcedureCost.getScrapNum() + staffProductNum.getScrapNum());
+            allNumStr = CalculationUtil.add(allNumStr, String.valueOf(staffProductNum.getAllNumber()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            qualifiedNumStr = CalculationUtil.add(qualifiedNumStr, String.valueOf(staffProductNum.getQualifiedNum()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            reworkNumStr = CalculationUtil.add(reworkNumStr, String.valueOf(staffProductNum.getReworkNum()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            scrapNumStr = CalculationUtil.add(scrapNumStr, String.valueOf(staffProductNum.getScrapNum()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
             // 获取一位员工的成本
             String oneStaffCost = calculateOneStaffCost(
                 staffProductNum, staffMation,
@@ -680,6 +714,10 @@ public class CalculateCostServiceImpl implements CalculateCostService {
             machinProcedureCost.getProductNumMationList().add(staffProductNum);
             staffCost = CalculationUtil.add(staffCost, oneStaffCost, CommonNumConstants.NUM_SIX);
         }
+        machinProcedureCost.setAllNum(Integer.parseInt(allNumStr));
+        machinProcedureCost.setQualifiedNum(Integer.parseInt(qualifiedNumStr));
+        machinProcedureCost.setReworkNum(Integer.parseInt(reworkNumStr));
+        machinProcedureCost.setScrapNum(Integer.parseInt(scrapNumStr));
         machinProcedureCost.setWage(staffCost);
         // 总价 = 耗材成本 + 工资成本
         machinProcedureCost.setTotalPrice(CalculationUtil.add(consumablePrice, staffCost, CommonNumConstants.NUM_SIX));

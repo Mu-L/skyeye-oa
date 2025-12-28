@@ -78,11 +78,11 @@ public class DepotOutPutRecord extends CommonInfo {
 
     @TableField("out_count")
     @ApiModelProperty(value = "出库数量")
-    private Integer outCount;
+    private String outCount;
 
     @TableField("put_count")
     @ApiModelProperty(value = "入库数量")
-    private Integer putCount;
+    private String putCount;
 
     @TableField("state")
     @ApiModelProperty(value = "0未还、1部分还、2已还")

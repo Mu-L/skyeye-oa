@@ -30,10 +30,10 @@ public interface DepartmentStockService extends SkyeyeBusinessService<Department
      * @param operNumber   变化数量
      * @param type         出入库类型，参考#DepotPutOutType
      */
-    void updateDepartmentStock(String departmentId, String farmId, String materialId, String normsId, Integer operNumber, int type);
+    void updateDepartmentStock(String departmentId, String farmId, String materialId, String normsId, String operNumber, int type);
 
     DepartmentStock queryDepartmentStock(String departmentId, String farmId, String normsId);
 
-    Map<String, Integer> queryNormsDepartmentStock(String departmentId, String farmId, List<String> normsIds);
+    Map<String, String> queryNormsDepartmentStock(String departmentId, String farmId, List<String> normsIds);
 
 }

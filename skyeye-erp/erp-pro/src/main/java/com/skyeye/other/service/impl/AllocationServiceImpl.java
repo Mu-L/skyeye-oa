@@ -93,7 +93,7 @@ public class AllocationServiceImpl extends SkyeyeErpOrderServiceImpl<AllocationD
             String depotId = erpOrderItem.getDepotId();
             String materialId = erpOrderItem.getMaterialId();
             String normsId = erpOrderItem.getNormsId();
-            Integer operNumber = erpOrderItem.getOperNumber();
+            String operNumber = erpOrderItem.getOperNumber();
             // 调拨单
             String anotherDepotId = erpOrderItem.getAnotherDepotId();
             // 当前仓库出库

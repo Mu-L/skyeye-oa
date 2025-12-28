@@ -18,7 +18,9 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.machin.entity.Machin;
@@ -38,6 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -225,8 +228,8 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
         if (StrUtil.equals(machinProcedureFarm.getState(), MachinProcedureFarmState.WAIT_EXECUTED.getKey())) {
             // 待执行的车间任务可以进行反接收
             // 先判断是否有下达过工序验收单
-            Integer num = machinProcedureAcceptService.calcAllNumByMachinProcedureFarmId(id);
-            if (num > 0) {
+            String num = machinProcedureAcceptService.calcAllNumByMachinProcedureFarmId(id);
+            if (CalculationUtil.compareTo(num, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0) {
                 throw new CustomException("该车间任务已有工序验收单，不能进行反接收");
             }
             editStateById(id, MachinProcedureFarmState.WAIT_RECEIVE.getKey());
@@ -307,11 +310,19 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
             throw new CustomException("该车间任务未关联加工单子单据或该加工单子单据不存在");
         }
         // 根据车间任务id查询已经生成加工入库单的商品数量
-        Map<String, Integer> normsNumMap = machinPutService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> normsNumMap = machinPutService.calcMaterialNormsNumByFromId(id);
         // 计算剩余数量：加工单子单据的数量 - 已经生成的加工入库单的数量
-        Integer surplusNum = machinChild.getOperNumber()
-            - (normsNumMap.containsKey(machinChild.getNormsId()) ? normsNumMap.get(machinChild.getNormsId()) : 0);
-        surplusNum = surplusNum < 0 ? 0 : surplusNum;
+        String operNumber = StrUtil.isEmpty(machinChild.getOperNumber()) 
+            ? CommonNumConstants.NUM_ZERO.toString() 
+            : machinChild.getOperNumber();
+        String putNum = normsNumMap.getOrDefault(machinChild.getNormsId(), CommonNumConstants.NUM_ZERO.toString());
+        if (StrUtil.isEmpty(putNum)) {
+            putNum = CommonNumConstants.NUM_ZERO.toString();
+        }
+        String surplusNum = CalculationUtil.subtract(operNumber, putNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+        if (CalculationUtil.compareTo(surplusNum, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
+            surplusNum = CommonNumConstants.NUM_ZERO.toString();
+        }
         machinChild.setOperNumber(surplusNum);
 
         Map<String, Object> result = new HashMap<>();

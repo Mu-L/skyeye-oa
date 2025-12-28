@@ -13,10 +13,13 @@ import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.material.dao.MaterialNormsDao;
@@ -239,13 +242,26 @@ public class MaterialNormsServiceImpl extends SkyeyeBusinessServiceImpl<Material
         List<MaterialNormsStock> allNormsStock = getAllNormsStocks(materialNorms);
         if (CollectionUtil.isNotEmpty(allNormsStock)) {
             // 总库存
-            int allStock = allNormsStock.stream().mapToInt(MaterialNormsStock::getStock).sum();
+            String allStock = allNormsStock.stream()
+                .map(MaterialNormsStock::getStock)
+                .reduce(CommonNumConstants.NUM_ZERO.toString(), 
+                    (sum, stock) -> {
+                        String stockValue = StrUtil.isEmpty(stock) ? CommonNumConstants.NUM_ZERO.toString() : stock;
+                        String sumValue = StrUtil.isEmpty(sum) ? CommonNumConstants.NUM_ZERO.toString() : sum;
+                        return CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, sumValue, stockValue);
+                    });
             // 初始总库存
-            int initialTock = allNormsStock.stream()
+            String initialTock = allNormsStock.stream()
                 .filter(bean -> bean.getType().equals(MaterialNormsStockType.INIT_STOCK.getKey()))
-                .mapToInt(MaterialNormsStock::getStock).sum();
+                .map(MaterialNormsStock::getStock)
+                .reduce(CommonNumConstants.NUM_ZERO.toString(), 
+                    (sum, stock) -> {
+                        String stockValue = StrUtil.isEmpty(stock) ? CommonNumConstants.NUM_ZERO.toString() : stock;
+                        String sumValue = StrUtil.isEmpty(sum) ? CommonNumConstants.NUM_ZERO.toString() : sum;
+                        return CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, sumValue, stockValue);
+                    });
             // 可盘点总库存
-            int inventoryTock = allStock - initialTock;
+            String inventoryTock = CalculationUtil.subtract(allStock, initialTock, CommonNumConstants.NUM_ZERO);
             NormsCalcStock calcStock = new NormsCalcStock(allStock, initialTock, inventoryTock);
             materialNorms.setOverAllStock(calcStock);
         }
@@ -307,15 +323,27 @@ public class MaterialNormsServiceImpl extends SkyeyeBusinessServiceImpl<Material
         List<MaterialNormsStock> allNormsStock = getAllNormsStocks(materialNorms);
         if (CollectionUtil.isNotEmpty(allNormsStock)) {
             // 指定仓库的库存
-            int allStock = allNormsStock.stream()
+            String allStock = allNormsStock.stream()
                 .filter(bean -> StrUtil.equals(bean.getDepotId(), depotId))
-                .mapToInt(MaterialNormsStock::getStock).sum();
+                .map(MaterialNormsStock::getStock)
+                .reduce(CommonNumConstants.NUM_ZERO.toString(), 
+                    (sum, stock) -> {
+                        String stockValue = StrUtil.isEmpty(stock) ? CommonNumConstants.NUM_ZERO.toString() : stock;
+                        String sumValue = StrUtil.isEmpty(sum) ? CommonNumConstants.NUM_ZERO.toString() : sum;
+                        return CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, sumValue, stockValue);
+                    });
             // 指定仓库的初始库存
-            int initialTock = allNormsStock.stream()
+            String initialTock = allNormsStock.stream()
                 .filter(bean -> bean.getType().equals(MaterialNormsStockType.INIT_STOCK.getKey()) && StrUtil.equals(bean.getDepotId(), depotId))
-                .mapToInt(MaterialNormsStock::getStock).sum();
+                .map(MaterialNormsStock::getStock)
+                .reduce(CommonNumConstants.NUM_ZERO.toString(), 
+                    (sum, stock) -> {
+                        String stockValue = StrUtil.isEmpty(stock) ? CommonNumConstants.NUM_ZERO.toString() : stock;
+                        String sumValue = StrUtil.isEmpty(sum) ? CommonNumConstants.NUM_ZERO.toString() : sum;
+                        return CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, sumValue, stockValue);
+                    });
             // 指定仓库的可盘点库存
-            int inventoryTock = allStock - initialTock;
+            String inventoryTock = CalculationUtil.subtract(allStock, initialTock, CommonNumConstants.NUM_ZERO);
             NormsCalcStock calcStock = new NormsCalcStock(allStock, initialTock, inventoryTock);
             materialNorms.setDepotTock(calcStock);
         }

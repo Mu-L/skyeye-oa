@@ -61,7 +61,7 @@ public class ProductionPlanChild extends CommonInfo {
 
     @TableField(value = "oper_number")
     @ApiModelProperty(value = "数量", required = "required,num")
-    private Integer operNumber;
+    private String operNumber;
 
     @TableField("delivery_time")
     @ApiModelProperty(value = "交货日期", required = "required")

@@ -24,6 +24,7 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
@@ -57,6 +58,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -148,12 +150,15 @@ public class QualityInspectionServiceImpl extends SkyeyeBusinessServiceImpl<Qual
 
         for (QualityInspectionItem qualityInspectionItem : entity.getQualityInspectionItemList()) {
             // 实际验收总数量 = 合格数量 + 验收退回数量 + 让步接收数量 + 换货数量
-            int tempNum = qualityInspectionItem.getQualifiedNumber() + qualityInspectionItem.getReturnNumber()
-                + qualityInspectionItem.getConcessionNumber() + qualityInspectionItem.getExchangesNumber();
+            String tempNum = CalculationUtil.add(
+                ErpConstants.NUM_AFTER_DOT,
+                CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, qualityInspectionItem.getQualifiedNumber(), qualityInspectionItem.getReturnNumber()),
+                CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, qualityInspectionItem.getConcessionNumber(), qualityInspectionItem.getExchangesNumber())
+            );
             if (qualityInspectionItem.getQualityInspection() == OrderItemQualityInspectionType.FULL_INSPECTION.getKey()) {
                 // 全检
                 // 质检数量 != 实际验收总数量
-                if (qualityInspectionItem.getOperNumber() != tempNum) {
+                if (CalculationUtil.compareTo(qualityInspectionItem.getOperNumber(), tempNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) != 0) {
                     throw new CustomException("验收数量不等于【合格数量】 + 【验收退回数量】 + 【让步接收数量】 + 【验收换货数量】，请确认.");
                 }
             } else if (qualityInspectionItem.getQualityInspection() == OrderItemQualityInspectionType.SAMPLING_INS.getKey()) {
@@ -164,24 +169,24 @@ public class QualityInspectionServiceImpl extends SkyeyeBusinessServiceImpl<Qual
                 // 计算抽检比例
                 String samplingRatio = CalculationUtil.divide(qualityInspectionItem.getQualityInspectionRatio(), "100", CommonNumConstants.NUM_TWO);
                 // 计算需要抽检的数量
-                int samplingNum = Integer.parseInt(
-                    CalculationUtil.multiply(CommonNumConstants.NUM_ZERO, samplingRatio, String.valueOf(qualityInspectionItem.getOperNumber())));
+                String samplingNum = CalculationUtil.multiply(ErpConstants.NUM_AFTER_DOT, samplingRatio, qualityInspectionItem.getOperNumber());
                 // 实际验收总数量 < 需要抽检的数量
-                if (tempNum < samplingNum) {
+                if (CalculationUtil.compareTo(tempNum, samplingNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
                     throw new CustomException("抽检数量不足，请确认.");
                 }
             }
 
             // 设置入库状态
-            if (qualityInspectionItem.getQualifiedNumber() > 0 || qualityInspectionItem.getConcessionNumber() > 0) {
+            if (CalculationUtil.compareTo(qualityInspectionItem.getQualifiedNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0
+                || CalculationUtil.compareTo(qualityInspectionItem.getConcessionNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0) {
                 putState = QualityInspectionPutState.NEED_PUT.getKey();
             }
             // 设置退货状态
-            if (qualityInspectionItem.getReturnNumber() > 0) {
+            if (CalculationUtil.compareTo(qualityInspectionItem.getReturnNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0) {
                 returnState = QualityInspectionReturnState.NEED_RETURN.getKey();
             }
             // 设置换货状态
-            if (qualityInspectionItem.getExchangesNumber() > CommonNumConstants.NUM_ZERO) {
+            if (CalculationUtil.compareTo(qualityInspectionItem.getExchangesNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0) {
                 exchangesState = QualityInspectionExchangesState.NEED_EXCHANGES.getKey();
             }
         }
@@ -195,10 +200,10 @@ public class QualityInspectionServiceImpl extends SkyeyeBusinessServiceImpl<Qual
             return;
         }
         // 当前质检单的商品数量
-        Map<String, Integer> orderNormsNum = entity.getQualityInspectionItemList().stream()
+        Map<String, String> orderNormsNum = entity.getQualityInspectionItemList().stream()
             .collect(Collectors.toMap(QualityInspectionItem::getNormsId, QualityInspectionItem::getOperNumber));
         // 获取同一个来源单据下已经质检(审批通过)的商品信息
-        Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
         if (entity.getFromTypeId() == QualityInspectionFromType.PURCHASE_DELIVERY.getKey()) {
             // 到货单
@@ -222,10 +227,15 @@ public class QualityInspectionServiceImpl extends SkyeyeBusinessServiceImpl<Qual
                     Joiner.on(CommonCharConstants.COMMA_MARK).join(normsNames)));
             }
             erpOrderItemList.forEach(erpOrderItem -> {
-                Integer surplusNum = erpOrderItem.getOperNumber()
-                    - (orderNormsNum.containsKey(erpOrderItem.getNormsId()) ? orderNormsNum.get(erpOrderItem.getNormsId()) : 0)
-                    - (executeNum.containsKey(erpOrderItem.getNormsId()) ? executeNum.get(erpOrderItem.getNormsId()) : 0);
-                if (surplusNum < 0) {
+                String orderNum = orderNormsNum.containsKey(erpOrderItem.getNormsId())
+                    ? orderNormsNum.get(erpOrderItem.getNormsId())
+                    : CommonNumConstants.NUM_ZERO.toString();
+                String execNum = executeNum.containsKey(erpOrderItem.getNormsId())
+                    ? executeNum.get(erpOrderItem.getNormsId())
+                    : CommonNumConstants.NUM_ZERO.toString();
+                String tempNum = CalculationUtil.subtract(erpOrderItem.getOperNumber(), orderNum, ErpConstants.NUM_AFTER_DOT);
+                String surplusNum = CalculationUtil.subtract(tempNum, execNum, ErpConstants.NUM_AFTER_DOT);
+                if (CalculationUtil.compareTo(surplusNum, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
                     throw new CustomException("超出到货单的商品数量.");
                 }
                 if (setData) {
@@ -235,7 +245,8 @@ public class QualityInspectionServiceImpl extends SkyeyeBusinessServiceImpl<Qual
             if (setData) {
                 // 过滤掉剩余数量为0的商品
                 erpOrderItemList = erpOrderItemList.stream()
-                    .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
+                    .filter(erpOrderItem -> CalculationUtil.compareTo(erpOrderItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+                    .collect(Collectors.toList());
                 // 该到货单的商品已经全部进行了质检
                 if (CollectionUtil.isEmpty(erpOrderItemList)) {
                     purchaseDeliveryService.editQualityInspection(purchaseDelivery.getId(), OrderQualityInspectionType.COMPLATE_QUALITY_INSPECTION.getKey());
@@ -294,7 +305,7 @@ public class QualityInspectionServiceImpl extends SkyeyeBusinessServiceImpl<Qual
     }
 
     @Override
-    public Map<String, Integer> calcMaterialNormsNumByFromId(String... fromId) {
+    public Map<String, String> calcMaterialNormsNumByFromId(String... fromId) {
         List<String> fromIdList = Arrays.asList(fromId);
         if (CollectionUtil.isEmpty(fromIdList)) {
             return cn.hutool.core.map.MapUtil.newHashMap();
@@ -314,7 +325,18 @@ public class QualityInspectionServiceImpl extends SkyeyeBusinessServiceImpl<Qual
         if (CollectionUtil.isNotEmpty(qualityInspectionItemList)) {
             // 分组计算已经质检的数量
             return qualityInspectionItemList.stream()
-                .collect(Collectors.groupingBy(QualityInspectionItem::getNormsId, Collectors.summingInt(QualityInspectionItem::getOperNumber)));
+                .collect(Collectors.groupingBy(
+                    QualityInspectionItem::getNormsId,
+                    Collectors.reducing(
+                        CommonNumConstants.NUM_ZERO.toString(),
+                        QualityInspectionItem::getOperNumber,
+                        (sum, operNumber) -> CalculationUtil.add(
+                            ErpConstants.NUM_AFTER_DOT,
+                            StrUtil.isEmpty(sum) ? CommonNumConstants.NUM_ZERO.toString() : sum,
+                            StrUtil.isEmpty(operNumber) ? CommonNumConstants.NUM_ZERO.toString() : operNumber
+                        )
+                    )
+                ));
         }
         return cn.hutool.core.map.MapUtil.newHashMap();
     }
@@ -376,16 +398,20 @@ public class QualityInspectionServiceImpl extends SkyeyeBusinessServiceImpl<Qual
     public void queryQualityInspectionTransById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         QualityInspection qualityInspection = selectById(id);
-        Map<String, Integer> normsNum = purchasePutService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> normsNum = purchasePutService.calcMaterialNormsNumByFromId(id);
         qualityInspection.getQualityInspectionItemList().forEach(qualityInspectionItem -> {
-            Integer surplusNum = qualityInspectionItem.getQualifiedNumber() + qualityInspectionItem.getConcessionNumber()
-                - (normsNum.containsKey(qualityInspectionItem.getNormsId()) ? normsNum.get(qualityInspectionItem.getNormsId()) : 0);
+            String qualifiedAndConcession = CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, qualityInspectionItem.getQualifiedNumber(), qualityInspectionItem.getConcessionNumber());
+            String normsNumValue = normsNum.containsKey(qualityInspectionItem.getNormsId())
+                ? normsNum.get(qualityInspectionItem.getNormsId())
+                : CommonNumConstants.NUM_ZERO.toString();
+            String surplusNum = CalculationUtil.subtract(qualifiedAndConcession, normsNumValue, ErpConstants.NUM_AFTER_DOT);
             // 设置未下达采购入库单的商品数量
             qualityInspectionItem.setOperNumber(surplusNum);
         });
         // 过滤掉数量为0的进行生成采购入库单
         qualityInspection.setQualityInspectionItemList(qualityInspection.getQualityInspectionItemList().stream()
-            .filter(qualityInspectionItem -> qualityInspectionItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(qualityInspectionItem -> CalculationUtil.compareTo(qualityInspectionItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+            .collect(Collectors.toList()));
         // 供应商
         supplierService.setDataMation(qualityInspection, QualityInspection::getHolderId);
         outputObject.setBean(qualityInspection);
@@ -416,17 +442,20 @@ public class QualityInspectionServiceImpl extends SkyeyeBusinessServiceImpl<Qual
     public void queryQualityInspectionTransReturnById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         QualityInspection qualityInspection = selectById(id);
-        Map<String, Integer> normsNum = purchaseReturnsService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> normsNum = purchaseReturnsService.calcMaterialNormsNumByFromId(id);
         qualityInspection.getQualityInspectionItemList().forEach(qualityInspectionItem -> {
             // 退还数量 - 已退货数量
-            Integer surplusNum = qualityInspectionItem.getReturnNumber()
-                - (normsNum.containsKey(qualityInspectionItem.getNormsId()) ? normsNum.get(qualityInspectionItem.getNormsId()) : 0);
+            String normsNumValue = normsNum.containsKey(qualityInspectionItem.getNormsId())
+                ? normsNum.get(qualityInspectionItem.getNormsId())
+                : CommonNumConstants.NUM_ZERO.toString();
+            String surplusNum = CalculationUtil.subtract(qualityInspectionItem.getReturnNumber(), normsNumValue, ErpConstants.NUM_AFTER_DOT);
             // 设置未下达采购退货单的商品数量
             qualityInspectionItem.setOperNumber(surplusNum);
         });
         // 过滤掉数量为0的进行生成采购退货单
         qualityInspection.setQualityInspectionItemList(qualityInspection.getQualityInspectionItemList().stream()
-            .filter(qualityInspectionItem -> qualityInspectionItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(qualityInspectionItem -> CalculationUtil.compareTo(qualityInspectionItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+            .collect(Collectors.toList()));
         // 供应商
         supplierService.setDataMation(qualityInspection, QualityInspection::getHolderId);
         outputObject.setBean(qualityInspection);
@@ -457,17 +486,20 @@ public class QualityInspectionServiceImpl extends SkyeyeBusinessServiceImpl<Qual
     public void queryQualityInspectionTransExchangesById(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
         QualityInspection qualityInspection = selectById(id);
-        Map<String, Integer> normsNum = purchaseExchangesService.calcMaterialNormsNumByFromId(id);
+        Map<String, String> normsNum = purchaseExchangesService.calcMaterialNormsNumByFromId(id);
         qualityInspection.getQualityInspectionItemList().forEach(qualityInspectionItem -> {
             // 换货数量 - 已换货数量
-            Integer surplusNum = qualityInspectionItem.getExchangesNumber()
-                - (normsNum.containsKey(qualityInspectionItem.getNormsId()) ? normsNum.get(qualityInspectionItem.getNormsId()) : 0);
+            String normsNumValue = normsNum.containsKey(qualityInspectionItem.getNormsId())
+                ? normsNum.get(qualityInspectionItem.getNormsId())
+                : CommonNumConstants.NUM_ZERO.toString();
+            String surplusNum = CalculationUtil.subtract(qualityInspectionItem.getExchangesNumber(), normsNumValue, ErpConstants.NUM_AFTER_DOT);
             // 设置未下达采购换货单的商品数量
             qualityInspectionItem.setOperNumber(surplusNum);
         });
         // 过滤掉数量为0的进行生成采购换货单
         qualityInspection.setQualityInspectionItemList(qualityInspection.getQualityInspectionItemList().stream()
-            .filter(qualityInspectionItem -> qualityInspectionItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(qualityInspectionItem -> CalculationUtil.compareTo(qualityInspectionItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+            .collect(Collectors.toList()));
         // 供应商
         supplierService.setDataMation(qualityInspection, QualityInspection::getHolderId);
         outputObject.setBean(qualityInspection);

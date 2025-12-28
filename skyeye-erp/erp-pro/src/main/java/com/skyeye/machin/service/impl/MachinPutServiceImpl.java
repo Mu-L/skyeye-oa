@@ -14,7 +14,9 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutFromType;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.depot.classenum.DepotPutState;
@@ -32,6 +34,7 @@ import com.skyeye.organization.service.IDepmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -119,12 +122,13 @@ public class MachinPutServiceImpl extends SkyeyeErpOrderServiceImpl<MachinPutDao
         String id = inputObject.getParams().get("id").toString();
         MachinPut machinPut = selectById(id);
         // 该加工入库单下的已经下达仓库入库单(审核通过)的数量
-        Map<String, Integer> depotNumMap = depotPutService.calcMaterialNormsNumByFromId(machinPut.getId());
+        Map<String, String> depotNumMap = depotPutService.calcMaterialNormsNumByFromId(machinPut.getId());
         // 设置未下达商品数量-----加工入库单数量 - 已入库数量
         super.setOrCheckOperNumber(machinPut.getErpOrderItemList(), true, depotNumMap);
         // 过滤掉数量为0的商品信息
         machinPut.setErpOrderItemList(machinPut.getErpOrderItemList().stream()
-            .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList()));
+            .filter(erpOrderItem -> CalculationUtil.compareTo(erpOrderItem.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0)
+            .collect(Collectors.toList()));
         outputObject.setBean(machinPut);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

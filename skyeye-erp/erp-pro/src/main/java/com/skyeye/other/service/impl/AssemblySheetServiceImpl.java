@@ -116,7 +116,7 @@ public class AssemblySheetServiceImpl extends SkyeyeErpOrderServiceImpl<Assembly
             String depotId = erpOrderItem.getDepotId();
             String materialId = erpOrderItem.getMaterialId();
             String normsId = erpOrderItem.getNormsId();
-            Integer operNumber = erpOrderItem.getOperNumber();
+            String operNumber = erpOrderItem.getOperNumber();
             Integer mType = erpOrderItem.getMType();
             if (MaterialInOrderType.ASSEMBLY.getKey().equals(mType)) {
                 erpCommonService.editMaterialNormsDepotStock(depotId, materialId, normsId, operNumber, DepotPutOutType.PUT.getKey());

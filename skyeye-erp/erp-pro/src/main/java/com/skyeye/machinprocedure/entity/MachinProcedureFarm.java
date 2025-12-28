@@ -67,7 +67,7 @@ public class MachinProcedureFarm extends OperatorUserInfo {
 
     @TableField("target_num")
     @ApiModelProperty(value = "目标数量", required = "required,num")
-    private Integer targetNum;
+    private String targetNum;
 
     @TableField(value = "state")
     @Property(value = "状态，参考#MachinProcedureFarmState")

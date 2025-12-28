@@ -46,7 +46,7 @@ public interface SupplierContractService extends SkyeyeBusinessService<SupplierC
      * @param fromId 单据来源id
      * @return
      */
-    Map<String, Integer> calcMaterialNormsNumByFromId(String fromId);
+    Map<String, String> calcMaterialNormsNumByFromId(String fromId);
 
     void querySupplierContractTransById(InputObject inputObject, OutputObject outputObject);
 

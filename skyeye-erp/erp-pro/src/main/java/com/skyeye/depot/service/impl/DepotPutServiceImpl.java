@@ -13,12 +13,15 @@ import com.skyeye.business.service.SkyeyeErpOrderService;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
 import com.skyeye.classenum.ErpOrderStateEnum;
 import com.skyeye.common.constans.CommonCharConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.SpringUtils;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutFromType;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.depot.classenum.DepotPutState;
@@ -54,6 +57,7 @@ import com.skyeye.shop.service.ShopReturnsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -312,10 +316,11 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
             fromMation = (ErpOrderHead) skyeyeErpOrderService.selectById(entity.getFromId());
         }
         // 当前入库单的商品数量
-        Map<String, Integer> orderNormsNum = entity.getErpOrderItemList().stream()
-            .collect(Collectors.toMap(ErpOrderItem::getNormsId, ErpOrderItem::getOperNumber));
+        Map<String, String> orderNormsNum = entity.getErpOrderItemList().stream()
+            .collect(Collectors.toMap(ErpOrderItem::getNormsId,
+                item -> StrUtil.isEmpty(item.getOperNumber()) ? CommonNumConstants.NUM_ZERO.toString() : item.getOperNumber()));
         // 获取已经下达入库单的商品信息
-        Map<String, Integer> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
+        Map<String, String> executeNum = calcMaterialNormsNumByFromId(entity.getFromId());
         List<String> inSqlNormsId = new ArrayList<>(executeNum.keySet());
         super.checkFromOrderMaterialNorms(fromMation.getErpOrderItemList(), inSqlNormsId);
         // 来源单据的商品数量 - 当前单据的商品数量 - 已经入库的商品数量
@@ -323,7 +328,12 @@ public class DepotPutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotPutDao, 
         if (setData) {
             // 过滤掉剩余数量为0的商品
             List<ErpOrderItem> erpOrderItemList = fromMation.getErpOrderItemList().stream()
-                .filter(erpOrderItem -> erpOrderItem.getOperNumber() > 0).collect(Collectors.toList());
+                .filter(erpOrderItem -> {
+                    String operNumber = StrUtil.isEmpty(erpOrderItem.getOperNumber())
+                        ? CommonNumConstants.NUM_ZERO.toString()
+                        : erpOrderItem.getOperNumber();
+                    return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
+                }).collect(Collectors.toList());
             if (entity.getFromTypeId().equals(DepotPutFromType.LOANIN.getKey())) {
                 if (CollectionUtil.isEmpty(erpOrderItemList)) {
                     productReturnInStockService.editOtherState(entity.getFromId(), DepotPutState.COMPLATE_PUT.getKey());

@@ -64,6 +64,6 @@ public class DepartmentStock extends CommonInfo {
 
     @TableField(value = "stock")
     @Property(value = "数量")
-    private Integer stock;
+    private String stock;
 
 }
