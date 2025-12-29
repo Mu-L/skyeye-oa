@@ -40,6 +40,14 @@
 - [Gitcode - 项目地址](https://gitcode.com/doc_wei/skyeye-oa)
 - [Gitee - 项目地址](https://gitee.com/dromara/skyeye)
 
+## 相关视频
+
+- [零代码布局设计器的使用](https://www.bilibili.com/video/BV1tVvWBvEoJ)
+- [虚拟业务对象管理](https://www.bilibili.com/video/BV1rv2CB3E3P/)
+- [多租户下用户赋权操作](https://www.bilibili.com/video/BV1pu4jzvEFi/)
+- [开发者文档管理系统](https://www.bilibili.com/video/BV1FNJyz4EhC/)
+- ......还有更多功能操作视频未上传
+
 ## 🐶 沟通交流
 
 | 微信公众号(Skyeye智能制造云办公) | Skyeye云低代码咨询QQ | `Skyeye会员`加我微信，咨询加QQ，加微信意味着直接付款 | 您可以选择先支付再加微信好友，也可以选择先加微信好友再支付。但是微信不闲聊，咨询请加QQ |
