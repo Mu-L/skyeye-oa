@@ -11,6 +11,7 @@
         <module>adm-survey</module>
         <module>adm-ehr</module>
         <module>adm-ai</module>
+        <module>adm-boss</module>
     </modules>
 
     <parent>
