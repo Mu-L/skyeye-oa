@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.skyeye.cancleleave.dao.CancelLeaveDao">
+
+    <select id="queryCheckWorkCancelLeaveByMation" resultType="java.util.Map">
+        SELECT
+            b.id
+        FROM
+            check_work_cancel_leave a,
+            check_work_cancel_leave_time_slot b
+        WHERE a.create_id = #{createId}
+        AND a.id = b.parent_id
+        AND b.state = #{childState}
+        AND b.cancel_day = #{cancelDay}
+        <if test="tenantId != '' and tenantId != null">
+            AND a.tenant_id = #{tenantId}
+        </if>
+    </select>
+
+</mapper>
