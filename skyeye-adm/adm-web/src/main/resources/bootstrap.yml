@@ -37,7 +37,7 @@ logging:
 
 webroot:
   # 考勤相关的服务
-  skyeye-checkwork: skyeye-checkwork-${spring.profiles.active}
+  skyeye-checkwork: skyeye-adm-${spring.profiles.active}
   # 项目相关的服务
   skyeye-project: skyeye-project-${spring.profiles.active}
 topic:

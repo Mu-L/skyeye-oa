@@ -45,7 +45,7 @@ webroot:
   # 报表
   skyeye-report: skyeye-report-${spring.profiles.active}
   # 考勤
-  skyeye-checkwork: skyeye-checkwork-${spring.profiles.active}
+  skyeye-checkwork: skyeye-adm-${spring.profiles.active}
   # 薪资
   skyeye-wages: skyeye-wages-${spring.profiles.active}
   # xxl-job

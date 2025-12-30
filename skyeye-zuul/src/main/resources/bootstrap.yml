@@ -68,7 +68,7 @@ spring:
         - id: adm
           uri: lb://skyeye-adm-${spring.profiles.active}
           predicates:
-            - Path=/${spring.profiles.active}/adm/**,/${spring.profiles.active}/survey/**,/${spring.profiles.active}/note/**,/${spring.profiles.active}/knowlg/**,/${spring.profiles.active}/mail/**,/${spring.profiles.active}/diskCloud/**,/${spring.profiles.active}/email/**,/${spring.profiles.active}/notice/**,/${spring.profiles.active}/businessFlow/**,/${spring.profiles.active}/forum/**,/${spring.profiles.active}/jobdiary/**,/${spring.profiles.active}/ehr/**,/${spring.profiles.active}/lightApp/**,/${spring.profiles.active}/schedule/**,/${spring.profiles.active}/boss/**
+            - Path=/${spring.profiles.active}/adm/**,/${spring.profiles.active}/survey/**,/${spring.profiles.active}/note/**,/${spring.profiles.active}/knowlg/**,/${spring.profiles.active}/mail/**,/${spring.profiles.active}/diskCloud/**,/${spring.profiles.active}/email/**,/${spring.profiles.active}/notice/**,/${spring.profiles.active}/businessFlow/**,/${spring.profiles.active}/forum/**,/${spring.profiles.active}/jobdiary/**,/${spring.profiles.active}/ehr/**,/${spring.profiles.active}/lightApp/**,/${spring.profiles.active}/schedule/**,/${spring.profiles.active}/boss/**,/${spring.profiles.active}/checkwork/**
           filters:
             - StripPrefix=2
         - id: wages
@@ -93,12 +93,6 @@ spring:
           uri: lb://skyeye-erp-${spring.profiles.active}
           predicates:
             - Path=/${spring.profiles.active}/erp/**
-          filters:
-            - StripPrefix=2
-        - id: checkwork
-          uri: lb://skyeye-checkwork-${spring.profiles.active}
-          predicates:
-            - Path=/${spring.profiles.active}/checkwork/**
           filters:
             - StripPrefix=2
         - id: sealService

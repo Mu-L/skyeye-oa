@@ -12,6 +12,7 @@
         <module>adm-ehr</module>
         <module>adm-ai</module>
         <module>adm-boss</module>
+        <module>adm-checkwork</module>
     </modules>
 
     <parent>

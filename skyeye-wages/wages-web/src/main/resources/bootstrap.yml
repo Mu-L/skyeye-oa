@@ -40,5 +40,5 @@ webroot:
   # 工作流相关的服务
   skyeye-flowable: skyeye-flowable-${spring.profiles.active}
   # 考勤服务
-  skyeye-checkwork: skyeye-checkwork-${spring.profiles.active}
+  skyeye-checkwork: skyeye-adm-${spring.profiles.active}
 

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.skyeye</groupId>
+        <artifactId>skyeye-adm</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>adm-checkwork</artifactId>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>com.skyeye</groupId>
+            <artifactId>adm-common</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+
+        <!-- 整数规划计算 -->
+        <!--        <dependency>-->
+        <!--            <groupId>org.apache.commons</groupId>-->
+        <!--            <artifactId>commons-math3</artifactId>-->
+        <!--            <version>3.6.1</version>-->
+        <!--        </dependency>-->
+        <dependency>
+            <groupId>com.google.ortools</groupId>
+            <artifactId>ortools-java</artifactId>
+            <version>9.10.4067</version>
+        </dependency>
+
+    </dependencies>
+
+</project>
