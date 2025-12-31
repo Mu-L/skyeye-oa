@@ -68,25 +68,13 @@ spring:
         - id: adm
           uri: lb://skyeye-adm-${spring.profiles.active}
           predicates:
-            - Path=/${spring.profiles.active}/adm/**,/${spring.profiles.active}/survey/**,/${spring.profiles.active}/note/**,/${spring.profiles.active}/knowlg/**,/${spring.profiles.active}/mail/**,/${spring.profiles.active}/diskCloud/**,/${spring.profiles.active}/email/**,/${spring.profiles.active}/notice/**,/${spring.profiles.active}/businessFlow/**,/${spring.profiles.active}/forum/**,/${spring.profiles.active}/jobdiary/**,/${spring.profiles.active}/ehr/**,/${spring.profiles.active}/lightApp/**,/${spring.profiles.active}/schedule/**,/${spring.profiles.active}/boss/**,/${spring.profiles.active}/checkwork/**
-          filters:
-            - StripPrefix=2
-        - id: wages
-          uri: lb://skyeye-wages-${spring.profiles.active}
-          predicates:
-            - Path=/${spring.profiles.active}/wages/**
+            - Path=/${spring.profiles.active}/adm/**,/${spring.profiles.active}/survey/**,/${spring.profiles.active}/note/**,/${spring.profiles.active}/knowlg/**,/${spring.profiles.active}/mail/**,/${spring.profiles.active}/diskCloud/**,/${spring.profiles.active}/email/**,/${spring.profiles.active}/notice/**,/${spring.profiles.active}/businessFlow/**,/${spring.profiles.active}/forum/**,/${spring.profiles.active}/jobdiary/**,/${spring.profiles.active}/ehr/**,/${spring.profiles.active}/lightApp/**,/${spring.profiles.active}/schedule/**,/${spring.profiles.active}/boss/**,/${spring.profiles.active}/checkwork/**,/${spring.profiles.active}/ifs/**,/${spring.profiles.active}/wages/**
           filters:
             - StripPrefix=2
         - id: crm
           uri: lb://skyeye-crm-${spring.profiles.active}
           predicates:
             - Path=/${spring.profiles.active}/crm/**
-          filters:
-            - StripPrefix=2
-        - id: ifs
-          uri: lb://skyeye-ifs-${spring.profiles.active}
-          predicates:
-            - Path=/${spring.profiles.active}/ifs/**
           filters:
             - StripPrefix=2
         - id: erp

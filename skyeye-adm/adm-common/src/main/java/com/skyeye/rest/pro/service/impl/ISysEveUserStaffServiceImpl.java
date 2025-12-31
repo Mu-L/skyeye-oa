@@ -15,6 +15,7 @@ import com.skyeye.rest.pro.service.ISysEveUserStaffService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,6 +29,9 @@ public class ISysEveUserStaffServiceImpl extends IServiceImpl implements ISysEve
     @Override
     public List<String> queryTenantUserStaffIdByTenantId(String tenantId) {
         List<Map<String, Object>> tenantUserStaff = queryTenantUserByTenantId(tenantId, null);
+        if (CollectionUtil.isEmpty(tenantUserStaff)) {
+            return CollectionUtil.newArrayList();
+        }
         List<String> staffId = tenantUserStaff.stream().map(item -> item.get("staffId").toString()).collect(Collectors.toList());
         return staffId;
     }
@@ -54,6 +58,14 @@ public class ISysEveUserStaffServiceImpl extends IServiceImpl implements ISysEve
             return CollectionUtil.newArrayList();
         }
         return tenantUserStaff;
+    }
+
+    @Override
+    public void editSysUserStaffActMoneyById(String staffId, String actMoney) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("staffId", staffId);
+        map.put("actMoney", actMoney);
+        ExecuteFeignClient.get(() -> iSysEveUserStaffRest.editSysUserStaffActMoneyById(map));
     }
 
 }

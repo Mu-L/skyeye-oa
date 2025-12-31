@@ -15,7 +15,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
-import com.skyeye.rest.erp.service.IFarmStationService;
+import com.skyeye.rest.erp.farm.service.IFarmStationService;
 import com.skyeye.scheduling.dao.SchedulingShiftsDao;
 import com.skyeye.scheduling.entity.SchedulingShifts;
 import com.skyeye.scheduling.entity.SchedulingShiftsTime;

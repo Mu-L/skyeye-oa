@@ -17,4 +17,6 @@ public interface ISysEveUserStaffService extends IService {
 
     List<Map<String, Object>> queryTenantUserByTenantId(String tenantId, List<String> stateList);
 
+    void editSysUserStaffActMoneyById(String staffId, String actMoney);
+
 }

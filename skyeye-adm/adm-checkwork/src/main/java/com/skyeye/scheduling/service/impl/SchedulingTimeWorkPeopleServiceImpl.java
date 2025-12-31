@@ -13,7 +13,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.rest.erp.service.IFarmStaffService;
+import com.skyeye.rest.erp.farm.service.IFarmStaffService;
 import com.skyeye.scheduling.dao.SchedulingTimeWorkPeopleDao;
 import com.skyeye.scheduling.entity.Scheduling;
 import com.skyeye.scheduling.entity.SchedulingLeave;
