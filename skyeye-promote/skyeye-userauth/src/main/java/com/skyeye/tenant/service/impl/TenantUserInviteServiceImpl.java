@@ -16,7 +16,10 @@ import com.skyeye.common.enumeration.IsUsedEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.PutObject;
 import com.skyeye.common.tenant.context.TenantContext;
+import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.rest.mq.JobMateMation;
 import com.skyeye.eve.service.IJobMateMationService;
@@ -239,6 +242,20 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         tenantUser.setWorkstationType(tenantUserInvite.getWorkstationType());
         tenantUser.setHourlyPrice(tenantUserInvite.getHourlyPrice());
         tenantUserService.createEntity(tenantUser, tenantUserInvite.getCreateId());
+    }
+
+    @Override
+    public void editInviteUsersToExit(String id, Integer exitType) {
+        if (StrUtil.isEmpty(id)) {
+            return;
+        }
+        UpdateWrapper<TenantUserInvite> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(TenantUserInvite::getExitType), exitType);
+        updateWrapper.eq(MybatisPlusUtil.toColumns(TenantUserInvite::getExitTime), DateUtil.getTimeAndToString());
+        updateWrapper.eq(MybatisPlusUtil.toColumns(TenantUserInvite::getExitIp), ToolUtil.getIpByRequest(PutObject.getRequest()));
+        updateWrapper.eq(MybatisPlusUtil.toColumns(TenantUserInvite::getExitTerminalType), PutObject.getRequest().getHeader("requestType"));
+        update(updateWrapper);
     }
 
     private String saveUserStaff(Map<String, Object> params, TenantUserInvite tenantUserInvite) {

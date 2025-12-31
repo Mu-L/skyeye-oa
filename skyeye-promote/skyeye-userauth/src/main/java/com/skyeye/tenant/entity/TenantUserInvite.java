@@ -12,12 +12,14 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.IsUsedEnum;
+import com.skyeye.common.enumeration.RequestType;
 import com.skyeye.common.enumeration.UserStaffState;
 import com.skyeye.common.enumeration.UserStaffWorkstationType;
 import com.skyeye.organization.entity.Company;
 import com.skyeye.organization.entity.CompanyJob;
 import com.skyeye.organization.entity.Department;
 import com.skyeye.organization.entity.JobScore;
+import com.skyeye.tenant.classenum.TenantUserExitType;
 import com.skyeye.tenant.classenum.TenantUserJoinType;
 import lombok.Data;
 
@@ -121,4 +123,20 @@ public class TenantUserInvite extends OperatorUserInfo {
     @TableField("hourly_price")
     @ApiModelProperty(value = "工种类型是小时工的时候的单价")
     private String hourlyPrice;
+
+    @TableField("exit_type")
+    @Property(value = "员工退出租户的类型", enumClass = TenantUserExitType.class)
+    private Integer exitType;
+
+    @TableField("exit_time")
+    @Property(value = "员工退出时间")
+    private String exitTime;
+
+    @TableField("exit_ip")
+    @Property(value = "员工退出的ip")
+    private String exitIp;
+
+    @TableField("exit_terminal_type")
+    @Property(value = "员工退出的终端类型", enumClass = RequestType.class)
+    private String exitTerminalType;
 }

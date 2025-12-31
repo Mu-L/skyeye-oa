@@ -26,4 +26,6 @@ public interface TenantUserInviteService extends SkyeyeBusinessService<TenantUse
     void resendInviteUsersToJoin(InputObject inputObject, OutputObject outputObject);
 
     void joinTenantByInvite(InputObject inputObject, OutputObject outputObject);
+
+    void editInviteUsersToExit(String id, Integer exitType);
 }

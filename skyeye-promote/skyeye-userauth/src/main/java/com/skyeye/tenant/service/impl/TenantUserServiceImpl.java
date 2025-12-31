@@ -37,10 +37,12 @@ import com.skyeye.personnel.entity.SysEveUserStaff;
 import com.skyeye.personnel.service.SysEveUserStaffService;
 import com.skyeye.personnel.service.SysEveUserStaffTimeService;
 import com.skyeye.rest.wages.service.IWagesService;
+import com.skyeye.tenant.classenum.TenantUserExitType;
 import com.skyeye.tenant.dao.TenantUserDao;
 import com.skyeye.tenant.entity.Tenant;
 import com.skyeye.tenant.entity.TenantUser;
 import com.skyeye.tenant.service.TenantService;
+import com.skyeye.tenant.service.TenantUserInviteService;
 import com.skyeye.tenant.service.TenantUserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -86,6 +88,9 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
 
     @Autowired
     private IWagesService iWagesService;
+
+    @Autowired
+    private TenantUserInviteService tenantUserInviteService;
 
     @Override
     protected void validatorEntity(TenantUser entity) {
@@ -206,6 +211,14 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         String staffId = inputObject.getParams().get("staffId").toString();
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
+
+        TenantUser tenantUser = getOne(queryWrapper, false);
+        if (ObjectUtil.isNotEmpty(tenantUser)) {
+            if (StrUtil.isNotEmpty(tenantUser.getTenantUserInviteId())) {
+                // 存在邀请信息，则更新邀请信息的退出信息
+                tenantUserInviteService.editInviteUsersToExit(tenantUser.getTenantUserInviteId(), TenantUserExitType.ADMINISTRATOR_REMOVED.getKey());
+            }
+        }
         remove(queryWrapper);
         deleteUserCache(staffId);
     }
@@ -217,6 +230,14 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         String staffId = InputObject.getLogParamsStatic().get("staffId").toString();
         QueryWrapper<TenantUser> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantUser::getStaffId), staffId);
+
+        TenantUser tenantUser = getOne(queryWrapper, false);
+        if (ObjectUtil.isNotEmpty(tenantUser)) {
+            if (StrUtil.isNotEmpty(tenantUser.getTenantUserInviteId())) {
+                // 存在邀请信息，则更新邀请信息的退出信息
+                tenantUserInviteService.editInviteUsersToExit(tenantUser.getTenantUserInviteId(), TenantUserExitType.VOLUNTARY_EXIT.getKey());
+            }
+        }
         remove(queryWrapper);
         deleteUserCache(staffId);
     }
