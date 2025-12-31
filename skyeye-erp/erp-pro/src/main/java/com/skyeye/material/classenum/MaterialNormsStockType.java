@@ -4,6 +4,7 @@
 
 package com.skyeye.material.classenum;
 
+import cn.hutool.core.util.StrUtil;
 import com.skyeye.common.base.classenum.SkyeyeEnumClass;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,16 +23,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum MaterialNormsStockType implements SkyeyeEnumClass {
 
-    INIT_STOCK(1, "初始化库存", "初始化库存", true, true),
-    ORDER_STOCK(2, "现有库存", "现有库存", true, false),
-    IN_TRANSIT_STOCK(3, "在途物料/在制物料", "已经下达采购订单的，但是还未到货的物料/已经下达生产订单的，但是还未完成的物料", true, false),
-    ALLOCATED_STOCK(4, "已分配量", "已经分配给生产订单的物料/已经分配给销售订单的物料", true, false);
+    INIT_STOCK(1, "初始化库存", "初始化库存", StrUtil.EMPTY, true, true),
+    ORDER_STOCK(2, "现有库存", "实际库存", StrUtil.EMPTY, true, false),
+    IN_TRANSIT_STOCK(3, "在途物料/在制物料", "已经下达采购订单的，但是还未到货的物料/已经下达生产订单的，但是还未完成的物料", "inTransitStock", true, false),
+    ALLOCATED_STOCK(4, "已分配量", "已经分配给销售订单的物料", "allocatedStock", true, false);
 
     private Integer key;
 
     private String value;
 
     private String description;
+
+    private String defaultDepotId;
 
     private Boolean show;
 

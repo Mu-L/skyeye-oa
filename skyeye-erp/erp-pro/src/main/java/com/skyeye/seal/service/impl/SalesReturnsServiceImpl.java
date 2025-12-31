@@ -25,6 +25,7 @@ import com.skyeye.depot.service.DepotPutService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.classenum.MaterialInOrderType;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.seal.classenum.SealReturnFromType;
 import com.skyeye.seal.dao.SalesReturnsDao;
 import com.skyeye.seal.entity.SalesOrder;
@@ -154,6 +155,11 @@ public class SalesReturnsServiceImpl extends SkyeyeErpOrderServiceImpl<SalesRetu
         entity = selectById(entity.getId());
         // 修改来源单据信息
         checkMaterialNorms(entity, true);
+        // 减少已分配量库存
+        entity.getErpOrderItemList().forEach(erpOrderItem -> {
+            erpCommonService.editMaterialNormsDepotStock(MaterialNormsStockType.ALLOCATED_STOCK.getDefaultDepotId(), erpOrderItem.getMaterialId(),
+                erpOrderItem.getNormsId(), erpOrderItem.getOperNumber(), DepotPutOutType.OUT.getKey(), MaterialNormsStockType.ALLOCATED_STOCK.getKey());
+        });
     }
 
     @Override

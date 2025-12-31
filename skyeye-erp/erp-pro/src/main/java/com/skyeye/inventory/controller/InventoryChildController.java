@@ -31,12 +31,6 @@ public class InventoryChildController {
     @Autowired
     private InventoryChildService inventoryChildService;
 
-    /**
-     * 获取我的盘点任务信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryInventoryChildList", value = "获取我的盘点任务信息列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/InventoryChildController/queryInventoryChildList")
@@ -44,12 +38,6 @@ public class InventoryChildController {
         inventoryChildService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询盘点任务子单据信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryInventoryChildById", value = "根据id查询盘点任务子单据信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -58,12 +46,6 @@ public class InventoryChildController {
         inventoryChildService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 盘点完成
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "complateInventoryChild", value = "盘点完成", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),

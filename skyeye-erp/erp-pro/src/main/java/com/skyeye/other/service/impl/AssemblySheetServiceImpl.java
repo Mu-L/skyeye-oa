@@ -14,10 +14,7 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
-import com.skyeye.material.classenum.MaterialInOrderType;
-import com.skyeye.material.classenum.MaterialItemCode;
-import com.skyeye.material.classenum.MaterialNormsCodeInDepot;
-import com.skyeye.material.classenum.MaterialNormsCodeType;
+import com.skyeye.material.classenum.*;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.entity.MaterialNormsCode;
@@ -119,9 +116,9 @@ public class AssemblySheetServiceImpl extends SkyeyeErpOrderServiceImpl<Assembly
             String operNumber = erpOrderItem.getOperNumber();
             Integer mType = erpOrderItem.getMType();
             if (MaterialInOrderType.ASSEMBLY.getKey().equals(mType)) {
-                erpCommonService.editMaterialNormsDepotStock(depotId, materialId, normsId, operNumber, DepotPutOutType.PUT.getKey());
+                erpCommonService.editMaterialNormsDepotStock(depotId, materialId, normsId, operNumber, DepotPutOutType.PUT.getKey(), MaterialNormsStockType.ORDER_STOCK.getKey());
             } else if (MaterialInOrderType.GENERAL_SUBASSEMBLY.getKey().equals(mType)) {
-                erpCommonService.editMaterialNormsDepotStock(depotId, materialId, normsId, operNumber, DepotPutOutType.OUT.getKey());
+                erpCommonService.editMaterialNormsDepotStock(depotId, materialId, normsId, operNumber, DepotPutOutType.OUT.getKey(), MaterialNormsStockType.ORDER_STOCK.getKey());
             }
         }
     }

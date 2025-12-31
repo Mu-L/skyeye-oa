@@ -40,6 +40,7 @@ import com.skyeye.holder.entity.HolderNorms;
 import com.skyeye.holder.service.HolderNormsService;
 import com.skyeye.ifs.service.IAccountService;
 import com.skyeye.material.classenum.MaterialItemCode;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.service.MaterialNormsCodeService;
@@ -383,7 +384,7 @@ public class SkyeyeErpOrderServiceImpl<D extends SkyeyeBaseMapper<T>, T extends 
         String createTime = DateUtil.getTimeAndToString();
         // 修改库存&&保存客户/供应商/会员关联的商品信息
         for (ErpOrderItem bean : erpOrderItemList) {
-            erpCommonService.editMaterialNormsDepotStock(bean.getDepotId(), bean.getMaterialId(), bean.getNormsId(), bean.getOperNumber(), type);
+            erpCommonService.editMaterialNormsDepotStock(bean.getDepotId(), bean.getMaterialId(), bean.getNormsId(), bean.getOperNumber(), type, MaterialNormsStockType.ORDER_STOCK.getKey());
 
             if (StrUtil.isNotEmpty(holderId) && StrUtil.isNotEmpty(holderKey) && orderTypes.contains(orderIdKey)) {
                 // 记录客户/供应商/会员关联的商品

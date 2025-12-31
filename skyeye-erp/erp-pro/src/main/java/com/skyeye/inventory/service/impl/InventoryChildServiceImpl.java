@@ -35,6 +35,7 @@ import com.skyeye.inventory.service.InventoryService;
 import com.skyeye.material.classenum.MaterialItemCode;
 import com.skyeye.material.classenum.MaterialNormsCodeInDepot;
 import com.skyeye.material.classenum.MaterialNormsCodeType;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.entity.MaterialNormsCode;
@@ -225,11 +226,11 @@ public class InventoryChildServiceImpl extends SkyeyeLinkDataServiceImpl<Invento
             // 盘点数量减少，库存数量减少（changeNumber为负数，需要转为正数）
             String absChangeNumber = CalculationUtil.subtract(CommonNumConstants.NUM_ZERO.toString(), changeNumber, ErpConstants.NUM_AFTER_DOT);
             erpCommonService.editMaterialNormsDepotStock(inventoryChild.getDepotId(), inventoryChild.getMaterialId(),
-                inventoryChild.getNormsId(), absChangeNumber, DepotPutOutType.OUT.getKey());
+                inventoryChild.getNormsId(), absChangeNumber, DepotPutOutType.OUT.getKey(), MaterialNormsStockType.ORDER_STOCK.getKey());
         } else if (CalculationUtil.compareTo(changeNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0) {
             // 盘点数量增加，库存数量增加
             erpCommonService.editMaterialNormsDepotStock(inventoryChild.getDepotId(), inventoryChild.getMaterialId(),
-                inventoryChild.getNormsId(), changeNumber, DepotPutOutType.PUT.getKey());
+                inventoryChild.getNormsId(), changeNumber, DepotPutOutType.PUT.getKey(), MaterialNormsStockType.ORDER_STOCK.getKey());
         }
 
         // 更新盘点子单据信息

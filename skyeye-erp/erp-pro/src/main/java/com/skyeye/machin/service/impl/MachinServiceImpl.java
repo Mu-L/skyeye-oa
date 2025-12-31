@@ -27,6 +27,7 @@ import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.constants.ErpConstants;
+import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
 import com.skyeye.machin.classenum.MachinFromType;
 import com.skyeye.machin.classenum.MachinPickStateEnum;
@@ -41,6 +42,7 @@ import com.skyeye.machinprocedure.entity.MachinProcedureAccept;
 import com.skyeye.machinprocedure.entity.MachinProcedureFarm;
 import com.skyeye.machinprocedure.service.MachinProcedureFarmService;
 import com.skyeye.machinprocedure.service.MachinProcedureService;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.service.MaterialNormsService;
@@ -61,6 +63,7 @@ import com.skyeye.production.classenum.ProductionMachinOrderState;
 import com.skyeye.production.entity.Production;
 import com.skyeye.production.entity.ProductionChild;
 import com.skyeye.production.service.ProductionService;
+import com.skyeye.service.ErpCommonService;
 import com.skyeye.util.ErpOrderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -118,6 +121,9 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
 
     @Autowired
     private ReturnMaterialService returnMaterialService;
+
+    @Autowired
+    protected ErpCommonService erpCommonService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -430,6 +436,11 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         entity = selectById(entity.getId());
         // 修改来源单据的状态信息
         checkMaterialNorms(entity, true);
+        // 增加在制库存
+        entity.getMachinChildList().forEach(erpOrderItem -> {
+            erpCommonService.editMaterialNormsDepotStock(MaterialNormsStockType.IN_TRANSIT_STOCK.getDefaultDepotId(), erpOrderItem.getMaterialId(),
+                erpOrderItem.getNormsId(), erpOrderItem.getOperNumber(), DepotPutOutType.PUT.getKey(), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey());
+        });
     }
 
     @Override

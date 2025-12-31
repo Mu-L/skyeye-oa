@@ -33,12 +33,6 @@ public class PurchasePutController {
     @Autowired
     private PurchasePutService purchasePutService;
 
-    /**
-     * 获取采购入库列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "purchaseput001", value = "获取采购入库单列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/PurchasePutController/queryPurchasePutList")
@@ -46,12 +40,6 @@ public class PurchasePutController {
         purchasePutService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑采购入库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writePurchasePut", value = "新增/编辑采购入库单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = PurchasePut.class)
     @RequestMapping("/post/PurchasePutController/writePurchasePut")
@@ -59,12 +47,6 @@ public class PurchasePutController {
         purchasePutService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 转仓库入库单时，根据id查询采购入库信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryPurchasePutTransById", value = "转仓库入库单时，根据id查询采购入库信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class PurchasePutController {
         purchasePutService.queryPurchasePutTransById(inputObject, outputObject);
     }
 
-    /**
-     * 采购入库单信息转仓库入库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertPurchasePutToTurnDepot", value = "采购入库单信息转仓库入库单", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DepotPut.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

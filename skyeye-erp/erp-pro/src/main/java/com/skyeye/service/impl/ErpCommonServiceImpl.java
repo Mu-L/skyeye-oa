@@ -101,9 +101,10 @@ public class ErpCommonServiceImpl implements ErpCommonService {
      * @param normsId    规格id
      * @param operNumber 变化数量
      * @param type       出入库类型， {@link DepotPutOutType}
+     * @param stockType  库存类型， {@link MaterialNormsStockType}
      */
     @Override
-    public void editMaterialNormsDepotStock(String depotId, String materialId, String normsId, String operNumber, int type) {
+    public void editMaterialNormsDepotStock(String depotId, String materialId, String normsId, String operNumber, int type, int stockType) {
         String lockKey = String.format("%s_%s", depotId, normsId);
         RedisLock lock = new RedisLock(lockKey);
         try {
@@ -115,16 +116,18 @@ public class ErpCommonServiceImpl implements ErpCommonService {
             // 查询规格库存信息
             MaterialNorms materialNorms = materialNormsService.queryMaterialNorms(normsId, depotId);
             String depotAllStock = ObjectUtil.isNotEmpty(materialNorms.getDepotTock()) ? materialNorms.getDepotTock().getAllStock() : CommonNumConstants.NUM_ZERO.toString();
-            depotAllStock = getNewStockNum(type, operNumber, depotAllStock);
-            // 减去初始库存
-            if (CollectionUtil.isNotEmpty(materialNorms.getNormsStock())) {
+            depotAllStock = getNewStockNum(type, operNumber, depotAllStock, stockType);
+
+            if (CollectionUtil.isNotEmpty(materialNorms.getNormsStock()) && stockType == MaterialNormsStockType.ORDER_STOCK.getKey()) {
+                // 只有现有库存类型的，才去减去初始库存
                 MaterialNormsStock materialNormsStock = materialNorms.getNormsStock().stream()
                     .filter(normsStock -> StrUtil.equals(normsStock.getDepotId(), depotId)).findFirst().orElse(null);
                 if (ObjectUtil.isNotEmpty(materialNormsStock)) {
                     depotAllStock = CalculationUtil.subtract(depotAllStock, materialNormsStock.getStock(), ErpConstants.NUM_AFTER_DOT);
                 }
             }
-            materialNormsStockService.saveMaterialNormsStock(materialId, depotId, normsId, depotAllStock, MaterialNormsStockType.ORDER_STOCK.getKey());
+
+            materialNormsStockService.saveMaterialNormsStock(materialId, depotId, normsId, depotAllStock, stockType);
             LOGGER.info("editMaterialNormsDepotStock is success.");
         } catch (Exception ee) {
             LOGGER.warn("editMaterialNormsDepotStock error, because {}", ee);
@@ -137,7 +140,7 @@ public class ErpCommonServiceImpl implements ErpCommonService {
         }
     }
 
-    private String getNewStockNum(int type, String changeNumber, String depotAllStock) {
+    private String getNewStockNum(int type, String changeNumber, String depotAllStock, int stockType) {
         if (type == DepotPutOutType.PUT.getKey()) {
             // 入库
             depotAllStock = CalculationUtil.add(depotAllStock, changeNumber, ErpConstants.NUM_AFTER_DOT);
@@ -145,8 +148,9 @@ public class ErpCommonServiceImpl implements ErpCommonService {
             // 出库
             depotAllStock = CalculationUtil.subtract(depotAllStock, changeNumber, ErpConstants.NUM_AFTER_DOT);
         }
-        if (CalculationUtil.compareTo(depotAllStock, CommonNumConstants.NUM_ZERO.toString(), 0, RoundingMode.UP) < 0) {
-            // 库存不足
+        if (CalculationUtil.compareTo(depotAllStock, CommonNumConstants.NUM_ZERO.toString(), 0, RoundingMode.UP) < 0
+            && stockType == MaterialNormsStockType.ORDER_STOCK.getKey()) {
+            // 只有现有库存类型的，才提示库存不足
             throw new CustomException("当前库存不足，无法操作.");
         }
         return depotAllStock;

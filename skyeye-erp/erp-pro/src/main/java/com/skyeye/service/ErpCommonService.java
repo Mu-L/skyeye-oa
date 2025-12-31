@@ -6,6 +6,8 @@ package com.skyeye.service;
 
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.depot.classenum.DepotPutOutType;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 
 /**
  * @ClassName: ErpCommonService
@@ -28,9 +30,10 @@ public interface ErpCommonService {
      * @param materialId 商品id
      * @param normsId    规格id
      * @param operNumber 变化数量
-     * @param type       出入库类型，参考#DepotPutOutType
+     * @param type       出入库类型， {@link DepotPutOutType}
+     * @param stockType  库存类型， {@link MaterialNormsStockType}
      */
-    void editMaterialNormsDepotStock(String depotId, String materialId, String normsId, String operNumber, int type);
+    void editMaterialNormsDepotStock(String depotId, String materialId, String normsId, String operNumber, int type, int stockType);
 
     void editDepotHeadToRevoke(InputObject inputObject, OutputObject outputObject);
 

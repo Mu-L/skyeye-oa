@@ -29,6 +29,7 @@ import com.skyeye.inspection.entity.QualityInspection;
 import com.skyeye.inspection.entity.QualityInspectionItem;
 import com.skyeye.inspection.service.QualityInspectionService;
 import com.skyeye.material.classenum.MaterialInOrderType;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.purchase.classenum.DeliveryPutState;
 import com.skyeye.purchase.classenum.PurchasePutFromType;
 import com.skyeye.purchase.dao.PurchasePutDao;
@@ -276,6 +277,11 @@ public class PurchasePutServiceImpl extends SkyeyeErpOrderServiceImpl<PurchasePu
         entity = selectById(entity.getId());
         // 修改来源单据信息
         checkMaterialNorms(entity, true);
+        // 减少在途库存
+        entity.getErpOrderItemList().forEach(erpOrderItem -> {
+            erpCommonService.editMaterialNormsDepotStock(MaterialNormsStockType.IN_TRANSIT_STOCK.getDefaultDepotId(), erpOrderItem.getMaterialId(),
+                erpOrderItem.getNormsId(), erpOrderItem.getOperNumber(), DepotPutOutType.OUT.getKey(), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey());
+        });
     }
 
     @Override

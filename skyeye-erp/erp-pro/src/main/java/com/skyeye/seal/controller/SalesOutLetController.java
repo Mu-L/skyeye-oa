@@ -33,12 +33,6 @@ public class SalesOutLetController {
     @Autowired
     private SalesOutLetService salesOutLetService;
 
-    /**
-     * 获取销售出库单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "salesoutlet001", value = "获取销售出库单列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SalesOutLetController/querySalesOutLetList")
@@ -46,12 +40,6 @@ public class SalesOutLetController {
         salesOutLetService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑销售出库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSalesOutLet", value = "新增/编辑销售出库单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SalesOutLet.class)
     @RequestMapping("/post/SalesOutLetController/writeSalesOutLet")
@@ -59,12 +47,6 @@ public class SalesOutLetController {
         salesOutLetService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 转仓库出库单时，根据id查询销售出库信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySalesOutLetTransById", value = "转仓库出库单时，根据id查询销售出库信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class SalesOutLetController {
         salesOutLetService.querySalesOutLetTransById(inputObject, outputObject);
     }
 
-    /**
-     * 销售出库单信息转仓库出库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertSalesOutLetToTurnDepot", value = "销售出库单信息转仓库出库单", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DepotOut.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

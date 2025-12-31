@@ -26,6 +26,7 @@ import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.classenum.MaterialInOrderType;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.production.classenum.ProductionPlanFromType;
 import com.skyeye.production.entity.ProductionPlan;
 import com.skyeye.production.service.ProductionPlanService;
@@ -178,6 +179,11 @@ public class SalesOrderServiceImpl extends SkyeyeErpOrderServiceImpl<SalesOrderD
     public void approvalEndIsSuccess(SalesOrder entity) {
         entity = selectById(entity.getId());
         checkMaterialNorms(entity, true);
+        // 增加已分配量库存
+        entity.getErpOrderItemList().forEach(erpOrderItem -> {
+            erpCommonService.editMaterialNormsDepotStock(MaterialNormsStockType.ALLOCATED_STOCK.getDefaultDepotId(), erpOrderItem.getMaterialId(),
+                erpOrderItem.getNormsId(), erpOrderItem.getOperNumber(), DepotPutOutType.PUT.getKey(), MaterialNormsStockType.ALLOCATED_STOCK.getKey());
+        });
     }
 
     /**

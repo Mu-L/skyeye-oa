@@ -33,12 +33,6 @@ public class SalesReturnsController {
     @Autowired
     private SalesReturnsService salesReturnsService;
 
-    /**
-     * 获取销售退货单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "salesreturns001", value = "获取销售退货单列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SalesReturnsController/querySalesReturnsList")
@@ -46,12 +40,6 @@ public class SalesReturnsController {
         salesReturnsService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑销售退货单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSalesReturns", value = "新增/编辑销售退货单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SalesReturns.class)
     @RequestMapping("/post/SalesReturnsController/writeSalesReturns")
@@ -59,12 +47,6 @@ public class SalesReturnsController {
         salesReturnsService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 转仓库入库单时，根据id查询销售退货信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySalesReturnsTransById", value = "转仓库入库单时，根据id查询销售退货信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class SalesReturnsController {
         salesReturnsService.querySalesReturnsTransById(inputObject, outputObject);
     }
 
-    /**
-     * 销售退货单信息转仓库入库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertSalesReturnsToTurnDepot", value = "销售退货单信息转仓库入库单", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DepotPut.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
