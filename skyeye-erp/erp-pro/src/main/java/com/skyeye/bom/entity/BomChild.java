@@ -18,6 +18,8 @@ import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.procedure.entity.WayProcedure;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * @ClassName: BomChild
  * @Description: bom表子件清单实体类
@@ -98,5 +100,9 @@ public class BomChild extends CommonInfo {
     @TableField(exist = false)
     @Property(value = "树节点是否展开")
     private boolean open;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "工序耗材列表", required = "json")
+    private List<BomProcedureConsumables> procedureConsumablesList;
 
 }

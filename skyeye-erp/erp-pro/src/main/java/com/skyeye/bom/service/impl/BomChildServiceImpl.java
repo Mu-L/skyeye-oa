@@ -12,7 +12,9 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.bom.dao.BomChildDao;
 import com.skyeye.bom.entity.BomChild;
+import com.skyeye.bom.entity.BomProcedureConsumables;
 import com.skyeye.bom.service.BomChildService;
+import com.skyeye.bom.service.BomProcedureConsumablesService;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -23,6 +25,7 @@ import com.skyeye.procedure.service.WayProcedureService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -45,6 +48,9 @@ public class BomChildServiceImpl extends SkyeyeBusinessServiceImpl<BomChildDao, 
 
     @Autowired
     private WayProcedureService wayProcedureService;
+
+    @Autowired
+    private BomProcedureConsumablesService bomProcedureConsumablesService;
 
     /**
      * 计算耗材总费用
@@ -105,13 +111,38 @@ public class BomChildServiceImpl extends SkyeyeBusinessServiceImpl<BomChildDao, 
     }
 
     @Override
+    protected void createPostpose(List<BomChild> entity, String userId) {
+        if (CollectionUtil.isEmpty(entity)) {
+            return;
+        }
+        String bomId = entity.get(0).getBomId();
+        // 保存工序耗材信息
+        List<BomProcedureConsumables> list = new ArrayList<>();
+        entity.forEach(bomChild -> {
+            if (CollectionUtil.isNotEmpty(bomChild.getProcedureConsumablesList())) {
+                bomChild.getProcedureConsumablesList().forEach(bomConsumables -> {
+                    bomConsumables.setBomChildId(bomChild.getId());
+                    bomConsumables.setBomId(bomChild.getBomId());
+                });
+                list.addAll(bomChild.getProcedureConsumablesList());
+            }
+        });
+        bomProcedureConsumablesService.saveList(bomId, list);
+
+    }
+
+    @Override
     public void deleteBomChildByBomId(String bomId) {
         if (StrUtil.isEmpty(bomId)) {
             return;
         }
+        // 先查询所有子件ID，用于删除工序耗材
         QueryWrapper<BomChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(BomChild::getBomId), bomId);
+        // 删除BOM子件
         remove(queryWrapper);
+        // 删除工序耗材
+        bomProcedureConsumablesService.deleteByBomId(bomId);
     }
 
     @Override
@@ -120,6 +151,14 @@ public class BomChildServiceImpl extends SkyeyeBusinessServiceImpl<BomChildDao, 
         queryWrapper.eq(MybatisPlusUtil.toColumns(BomChild::getBomId), bomId);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(BomChild::getOrderBy));
         List<BomChild> bomChildren = list(queryWrapper);
+        if  (CollectionUtil.isNotEmpty(bomChildren)) {
+            // 设置耗材信息
+            List<String> bomChildIdList = bomChildren.stream().map(BomChild::getBomId).collect(Collectors.toList());
+            Map<String, List<BomProcedureConsumables>> listMap = bomProcedureConsumablesService.queryListByBomChildIds(bomChildIdList);
+            bomChildren.forEach(bomChild -> {
+                bomChild.setProcedureConsumablesList(listMap.get(bomChild.getId()));
+            });
+        }
         return bomChildren;
     }
 
@@ -129,6 +168,14 @@ public class BomChildServiceImpl extends SkyeyeBusinessServiceImpl<BomChildDao, 
         queryWrapper.in(MybatisPlusUtil.toColumns(BomChild::getBomId), bomIds);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(BomChild::getOrderBy));
         List<BomChild> bomChildren = list(queryWrapper);
+        if  (CollectionUtil.isNotEmpty(bomChildren)) {
+            // 设置耗材信息
+            List<String> bomChildIdList = bomChildren.stream().map(BomChild::getBomId).collect(Collectors.toList());
+            Map<String, List<BomProcedureConsumables>> listMap = bomProcedureConsumablesService.queryListByBomChildIds(bomChildIdList);
+            bomChildren.forEach(bomChild -> {
+                bomChild.setProcedureConsumablesList(listMap.get(bomChild.getId()));
+            });
+        }
         Map<String, List<BomChild>> listMap = bomChildren.stream().collect(Collectors.groupingBy(BomChild::getBomId));
         return listMap;
     }

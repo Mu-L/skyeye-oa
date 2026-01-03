@@ -15,6 +15,8 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.bom.entity.Bom;
 import com.skyeye.bom.entity.BomChild;
+import com.skyeye.bom.entity.BomProcedureConsumables;
+import com.skyeye.bom.service.BomProcedureConsumablesService;
 import com.skyeye.bom.service.BomService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -80,6 +82,9 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
 
     @Autowired
     private BomService bomService;
+
+    @Autowired
+    private BomProcedureConsumablesService bomProcedureConsumablesService;
 
     @Autowired
     private DepartmentStockService departmentStockService;
@@ -250,15 +255,16 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
     }
 
     /**
-     * 计算所执行工序的耗材数量信息
+     * 计算所执行工序的耗材数量信息（按工序配置的耗材）
      *
      * @param machinProcedureFarm 车间任务
      */
     private Map<String, BomChild> calculateProcedureConsumables(MachinProcedureFarm machinProcedureFarm) {
         // 获取加工单工序信息
         MachinProcedure machinProcedure = machinProcedureFarm.getMachinProcedureMation();
-        if (machinProcedure == null || StrUtil.isEmpty(machinProcedure.getBomChildId())) {
-            // 如果没有BOM子件清单ID，说明该工序不需要耗材
+        if (machinProcedure == null || StrUtil.isEmpty(machinProcedure.getBomChildId()) 
+            || StrUtil.isEmpty(machinProcedure.getProcedureId())) {
+            // 如果没有BOM子件清单ID或工序ID，说明该工序不需要耗材
             return Collections.emptyMap();
         }
 
@@ -297,68 +303,36 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
         // 计算单元比例 = 目标数量 / BOM制造数量
         String unitRatio = CalculationUtil.divide(targetNum, String.valueOf(bom.getMakeNum()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
 
-        // 构建BOM子件Map，key为normsId，用于查找子节点
-        Map<String, BomChild> bomChildMap = bom.getBomChildList().stream()
-            .collect(Collectors.toMap(BomChild::getNormsId, child -> child, (k1, k2) -> k1));
-
-        // 递归计算该子件及其所有子节点的耗材数量
-        List<BomChild> consumablesList = new ArrayList<>();
-        calculateConsumablesRecursive(targetBomChild, bomChildMap, unitRatio, consumablesList);
+        // 查询该工序配置的耗材列表
+        List<BomProcedureConsumables> currentProcedureConsumables = bomProcedureConsumablesService.queryListByBomChildId(targetBomChild.getId());
+        if (CollectionUtil.isEmpty(currentProcedureConsumables)) {
+            return Collections.emptyMap();
+        }
 
         // 根据规格ID去重并合并所需数量
         Map<String, BomChild> consumablesMap = new HashMap<>();
-        consumablesList.forEach(bomChild -> {
-            if (consumablesMap.containsKey(bomChild.getNormsId())) {
-                BomChild existBomChild = consumablesMap.get(bomChild.getNormsId());
+        currentProcedureConsumables.forEach(consumables -> {
+            // 计算实际需要数量 = 单元比例 * 耗材配置数量
+            String actualNeedNum = CalculationUtil.multiply(unitRatio, consumables.getNeedNum(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            
+            String normsId = consumables.getNormsId();
+            if (consumablesMap.containsKey(normsId)) {
+                BomChild existBomChild = consumablesMap.get(normsId);
                 String sum = CalculationUtil.add(
                     StrUtil.isEmpty(existBomChild.getNeedNum()) ? CommonNumConstants.NUM_ZERO.toString() : existBomChild.getNeedNum(),
-                    StrUtil.isEmpty(bomChild.getNeedNum()) ? CommonNumConstants.NUM_ZERO.toString() : bomChild.getNeedNum(),
+                    actualNeedNum,
                     ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
                 existBomChild.setNeedNum(sum);
             } else {
                 BomChild newBomChild = new BomChild();
-                BeanUtil.copyProperties(bomChild, newBomChild);
-                consumablesMap.put(bomChild.getNormsId(), newBomChild);
+                newBomChild.setMaterialId(consumables.getMaterialId());
+                newBomChild.setNormsId(consumables.getNormsId());
+                newBomChild.setNeedNum(actualNeedNum);
+                consumablesMap.put(normsId, newBomChild);
             }
         });
 
         return consumablesMap;
-    }
-
-    /**
-     * 递归计算耗材数量
-     *
-     * @param bomChild        当前BOM子件
-     * @param bomChildMap     BOM子件Map（key为normsId）
-     * @param unitRatio       单元比例（目标数量 / BOM制造数量）
-     * @param consumablesList 耗材列表（用于收集结果）
-     */
-    private void calculateConsumablesRecursive(BomChild bomChild, Map<String, BomChild> bomChildMap,
-                                               String unitRatio, List<BomChild> consumablesList) {
-        if (bomChild == null || StrUtil.isEmpty(bomChild.getNeedNum())) {
-            return;
-        }
-
-        // 计算当前节点的实际需要数量 = 单元比例 * 当前节点的needNum
-        String actualNeedNum = CalculationUtil.multiply(unitRatio, bomChild.getNeedNum(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
-
-        // 创建新的BOM子件对象，设置计算后的数量
-        BomChild consumable = new BomChild();
-        BeanUtil.copyProperties(bomChild, consumable);
-        consumable.setNeedNum(actualNeedNum);
-        consumablesList.add(consumable);
-
-        // 查找当前节点的所有子节点（parentId等于当前节点的materialId）
-        List<BomChild> childNodes = bomChildMap.values().stream()
-            .filter(child -> StrUtil.equals(child.getParentId(), bomChild.getMaterialId()))
-            .collect(Collectors.toList());
-
-        // 递归处理子节点，使用相同的unitRatio
-        if (CollectionUtil.isNotEmpty(childNodes)) {
-            for (BomChild childNode : childNodes) {
-                calculateConsumablesRecursive(childNode, bomChildMap, unitRatio, consumablesList);
-            }
-        }
     }
 
     @Override

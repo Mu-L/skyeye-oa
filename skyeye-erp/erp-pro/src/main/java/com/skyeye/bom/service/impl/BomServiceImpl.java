@@ -15,6 +15,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.bom.dao.BomDao;
 import com.skyeye.bom.entity.Bom;
 import com.skyeye.bom.entity.BomChild;
+import com.skyeye.bom.entity.BomProcedureConsumables;
 import com.skyeye.bom.service.BomChildService;
 import com.skyeye.bom.service.BomService;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -68,7 +69,7 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
     @Override
     public QueryWrapper<Bom> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Bom> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(Bom:: getWhetherLast), WhetherEnum.ENABLE_USING.getKey());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Bom::getWhetherLast), WhetherEnum.ENABLE_USING.getKey());
         return queryWrapper;
     }
 
@@ -101,8 +102,8 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
             throw new CustomException("子件清单中不能包含父件信息");
         }
         entity.getBomChildList().forEach(bomChild -> {
-            String needNum = StrUtil.isEmpty(bomChild.getNeedNum()) 
-                ? CommonNumConstants.NUM_ZERO.toString() 
+            String needNum = StrUtil.isEmpty(bomChild.getNeedNum())
+                ? CommonNumConstants.NUM_ZERO.toString()
                 : bomChild.getNeedNum();
             if (CalculationUtil.compareTo(needNum, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) == 0) {
                 throw new CustomException("子件数量不能为0");
@@ -156,6 +157,13 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
         materialNormsService.setDataMation(bom.getBomChildList(), BomChild::getNormsId);
         materialService.setDataMation(bom, Bom::getMaterialId);
         materialNormsService.setDataMation(bom, Bom::getNormsId);
+        // 查询工序耗材信息
+        bom.getBomChildList().forEach(bomChild -> {
+            if (CollectionUtil.isNotEmpty(bomChild.getProcedureConsumablesList())) {
+                materialService.setDataMation(bomChild.getProcedureConsumablesList(), BomProcedureConsumables::getMaterialId);
+                materialNormsService.setDataMation(bomChild.getProcedureConsumablesList(), BomProcedureConsumables::getNormsId);
+            }
+        });
         return bom;
     }
 
@@ -172,6 +180,13 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
             // 设置产品/规格信息
             materialService.setDataMation(bom.getBomChildList(), BomChild::getMaterialId);
             materialNormsService.setDataMation(bom.getBomChildList(), BomChild::getNormsId);
+            // 查询工序耗材信息
+            bom.getBomChildList().forEach(bomChild -> {
+                if (CollectionUtil.isNotEmpty(bomChild.getProcedureConsumablesList())) {
+                    materialService.setDataMation(bomChild.getProcedureConsumablesList(), BomProcedureConsumables::getMaterialId);
+                    materialNormsService.setDataMation(bomChild.getProcedureConsumablesList(), BomProcedureConsumables::getNormsId);
+                }
+            });
         });
         materialService.setDataMation(bomList, Bom::getMaterialId);
         materialNormsService.setDataMation(bomList, Bom::getNormsId);
