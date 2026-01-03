@@ -15,6 +15,7 @@ import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.farm.entity.Farm;
 import com.skyeye.machin.entity.Machin;
 import com.skyeye.machin.entity.MachinPut;
+import com.skyeye.machinprocedure.classenum.MachinProcedureFarmState;
 import lombok.Data;
 
 import java.util.List;
@@ -69,8 +70,24 @@ public class MachinProcedureFarm extends OperatorUserInfo {
     @ApiModelProperty(value = "目标数量", required = "required,num")
     private String targetNum;
 
+    @TableField("accept_num")
+    @Property(value = "车间任务所有的验收数量")
+    private String acceptNum;
+
+    @TableField("qualified_num")
+    @Property(value = "车间任务所有的合格数量")
+    private String qualifiedNum;
+
+    @TableField("rework_num")
+    @Property(value = "车间任务所有的返工数量")
+    private String reworkNum;
+
+    @TableField("scrap_num")
+    @Property(value = "车间任务所有的报废数量")
+    private String scrapNum;
+
     @TableField(value = "state")
-    @Property(value = "状态，参考#MachinProcedureFarmState")
+    @Property(value = "状态", enumClass = MachinProcedureFarmState.class)
     private String state;
 
     @TableField(exist = false)

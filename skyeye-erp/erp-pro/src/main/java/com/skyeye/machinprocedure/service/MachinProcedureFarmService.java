@@ -42,4 +42,16 @@ public interface MachinProcedureFarmService extends SkyeyeBusinessService<Machin
 
     void setOrderMationByFromId(List<Map<String, Object>> beans, String idKey, String mationKey);
 
+    /**
+     * 增加车间任务的验收数量、合格数量、返工数量、报废数量
+     * 根据给定的增量值，在现有值基础上增加
+     *
+     * @param id           车间任务id
+     * @param acceptNum    验收数量增量（可为空，为空则不更新）
+     * @param qualifiedNum 合格数量增量（可为空，为空则不更新）
+     * @param reworkNum    返工数量增量（可为空，为空则不更新）
+     * @param scrapNum     报废数量增量（可为空，为空则不更新）
+     */
+    void addAcceptNumsById(String id, String acceptNum, String qualifiedNum, String reworkNum, String scrapNum);
+
 }

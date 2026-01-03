@@ -30,12 +30,6 @@ public class MachinProcedureController {
     @Autowired
     private MachinProcedureService machinProcedureService;
 
-    /**
-     * 查询工序的任务信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMachinProcedureById", value = "查询工序的任务信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -44,12 +38,6 @@ public class MachinProcedureController {
         machinProcedureService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 设置工序的任务信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "setMachinProcedureById", value = "设置计划时间", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),

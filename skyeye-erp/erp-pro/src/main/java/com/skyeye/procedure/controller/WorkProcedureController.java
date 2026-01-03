@@ -32,12 +32,6 @@ public class WorkProcedureController {
     @Autowired
     private WorkProcedureService workProcedureService;
 
-    /**
-     * 查询工序列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "erpworkprocedure001", value = "查询工序列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/WorkProcedureController/queryWorkProcedureList")
@@ -45,12 +39,6 @@ public class WorkProcedureController {
         workProcedureService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑工序信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeWorkProcedure", value = "新增/编辑工序信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = WorkProcedure.class)
     @RequestMapping("/post/WorkProcedureController/writeWorkProcedure")
@@ -58,12 +46,6 @@ public class WorkProcedureController {
         workProcedureService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除工序信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteWorkProcedureById", value = "删除工作流配置", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,24 +54,12 @@ public class WorkProcedureController {
         workProcedureService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 查询所有工序列表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "erpworkprocedure009", value = "查询所有工序列表信息", method = "GET", allUse = "2")
     @RequestMapping("/post/WorkProcedureController/queryAllWorkProcedureList")
     public void queryAllWorkProcedureList(InputObject inputObject, OutputObject outputObject) {
         workProcedureService.queryAllWorkProcedureList(inputObject, outputObject);
     }
 
-    /**
-     * 根据工序id查询可以执行该工序的车间
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryExecuteFarmByWorkProcedureId", value = "根据工序id查询可以执行该工序的车间", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "workProcedureId", name = "workProcedureId", value = "工序id", required = "required")})

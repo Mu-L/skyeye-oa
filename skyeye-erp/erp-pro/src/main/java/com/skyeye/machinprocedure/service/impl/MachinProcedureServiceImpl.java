@@ -58,6 +58,7 @@ public class MachinProcedureServiceImpl extends SkyeyeBusinessServiceImpl<Machin
     @Override
     public MachinProcedure selectById(String id) {
         MachinProcedure machinProcedure = super.selectById(id);
+        // 查询车间任务信息
         List<MachinProcedureFarm> machinProcedureFarmList = machinProcedureFarmService.queryAllMachinProcedureFarmByMachinProcedureId(id);
         machinProcedure.setMachinProcedureFarmList(machinProcedureFarmList);
         return machinProcedure;

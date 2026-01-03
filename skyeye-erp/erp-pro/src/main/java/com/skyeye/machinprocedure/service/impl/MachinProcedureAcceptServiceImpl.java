@@ -336,7 +336,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         MachinProcedureFarm machinProcedureFarm = machinProcedureFarmService.selectById(realEntity.getMachinProcedureFarmId());
         // 获取该任务下已经完成的量
         String allComplateNum = calcNumByMachinProcedureFarmId(realEntity.getMachinProcedureFarmId());
-        // 计算未完成的量 = 车间任务目标量 - 已完成的量 - 当前单据合格的量
+        // 计算未完成的量 = 车间任务目标量 - 已完成的量（只计算合格的量） - 当前单据合格的量（只计算合格的量）
         String targetNum = StrUtil.isEmpty(machinProcedureFarm.getTargetNum())
             ? CommonNumConstants.NUM_ZERO.toString()
             : machinProcedureFarm.getTargetNum();
@@ -346,6 +346,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         String noComplateNum = CalculationUtil.subtract(
             CalculationUtil.subtract(targetNum, allComplateNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP),
             qualifiedNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+        // 判断车间任务的完成情况
         int compareResult = CalculationUtil.compareTo(noComplateNum, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
         if (compareResult == 0) {
             machinProcedureFarmService.editStateById(machinProcedureFarm.getId(), MachinProcedureFarmState.ALL_COMPLETED.getKey());
@@ -358,6 +359,9 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         checkNormsCodeAndSave(realEntity, false);
         // 根据正常耗材和报废耗材减少已分配库存
         reduceAllocatedStock(realEntity);
+        // 修改车间任务的完成数量情况
+        machinProcedureFarmService.addAcceptNumsById(realEntity.getMachinProcedureFarmId(), realEntity.getAcceptNum(), realEntity.getQualifiedNum(),
+            realEntity.getReworkNum(), realEntity.getScrapNum());
     }
 
     /**
@@ -545,6 +549,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
 
     @Override
     public Map<String, List<MachinProcedureAccept>> queryMachinProcedureAcceptByMachinProcedureFarmId(String... machinProcedureFarmId) {
+        // 根据 车间任务id 查询所有的工序验收单
         List<String> machinProcedureFarmIdList = Arrays.asList(machinProcedureFarmId);
         if (CollectionUtil.isEmpty(machinProcedureFarmIdList)) {
             return MapUtil.newHashMap();

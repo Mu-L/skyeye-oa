@@ -141,6 +141,10 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
         Map<String, Object> business = BeanUtil.beanToMap(entity);
         String oddNumber = iCodeRuleService.getNextCodeByClassName(this.getClass().getName(), business);
         entity.setOddNumber(oddNumber);
+        entity.setAcceptNum(CommonNumConstants.NUM_ZERO.toString());
+        entity.setQualifiedNum(CommonNumConstants.NUM_ZERO.toString());
+        entity.setReworkNum(CommonNumConstants.NUM_ZERO.toString());
+        entity.setScrapNum(CommonNumConstants.NUM_ZERO.toString());
     }
 
     @Override
@@ -150,6 +154,10 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
             Map<String, Object> business = BeanUtil.beanToMap(bean);
             String oddNumber = iCodeRuleService.getNextCodeByClassName(serviceClassName, business);
             bean.setOddNumber(oddNumber);
+            bean.setAcceptNum(CommonNumConstants.NUM_ZERO.toString());
+            bean.setQualifiedNum(CommonNumConstants.NUM_ZERO.toString());
+            bean.setReworkNum(CommonNumConstants.NUM_ZERO.toString());
+            bean.setScrapNum(CommonNumConstants.NUM_ZERO.toString());
         });
     }
 
@@ -424,6 +432,7 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
 
     @Override
     public List<MachinProcedureFarm> queryAllMachinProcedureFarmByMachinProcedureId(String machinProcedureId) {
+        // 根据 加工单子单据工序id 查询所有车间任务
         QueryWrapper<MachinProcedureFarm> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedureFarm::getMachinProcedureId), machinProcedureId);
         List<MachinProcedureFarm> machinProcedureFarmList = list(queryWrapper);
@@ -494,6 +503,57 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
                 bean.put(mationKey, entity);
             }
         }
+    }
+
+    @Override
+    public void addAcceptNumsById(String id, String acceptNum, String qualifiedNum, String reworkNum, String scrapNum) {
+        // 查询当前记录
+        MachinProcedureFarm entity = selectById(id);
+        if (entity == null) {
+            throw new CustomException("车间任务不存在");
+        }
+
+        UpdateWrapper<MachinProcedureFarm> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+
+        // 处理验收数量增量
+        if (StrUtil.isNotEmpty(acceptNum)) {
+            String currentAcceptNum = StrUtil.isEmpty(entity.getAcceptNum())
+                ? CommonNumConstants.NUM_ZERO.toString()
+                : entity.getAcceptNum();
+            String newAcceptNum = CalculationUtil.add(currentAcceptNum, acceptNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            updateWrapper.set(MybatisPlusUtil.toColumns(MachinProcedureFarm::getAcceptNum), newAcceptNum);
+        }
+
+        // 处理合格数量增量
+        if (StrUtil.isNotEmpty(qualifiedNum)) {
+            String currentQualifiedNum = StrUtil.isEmpty(entity.getQualifiedNum())
+                ? CommonNumConstants.NUM_ZERO.toString()
+                : entity.getQualifiedNum();
+            String newQualifiedNum = CalculationUtil.add(currentQualifiedNum, qualifiedNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            updateWrapper.set(MybatisPlusUtil.toColumns(MachinProcedureFarm::getQualifiedNum), newQualifiedNum);
+        }
+
+        // 处理返工数量增量
+        if (StrUtil.isNotEmpty(reworkNum)) {
+            String currentReworkNum = StrUtil.isEmpty(entity.getReworkNum())
+                ? CommonNumConstants.NUM_ZERO.toString()
+                : entity.getReworkNum();
+            String newReworkNum = CalculationUtil.add(currentReworkNum, reworkNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            updateWrapper.set(MybatisPlusUtil.toColumns(MachinProcedureFarm::getReworkNum), newReworkNum);
+        }
+
+        // 处理报废数量增量
+        if (StrUtil.isNotEmpty(scrapNum)) {
+            String currentScrapNum = StrUtil.isEmpty(entity.getScrapNum())
+                ? CommonNumConstants.NUM_ZERO.toString()
+                : entity.getScrapNum();
+            String newScrapNum = CalculationUtil.add(currentScrapNum, scrapNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            updateWrapper.set(MybatisPlusUtil.toColumns(MachinProcedureFarm::getScrapNum), newScrapNum);
+        }
+
+        // 执行更新
+        update(updateWrapper);
     }
 
 }
