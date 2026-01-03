@@ -5,6 +5,8 @@
 package com.skyeye.pick.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.depot.classenum.DepotPutOutType;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.pick.entity.DepartmentStock;
 
 import java.util.List;
@@ -28,11 +30,12 @@ public interface DepartmentStockService extends SkyeyeBusinessService<Department
      * @param materialId   商品id
      * @param normsId      规格id
      * @param operNumber   变化数量
-     * @param type         出入库类型，参考#DepotPutOutType
+     * @param type         出入库类型， {@link DepotPutOutType}
+     * @param stockType    商品规格库存类型 {@link MaterialNormsStockType}
      */
-    void updateDepartmentStock(String departmentId, String farmId, String materialId, String normsId, String operNumber, int type);
+    void updateDepartmentStock(String departmentId, String farmId, String materialId, String normsId, String operNumber, int type, int stockType);
 
-    DepartmentStock queryDepartmentStock(String departmentId, String farmId, String normsId);
+    DepartmentStock queryDepartmentStock(String departmentId, String farmId, String normsId, int stockType);
 
     Map<String, String> queryNormsDepartmentStock(String departmentId, String farmId, List<String> normsIds);
 

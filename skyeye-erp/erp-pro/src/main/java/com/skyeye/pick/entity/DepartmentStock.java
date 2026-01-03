@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.farm.entity.Farm;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import lombok.Data;
@@ -65,5 +66,17 @@ public class DepartmentStock extends CommonInfo {
     @TableField(value = "stock")
     @Property(value = "数量")
     private String stock;
+
+    @TableField("create_time")
+    @Property("创建时间")
+    private String createTime;
+
+    @TableField("last_update_time")
+    @Property("最后更新时间")
+    private String lastUpdateTime;
+
+    @TableField(value = "type")
+    @ApiModelProperty(value = "商品规格库存类型", enumClass = MaterialNormsStockType.class)
+    private Integer type;
 
 }

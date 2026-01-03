@@ -28,6 +28,7 @@ import com.skyeye.farm.service.FarmService;
 import com.skyeye.machinprocedure.classenum.MachinProcedureAcceptChildType;
 import com.skyeye.material.classenum.MaterialInOrderType;
 import com.skyeye.material.classenum.MaterialNormsCodeInDepot;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.entity.MaterialNormsCode;
@@ -274,7 +275,7 @@ public class ReturnPutServiceImpl extends SkyeyeErpOrderServiceImpl<ReturnPutDao
             // 修改部门/车间的库存
             entity.getErpOrderItemList().forEach(erpOrderItem -> {
                 departmentStockService.updateDepartmentStock(entity.getDepartmentId(), entity.getFarmId(), erpOrderItem.getMaterialId(),
-                    erpOrderItem.getNormsId(), erpOrderItem.getOperNumber(), DepotPutOutType.OUT.getKey());
+                    erpOrderItem.getNormsId(), erpOrderItem.getOperNumber(), DepotPutOutType.OUT.getKey(), MaterialNormsStockType.ORDER_STOCK.getKey());
             });
         }
         return allNormsCodeList;

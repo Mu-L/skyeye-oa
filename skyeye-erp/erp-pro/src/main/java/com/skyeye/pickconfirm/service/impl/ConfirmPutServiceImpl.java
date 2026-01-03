@@ -29,6 +29,7 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.material.classenum.MaterialInOrderType;
 import com.skyeye.material.classenum.MaterialNormsCodeInDepot;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.entity.MaterialNormsCode;
@@ -186,11 +187,16 @@ public class ConfirmPutServiceImpl extends SkyeyeErpOrderServiceImpl<ConfirmPutD
 
     @Override
     public void approvalEndIsSuccess(ConfirmPut entity) {
-        entity = selectById(entity.getId());
+        ConfirmPut oldEntity = selectById(entity.getId());
         // 修改来源单据信息
         checkMaterialNorms(entity, true);
         // 校验并修改条形码信息
         checkNormsCodeAndSave(entity, false);
+        // 减少在途库存
+        oldEntity.getErpOrderItemList().forEach(pickChild -> {
+            departmentStockService.updateDepartmentStock(oldEntity.getDepartmentId(), oldEntity.getFarmId(),
+                pickChild.getMaterialId(), pickChild.getNormsId(), pickChild.getOperNumber(), DepotPutOutType.OUT.getKey(), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey());
+        });
     }
 
     /**
@@ -256,7 +262,7 @@ public class ConfirmPutServiceImpl extends SkyeyeErpOrderServiceImpl<ConfirmPutD
             // 修改部门/车间的库存
             entity.getErpOrderItemList().forEach(erpOrderItem -> {
                 departmentStockService.updateDepartmentStock(entity.getDepartmentId(), entity.getFarmId(), erpOrderItem.getMaterialId(),
-                    erpOrderItem.getNormsId(), erpOrderItem.getOperNumber(), DepotPutOutType.PUT.getKey());
+                    erpOrderItem.getNormsId(), erpOrderItem.getOperNumber(), DepotPutOutType.PUT.getKey(), MaterialNormsStockType.ORDER_STOCK.getKey());
             });
         }
         return allNormsCodeList;

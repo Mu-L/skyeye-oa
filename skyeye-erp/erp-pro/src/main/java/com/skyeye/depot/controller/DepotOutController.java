@@ -36,12 +36,6 @@ public class DepotOutController {
     @Autowired
     private DepotOutService depotOutService;
 
-    /**
-     * 获取仓库出库列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDepotOutList", value = "获取仓库出库列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DepotOutController/queryDepotOutList")
@@ -49,12 +43,6 @@ public class DepotOutController {
         depotOutService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 获取仓库出库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDepotOutOrderList", value = "获取仓库出库单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class, value = {
         @ApiImplicitParam(id = "type", name = "type", value = "类型", required = "required", defaultValue = "DepotOut")})
@@ -63,12 +51,6 @@ public class DepotOutController {
         depotOutService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑仓库出库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeDepotOut", value = "新增/编辑仓库出库单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = DepotOut.class)
     @RequestMapping("/post/DepotOutController/writeDepotOut")
@@ -76,12 +58,6 @@ public class DepotOutController {
         depotOutService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 获取需要物料确认的仓库出库列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryNeedConfirmDepotOutList", value = "获取需要物料确认的仓库出库列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DepotOutController/queryNeedConfirmDepotOutList")
@@ -89,12 +65,6 @@ public class DepotOutController {
         depotOutService.queryNeedConfirmDepotOutList(inputObject, outputObject);
     }
 
-    /**
-     * 转物料接收单/物料退货单时，根据id查询仓库出库单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDepotOutTransById", value = "转物料接收单/物料退货单时，根据id查询仓库出库单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -103,12 +73,6 @@ public class DepotOutController {
         depotOutService.queryDepotOutTransById(inputObject, outputObject);
     }
 
-    /**
-     * 仓库出库单转物料接收单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertDepotOutToTurnPut", value = "仓库出库单转物料接收单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ConfirmPut.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -117,12 +81,6 @@ public class DepotOutController {
         depotOutService.insertDepotOutToTurnPut(inputObject, outputObject);
     }
 
-    /**
-     * 仓库出库单转物料退货单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertDepotOutToSealsReturns", value = "仓库出库单转物料退货单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ConfirmReturn.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -138,12 +96,6 @@ public class DepotOutController {
         depotOutService.queryNeedStoreConfirmDepotOutList(inputObject, outputObject);
     }
 
-    /**
-     * 转门店物料接收单/门店物料退货单时，根据id查询仓库出库单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryDepotOutTransStoreById", value = "转门店物料接收单/门店物料退货单时，根据id查询仓库出库单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -152,12 +104,6 @@ public class DepotOutController {
         depotOutService.queryDepotOutTransStoreById(inputObject, outputObject);
     }
 
-    /**
-     * 仓库出库单转门店物料接收单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertDepotOutToTurnStorePut", value = "仓库出库单转门店物料接收单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ShopConfirmPut.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -166,12 +112,6 @@ public class DepotOutController {
         depotOutService.insertDepotOutToTurnStorePut(inputObject, outputObject);
     }
 
-    /**
-     * 仓库出库单转门店物料退货单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertDepotOutToStoreSealsReturns", value = "仓库出库单转门店物料退货单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = ShopConfirmReturn.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

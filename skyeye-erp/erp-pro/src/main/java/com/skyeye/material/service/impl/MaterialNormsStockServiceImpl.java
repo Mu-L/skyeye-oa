@@ -12,7 +12,6 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.material.dao.MaterialNormsStockDao;
@@ -22,7 +21,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -100,69 +102,6 @@ public class MaterialNormsStockServiceImpl extends SkyeyeBusinessServiceImpl<Mat
     }
 
     /**
-     * 根据商品规格id获取商规格的当前库存信息
-     *
-     * @param beans           返回对象的集合
-     * @param pointNormsIdKey 指定的normsId的key
-     * @param depotId         仓库id
-     */
-    @Override
-    public void restMaterialNormCurrentTock(List<Map<String, Object>> beans, String pointNormsIdKey, String depotId) {
-        if (CollectionUtil.isEmpty(beans) || StringUtils.isEmpty(pointNormsIdKey)) {
-            return;
-        }
-        // 获取规格id去除为空的并且去重
-        List<String> normsIds = beans.stream()
-            .map(bean -> MapUtil.checkKeyIsNull(bean, pointNormsIdKey) ? StringUtils.EMPTY : bean.get(pointNormsIdKey).toString())
-            .filter(normsId -> StringUtils.isNotEmpty(normsId)).distinct().collect(Collectors.toList());
-        if (CollectionUtil.isEmpty(normsIds)) {
-            return;
-        }
-        // 查询规格信息
-        Map<String, Integer> normStockMap = this.queryMaterialNormsStock(normsIds, depotId);
-        beans.forEach(bean -> {
-            if (!MapUtil.checkKeyIsNull(bean, pointNormsIdKey)) {
-                // 获取规格
-                Integer currentTock = normStockMap.get(bean.get(pointNormsIdKey).toString());
-                if (currentTock == null) {
-                    bean.put("currentTock", 0);
-                } else {
-                    bean.put("currentTock", currentTock);
-                }
-            } else {
-                bean.put("currentTock", 0);
-            }
-        });
-    }
-
-    /**
-     * 根据商品规格id获取商规格的当前库存信息
-     *
-     * @param bean            返回对象的集合
-     * @param pointNormsIdKey 指定的normsId的key
-     * @param depotId         仓库id
-     */
-    @Override
-    public void restMaterialNormCurrentTock(Map<String, Object> bean, String pointNormsIdKey, String depotId) {
-        if (CollectionUtil.isEmpty(bean) || StringUtils.isEmpty(pointNormsIdKey)) {
-            return;
-        }
-        // 获取规格id去除为空的并且去重
-        List<String> normsIds = Arrays.asList(bean.get(pointNormsIdKey).toString());
-        if (CollectionUtil.isEmpty(normsIds)) {
-            return;
-        }
-        // 查询规格信息
-        Map<String, Integer> normStockMap = this.queryMaterialNormsStock(normsIds, depotId);
-        Integer currentTock = normStockMap.get(bean.get(pointNormsIdKey).toString());
-        if (currentTock == null) {
-            bean.put("currentTock", 0);
-        } else {
-            bean.put("currentTock", currentTock);
-        }
-    }
-
-    /**
      * 保存由单据操作生成的库存信息
      *
      * @param materialId 商品id
@@ -171,11 +110,11 @@ public class MaterialNormsStockServiceImpl extends SkyeyeBusinessServiceImpl<Mat
      * @param stock      库存数量
      */
     @Override
-    public String saveMaterialNormsStock(String materialId, String depotId, String normsId, String stock, int type) {
+    public String saveMaterialNormsStock(String materialId, String depotId, String normsId, String stock, int stockType) {
         QueryWrapper<MaterialNormsStock> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsStock::getNormsId), normsId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsStock::getDepotId), depotId);
-        queryWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsStock::getType), MaterialNormsStockType.ORDER_STOCK.getKey());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsStock::getType), stockType);
         MaterialNormsStock normsStock = getOne(queryWrapper);
         if (ObjectUtil.isEmpty(normsStock)) {
             normsStock = new MaterialNormsStock();
@@ -183,14 +122,14 @@ public class MaterialNormsStockServiceImpl extends SkyeyeBusinessServiceImpl<Mat
             normsStock.setNormsId(normsId);
             normsStock.setDepotId(depotId);
             normsStock.setStock(stock);
-            normsStock.setType(MaterialNormsStockType.ORDER_STOCK.getKey());
+            normsStock.setType(stockType);
             save(normsStock);
             return normsStock.getStock();
         } else {
             UpdateWrapper<MaterialNormsStock> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsStock::getNormsId), normsId);
             updateWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsStock::getDepotId), depotId);
-            updateWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsStock::getType), MaterialNormsStockType.ORDER_STOCK.getKey());
+            updateWrapper.eq(MybatisPlusUtil.toColumns(MaterialNormsStock::getType), stockType);
             updateWrapper.set(MybatisPlusUtil.toColumns(MaterialNormsStock::getStock), stock);
             update(updateWrapper);
             return normsStock.getStock();

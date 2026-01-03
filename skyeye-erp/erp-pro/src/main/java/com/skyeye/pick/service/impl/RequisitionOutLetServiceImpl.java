@@ -24,6 +24,7 @@ import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.material.classenum.MaterialInOrderType;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.organization.service.IDepmentService;
 import com.skyeye.pick.classenum.OutLetState;
 import com.skyeye.pick.classenum.RequisitionOutLetFromType;
@@ -31,6 +32,7 @@ import com.skyeye.pick.dao.RequisitionOutLetDao;
 import com.skyeye.pick.entity.PickChild;
 import com.skyeye.pick.entity.RequisitionMaterial;
 import com.skyeye.pick.entity.RequisitionOutLet;
+import com.skyeye.pick.service.DepartmentStockService;
 import com.skyeye.pick.service.RequisitionMaterialService;
 import com.skyeye.pick.service.RequisitionOutLetService;
 import com.skyeye.util.ErpOrderUtil;
@@ -67,6 +69,9 @@ public class RequisitionOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<Requ
 
     @Autowired
     private FarmService farmService;
+
+    @Autowired
+    private DepartmentStockService departmentStockService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -153,9 +158,15 @@ public class RequisitionOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<Requ
 
     @Override
     public void approvalEndIsSuccess(RequisitionOutLet entity) {
-        entity = selectById(entity.getId());
+        RequisitionOutLet oldEntity = selectById(entity.getId());
         // 修改来源单据信息
-        checkMaterialNorms(entity, true);
+        checkMaterialNorms(oldEntity, true);
+
+        // 增加在途库存
+        oldEntity.getErpOrderItemList().forEach(pickChild -> {
+            departmentStockService.updateDepartmentStock(oldEntity.getDepartmentId(), oldEntity.getFarmId(),
+                pickChild.getMaterialId(), pickChild.getNormsId(), pickChild.getOperNumber(), DepotPutOutType.PUT.getKey(), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey());
+        });
     }
 
     @Override

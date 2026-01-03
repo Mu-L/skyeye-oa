@@ -47,33 +47,15 @@ public interface MaterialNormsStockService extends SkyeyeBusinessService<Materia
     Map<String, List<MaterialNormsStock>> queryNormsStockByNormsId(List<String> normsIds, Integer type);
 
     /**
-     * 根据规格id设置商品规格的当前库存信息
-     *
-     * @param beans           返回对象的集合
-     * @param pointNormsIdKey 指定的normsId的key
-     * @param depotId         仓库id
-     */
-    void restMaterialNormCurrentTock(List<Map<String, Object>> beans, String pointNormsIdKey, String depotId);
-
-    /**
-     * 根据规格id设置商品规格的当前库存信息
-     *
-     * @param bean            返回对象的集合
-     * @param pointNormsIdKey 指定的normsId的key
-     * @param depotId         仓库id
-     */
-    void restMaterialNormCurrentTock(Map<String, Object> bean, String pointNormsIdKey, String depotId);
-
-    /**
      * 保存由单据操作生成的库存信息
      *
      * @param materialId 商品id
      * @param depotId    仓库id
      * @param normsId    规格id
      * @param stock      库存数量
-     * @param type       商品规格库存类型 {@link MaterialNormsStockType}
+     * @param stockType  商品规格库存类型 {@link MaterialNormsStockType}
      */
-    String saveMaterialNormsStock(String materialId, String depotId, String normsId, String stock, int type);
+    String saveMaterialNormsStock(String materialId, String depotId, String normsId, String stock, int stockType);
 
     /**
      * 保存初始化库存信息

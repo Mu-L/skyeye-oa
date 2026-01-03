@@ -31,6 +31,7 @@ import com.skyeye.machinprocedure.entity.*;
 import com.skyeye.machinprocedure.service.*;
 import com.skyeye.material.classenum.MaterialItemCode;
 import com.skyeye.material.classenum.MaterialNormsCodeInDepot;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.entity.MaterialNormsCode;
@@ -355,6 +356,31 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         }
         // 校验并修改条形码信息
         checkNormsCodeAndSave(realEntity, false);
+        // 根据正常耗材和报废耗材减少已分配库存
+        reduceAllocatedStock(realEntity);
+    }
+
+    /**
+     * 根据正常耗材和报废耗材减少已分配库存
+     *
+     * @param entity 工序验收单
+     */
+    private void reduceAllocatedStock(MachinProcedureAccept entity) {
+        // 合并正常耗材和报废耗材
+        List<MachinProcedureAcceptChild> childList = new ArrayList<>();
+        mergeAcceptChild(entity, childList);
+        // 遍历所有耗材，减少已分配库存
+        if (CollectionUtil.isNotEmpty(childList)) {
+            childList.forEach(acceptChild -> {
+                String operNumber = StrUtil.isEmpty(acceptChild.getOperNumber())
+                    ? CommonNumConstants.NUM_ZERO.toString()
+                    : acceptChild.getOperNumber();
+                // 减少已分配库存（正常耗材和报废耗材都需要减少）
+                departmentStockService.updateDepartmentStock(entity.getDepartmentId(), entity.getFarmId(),
+                    acceptChild.getMaterialId(), acceptChild.getNormsId(), operNumber,
+                    DepotPutOutType.OUT.getKey(), MaterialNormsStockType.ALLOCATED_STOCK.getKey());
+            });
+        }
     }
 
     /**
@@ -437,7 +463,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
             // 修改部门/车间的库存
             childList.forEach(acceptChild -> {
                 departmentStockService.updateDepartmentStock(entity.getDepartmentId(), entity.getFarmId(), acceptChild.getMaterialId(),
-                    acceptChild.getNormsId(), acceptChild.getOperNumber(), DepotPutOutType.OUT.getKey());
+                    acceptChild.getNormsId(), acceptChild.getOperNumber(), DepotPutOutType.OUT.getKey(), MaterialNormsStockType.ORDER_STOCK.getKey());
             });
         }
         return allNormsCodeList;

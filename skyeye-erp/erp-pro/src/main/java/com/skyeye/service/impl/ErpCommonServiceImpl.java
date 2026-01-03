@@ -148,10 +148,14 @@ public class ErpCommonServiceImpl implements ErpCommonService {
             // 出库
             depotAllStock = CalculationUtil.subtract(depotAllStock, changeNumber, ErpConstants.NUM_AFTER_DOT);
         }
-        if (CalculationUtil.compareTo(depotAllStock, CommonNumConstants.NUM_ZERO.toString(), 0, RoundingMode.UP) < 0
-            && stockType == MaterialNormsStockType.ORDER_STOCK.getKey()) {
-            // 只有现有库存类型的，才提示库存不足
-            throw new CustomException("当前库存不足，无法操作.");
+        if (CalculationUtil.compareTo(depotAllStock, CommonNumConstants.NUM_ZERO.toString(), 0, RoundingMode.UP) < 0) {
+            if (stockType == MaterialNormsStockType.ORDER_STOCK.getKey()) {
+                // 只有现有库存类型的，才提示库存不足
+                throw new CustomException("当前库存不足，无法操作.");
+            } else if (stockType == MaterialNormsStockType.IN_TRANSIT_STOCK.getKey() || stockType == MaterialNormsStockType.ALLOCATED_STOCK.getKey()) {
+                // 在途物料 || 已分配物料 小于0时，设置为0
+                depotAllStock = CommonNumConstants.NUM_ZERO.toString();
+            }
         }
         return depotAllStock;
     }
