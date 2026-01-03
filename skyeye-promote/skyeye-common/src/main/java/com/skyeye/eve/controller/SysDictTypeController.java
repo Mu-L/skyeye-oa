@@ -9,6 +9,7 @@ import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -33,11 +34,11 @@ public class SysDictTypeController {
     @Autowired
     private SysDictTypeService sysDictTypeService;
 
-    @ApiOperation(id = "queryDictTypeList", value = "获取数据字典类型列表", method = "POST", allUse = "1")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiOperation(id = "queryDictTypeList", value = "获取数据字典类型列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/SysDictTypeController/queryDictTypeList")
     public void queryDictTypeList(InputObject inputObject, OutputObject outputObject) {
-        sysDictTypeService.queryPageList(inputObject, outputObject);
+        sysDictTypeService.queryList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "writeDictTypeMation", value = "新增/编辑数据字典类型", method = "POST", allUse = "1")
@@ -63,7 +64,7 @@ public class SysDictTypeController {
         sysDictTypeService.deleteById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryDictTypeListByEnabled", value = "根据状态获取数据字典类型列表", method = "GET", allUse = "2")
+    @ApiOperation(id = "queryDictTypeListByEnabled", value = "根据状态获取数据字典类型列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "enabled", name = "enabled", value = "状态", enumClass = EnableEnum.class, required = "num")})
     @RequestMapping("/post/SysDictTypeController/queryDictTypeListByEnabled")
