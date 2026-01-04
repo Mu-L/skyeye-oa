@@ -12,6 +12,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.bom.dao.BomProcedureConsumablesDao;
 import com.skyeye.bom.entity.BomProcedureConsumables;
 import com.skyeye.bom.service.BomProcedureConsumablesService;
+import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import org.springframework.stereotype.Service;
 
@@ -70,7 +71,8 @@ public class BomProcedureConsumablesServiceImpl extends SkyeyeBusinessServiceImp
         deleteByBomId(bomId);
         // 保存新的
         if (CollectionUtil.isNotEmpty(consumablesList)) {
-            saveBatch(consumablesList);
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            createEntity(consumablesList, userId);
         }
     }
 

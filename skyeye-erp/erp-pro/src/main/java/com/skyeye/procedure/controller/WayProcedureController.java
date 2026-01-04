@@ -32,12 +32,6 @@ public class WayProcedureController {
     @Autowired
     private WayProcedureService wayProcedureService;
 
-    /**
-     * 查询工艺列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "erpwayprocedure001", value = "查询工艺列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/WayProcedureController/queryWayProcedureList")
@@ -45,12 +39,6 @@ public class WayProcedureController {
         wayProcedureService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑工艺信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeWayProcedure", value = "新增/编辑工艺信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = WayProcedure.class)
     @RequestMapping("/post/WayProcedureController/writeWayProcedure")
@@ -58,12 +46,6 @@ public class WayProcedureController {
         wayProcedureService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除工艺
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteWayProcedureById", value = "删除工艺", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class WayProcedureController {
         wayProcedureService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取工艺下的工序列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryProcedureListByWayId", value = "获取工艺下的工序列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "工艺id", required = "required")})
@@ -86,12 +62,6 @@ public class WayProcedureController {
         wayProcedureService.queryProcedureListByWayId(inputObject, outputObject);
     }
 
-    /**
-     * 根据id发布工艺路线
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "publishProcedureVersionById", value = "根据id发布工艺路线", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "工艺路线id", required = "required")})
@@ -100,12 +70,6 @@ public class WayProcedureController {
         wayProcedureService.publishVersionById(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有工艺列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAllPublishProcedureList", value = "获取所有工艺列表", method = "GET", allUse = "2")
     @RequestMapping("/post/WayProcedureController/queryAllPublishProcedureList")
     public void queryAllPublishProcedureList(InputObject inputObject, OutputObject outputObject) {

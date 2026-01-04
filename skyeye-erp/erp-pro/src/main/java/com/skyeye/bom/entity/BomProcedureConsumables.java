@@ -10,7 +10,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
-import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.procedure.entity.WorkProcedure;
@@ -27,7 +27,7 @@ import lombok.Data;
 @Data
 @TableName(value = "erp_bom_procedure_consumables", autoResultMap = true)
 @ApiModel("BOM工序耗材实体类")
-public class BomProcedureConsumables extends CommonInfo {
+public class BomProcedureConsumables extends OperatorUserInfo {
 
     @TableId("id")
     @ApiModelProperty(value = "主键id")

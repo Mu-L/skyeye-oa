@@ -153,7 +153,7 @@ public class BomChildServiceImpl extends SkyeyeBusinessServiceImpl<BomChildDao, 
         List<BomChild> bomChildren = list(queryWrapper);
         if  (CollectionUtil.isNotEmpty(bomChildren)) {
             // 设置耗材信息
-            List<String> bomChildIdList = bomChildren.stream().map(BomChild::getBomId).collect(Collectors.toList());
+            List<String> bomChildIdList = bomChildren.stream().map(BomChild::getId).collect(Collectors.toList());
             Map<String, List<BomProcedureConsumables>> listMap = bomProcedureConsumablesService.queryListByBomChildIds(bomChildIdList);
             bomChildren.forEach(bomChild -> {
                 bomChild.setProcedureConsumablesList(listMap.get(bomChild.getId()));
@@ -170,7 +170,7 @@ public class BomChildServiceImpl extends SkyeyeBusinessServiceImpl<BomChildDao, 
         List<BomChild> bomChildren = list(queryWrapper);
         if  (CollectionUtil.isNotEmpty(bomChildren)) {
             // 设置耗材信息
-            List<String> bomChildIdList = bomChildren.stream().map(BomChild::getBomId).collect(Collectors.toList());
+            List<String> bomChildIdList = bomChildren.stream().map(BomChild::getId).collect(Collectors.toList());
             Map<String, List<BomProcedureConsumables>> listMap = bomProcedureConsumablesService.queryListByBomChildIds(bomChildIdList);
             bomChildren.forEach(bomChild -> {
                 bomChild.setProcedureConsumablesList(listMap.get(bomChild.getId()));
