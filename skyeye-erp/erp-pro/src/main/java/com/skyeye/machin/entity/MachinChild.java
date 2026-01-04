@@ -88,14 +88,6 @@ public class MachinChild extends CommonInfo {
     @Property(value = "该规格对应的所有bom方案信息列表")
     private List<Bom> bomList;
 
-    @TableField(value = "way_procedure_id")
-    @ApiModelProperty(value = "工艺id")
-    private String wayProcedureId;
-
-    @TableField(exist = false)
-    @Property(value = "工艺信息")
-    private WayProcedure wayProcedureMation;
-
     @TableField(exist = false)
     @Property(value = "工序是否完成加工的状态，true:完成，false:未完成")
     private Boolean checkComplateFlag;

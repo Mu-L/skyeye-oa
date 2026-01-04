@@ -101,13 +101,13 @@ public class MachinChildServiceImpl extends SkyeyeBusinessServiceImpl<MachinChil
         // 加工单子单据工序信息对象
         List<MachinProcedure> machinProcedureList = new ArrayList<>();
         machinChildList.forEach(machinChild -> {
-            // 设置加工单子单据的工序信息
-            resetMachinProcedure(machinProcedureList, machinChild.getWayProcedureId(), machinChild.getMaterialId(), machinChild.getNormsId(),
-                machinChild.getId(), StrUtil.EMPTY);
-            // 设置加工单子单据bom清单的工序信息
             if (StrUtil.isNotEmpty(machinChild.getBomId())) {
                 Bom bom = bomService.selectById(machinChild.getBomId());
+                // 设置加工单子单据bom清单的工序信息
+                resetMachinProcedure(machinProcedureList, bom.getWayProcedureId(), machinChild.getMaterialId(), machinChild.getNormsId(),
+                    machinChild.getId(), StrUtil.EMPTY);
                 bom.getBomChildList().forEach(bomChild -> {
+                    // 设置加工单子单据bom子件清单关联的工序信息
                     resetMachinProcedure(machinProcedureList, bomChild.getWayProcedureId(), bomChild.getMaterialId(), bomChild.getNormsId(),
                         machinChild.getId(), bomChild.getId());
                 });

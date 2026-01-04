@@ -20,7 +20,7 @@ import java.util.Map;
 
 /**
  * @ClassName: DepartmentStock
- * @Description: 部门物料库存信息
+ * @Description: 部门/车间物料库存信息
  * @author: skyeye云系列--卫志强
  * @date: 2023/3/31 16:50
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -28,7 +28,7 @@ import java.util.Map;
  */
 @Data
 @TableName(value = "erp_department_stock")
-@ApiModel("部门物料库存信息")
+@ApiModel("部门/车间物料库存信息")
 public class DepartmentStock extends CommonInfo {
 
     @TableField(value = "material_id")

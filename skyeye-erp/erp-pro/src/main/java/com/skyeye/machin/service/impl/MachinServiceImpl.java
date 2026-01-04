@@ -210,9 +210,14 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
             Boolean[] checkComplateFlag = new Boolean[]{true};
             // 最后一个工序所完成的数量
             String[] lastProcedureNum = new String[]{CommonNumConstants.NUM_ZERO.toString()};
-            // 1. 设置加工单子单据bom清单的工序信息
+
             if (StrUtil.isNotEmpty(machinChild.getBomId())) {
                 Bom bom = bomMap.get(machinChild.getBomId());
+                // 1. 设置加工单子单据bom清单的工序信息
+                WayProcedure bomProcedure = resetMachinProcedure(bom.getWayProcedureId(), machinChild.getMaterialId(), machinChild.getNormsId(),
+                    machinChild.getId(), StrUtil.EMPTY, machinProcedureMap, procedureFarmMap, checkComplateFlag, lastProcedureNum);
+                bom.setWayProcedureMation(bomProcedure);
+                // 2. 设置加工单子单据bom子件清单关联的工序信息
                 bom.getBomChildList().forEach(bomChild -> {
                     WayProcedure bomWayProcedure = resetMachinProcedure(bomChild.getWayProcedureId(), bomChild.getMaterialId(), bomChild.getNormsId(),
                         machinChild.getId(), bomChild.getId(), machinProcedureMap, procedureFarmMap, checkComplateFlag, lastProcedureNum);
@@ -220,11 +225,6 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
                 });
                 machinChild.setBomMation(bom);
             }
-
-            // 2. 设置加工单子单据的工序信息
-            WayProcedure wayProcedure = resetMachinProcedure(machinChild.getWayProcedureId(), machinChild.getMaterialId(), machinChild.getNormsId(),
-                machinChild.getId(), StrUtil.EMPTY, machinProcedureMap, procedureFarmMap, checkComplateFlag, lastProcedureNum);
-            machinChild.setWayProcedureMation(wayProcedure);
             machinChild.setCheckComplateFlag(checkComplateFlag[0]);
             machinChild.setLastProcedureNum(lastProcedureNum[0]);
         });
@@ -328,9 +328,13 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
                         // 最后一个工序所完成的数量
                         String[] lastProcedureNum = new String[]{CommonNumConstants.NUM_ZERO.toString()};
 
-                        // 1. 设置加工单子单据bom清单的工序信息
                         if (StrUtil.isNotEmpty(machinChild.getBomId()) && machinChild.getBomMation() != null) {
                             Bom bom = machinChild.getBomMation();
+                            // 1. 设置加工单子单据bom清单的工序信息
+                            WayProcedure bomProcedure = resetMachinProcedure(bom.getWayProcedureId(), machinChild.getMaterialId(), machinChild.getNormsId(),
+                                machinChild.getId(), StrUtil.EMPTY, machinProcedureMap, procedureFarmMap, checkComplateFlag, lastProcedureNum);
+                            bom.setWayProcedureMation(bomProcedure);
+                            // 2. 设置加工单子单据bom子件清单关联的工序信息
                             bom.getBomChildList().forEach(bomChild -> {
                                 WayProcedure bomWayProcedure = resetMachinProcedure(bomChild.getWayProcedureId(), bomChild.getMaterialId(), bomChild.getNormsId(),
                                     machinChild.getId(), bomChild.getId(), machinProcedureMap, procedureFarmMap, checkComplateFlag, lastProcedureNum);
@@ -338,10 +342,6 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
                             });
                         }
 
-                        // 2. 设置加工单子单据的工序信息
-                        WayProcedure wayProcedure = resetMachinProcedure(machinChild.getWayProcedureId(), machinChild.getMaterialId(), machinChild.getNormsId(),
-                            machinChild.getId(), StrUtil.EMPTY, machinProcedureMap, procedureFarmMap, checkComplateFlag, lastProcedureNum);
-                        machinChild.setWayProcedureMation(wayProcedure);
                         machinChild.setCheckComplateFlag(checkComplateFlag[0]);
                         machinChild.setLastProcedureNum(lastProcedureNum[0]);
                     });
@@ -595,6 +595,11 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
             machinChild.setNewId(machinChildId);
             if (StrUtil.isNotEmpty(machinChild.getBomId())) {
                 Bom bom = machinChild.getBomMation();
+                if (ObjectUtil.isNotEmpty(bom.getWayProcedureMation())) {
+                    bom.getWayProcedureMation().getWorkProcedureList().forEach(wayProcedureChild -> {
+                        wayProcedureChild.setNewId(ToolUtil.getSurFaceId());
+                    });
+                }
                 Map<String, String> newMaterialIdMap = new HashMap<>();
                 bom.getBomChildList().forEach(bomChild -> {
                     newMaterialIdMap.put(bomChild.getMaterialId(), ToolUtil.getSurFaceId());
@@ -614,12 +619,6 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
                     }
                 });
             }
-
-            if (ObjectUtil.isNotEmpty(machinChild.getWayProcedureMation())) {
-                machinChild.getWayProcedureMation().getWorkProcedureList().forEach(wayProcedureChild -> {
-                    wayProcedureChild.setNewId(ToolUtil.getSurFaceId());
-                });
-            }
         });
 
         Map<String, Object> mathinTime = new HashMap<>();
@@ -637,11 +636,11 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
             Map<String, Object> materialNode = getNode(machinChild.getNewId(), machinChild.getMaterialMation().getName(), CommonNumConstants.NUM_ZERO.toString(),
                 machinChild.getPlanStartTime(), machinChild.getPlanEndTime(), true, machinChild);
             node.add(materialNode);
-            // 加工单子单据的产品信息不重新计算开始和结束时间，直接用计划时间
-            resetMachinProcedure(machinChild.getWayProcedureMation(), node, link, machinChild.getNewId(), mathinTime, null);
             // bom清单
             if (StrUtil.isNotEmpty(machinChild.getBomId())) {
                 Bom bom = machinChild.getBomMation();
+                // 加工单子单据的产品信息不重新计算开始和结束时间，直接用计划时间
+                resetMachinProcedure(bom.getWayProcedureMation(), node, link, machinChild.getNewId(), mathinTime, null);
                 // 计算BOM子件的实际需要数量（考虑树结构和加工数量）
                 List<BomChild> calculatedBomChildList = calculateBomChildNeedNum(bom, machinChild.getOperNumber());
                 calculatedBomChildList.forEach(bomChild -> {
@@ -753,7 +752,7 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
 
     private Map<String, Object> getLink(String id, String parentId) {
         Map<String, Object> retult = new HashMap<>();
-        retult.put("id", id + "CC");
+        retult.put("id", ToolUtil.getSurFaceId());
         retult.put("source", id);
         retult.put("target", parentId);
         retult.put("type", CommonNumConstants.NUM_ZERO);
@@ -1014,27 +1013,29 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         if (ObjectUtil.isEmpty(machinChild)) {
             return false;
         }
-        // 整体是先走的bom子件清单，再走的工艺路线，所以先判断工艺路线，再判断bom子件清单
-        // 判断是否绑定工艺
-        if (ObjectUtil.isNotEmpty(machinChild.getWayProcedureMation())) {
-            // 判断是否为最后一道工序
-            if (StrUtil.isNotEmpty(bomChildId)) {
-                // 如果bom子件清单的id不为空 && 加工单子单据有绑定工艺，那么就一定不是最后一道工序
-                return false;
-            }
-            int lastIndex = machinChild.getWayProcedureMation().getWorkProcedureList().size() - 1;
-            WayProcedureChild wayProcedureChild = machinChild.getWayProcedureMation().getWorkProcedureList().get(lastIndex);
-            if (StrUtil.equals(machinChild.getMaterialId(), materialId) && StrUtil.equals(machinChild.getNormsId(), normsId)
-                && StrUtil.equals(machinChild.getWayProcedureId(), wayProcedureId) && StrUtil.equals(wayProcedureChild.getProcedureId(), procedureId)) {
-                return true;
-            } else {
-                return false;
-            }
-        }
 
         // 判断是否绑定bom清单
         if (StrUtil.isNotEmpty(machinChild.getBomId())) {
             Bom bom = machinChild.getBomMation();
+
+            // 整体是先走的bom的工艺路线，所以先判断工艺路线，再判断bom子件清单
+            // 判断是否绑定工艺
+            if (ObjectUtil.isNotEmpty(bom.getWayProcedureMation())) {
+                // 判断是否为最后一道工序
+                if (StrUtil.isNotEmpty(bomChildId)) {
+                    // 如果bom子件清单的id不为空 && 加工单子单据有绑定工艺，那么就一定不是最后一道工序
+                    return false;
+                }
+                int lastIndex = bom.getWayProcedureMation().getWorkProcedureList().size() - 1;
+                WayProcedureChild wayProcedureChild = bom.getWayProcedureMation().getWorkProcedureList().get(lastIndex);
+                if (StrUtil.equals(machinChild.getMaterialId(), materialId) && StrUtil.equals(machinChild.getNormsId(), normsId)
+                    && StrUtil.equals(bom.getWayProcedureId(), wayProcedureId) && StrUtil.equals(wayProcedureChild.getProcedureId(), procedureId)) {
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+
             // 获取bom子件清单中绑定了工艺的id
             List<BomChild> bomChildList = bom.getBomChildList().stream().filter(bc -> StrUtil.isNotEmpty(bc.getWayProcedureId())).collect(Collectors.toList());
             if (CollectionUtil.isEmpty(bomChildList)) {
@@ -1044,10 +1045,10 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
             int lastIndex = bomChildList.size() - 1;
             BomChild bomChild = bomChildList.get(lastIndex);
             if (StrUtil.equals(machinChild.getMaterialId(), materialId) && StrUtil.equals(machinChild.getNormsId(), normsId)
-                && StrUtil.equals(machinChild.getWayProcedureId(), wayProcedureId) && StrUtil.equals(bomChild.getId(), bomChildId)) {
+                && StrUtil.equals(bom.getWayProcedureId(), wayProcedureId) && StrUtil.equals(bomChild.getId(), bomChildId)) {
                 // 判断是否为最后一道工序
-                int lastProcedureIndex = machinChild.getWayProcedureMation().getWorkProcedureList().size() - 1;
-                WayProcedureChild wayProcedureChild = machinChild.getWayProcedureMation().getWorkProcedureList().get(lastProcedureIndex);
+                int lastProcedureIndex = bom.getWayProcedureMation().getWorkProcedureList().size() - 1;
+                WayProcedureChild wayProcedureChild = bom.getWayProcedureMation().getWorkProcedureList().get(lastProcedureIndex);
                 if (StrUtil.equals(wayProcedureChild.getProcedureId(), procedureId)) {
                     return true;
                 } else {

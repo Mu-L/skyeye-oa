@@ -14,6 +14,7 @@ import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.Version;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
+import com.skyeye.procedure.entity.WayProcedure;
 import lombok.Data;
 
 import java.util.List;
@@ -75,6 +76,14 @@ public class Bom extends Version {
     @TableField(exist = false)
     @ApiModelProperty(value = "子件清单", required = "required,json")
     private List<BomChild> bomChildList;
+
+    @TableField(value = "way_procedure_id")
+    @ApiModelProperty(value = "工艺id", required = "required")
+    private String wayProcedureId;
+
+    @TableField(exist = false)
+    @Property(value = "工艺信息")
+    private WayProcedure wayProcedureMation;
 
     @TableField(value = "delete_flag")
     private Integer deleteFlag;

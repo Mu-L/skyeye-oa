@@ -148,6 +148,7 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
         Bom bom = super.selectById(id);
 
         // 查询工艺信息
+        wayProcedureService.setDataMation(bom, Bom::getWayProcedureId);
         wayProcedureService.setDataMation(bom.getBomChildList(), BomChild::getWayProcedureId);
         bom.getBomChildList().forEach(bomChild -> {
             bomChild.setOpen(true);
@@ -170,6 +171,9 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
     @Override
     public List<Bom> selectByIds(String... ids) {
         List<Bom> bomList = super.selectByIds(ids);
+
+        // 查询工艺信息
+        wayProcedureService.setDataMation(bomList, Bom::getWayProcedureId);
 
         // 查询工艺信息
         bomList.forEach(bom -> {
