@@ -93,6 +93,10 @@ public class ServiceBean extends CommonInfo {
     @ApiModelProperty(value = "是否开启团队权限管理", enumClass = WhetherEnum.class, required = "required")
     private Boolean teamAuth;
 
+    @TableField("allow_dynamic_attr_key")
+    @ApiModelProperty(value = "是否允许添加动态属性", enumClass = WhetherEnum.class, defaultValue = "1")
+    private Boolean allowDynamicAttrKey;
+
     @TableField("operator_user_info")
     @ApiModelProperty(value = "是否具备操作信息", enumClass = WhetherEnum.class)
     private Boolean operatorUserInfo;

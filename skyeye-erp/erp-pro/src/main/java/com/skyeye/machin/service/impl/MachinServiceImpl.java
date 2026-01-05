@@ -44,6 +44,7 @@ import com.skyeye.machinprocedure.entity.MachinProcedureAccept;
 import com.skyeye.machinprocedure.entity.MachinProcedureFarm;
 import com.skyeye.machinprocedure.service.MachinProcedureFarmService;
 import com.skyeye.machinprocedure.service.MachinProcedureService;
+import com.skyeye.material.classenum.MaterialFromType;
 import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
@@ -883,6 +884,8 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
      * 1. 如果BOM的子件清单没有绑定耗材，那么子件本身就是耗材
      * 2. 如果子件绑定了耗材，那么需要去计算耗材
      * 3. 同时考虑BOM级别的耗材
+     * 4. 自产商品：如果没有绑定耗材，则跳过；如果绑定了耗材，计算耗材
+     * 5. 外购商品：子件本身就是耗材（不需要判断是否绑定耗材）
      *
      * @param machin 加工单
      * @return
@@ -890,82 +893,102 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
     private List<BomChild> getNeedRawMaterial(Machin machin) {
         List<BomChild> needRawMaterial = new ArrayList<>();
 
+        // 在最外层循环前，收集所有需要查询的商品ID
+        List<String> allMaterialIds = new ArrayList<>();
         for (MachinChild machinChild : machin.getMachinChildList()) {
-            if (StrUtil.isNotEmpty(machinChild.getBomId())) {
-                Bom bom = machinChild.getBomMation();
-                if (bom == null) {
-                    continue;
+            Bom bom = machinChild.getBomMation();
+            if (bom == null) {
+                continue;
+            }
+            // 收集BOM子件的商品ID
+            if (CollectionUtil.isEmpty(bom.getBomChildList())) {
+                continue;
+            }
+            bom.getBomChildList().forEach(bomChild -> {
+                if (StrUtil.isNotEmpty(bomChild.getMaterialId())) {
+                    allMaterialIds.add(bomChild.getMaterialId());
                 }
+            });
+        }
 
-                // 计算单元比例：订单数量 / BOM制造数量
-                String unitRatio = CalculationUtil.divide(
-                    machinChild.getOperNumber(),
-                    String.valueOf(bom.getMakeNum()),
-                    CommonNumConstants.NUM_TWO
-                );
+        // 批量查询所有商品信息
+        Map<String, Material> materialMap = new HashMap<>();
+        if (CollectionUtil.isNotEmpty(allMaterialIds)) {
+            List<String> distinctMaterialIds = allMaterialIds.stream().distinct().collect(Collectors.toList());
+            materialMap = materialService.selectMapByIds(distinctMaterialIds);
+        }
 
-                // 处理BOM子件清单
-                if (CollectionUtil.isNotEmpty(bom.getBomChildList())) {
-                    for (BomChild bomChild : bom.getBomChildList()) {
-                        // 计算子件的实际需要数量
-                        String bomChildNeedNum = CalculationUtil.multiply(
-                            unitRatio,
-                            bomChild.getNeedNum(),
-                            ErpConstants.NUM_AFTER_DOT
-                        );
+        for (MachinChild machinChild : machin.getMachinChildList()) {
+            Bom bom = machinChild.getBomMation();
+            if (bom == null) {
+                continue;
+            }
 
-                        // 判断子件是否绑定了耗材
+            // 计算单元比例：订单数量 / BOM制造数量
+            String unitRatio = CalculationUtil.divide(machinChild.getOperNumber(), String.valueOf(bom.getMakeNum()), CommonNumConstants.NUM_TWO);
+
+            // 处理BOM子件清单
+            if (CollectionUtil.isNotEmpty(bom.getBomChildList())) {
+                for (BomChild bomChild : bom.getBomChildList()) {
+                    // 获取子件的商品信息
+                    Material material = materialMap.get(bomChild.getMaterialId());
+                    if (ObjectUtil.isEmpty(material) || material.getFromType() == null) {
+                        continue;
+                    }
+
+                    // 计算子件的实际需要数量
+                    String bomChildNeedNum = CalculationUtil.multiply(unitRatio, bomChild.getNeedNum(), ErpConstants.NUM_AFTER_DOT);
+
+                    // 判断商品类型
+                    boolean isSelfProduced = material.getFromType().equals(MaterialFromType.SELF_PRODUCED.getKey());
+                    boolean isOutsourcing = material.getFromType().equals(MaterialFromType.OUTSOURCING.getKey());
+
+                    if (isOutsourcing) {
+                        // 外购商品：子件本身就是耗材
+                        BomChild consumableChild = new BomChild();
+                        BeanUtil.copyProperties(bomChild, consumableChild);
+                        consumableChild.setNeedNum(bomChildNeedNum);
+                        needRawMaterial.add(consumableChild);
+                    } else if (isSelfProduced) {
+                        // 自产商品：判断是否绑定了耗材，如果没有耗材，则结束
                         List<BomProcedureConsumables> childConsumablesList = bomChild.getProcedureConsumablesList();
                         if (CollectionUtil.isEmpty(childConsumablesList)) {
-                            // 子件没有绑定耗材，子件本身就是耗材
-                            BomChild consumableChild = new BomChild();
-                            BeanUtil.copyProperties(bomChild, consumableChild);
-                            consumableChild.setNeedNum(bomChildNeedNum);
-                            needRawMaterial.add(consumableChild);
-                        } else {
-                            // 子件绑定了耗材，需要计算耗材数量
-                            for (BomProcedureConsumables consumable : childConsumablesList) {
-                                // 耗材的实际需要数量 = 子件的实际需要数量 * 耗材的needNum
-                                String consumableNeedNum = CalculationUtil.multiply(
-                                    bomChildNeedNum,
-                                    consumable.getNeedNum(),
-                                    ErpConstants.NUM_AFTER_DOT
-                                );
+                            continue;
+                        }
+                        // 子件绑定了耗材，需要计算耗材数量
+                        for (BomProcedureConsumables consumable : childConsumablesList) {
+                            // 耗材的实际需要数量 = 子件的实际需要数量 * 耗材的needNum
+                            String consumableNeedNum = CalculationUtil.multiply(bomChildNeedNum, consumable.getNeedNum(), ErpConstants.NUM_AFTER_DOT);
 
-                                // 将耗材转换为BomChild格式
-                                BomChild consumableChild = new BomChild();
-                                consumableChild.setMaterialId(consumable.getMaterialId());
-                                consumableChild.setMaterialMation(consumable.getMaterialMation());
-                                consumableChild.setNormsId(consumable.getNormsId());
-                                consumableChild.setNormsMation(consumable.getNormsMation());
-                                consumableChild.setNeedNum(consumableNeedNum);
-                                consumableChild.setRemark(consumable.getRemark());
-                                needRawMaterial.add(consumableChild);
-                            }
+                            // 将耗材转换为BomChild格式
+                            BomChild consumableChild = new BomChild();
+                            consumableChild.setMaterialId(consumable.getMaterialId());
+                            consumableChild.setMaterialMation(consumable.getMaterialMation());
+                            consumableChild.setNormsId(consumable.getNormsId());
+                            consumableChild.setNormsMation(consumable.getNormsMation());
+                            consumableChild.setNeedNum(consumableNeedNum);
+                            consumableChild.setRemark(consumable.getRemark());
+                            needRawMaterial.add(consumableChild);
                         }
                     }
                 }
+            }
 
-                // 处理BOM级别的耗材（Bom.procedureConsumablesList）
-                if (CollectionUtil.isNotEmpty(bom.getProcedureConsumablesList())) {
-                    for (BomProcedureConsumables bomConsumable : bom.getProcedureConsumablesList()) {
-                        // BOM级别耗材的实际需要数量 = 单元比例 * 耗材的needNum
-                        String bomConsumableNeedNum = CalculationUtil.multiply(
-                            unitRatio,
-                            bomConsumable.getNeedNum(),
-                            ErpConstants.NUM_AFTER_DOT
-                        );
+            // 处理BOM级别的耗材（Bom.procedureConsumablesList）
+            if (CollectionUtil.isNotEmpty(bom.getProcedureConsumablesList())) {
+                for (BomProcedureConsumables bomConsumable : bom.getProcedureConsumablesList()) {
+                    // BOM级别耗材的实际需要数量 = 单元比例 * 耗材的needNum
+                    String bomConsumableNeedNum = CalculationUtil.multiply(unitRatio, bomConsumable.getNeedNum(), ErpConstants.NUM_AFTER_DOT);
 
-                        // 将耗材转换为BomChild格式
-                        BomChild consumableChild = new BomChild();
-                        consumableChild.setMaterialId(bomConsumable.getMaterialId());
-                        consumableChild.setMaterialMation(bomConsumable.getMaterialMation());
-                        consumableChild.setNormsId(bomConsumable.getNormsId());
-                        consumableChild.setNormsMation(bomConsumable.getNormsMation());
-                        consumableChild.setNeedNum(bomConsumableNeedNum);
-                        consumableChild.setRemark(bomConsumable.getRemark());
-                        needRawMaterial.add(consumableChild);
-                    }
+                    // 将耗材转换为BomChild格式
+                    BomChild consumableChild = new BomChild();
+                    consumableChild.setMaterialId(bomConsumable.getMaterialId());
+                    consumableChild.setMaterialMation(bomConsumable.getMaterialMation());
+                    consumableChild.setNormsId(bomConsumable.getNormsId());
+                    consumableChild.setNormsMation(bomConsumable.getNormsMation());
+                    consumableChild.setNeedNum(bomConsumableNeedNum);
+                    consumableChild.setRemark(bomConsumable.getRemark());
+                    needRawMaterial.add(consumableChild);
                 }
             }
         }

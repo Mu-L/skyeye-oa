@@ -16,6 +16,7 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.brand.entity.Brand;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.IsUsedEnum;
 import com.skyeye.material.classenum.MaterialFromType;
 import com.skyeye.material.classenum.MaterialItemCode;
@@ -52,7 +53,7 @@ public class Material extends BaseGeneralInfo {
     private Map<String, Object> categoryMation;
 
     @TableField(value = "unit")
-    @ApiModelProperty(value = "规格类型，参考#MaterialUnit", required = "required,num")
+    @ApiModelProperty(value = "规格类型", enumClass = MaterialUnit.class, required = "required,num")
     private Integer unit;
 
     @TableField(value = "model")
@@ -88,7 +89,7 @@ public class Material extends BaseGeneralInfo {
     private MaterialUnit firstOutUnitMation;
 
     @TableField(value = "enabled")
-    @ApiModelProperty(value = "启用，参考#EnableEnum", required = "required,num")
+    @ApiModelProperty(value = "启用状态", enumClass = EnableEnum.class, required = "required,num")
     private Integer enabled;
 
     @TableField(value = "delete_flag")

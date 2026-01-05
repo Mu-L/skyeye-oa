@@ -5,7 +5,6 @@
 package com.skyeye.bom.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -15,18 +14,11 @@ import com.skyeye.bom.entity.BomChild;
 import com.skyeye.bom.entity.BomProcedureConsumables;
 import com.skyeye.bom.service.BomChildService;
 import com.skyeye.bom.service.BomProcedureConsumablesService;
-import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.material.entity.MaterialNorms;
-import com.skyeye.material.service.MaterialNormsService;
-import com.skyeye.procedure.entity.WayProcedure;
-import com.skyeye.procedure.service.WayProcedureService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,65 +36,7 @@ import java.util.stream.Collectors;
 public class BomChildServiceImpl extends SkyeyeBusinessServiceImpl<BomChildDao, BomChild> implements BomChildService {
 
     @Autowired
-    private MaterialNormsService materialNormsService;
-
-    @Autowired
-    private WayProcedureService wayProcedureService;
-
-    @Autowired
     private BomProcedureConsumablesService bomProcedureConsumablesService;
-
-    /**
-     * 计算耗材总费用
-     *
-     * @param bomChildList
-     * @return
-     */
-    @Override
-    public String calcConsumablesPrice(List<BomChild> bomChildList) {
-        String allConsumablesPrice = "0";
-        // 获取规格id
-        List<String> normsIds = bomChildList.stream().map(BomChild::getNormsId).collect(Collectors.toList());
-        Map<String, MaterialNorms> materialNormsMap = materialNormsService.selectMapByIds(normsIds);
-        for (BomChild bomChild : bomChildList) {
-            MaterialNorms materialNorms = materialNormsMap.get(bomChild.getNormsId());
-            // 单个子件耗材总费用  所需要的数量 * 成本价
-            String consumablesPrice = CalculationUtil.multiply(String.valueOf(bomChild.getNeedNum()), materialNorms.getEstimatePurchasePrice());
-            bomChild.setConsumablesPrice(consumablesPrice);
-            allConsumablesPrice = CalculationUtil.add(allConsumablesPrice, consumablesPrice, CommonNumConstants.NUM_TWO);
-        }
-        return allConsumablesPrice;
-    }
-
-    @Override
-    public String calcProcedurePrice(List<BomChild> bomChildList) {
-        String allProcedurePrice = "0";
-        // 查询工艺信息
-        List<String> wayProcedureIdList = bomChildList.stream()
-            .filter(bean -> StrUtil.isNotEmpty(bean.getWayProcedureId()))
-            .map(BomChild::getWayProcedureId).distinct().collect(Collectors.toList());
-        Map<String, WayProcedure> wayProcedureMap = new HashMap<>();
-        if (CollectionUtil.isNotEmpty(wayProcedureIdList)) {
-            wayProcedureMap = wayProcedureService.selectMapByIds(wayProcedureIdList);
-        }
-        for (BomChild bomChild : bomChildList) {
-            String allPrice = bomChild.getConsumablesPrice();
-            if (StrUtil.isEmpty(bomChild.getWayProcedureId())) {
-                bomChild.setAllPrice(allPrice);
-                continue;
-            }
-            WayProcedure wayProcedure = wayProcedureMap.get(bomChild.getWayProcedureId());
-            if (ObjectUtil.isEmpty(wayProcedure)) {
-                bomChild.setAllPrice(allPrice);
-                continue;
-            }
-            allProcedurePrice = CalculationUtil.add(allProcedurePrice, wayProcedure.getAllPrice(), CommonNumConstants.NUM_TWO);
-            // 子件清单总价
-            allPrice = CalculationUtil.add(allPrice, wayProcedure.getAllPrice(), CommonNumConstants.NUM_TWO);
-            bomChild.setAllPrice(allPrice);
-        }
-        return allProcedurePrice;
-    }
 
     @Override
     protected void createPrepose(List<BomChild> entity) {
@@ -151,7 +85,7 @@ public class BomChildServiceImpl extends SkyeyeBusinessServiceImpl<BomChildDao, 
         queryWrapper.eq(MybatisPlusUtil.toColumns(BomChild::getBomId), bomId);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(BomChild::getOrderBy));
         List<BomChild> bomChildren = list(queryWrapper);
-        if  (CollectionUtil.isNotEmpty(bomChildren)) {
+        if (CollectionUtil.isNotEmpty(bomChildren)) {
             // 设置耗材信息
             List<String> bomChildIdList = bomChildren.stream().map(BomChild::getId).collect(Collectors.toList());
             Map<String, List<BomProcedureConsumables>> listMap = bomProcedureConsumablesService.queryListByBomChildIds(bomChildIdList);
@@ -168,7 +102,7 @@ public class BomChildServiceImpl extends SkyeyeBusinessServiceImpl<BomChildDao, 
         queryWrapper.in(MybatisPlusUtil.toColumns(BomChild::getBomId), bomIds);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(BomChild::getOrderBy));
         List<BomChild> bomChildren = list(queryWrapper);
-        if  (CollectionUtil.isNotEmpty(bomChildren)) {
+        if (CollectionUtil.isNotEmpty(bomChildren)) {
             // 设置耗材信息
             List<String> bomChildIdList = bomChildren.stream().map(BomChild::getId).collect(Collectors.toList());
             Map<String, List<BomProcedureConsumables>> listMap = bomProcedureConsumablesService.queryListByBomChildIds(bomChildIdList);

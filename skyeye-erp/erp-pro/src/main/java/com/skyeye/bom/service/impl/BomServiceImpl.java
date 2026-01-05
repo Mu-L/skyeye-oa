@@ -32,17 +32,18 @@ import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.constants.ErpConstants;
 import com.skyeye.exception.CustomException;
+import com.skyeye.material.classenum.MaterialFromType;
+import com.skyeye.material.entity.Material;
+import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
+import com.skyeye.procedure.entity.WayProcedure;
 import com.skyeye.procedure.service.WayProcedureService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -124,17 +125,267 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
         if (ObjectUtil.isNotEmpty(checkMaterial)) {
             throw new CustomException("子件清单中不能包含父件信息");
         }
-        entity.getBomChildList().forEach(bomChild -> {
+
+        // 批量查询所有子件的商品信息，用于判断商品类型
+        List<String> bomChildMaterialIds = entity.getBomChildList().stream()
+            .map(BomChild::getMaterialId)
+            .filter(StrUtil::isNotEmpty)
+            .distinct()
+            .collect(Collectors.toList());
+        Map<String, Material> materialMap = new HashMap<>();
+        if (CollectionUtil.isNotEmpty(bomChildMaterialIds)) {
+            materialMap = materialService.selectMapByIds(bomChildMaterialIds);
+        }
+
+        for (BomChild bomChild : entity.getBomChildList()) {
             String needNum = StrUtil.isEmpty(bomChild.getNeedNum())
                 ? CommonNumConstants.NUM_ZERO.toString()
                 : bomChild.getNeedNum();
             if (CalculationUtil.compareTo(needNum, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) == 0) {
                 throw new CustomException("子件数量不能为0");
             }
-        });
-        entity.setConsumablesPrice(bomChildService.calcConsumablesPrice(entity.getBomChildList()));
-        entity.setProcedurePrice(bomChildService.calcProcedurePrice(entity.getBomChildList()));
+
+            // 获取子件的商品信息
+            Material material = materialMap.get(bomChild.getMaterialId());
+            if (ObjectUtil.isNotEmpty(material) && material.getFromType() != null) {
+                if (material.getFromType().equals(MaterialFromType.SELF_PRODUCED.getKey())) {
+                    // 自产商品：必须配置工艺，耗材可以不配
+                    if (StrUtil.isEmpty(bomChild.getWayProcedureId())) {
+                        throw new CustomException("自产商品子件必须配置工艺");
+                    }
+                } else if (material.getFromType().equals(MaterialFromType.OUTSOURCING.getKey())) {
+                    // 外购商品：清空工艺和耗材
+                    bomChild.setWayProcedureId(null);
+                    bomChild.setProcedureConsumablesList(null);
+                }
+            }
+        }
+
+        entity.setConsumablesPrice(calcConsumablesPrice(entity));
+        entity.setProcedurePrice(calcProcedurePrice(entity));
         entity.setAllPrice(CalculationUtil.add(entity.getConsumablesPrice(), entity.getProcedurePrice(), CommonNumConstants.NUM_TWO));
+    }
+
+    /**
+     * 计算耗材总费用
+     * 包括：
+     * 1. BOM子件本身的耗材费用（仅外购商品：子件数量 * 成本价）
+     * 2. BOM子件绑定的工序耗材费用（仅自产商品：工序耗材数量 * 成本价）
+     * 3. BOM层面的工序耗材费用（工序耗材数量 * 成本价）
+     *
+     * @param bom BOM实体
+     * @return 耗材总费用
+     */
+    public String calcConsumablesPrice(Bom bom) {
+        String allConsumablesPrice = "0";
+        List<BomChild> bomChildList = bom.getBomChildList();
+
+        if (CollectionUtil.isEmpty(bomChildList)) {
+            bomChildList = new ArrayList<>();
+        }
+
+        // 批量查询所有子件的商品信息，用于判断商品类型
+        List<String> bomChildMaterialIds = bomChildList.stream()
+            .map(BomChild::getMaterialId)
+            .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        Map<String, Material> materialMap = new HashMap<>();
+        if (CollectionUtil.isNotEmpty(bomChildMaterialIds)) {
+            materialMap = materialService.selectMapByIds(bomChildMaterialIds);
+        }
+
+        // 1. 计算BOM子件本身的耗材费用（仅外购商品）
+        List<String> normsIds = bomChildList.stream()
+            .map(BomChild::getNormsId)
+            .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+
+        Map<String, MaterialNorms> materialNormsMap = new HashMap<>();
+        if (CollectionUtil.isNotEmpty(normsIds)) {
+            materialNormsMap = materialNormsService.selectMapByIds(normsIds);
+        }
+
+        for (BomChild bomChild : bomChildList) {
+            MaterialNorms materialNorms = materialNormsMap.get(bomChild.getNormsId());
+            if (ObjectUtil.isEmpty(materialNorms)) {
+                continue;
+            }
+
+            // 获取子件的商品信息
+            Material material = materialMap.get(bomChild.getMaterialId());
+            if (ObjectUtil.isEmpty(material) || material.getFromType() == null) {
+                continue;
+            }
+
+            // 只有外购商品才计算子件本身的耗材费用
+            if (material.getFromType().equals(MaterialFromType.OUTSOURCING.getKey())) {
+                // 单个子件耗材总费用 = 所需要的数量 * 成本价
+                String needNum = StrUtil.isEmpty(bomChild.getNeedNum()) ? CommonNumConstants.NUM_ZERO.toString() : bomChild.getNeedNum();
+                String estimatePrice = StrUtil.isEmpty(materialNorms.getEstimatePurchasePrice()) ? CommonNumConstants.NUM_ZERO.toString() : materialNorms.getEstimatePurchasePrice();
+
+                String consumablesPrice = CalculationUtil.multiply(needNum, estimatePrice, ErpConstants.NUM_AFTER_DOT);
+                bomChild.setConsumablesPrice(consumablesPrice);
+                allConsumablesPrice = CalculationUtil.add(allConsumablesPrice, consumablesPrice, ErpConstants.NUM_AFTER_DOT);
+            } else {
+                // 自产商品不计算子件本身的耗材费用
+                bomChild.setConsumablesPrice(CommonNumConstants.NUM_ZERO.toString());
+            }
+        }
+
+        // 2. 计算BOM子件绑定的工序耗材费用（仅自产商品）
+        for (BomChild bomChild : bomChildList) {
+            // 获取子件的商品信息
+            Material material = materialMap.get(bomChild.getMaterialId());
+            if (ObjectUtil.isEmpty(material) || material.getFromType() == null) {
+                continue;
+            }
+
+            // 只有自产商品才计算绑定的工序耗材费用
+            if (!material.getFromType().equals(MaterialFromType.SELF_PRODUCED.getKey())) {
+                continue;
+            }
+
+            if (CollectionUtil.isEmpty(bomChild.getProcedureConsumablesList())) {
+                continue;
+            }
+
+            // 获取子件绑定的工序耗材的规格ID
+            List<String> consumablesNormsIds = bomChild.getProcedureConsumablesList().stream()
+                .map(BomProcedureConsumables::getNormsId)
+                .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+
+            if (CollectionUtil.isEmpty(consumablesNormsIds)) {
+                continue;
+            }
+
+            Map<String, MaterialNorms> consumablesNormsMap = materialNormsService.selectMapByIds(consumablesNormsIds);
+
+            for (BomProcedureConsumables consumable : bomChild.getProcedureConsumablesList()) {
+                MaterialNorms consumableNorms = consumablesNormsMap.get(consumable.getNormsId());
+                if (ObjectUtil.isEmpty(consumableNorms)) {
+                    continue;
+                }
+
+                // 工序耗材费用 = 耗材数量 * 成本价
+                String consumableNeedNum = StrUtil.isEmpty(consumable.getNeedNum()) ? CommonNumConstants.NUM_ZERO.toString() : consumable.getNeedNum();
+                String consumableEstimatePrice = StrUtil.isEmpty(consumableNorms.getEstimatePurchasePrice()) ? CommonNumConstants.NUM_ZERO.toString() : consumableNorms.getEstimatePurchasePrice();
+
+                String consumablePrice = CalculationUtil.multiply(consumableNeedNum, consumableEstimatePrice, ErpConstants.NUM_AFTER_DOT);
+                allConsumablesPrice = CalculationUtil.add(allConsumablesPrice, consumablePrice, ErpConstants.NUM_AFTER_DOT);
+            }
+        }
+
+        // 3. 计算BOM层面的工序耗材费用
+        if (CollectionUtil.isNotEmpty(bom.getProcedureConsumablesList())) {
+            List<String> bomConsumablesNormsIds = bom.getProcedureConsumablesList().stream()
+                .map(BomProcedureConsumables::getNormsId)
+                .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+
+            if (CollectionUtil.isNotEmpty(bomConsumablesNormsIds)) {
+                Map<String, MaterialNorms> bomConsumablesNormsMap = materialNormsService.selectMapByIds(bomConsumablesNormsIds);
+
+                for (BomProcedureConsumables consumable : bom.getProcedureConsumablesList()) {
+                    MaterialNorms consumableNorms = bomConsumablesNormsMap.get(consumable.getNormsId());
+                    if (ObjectUtil.isEmpty(consumableNorms)) {
+                        continue;
+                    }
+
+                    // 工序耗材费用 = 耗材数量 * 成本价
+                    String consumableNeedNum = StrUtil.isEmpty(consumable.getNeedNum()) ? CommonNumConstants.NUM_ZERO.toString() : consumable.getNeedNum();
+                    String consumableEstimatePrice = StrUtil.isEmpty(consumableNorms.getEstimatePurchasePrice()) ? CommonNumConstants.NUM_ZERO.toString() : consumableNorms.getEstimatePurchasePrice();
+
+                    String consumablePrice = CalculationUtil.multiply(consumableNeedNum, consumableEstimatePrice, ErpConstants.NUM_AFTER_DOT);
+                    allConsumablesPrice = CalculationUtil.add(allConsumablesPrice, consumablePrice, ErpConstants.NUM_AFTER_DOT);
+                }
+            }
+        }
+
+        return allConsumablesPrice;
+    }
+
+    /**
+     * 计算工序总费用
+     * 包括：
+     * 1. BOM子件绑定的工艺费用（仅自产商品）
+     * 2. BOM层面的工艺费用
+     *
+     * @param bom BOM实体
+     * @return 工序总费用
+     */
+    public String calcProcedurePrice(Bom bom) {
+        String allProcedurePrice = "0";
+        List<BomChild> bomChildList = bom.getBomChildList();
+
+        if (CollectionUtil.isEmpty(bomChildList)) {
+            bomChildList = new ArrayList<>();
+        }
+
+        // 批量查询所有子件的商品信息，用于判断商品类型
+        List<String> bomChildMaterialIds = bomChildList.stream()
+            .map(BomChild::getMaterialId)
+            .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        Map<String, Material> materialMap = new HashMap<>();
+        if (CollectionUtil.isNotEmpty(bomChildMaterialIds)) {
+            materialMap = materialService.selectMapByIds(bomChildMaterialIds);
+        }
+
+        // 1. 计算BOM子件绑定的工艺费用（仅自产商品）
+        List<String> wayProcedureIdList = bomChildList.stream()
+            .filter(bean -> StrUtil.isNotEmpty(bean.getWayProcedureId()))
+            .map(BomChild::getWayProcedureId).distinct().collect(Collectors.toList());
+
+        Map<String, WayProcedure> wayProcedureMap = new HashMap<>();
+        if (CollectionUtil.isNotEmpty(wayProcedureIdList)) {
+            wayProcedureMap = wayProcedureService.selectMapByIds(wayProcedureIdList);
+        }
+
+        for (BomChild bomChild : bomChildList) {
+            String allPrice = StrUtil.isEmpty(bomChild.getConsumablesPrice()) ? CommonNumConstants.NUM_ZERO.toString() : bomChild.getConsumablesPrice();
+
+            // 获取子件的商品信息
+            Material material = materialMap.get(bomChild.getMaterialId());
+            if (ObjectUtil.isEmpty(material) || material.getFromType() == null) {
+                // 如果没有商品信息，设置总价为耗材费用
+                bomChild.setAllPrice(allPrice);
+                continue;
+            }
+
+            // 只有自产商品才计算工艺费用
+            if (!material.getFromType().equals(MaterialFromType.SELF_PRODUCED.getKey())) {
+                // 外购商品：总价 = 耗材费用（子件本身）
+                bomChild.setAllPrice(allPrice);
+                continue;
+            }
+
+            // 自产商品：需要计算工艺费用
+            if (StrUtil.isEmpty(bomChild.getWayProcedureId())) {
+                bomChild.setAllPrice(allPrice);
+                continue;
+            }
+
+            WayProcedure wayProcedure = wayProcedureMap.get(bomChild.getWayProcedureId());
+            if (ObjectUtil.isEmpty(wayProcedure)) {
+                bomChild.setAllPrice(allPrice);
+                continue;
+            }
+
+            // 累加工艺费用
+            String procedurePrice = StrUtil.isEmpty(wayProcedure.getAllPrice()) ? CommonNumConstants.NUM_ZERO.toString() : wayProcedure.getAllPrice();
+            allProcedurePrice = CalculationUtil.add(allProcedurePrice, procedurePrice, ErpConstants.NUM_AFTER_DOT);
+
+            // 子件清单总价 = 耗材费用 + 工艺费用
+            allPrice = CalculationUtil.add(allPrice, procedurePrice, ErpConstants.NUM_AFTER_DOT);
+            bomChild.setAllPrice(allPrice);
+        }
+
+        // 2. 计算BOM层面的工艺费用
+        if (StrUtil.isNotEmpty(bom.getWayProcedureId())) {
+            WayProcedure bomWayProcedure = wayProcedureService.selectById(bom.getWayProcedureId());
+            if (ObjectUtil.isNotEmpty(bomWayProcedure)) {
+                String bomProcedurePrice = StrUtil.isEmpty(bomWayProcedure.getAllPrice()) ? CommonNumConstants.NUM_ZERO.toString() : bomWayProcedure.getAllPrice();
+                allProcedurePrice = CalculationUtil.add(allProcedurePrice, bomProcedurePrice, ErpConstants.NUM_AFTER_DOT);
+            }
+        }
+
+        return allProcedurePrice;
     }
 
     @Override

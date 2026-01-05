@@ -20,22 +20,6 @@ import java.util.Map;
  */
 public interface BomChildService extends SkyeyeBusinessService<BomChild> {
 
-    /**
-     * 计算耗材总费用
-     *
-     * @param bomChildList
-     * @return
-     */
-    String calcConsumablesPrice(List<BomChild> bomChildList);
-
-    /**
-     * 计算工艺总费用
-     *
-     * @param bomChildList
-     * @return
-     */
-    String calcProcedurePrice(List<BomChild> bomChildList);
-
     void deleteBomChildByBomId(String bomId);
 
     List<BomChild> queryBomChildByBomId(String bomId);
