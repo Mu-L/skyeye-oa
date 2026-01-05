@@ -39,6 +39,13 @@ public class BomController {
         bomService.queryPageList(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryBomHistoryList", value = "根据versionNo查询bom得历史列表", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/BomController/queryBomHistoryList")
+    public void queryBomHistoryList(InputObject inputObject, OutputObject outputObject) {
+        bomService.queryBomHistoryList(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "writeBom", value = "新增/编辑bom表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Bom.class)
     @RequestMapping("/post/BomController/writeBom")

@@ -27,4 +27,6 @@ public interface BomService extends SkyeyeBusinessService<Bom> {
     Map<String, List<Bom>> getBomListByNormsId(String... normsId);
 
     void queryMaterialBomChildsToProduceByJson(InputObject inputObject, OutputObject outputObject);
+
+    void queryBomHistoryList(InputObject inputObject, OutputObject outputObject);
 }

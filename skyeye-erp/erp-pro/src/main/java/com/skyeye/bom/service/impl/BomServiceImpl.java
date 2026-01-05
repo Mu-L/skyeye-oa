@@ -10,6 +10,8 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.bom.dao.BomDao;
@@ -84,6 +86,23 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
         materialService.setMationForMap(beans, "materialId", "materialMation");
         materialNormsService.setMationForMap(beans, "normsId", "normsMation");
         return beans;
+    }
+
+    @Override
+    public void queryBomHistoryList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        String versionNo = commonPageInfo.getCustomParamsMapStr("versionNo");
+        if (StrUtil.isEmpty(versionNo)) {
+            return;
+        }
+
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        QueryWrapper<Bom> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Bom::getVersionNo), versionNo);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Bom::getLargeVersion));
+        List<Bom> bomList = list(queryWrapper);
+        outputObject.setBeans(bomList);
+        outputObject.settotal(page.getTotal());
     }
 
     @Override

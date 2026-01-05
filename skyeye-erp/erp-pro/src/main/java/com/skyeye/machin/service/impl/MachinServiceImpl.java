@@ -15,6 +15,8 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.bom.entity.Bom;
 import com.skyeye.bom.entity.BomChild;
+import com.skyeye.bom.entity.BomProcedureConsumables;
+import com.skyeye.bom.service.BomProcedureConsumablesService;
 import com.skyeye.bom.service.BomService;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
@@ -103,6 +105,9 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
 
     @Autowired
     private BomService bomService;
+
+    @Autowired
+    private BomProcedureConsumablesService bomProcedureConsumablesService;
 
     @Autowired
     private WayProcedureService wayProcedureService;
@@ -772,11 +777,11 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         // 设置未申领的原材料信息
         needRawMaterial.forEach(machinChild -> {
             // 设置未下达领料单/补料单的商品数量-----原材料需求数量 - 已领料的数量 - 已补料的数量
-            String requestNumValue = requestNum.containsKey(machinChild.getNormsId()) 
-                ? requestNum.get(machinChild.getNormsId()) 
+            String requestNumValue = requestNum.containsKey(machinChild.getNormsId())
+                ? requestNum.get(machinChild.getNormsId())
                 : CommonNumConstants.NUM_ZERO.toString();
-            String patchNumValue = patchNum.containsKey(machinChild.getNormsId()) 
-                ? patchNum.get(machinChild.getNormsId()) 
+            String patchNumValue = patchNum.containsKey(machinChild.getNormsId())
+                ? patchNum.get(machinChild.getNormsId())
                 : CommonNumConstants.NUM_ZERO.toString();
             String tempNum = CalculationUtil.subtract(machinChild.getNeedNum(), requestNumValue, ErpConstants.NUM_AFTER_DOT);
             String surplusNum = CalculationUtil.subtract(tempNum, patchNumValue, ErpConstants.NUM_AFTER_DOT);
@@ -802,7 +807,7 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
      * @return 计算后的BOM子件列表
      */
     public static List<BomChild> calculateBomChildNeedNum(Bom bom, String operNumber) {
-        if (bom == null || CollectionUtil.isEmpty(bom.getBomChildList()) || StrUtil.isEmpty(operNumber) 
+        if (bom == null || CollectionUtil.isEmpty(bom.getBomChildList()) || StrUtil.isEmpty(operNumber)
             || CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) <= 0) {
             return bom != null ? bom.getBomChildList() : new ArrayList<>();
         }
@@ -873,39 +878,120 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
     }
 
     /**
-     * 获取需要的原材料
+     * 获取需要的原材料（耗材）
+     * 新的逻辑：
+     * 1. 如果BOM的子件清单没有绑定耗材，那么子件本身就是耗材
+     * 2. 如果子件绑定了耗材，那么需要去计算耗材
+     * 3. 同时考虑BOM级别的耗材
      *
      * @param machin 加工单
      * @return
      */
     private List<BomChild> getNeedRawMaterial(Machin machin) {
         List<BomChild> needRawMaterial = new ArrayList<>();
+
         for (MachinChild machinChild : machin.getMachinChildList()) {
             if (StrUtil.isNotEmpty(machinChild.getBomId())) {
                 Bom bom = machinChild.getBomMation();
-                List<BomChild> bomChildList = new ArrayList<>(bom.getBomChildList());
-                bomChildList.forEach(bomChild -> {
-                    // 计算需要的原材料数量 = 订单数量 / bom方案制造的数量 * bom子项的需求数量
-                    String divide = CalculationUtil.divide(machinChild.getOperNumber(), String.valueOf(bom.getMakeNum()), CommonNumConstants.NUM_TWO);
-                    divide = CalculationUtil.multiply(divide, bomChild.getNeedNum(), ErpConstants.NUM_AFTER_DOT);
-                    bomChild.setNeedNum(divide);
-                });
-                needRawMaterial.addAll(bomChildList);
+                if (bom == null) {
+                    continue;
+                }
+
+                // 计算单元比例：订单数量 / BOM制造数量
+                String unitRatio = CalculationUtil.divide(
+                    machinChild.getOperNumber(),
+                    String.valueOf(bom.getMakeNum()),
+                    CommonNumConstants.NUM_TWO
+                );
+
+                // 处理BOM子件清单
+                if (CollectionUtil.isNotEmpty(bom.getBomChildList())) {
+                    for (BomChild bomChild : bom.getBomChildList()) {
+                        // 计算子件的实际需要数量
+                        String bomChildNeedNum = CalculationUtil.multiply(
+                            unitRatio,
+                            bomChild.getNeedNum(),
+                            ErpConstants.NUM_AFTER_DOT
+                        );
+
+                        // 判断子件是否绑定了耗材
+                        List<BomProcedureConsumables> childConsumablesList = bomChild.getProcedureConsumablesList();
+                        if (CollectionUtil.isEmpty(childConsumablesList)) {
+                            // 子件没有绑定耗材，子件本身就是耗材
+                            BomChild consumableChild = new BomChild();
+                            BeanUtil.copyProperties(bomChild, consumableChild);
+                            consumableChild.setNeedNum(bomChildNeedNum);
+                            needRawMaterial.add(consumableChild);
+                        } else {
+                            // 子件绑定了耗材，需要计算耗材数量
+                            for (BomProcedureConsumables consumable : childConsumablesList) {
+                                // 耗材的实际需要数量 = 子件的实际需要数量 * 耗材的needNum
+                                String consumableNeedNum = CalculationUtil.multiply(
+                                    bomChildNeedNum,
+                                    consumable.getNeedNum(),
+                                    ErpConstants.NUM_AFTER_DOT
+                                );
+
+                                // 将耗材转换为BomChild格式
+                                BomChild consumableChild = new BomChild();
+                                consumableChild.setMaterialId(consumable.getMaterialId());
+                                consumableChild.setMaterialMation(consumable.getMaterialMation());
+                                consumableChild.setNormsId(consumable.getNormsId());
+                                consumableChild.setNormsMation(consumable.getNormsMation());
+                                consumableChild.setNeedNum(consumableNeedNum);
+                                consumableChild.setRemark(consumable.getRemark());
+                                needRawMaterial.add(consumableChild);
+                            }
+                        }
+                    }
+                }
+
+                // 处理BOM级别的耗材（Bom.procedureConsumablesList）
+                if (CollectionUtil.isNotEmpty(bom.getProcedureConsumablesList())) {
+                    for (BomProcedureConsumables bomConsumable : bom.getProcedureConsumablesList()) {
+                        // BOM级别耗材的实际需要数量 = 单元比例 * 耗材的needNum
+                        String bomConsumableNeedNum = CalculationUtil.multiply(
+                            unitRatio,
+                            bomConsumable.getNeedNum(),
+                            ErpConstants.NUM_AFTER_DOT
+                        );
+
+                        // 将耗材转换为BomChild格式
+                        BomChild consumableChild = new BomChild();
+                        consumableChild.setMaterialId(bomConsumable.getMaterialId());
+                        consumableChild.setMaterialMation(bomConsumable.getMaterialMation());
+                        consumableChild.setNormsId(bomConsumable.getNormsId());
+                        consumableChild.setNormsMation(bomConsumable.getNormsMation());
+                        consumableChild.setNeedNum(bomConsumableNeedNum);
+                        consumableChild.setRemark(bomConsumable.getRemark());
+                        needRawMaterial.add(consumableChild);
+                    }
+                }
             }
         }
+
         // 根据规格id去重并合并所需数量
         Map<String, BomChild> needRawMaterialMap = new HashMap<>();
         needRawMaterial.forEach(bomChild -> {
-            if (needRawMaterialMap.containsKey(bomChild.getNormsId())) {
-                BomChild existBomChild = needRawMaterialMap.get(bomChild.getNormsId());
-                String sum = CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, existBomChild.getNeedNum(), bomChild.getNeedNum());
+            String normsId = bomChild.getNormsId();
+            if (StrUtil.isEmpty(normsId)) {
+                return; // 跳过没有规格ID的项
+            }
+
+            if (needRawMaterialMap.containsKey(normsId)) {
+                BomChild existBomChild = needRawMaterialMap.get(normsId);
+                String sum = CalculationUtil.add(
+                    ErpConstants.NUM_AFTER_DOT,
+                    existBomChild.getNeedNum(),
+                    bomChild.getNeedNum()
+                );
                 existBomChild.setNeedNum(sum);
             } else {
-                needRawMaterialMap.put(bomChild.getNormsId(), bomChild);
+                needRawMaterialMap.put(normsId, bomChild);
             }
         });
-        needRawMaterial = new ArrayList<>(needRawMaterialMap.values());
-        return needRawMaterial;
+
+        return new ArrayList<>(needRawMaterialMap.values());
     }
 
     @Override
@@ -960,17 +1046,17 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         Map<String, String> returnNum = returnMaterialService.calcMaterialNormsNumByFromId(id);
         machin.getMachinChildList().forEach(machinChild -> {
             // 设置未下达退料单的商品数量-----已领料的数量 + 已补料的数量 - 订单数量 - 已退料的数量
-            String requestNumValue = requestNum.containsKey(machinChild.getNormsId()) 
-                ? requestNum.get(machinChild.getNormsId()) 
+            String requestNumValue = requestNum.containsKey(machinChild.getNormsId())
+                ? requestNum.get(machinChild.getNormsId())
                 : CommonNumConstants.NUM_ZERO.toString();
-            String patchNumValue = patchNum.containsKey(machinChild.getNormsId()) 
-                ? patchNum.get(machinChild.getNormsId()) 
+            String patchNumValue = patchNum.containsKey(machinChild.getNormsId())
+                ? patchNum.get(machinChild.getNormsId())
                 : CommonNumConstants.NUM_ZERO.toString();
-            String returnNumValue = returnNum.containsKey(machinChild.getNormsId()) 
-                ? returnNum.get(machinChild.getNormsId()) 
+            String returnNumValue = returnNum.containsKey(machinChild.getNormsId())
+                ? returnNum.get(machinChild.getNormsId())
                 : CommonNumConstants.NUM_ZERO.toString();
-            String lastProcedureNumValue = StrUtil.isEmpty(machinChild.getLastProcedureNum()) 
-                ? CommonNumConstants.NUM_ZERO.toString() 
+            String lastProcedureNumValue = StrUtil.isEmpty(machinChild.getLastProcedureNum())
+                ? CommonNumConstants.NUM_ZERO.toString()
                 : machinChild.getLastProcedureNum();
             String tempNum = CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, requestNumValue, patchNumValue);
             String tempNum2 = CalculationUtil.subtract(tempNum, lastProcedureNumValue, ErpConstants.NUM_AFTER_DOT);
