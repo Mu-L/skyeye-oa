@@ -38,7 +38,7 @@ public class MachinProcedureController {
         machinProcedureService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "setMachinProcedureById", value = "设置计划时间", method = "POST", allUse = "2")
+    @ApiOperation(id = "setMachinProcedureById", value = "设置计划时间和其他参数", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
         @ApiImplicitParam(id = "planStartTime", name = "planStartTime", value = "计划开始时间", required = "required"),
@@ -49,6 +49,16 @@ public class MachinProcedureController {
     @RequestMapping("/post/MachinProcedureController/setMachinProcedureById")
     public void setMachinProcedureById(InputObject inputObject, OutputObject outputObject) {
         machinProcedureService.setMachinProcedureById(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "setMachinProcedurePlanTimeById", value = "设置计划时间", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "planStartTime", name = "planStartTime", value = "计划开始时间", required = "required"),
+        @ApiImplicitParam(id = "planEndTime", name = "planEndTime", value = "计划结束时间", required = "required")})
+    @RequestMapping("/post/MachinProcedureController/setMachinProcedurePlanTimeById")
+    public void setMachinProcedurePlanTimeById(InputObject inputObject, OutputObject outputObject) {
+        machinProcedureService.setMachinProcedurePlanTimeById(inputObject, outputObject);
     }
 
 }

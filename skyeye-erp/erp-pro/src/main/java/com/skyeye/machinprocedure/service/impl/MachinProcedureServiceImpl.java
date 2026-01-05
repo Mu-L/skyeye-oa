@@ -233,4 +233,18 @@ public class MachinProcedureServiceImpl extends SkyeyeBusinessServiceImpl<Machin
         queryWrapper.in(CommonConstants.ID, machinProcedureIdList);
         return list(queryWrapper);
     }
+
+    @Override
+    public void setMachinProcedurePlanTimeById(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        String planStartTime = params.get("planStartTime").toString();
+        String planEndTime = params.get("planEndTime").toString();
+
+        UpdateWrapper<MachinProcedure> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(MachinProcedure::getPlanStartTime), planStartTime);
+        updateWrapper.set(MybatisPlusUtil.toColumns(MachinProcedure::getPlanEndTime), planEndTime);
+        update(updateWrapper);
+    }
 }
