@@ -32,7 +32,7 @@ import java.util.List;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "品牌管理", groupName = "品牌管理", tenant = TenantEnum.WEAK_ISOLATION)
+@SkyeyeService(name = "品牌管理", groupName = "品牌管理", tenant = TenantEnum.WEAK_ISOLATION, allowDynamicAttrKey = false)
 public class BrandServiceImpl extends SkyeyeBusinessServiceImpl<BrandDao, Brand> implements BrandService {
 
     @Override

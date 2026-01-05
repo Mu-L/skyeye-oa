@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "仓库管理", groupName = "仓库管理")
+@SkyeyeService(name = "仓库管理", groupName = "仓库管理", allowDynamicAttrKey = false)
 public class ErpDepotServiceImpl extends SkyeyeBusinessServiceImpl<ErpDepotDao, Depot> implements ErpDepotService {
 
     @Override

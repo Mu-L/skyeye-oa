@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "计量单位分组", groupName = "计量单位")
+@SkyeyeService(name = "计量单位分组", groupName = "计量单位", allowDynamicAttrKey = false)
 public class MaterialUnitGroupServiceImpl extends SkyeyeBusinessServiceImpl<MaterialUnitGroupDao, MaterialUnitGroup> implements MaterialUnitGroupService {
 
     @Autowired

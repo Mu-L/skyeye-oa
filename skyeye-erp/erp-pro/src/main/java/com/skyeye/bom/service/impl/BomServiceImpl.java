@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "bom清单管理", groupName = "bom清单管理")
+@SkyeyeService(name = "bom清单管理", groupName = "bom清单管理", allowDynamicAttrKey = false)
 public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> implements BomService {
 
     @Autowired
