@@ -36,9 +36,25 @@ public interface BomProcedureConsumablesService extends SkyeyeBusinessService<Bo
     java.util.Map<String, List<BomProcedureConsumables>> queryListByBomChildIds(List<String> bomChildIds);
 
     /**
-     * 根据BOM子件ID删除工序耗材
+     * 根据BOM ID查询工序耗材列表（BOM层面的）
      *
-     * @param bomId           BOM的ID
+     * @param bomId BOM ID
+     * @return 工序耗材列表
+     */
+    List<BomProcedureConsumables> queryListByBomId(String bomId);
+
+    /**
+     * 根据BOM ID列表批量查询工序耗材（BOM层面的）
+     *
+     * @param bomIds BOM ID列表
+     * @return 工序耗材Map，key为bomId
+     */
+    java.util.Map<String, List<BomProcedureConsumables>> queryListByBomIds(List<String> bomIds);
+
+    /**
+     * 根据BOM ID删除工序耗材（BOM层面的 + BOM子件下的）
+     *
+     * @param bomId BOM的ID
      */
     void deleteByBomId(String bomId);
 

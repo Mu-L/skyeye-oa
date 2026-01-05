@@ -56,12 +56,36 @@ public class BomProcedureConsumablesServiceImpl extends SkyeyeBusinessServiceImp
     }
 
     @Override
+    public List<BomProcedureConsumables> queryListByBomId(String bomId) {
+        if (StrUtil.isEmpty(bomId)) {
+            return CollectionUtil.newArrayList();
+        }
+        QueryWrapper<BomProcedureConsumables> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(BomProcedureConsumables::getBomId), bomId);
+        queryWrapper.isNull(MybatisPlusUtil.toColumns(BomProcedureConsumables::getBomChildId));
+        List<BomProcedureConsumables> list = list(queryWrapper);
+        return list;
+    }
+
+    @Override
+    public Map<String, List<BomProcedureConsumables>> queryListByBomIds(List<String> bomIds) {
+        if (CollectionUtil.isEmpty(bomIds)) {
+            return new HashMap<>();
+        }
+        QueryWrapper<BomProcedureConsumables> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(BomProcedureConsumables::getBomId), bomIds);
+        queryWrapper.isNull(MybatisPlusUtil.toColumns(BomProcedureConsumables::getBomChildId));
+        List<BomProcedureConsumables> list = list(queryWrapper);
+        return list.stream().collect(Collectors.groupingBy(BomProcedureConsumables::getBomId));
+    }
+
+    @Override
     public void deleteByBomId(String bomId) {
         if (StrUtil.isEmpty(bomId)) {
             return;
         }
         QueryWrapper<BomProcedureConsumables> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(BomProcedureConsumables::getBomChildId), bomId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(BomProcedureConsumables::getBomId), bomId);
         remove(queryWrapper);
     }
 

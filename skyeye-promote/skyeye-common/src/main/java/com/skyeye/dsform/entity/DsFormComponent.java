@@ -14,6 +14,8 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.IconOrImgInfo;
+import com.skyeye.dsform.classenum.ComponentApplyRange;
+import com.skyeye.dsform.classenum.ComponentValueMergType;
 import lombok.Data;
 
 import java.util.List;
@@ -53,44 +55,12 @@ public class DsFormComponent extends IconOrImgInfo {
     @Property("组件分类名称")
     private String typeName;
 
-    @TableField("show_type")
-    @ApiModelProperty(value = "显示类型，参考#DsFormShowType", required = "required,num")
-    private Integer showType;
-
-    @TableField("html_content")
-    @ApiModelProperty(value = "html内容", required = "required")
-    private String htmlContent;
-
-    @TableField("html_data_from")
-    @ApiModelProperty(value = "数据展示来源的加载脚本")
-    private String htmlDataFrom;
-
-    @TableField("js_content")
-    @ApiModelProperty(value = "组件初始化脚本")
-    private String jsContent;
-
-    @TableField("js_value")
-    @ApiModelProperty(value = "获取值的脚本")
-    private String jsValue;
-
-    @TableField("js_display_value")
-    @ApiModelProperty(value = "获取显示值的脚本")
-    private String jsDisplayValue;
-
-    @TableField("js_fit_value")
-    @ApiModelProperty(value = "设置值的脚本")
-    private String jsFitValue;
-
     @TableField("linked_data")
     @ApiModelProperty(value = "关联数据 1.是 2.否", required = "required,num")
     private Integer linkedData;
 
-    @TableField(value = "attr_keys", typeHandler = JacksonTypeHandler.class)
-    @ApiModelProperty(value = "组件关联的属性，可参考#ComponentAttr", required = "json")
-    private List<String> attrKeys;
-
     @TableField("apply_range")
-    @ApiModelProperty(value = "适用范围，参考#ComponentApplyRange", required = "required,num")
+    @ApiModelProperty(value = "适用范围", enumClass = ComponentApplyRange.class, required = "required,num")
     private Integer applyRange;
 
     @TableField(value = "apply_object", typeHandler = JacksonTypeHandler.class)
@@ -98,16 +68,8 @@ public class DsFormComponent extends IconOrImgInfo {
     private List<String> applyObject;
 
     @TableField("value_merg_type")
-    @ApiModelProperty(value = "组件获取的值的合入接口入参的方式，参考#ComponentValueMergType", required = "required")
+    @ApiModelProperty(value = "组件获取的值的合入接口入参的方式", enumClass = ComponentValueMergType.class, required = "required")
     private String valueMergType;
-
-    @TableField("detail_html_content")
-    @ApiModelProperty(value = "详情页面(showType=0)：组件的html内容")
-    private String detailHtmlContent;
-
-    @TableField("detail_js_content")
-    @ApiModelProperty(value = "详情页面(showType=0)：组件的js脚本")
-    private String detailJsContent;
 
     @TableField("remark")
     @ApiModelProperty(value = "组件备注")

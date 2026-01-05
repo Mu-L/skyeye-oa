@@ -77,6 +77,10 @@ public class Bom extends Version {
     @ApiModelProperty(value = "子件清单", required = "required,json")
     private List<BomChild> bomChildList;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "工序耗材列表", required = "json")
+    private List<BomProcedureConsumables> procedureConsumablesList;
+
     @TableField(value = "way_procedure_id")
     @ApiModelProperty(value = "工艺id", required = "required")
     private String wayProcedureId;

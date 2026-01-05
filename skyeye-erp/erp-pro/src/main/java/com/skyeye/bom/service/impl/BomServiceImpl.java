@@ -17,6 +17,7 @@ import com.skyeye.bom.entity.Bom;
 import com.skyeye.bom.entity.BomChild;
 import com.skyeye.bom.entity.BomProcedureConsumables;
 import com.skyeye.bom.service.BomChildService;
+import com.skyeye.bom.service.BomProcedureConsumablesService;
 import com.skyeye.bom.service.BomService;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -62,6 +63,9 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
 
     @Autowired
     private BomChildService bomChildService;
+
+    @Autowired
+    private BomProcedureConsumablesService bomProcedureConsumablesService;
 
     @Autowired
     private WayProcedureService wayProcedureService;
@@ -118,8 +122,18 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
     protected void writePostpose(Bom entity, String userId) {
         super.writePostpose(entity, userId);
 
+        // 在保存子件清单得工序耗材时，已经把（BOM层面的 + BOM子件下的）所有得工序耗材都先删除了，所以下面保存工序耗材列表（BOM层面的）无需在进行删除
         entity.getBomChildList().forEach(bomChild -> bomChild.setBomId(entity.getId()));
         bomChildService.createEntity(entity.getBomChildList(), userId);
+
+        // 保存工序耗材列表（BOM层面的）
+        if (CollectionUtil.isNotEmpty(entity.getProcedureConsumablesList())) {
+            entity.getProcedureConsumablesList().forEach(consumables -> {
+                consumables.setBomId(entity.getId());
+                consumables.setBomChildId(null); // BOM层面的耗材，bomChildId为空
+            });
+            bomProcedureConsumablesService.createEntity(entity.getProcedureConsumablesList(), userId);
+        }
     }
 
     @Override
@@ -127,6 +141,8 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
         Bom bom = super.getDataFromDb(id);
         // 设置子件清单信息
         bom.setBomChildList(bomChildService.queryBomChildByBomId(bom.getId()));
+        // 设置工序耗材列表信息（BOM层面的）
+        bom.setProcedureConsumablesList(bomProcedureConsumablesService.queryListByBomId(bom.getId()));
         return bom;
     }
 
@@ -136,9 +152,12 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
         List<String> ids = bomList.stream().map(Bom::getId).collect(Collectors.toList());
         // 设置子件清单信息
         Map<String, List<BomChild>> bomChildMap = bomChildService.queryBomChildByBomId(ids);
+        // 设置工序耗材列表信息（BOM层面的）
+        Map<String, List<BomProcedureConsumables>> consumablesMap = bomProcedureConsumablesService.queryListByBomIds(ids);
         bomList.forEach(bom -> {
             String id = bom.getId();
             bom.setBomChildList(bomChildMap.get(id));
+            bom.setProcedureConsumablesList(consumablesMap.get(id));
         });
         return bomList;
     }
@@ -158,13 +177,18 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
         materialNormsService.setDataMation(bom.getBomChildList(), BomChild::getNormsId);
         materialService.setDataMation(bom, Bom::getMaterialId);
         materialNormsService.setDataMation(bom, Bom::getNormsId);
-        // 查询工序耗材信息
+        // 查询工序耗材信息（BOM子件下的）
         bom.getBomChildList().forEach(bomChild -> {
             if (CollectionUtil.isNotEmpty(bomChild.getProcedureConsumablesList())) {
                 materialService.setDataMation(bomChild.getProcedureConsumablesList(), BomProcedureConsumables::getMaterialId);
                 materialNormsService.setDataMation(bomChild.getProcedureConsumablesList(), BomProcedureConsumables::getNormsId);
             }
         });
+        // 查询工序耗材信息（BOM层面的）
+        if (CollectionUtil.isNotEmpty(bom.getProcedureConsumablesList())) {
+            materialService.setDataMation(bom.getProcedureConsumablesList(), BomProcedureConsumables::getMaterialId);
+            materialNormsService.setDataMation(bom.getProcedureConsumablesList(), BomProcedureConsumables::getNormsId);
+        }
         return bom;
     }
 
@@ -184,13 +208,18 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
             // 设置产品/规格信息
             materialService.setDataMation(bom.getBomChildList(), BomChild::getMaterialId);
             materialNormsService.setDataMation(bom.getBomChildList(), BomChild::getNormsId);
-            // 查询工序耗材信息
+            // 查询工序耗材信息（BOM子件下的）
             bom.getBomChildList().forEach(bomChild -> {
                 if (CollectionUtil.isNotEmpty(bomChild.getProcedureConsumablesList())) {
                     materialService.setDataMation(bomChild.getProcedureConsumablesList(), BomProcedureConsumables::getMaterialId);
                     materialNormsService.setDataMation(bomChild.getProcedureConsumablesList(), BomProcedureConsumables::getNormsId);
                 }
             });
+            // 查询工序耗材信息（BOM层面的）
+            if (CollectionUtil.isNotEmpty(bom.getProcedureConsumablesList())) {
+                materialService.setDataMation(bom.getProcedureConsumablesList(), BomProcedureConsumables::getMaterialId);
+                materialNormsService.setDataMation(bom.getProcedureConsumablesList(), BomProcedureConsumables::getNormsId);
+            }
         });
         materialService.setDataMation(bomList, Bom::getMaterialId);
         materialNormsService.setDataMation(bomList, Bom::getNormsId);
@@ -200,6 +229,7 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
 
     @Override
     public void deletePostpose(String id) {
+        // 删除子件清单以及所有工序耗材
         bomChildService.deleteBomChildByBomId(id);
     }
 
