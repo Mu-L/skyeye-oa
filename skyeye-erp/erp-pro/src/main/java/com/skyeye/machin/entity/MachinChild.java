@@ -77,7 +77,7 @@ public class MachinChild extends CommonInfo {
     private String deliveryTime;
 
     @TableField(value = "bom_id")
-    @ApiModelProperty(value = "bom方案id")
+    @ApiModelProperty(value = "bom方案id", required = "required")
     private String bomId;
 
     @TableField(exist = false)

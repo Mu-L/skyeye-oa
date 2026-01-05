@@ -13,12 +13,15 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.constants.ErpConstants;
+import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.pick.classenum.OutLetState;
 import com.skyeye.pick.classenum.PatchOutLetFromType;
 import com.skyeye.pick.dao.PatchMaterialDao;
 import com.skyeye.pick.entity.PatchMaterial;
 import com.skyeye.pick.entity.PatchOutLet;
+import com.skyeye.pick.service.DepartmentStockService;
 import com.skyeye.pick.service.PatchMaterialService;
 import com.skyeye.pick.service.PatchOutLetService;
 import com.skyeye.util.ErpOrderUtil;
@@ -44,10 +47,24 @@ public class PatchMaterialServiceImpl extends ErpPickServiceImpl<PatchMaterialDa
     @Autowired
     private PatchOutLetService patchOutLetService;
 
+    @Autowired
+    private DepartmentStockService departmentStockService;
+
     @Override
     public void createPrepose(PatchMaterial entity) {
         super.createPrepose(entity);
         entity.setOtherState(OutLetState.NEED_OUTLET.getKey());
+    }
+
+    @Override
+    public void approvalEndIsSuccess(PatchMaterial entity) {
+        PatchMaterial oldEntity = selectById(entity.getId());
+
+        // 增加在途库存
+        oldEntity.getPickChildList().forEach(pickChild -> {
+            departmentStockService.updateDepartmentStock(oldEntity.getDepartmentId(), oldEntity.getFarmId(),
+                pickChild.getMaterialId(), pickChild.getNormsId(), pickChild.getNeedNum(), DepotPutOutType.PUT.getKey(), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey());
+        });
     }
 
     @Override

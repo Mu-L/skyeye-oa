@@ -24,7 +24,6 @@ import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.material.classenum.MaterialInOrderType;
-import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.organization.service.IDepmentService;
 import com.skyeye.pick.classenum.OutLetState;
 import com.skyeye.pick.classenum.PatchOutLetFromType;
@@ -32,7 +31,6 @@ import com.skyeye.pick.dao.PatchOutLetDao;
 import com.skyeye.pick.entity.PatchMaterial;
 import com.skyeye.pick.entity.PatchOutLet;
 import com.skyeye.pick.entity.PickChild;
-import com.skyeye.pick.service.DepartmentStockService;
 import com.skyeye.pick.service.PatchMaterialService;
 import com.skyeye.pick.service.PatchOutLetService;
 import com.skyeye.util.ErpOrderUtil;
@@ -69,9 +67,6 @@ public class PatchOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<PatchOutLe
 
     @Autowired
     private FarmService farmService;
-
-    @Autowired
-    private DepartmentStockService departmentStockService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -163,12 +158,6 @@ public class PatchOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<PatchOutLe
         PatchOutLet oldEntity = selectById(entity.getId());
         // 修改来源单据信息
         checkMaterialNorms(oldEntity, true);
-
-        // 增加在途库存
-        oldEntity.getErpOrderItemList().forEach(pickChild -> {
-            departmentStockService.updateDepartmentStock(oldEntity.getDepartmentId(), oldEntity.getFarmId(),
-                pickChild.getMaterialId(), pickChild.getNormsId(), pickChild.getOperNumber(), DepotPutOutType.PUT.getKey(), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey());
-        });
     }
 
     @Override

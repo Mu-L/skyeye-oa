@@ -13,14 +13,17 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.constants.ErpConstants;
+import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
 import com.skyeye.machin.classenum.MachinPickStateEnum;
 import com.skyeye.machin.service.MachinService;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.pick.classenum.OutLetState;
 import com.skyeye.pick.classenum.RequisitionOutLetFromType;
 import com.skyeye.pick.dao.RequisitionMaterialDao;
 import com.skyeye.pick.entity.RequisitionMaterial;
 import com.skyeye.pick.entity.RequisitionOutLet;
+import com.skyeye.pick.service.DepartmentStockService;
 import com.skyeye.pick.service.RequisitionMaterialService;
 import com.skyeye.pick.service.RequisitionOutLetService;
 import com.skyeye.util.ErpOrderUtil;
@@ -49,6 +52,9 @@ public class RequisitionMaterialServiceImpl extends ErpPickServiceImpl<Requisiti
     @Autowired
     private RequisitionOutLetService requisitionOutLetService;
 
+    @Autowired
+    private DepartmentStockService departmentStockService;
+
     @Override
     public void createPrepose(RequisitionMaterial entity) {
         super.createPrepose(entity);
@@ -60,6 +66,12 @@ public class RequisitionMaterialServiceImpl extends ErpPickServiceImpl<Requisiti
         if (StrUtil.isNotEmpty(entity.getFromId())) {
             machinService.editPickStateById(entity.getFromId(), MachinPickStateEnum.PICKED.getKey());
         }
+        RequisitionMaterial oldEntity = selectById(entity.getId());
+        // 增加在途库存
+        oldEntity.getPickChildList().forEach(pickChild -> {
+            departmentStockService.updateDepartmentStock(oldEntity.getDepartmentId(), oldEntity.getFarmId(),
+                pickChild.getMaterialId(), pickChild.getNormsId(), pickChild.getNeedNum(), DepotPutOutType.PUT.getKey(), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey());
+        });
     }
 
     @Override

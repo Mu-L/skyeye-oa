@@ -34,12 +34,6 @@ public class RequisitionMaterialController {
     @Autowired
     private RequisitionMaterialService requisitionMaterialService;
 
-    /**
-     * 获取领料申请单列表信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "erppick001", value = "获取领料申请单列表信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/RequisitionMaterialController/queryRequisitionMaterialOrderList")
@@ -47,12 +41,6 @@ public class RequisitionMaterialController {
         requisitionMaterialService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑领料申请单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeRequisitionMaterial", value = "新增/编辑领料申请单信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = RequisitionMaterial.class)
     @RequestMapping("/post/RequisitionMaterialController/writeRequisitionMaterial")
@@ -60,12 +48,6 @@ public class RequisitionMaterialController {
         requisitionMaterialService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除领料申请单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteRequisitionMaterialById", value = "删除领料申请单信息", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -74,12 +56,6 @@ public class RequisitionMaterialController {
         requisitionMaterialService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 领料申请单提交审核
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "submitRequisitionMaterial", value = "领料申请单提交审核", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/RequisitionMaterialController/submitToApproval")
@@ -87,12 +63,6 @@ public class RequisitionMaterialController {
         requisitionMaterialService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 撤销领料申请单申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokeRequisitionMaterial", value = "撤销领料申请单申请", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
@@ -101,12 +71,6 @@ public class RequisitionMaterialController {
         requisitionMaterialService.revoke(inputObject, outputObject);
     }
 
-    /**
-     * 转领料出库单时，根据id查询领料单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryRequisitionMaterialTransById", value = "转领料出库单时，根据id查询领料单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -115,12 +79,6 @@ public class RequisitionMaterialController {
         requisitionMaterialService.queryRequisitionMaterialTransById(inputObject, outputObject);
     }
 
-    /**
-     * 领料单信息转领料出库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertRequisitionMaterialToTurnOut", value = "领料单信息转领料出库单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = RequisitionOutLet.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
