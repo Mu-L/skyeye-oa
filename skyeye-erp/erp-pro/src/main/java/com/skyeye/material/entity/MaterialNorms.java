@@ -76,7 +76,7 @@ public class MaterialNorms extends OperatorUserInfo {
     private List<MaterialNormsStock> normsStock;
 
     @TableField(exist = false)
-    @Property(value = "单据操作的库存信息")
+    @Property(value = "现有库存信息")
     private List<MaterialNormsStock> orderStock;
 
     @TableField(value = "enabled")

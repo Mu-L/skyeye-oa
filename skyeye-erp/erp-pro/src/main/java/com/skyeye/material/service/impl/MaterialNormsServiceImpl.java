@@ -189,7 +189,7 @@ public class MaterialNormsServiceImpl extends SkyeyeBusinessServiceImpl<Material
     @Override
     public MaterialNorms selectById(String id) {
         MaterialNorms materialNorms = super.selectById(id);
-        // 查询单据操作库存信息
+        // 查询现有库存信息
         Map<String, List<MaterialNormsStock>> initStockMap = materialNormsStockService.queryNormsStockByNormsId(Arrays.asList(id),
             MaterialNormsStockType.ORDER_STOCK.getKey());
         materialNorms.setOrderStock(initStockMap.get(materialNorms.getId()));
@@ -210,7 +210,7 @@ public class MaterialNormsServiceImpl extends SkyeyeBusinessServiceImpl<Material
     @Override
     public List<MaterialNorms> selectByIds(String... ids) {
         List<MaterialNorms> materialNormsList = super.selectByIds(ids);
-        // 查询单据操作库存信息
+        // 查询现有库存信息
         Map<String, List<MaterialNormsStock>> initStockMap = materialNormsStockService.queryNormsStockByNormsId(Arrays.asList(ids),
             MaterialNormsStockType.ORDER_STOCK.getKey());
         for (MaterialNorms norm : materialNormsList) {
@@ -260,7 +260,7 @@ public class MaterialNormsServiceImpl extends SkyeyeBusinessServiceImpl<Material
                         String sumValue = StrUtil.isEmpty(sum) ? CommonNumConstants.NUM_ZERO.toString() : sum;
                         return CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, sumValue, stockValue);
                     });
-            // 可盘点总库存
+            // 可盘点总库存 = 总库存 - 初始库存
             String inventoryTock = CalculationUtil.subtract(allStock, initialTock, CommonNumConstants.NUM_ZERO);
             NormsCalcStock calcStock = new NormsCalcStock(allStock, initialTock, inventoryTock);
             materialNorms.setOverAllStock(calcStock);

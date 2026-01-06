@@ -1005,13 +1005,11 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
 
             if (needRawMaterialMap.containsKey(normsId)) {
                 BomChild existBomChild = needRawMaterialMap.get(normsId);
-                String sum = CalculationUtil.add(
-                    ErpConstants.NUM_AFTER_DOT,
-                    existBomChild.getNeedNum(),
-                    bomChild.getNeedNum()
-                );
+                String sum = CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, existBomChild.getNeedNum(), bomChild.getNeedNum());
                 existBomChild.setNeedNum(sum);
             } else {
+                // 设置临时ID，实际上没什么用处，主要是前端需要
+                bomChild.setId(ToolUtil.getSurFaceId());
                 needRawMaterialMap.put(normsId, bomChild);
             }
         });

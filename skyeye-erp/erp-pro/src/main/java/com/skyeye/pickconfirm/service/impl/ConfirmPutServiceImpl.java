@@ -189,9 +189,9 @@ public class ConfirmPutServiceImpl extends SkyeyeErpOrderServiceImpl<ConfirmPutD
     public void approvalEndIsSuccess(ConfirmPut entity) {
         ConfirmPut oldEntity = selectById(entity.getId());
         // 修改来源单据信息
-        checkMaterialNorms(entity, true);
+        checkMaterialNorms(oldEntity, true);
         // 校验并修改条形码信息
-        checkNormsCodeAndSave(entity, false);
+        checkNormsCodeAndSave(oldEntity, false);
         // 减少在途库存
         oldEntity.getErpOrderItemList().forEach(pickChild -> {
             departmentStockService.updateDepartmentStock(oldEntity.getDepartmentId(), oldEntity.getFarmId(),
