@@ -523,15 +523,45 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
         if (StrUtil.isEmpty(normsId)) {
             return;
         }
-        Map<String, List<Bom>> listMap = getBomListByNormsId(normsId);
-        List<Bom> bomList = listMap.get(normsId);
+
+        // 查询符合条件的BOM：未删除、已发布
+        QueryWrapper<Bom> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Bom::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Bom::getNormsId), normsId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Bom::getWhetherPublish), WhetherEnum.ENABLE_USING.getKey());
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(Bom::getLargeVersion));
+        List<Bom> bomList = list(queryWrapper);
+
         if (CollectionUtil.isEmpty(bomList)) {
             return;
         }
-        materialNormsService.setDataMation(bomList, Bom::getNormsId);
 
-        outputObject.setBeans(bomList);
-        outputObject.settotal(bomList.size());
+        // 按versionNo分组，每组取largeVersion最大的（已按largeVersion降序排序）
+        Map<String, Bom> versionNoMaxBomMap = new HashMap<>();
+        for (Bom bom : bomList) {
+            String versionNo = bom.getVersionNo();
+            if (StrUtil.isEmpty(versionNo)) {
+                continue;
+            }
+            // 如果该versionNo还没有记录，或者当前BOM的largeVersion更大，则更新
+            Bom existingBom = versionNoMaxBomMap.get(versionNo);
+            if (existingBom == null || bom.getLargeVersion() > existingBom.getLargeVersion()) {
+                versionNoMaxBomMap.put(versionNo, bom);
+            }
+        }
+
+        // 转换为List
+        List<Bom> filteredBomList = new ArrayList<>(versionNoMaxBomMap.values());
+
+        filteredBomList.forEach(bom -> {
+            // bom名称展示的时候同时显示版本
+            bom.setName(String.format(Locale.ROOT, "%s(V%s)", bom.getName(), bom.getLargeVersion()));
+        });
+
+        materialNormsService.setDataMation(filteredBomList, Bom::getNormsId);
+
+        outputObject.setBeans(filteredBomList);
+        outputObject.settotal(filteredBomList.size());
     }
 
     @Override
@@ -547,6 +577,11 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
         queryWrapper.eq(MybatisPlusUtil.toColumns(Bom::getWhetherPublish), WhetherEnum.ENABLE_USING.getKey());
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(Bom::getCreateTime));
         List<Bom> bomList = list(queryWrapper);
+
+        bomList.forEach(bom -> {
+            // bom名称展示的时候同时显示版本
+            bom.setName(String.format(Locale.ROOT, "%s(V%s)", bom.getName(), bom.getLargeVersion()));
+        });
         return bomList.stream().collect(Collectors.groupingBy(Bom::getNormsId));
     }
 

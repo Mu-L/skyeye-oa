@@ -229,6 +229,9 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
                         machinChild.getId(), bomChild.getId(), machinProcedureMap, procedureFarmMap, checkComplateFlag, lastProcedureNum);
                     bomChild.setWayProcedureMation(bomWayProcedure);
                 });
+
+                // bom名称展示的时候同时显示版本
+                bom.setName(String.format(Locale.ROOT, "%s(V%s)", bom.getName(), bom.getLargeVersion()));
                 machinChild.setBomMation(bom);
             }
             machinChild.setCheckComplateFlag(checkComplateFlag[0]);
