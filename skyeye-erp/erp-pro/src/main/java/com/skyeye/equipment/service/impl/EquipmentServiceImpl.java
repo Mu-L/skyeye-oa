@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "设备管理", groupName = "设备管理")
+@SkyeyeService(name = "设备管理", groupName = "设备管理", allowDynamicAttrKey = false)
 public class EquipmentServiceImpl extends SkyeyeBusinessServiceImpl<EquipmentDao, Equipment> implements EquipmentService {
 
     @Autowired

@@ -5,6 +5,8 @@
 package com.skyeye.pick.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.pick.entity.DepartmentStock;
@@ -37,6 +39,26 @@ public interface DepartmentStockService extends SkyeyeBusinessService<Department
 
     DepartmentStock queryDepartmentStock(String departmentId, String farmId, String normsId, int stockType);
 
+    /**
+     * 查询规格的部门/车间库存（支持控制是否包含在途库存）
+     *
+     * @param departmentId          部门id
+     * @param farmId                车间id
+     * @param normsIds              规格id列表
+     * @return 规格id -> 可用库存数量的Map
+     */
     Map<String, String> queryNormsDepartmentStock(String departmentId, String farmId, List<String> normsIds);
 
+    /**
+     * 查询规格的部门/车间库存（支持控制是否包含在途库存）
+     *
+     * @param departmentId          部门id
+     * @param farmId                车间id
+     * @param normsIds              规格id列表
+     * @param includeInTransitStock 是否包含在途物料/在制物料参与计算，true：包含（MRP计算），false：不包含
+     * @return 规格id -> 可用库存数量的Map
+     */
+    Map<String, String> queryNormsDepartmentStock(String departmentId, String farmId, List<String> normsIds, boolean includeInTransitStock);
+
+    void queryDepartmentStockList(InputObject inputObject, OutputObject outputObject);
 }

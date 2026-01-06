@@ -16,6 +16,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.bom.entity.Bom;
 import com.skyeye.bom.entity.BomChild;
 import com.skyeye.bom.entity.BomProcedureConsumables;
+import com.skyeye.bom.service.BomChildService;
 import com.skyeye.bom.service.BomProcedureConsumablesService;
 import com.skyeye.bom.service.BomService;
 import com.skyeye.common.constans.CommonConstants;
@@ -44,7 +45,10 @@ import com.skyeye.machinprocedure.service.MachinProcedureAcceptService;
 import com.skyeye.machinprocedure.service.MachinProcedureFarmService;
 import com.skyeye.machinprocedure.service.MachinProcedureService;
 import com.skyeye.material.classenum.MaterialNormsStockType;
+import com.skyeye.material.service.MaterialNormsService;
+import com.skyeye.material.service.MaterialService;
 import com.skyeye.pick.service.DepartmentStockService;
+import com.skyeye.procedure.service.WorkProcedureService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -85,6 +89,18 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
 
     @Autowired
     private BomProcedureConsumablesService bomProcedureConsumablesService;
+
+    @Autowired
+    private BomChildService bomChildService;
+
+    @Autowired
+    private MaterialService materialService;
+
+    @Autowired
+    private MaterialNormsService materialNormsService;
+
+    @Autowired
+    private WorkProcedureService workProcedureService;
 
     @Autowired
     private DepartmentStockService departmentStockService;
@@ -262,7 +278,7 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
     private Map<String, BomChild> calculateProcedureConsumables(MachinProcedureFarm machinProcedureFarm) {
         // 获取加工单工序信息
         MachinProcedure machinProcedure = machinProcedureFarm.getMachinProcedureMation();
-        if (machinProcedure == null || StrUtil.isEmpty(machinProcedure.getBomChildId()) 
+        if (machinProcedure == null || StrUtil.isEmpty(machinProcedure.getBomChildId())
             || StrUtil.isEmpty(machinProcedure.getProcedureId())) {
             // 如果没有BOM子件清单ID或工序ID，说明该工序不需要耗材
             return Collections.emptyMap();
@@ -314,7 +330,7 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
         currentProcedureConsumables.forEach(consumables -> {
             // 计算实际需要数量 = 单元比例 * 耗材配置数量
             String actualNeedNum = CalculationUtil.multiply(unitRatio, consumables.getNeedNum(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
-            
+
             String normsId = consumables.getNormsId();
             if (consumablesMap.containsKey(normsId)) {
                 BomChild existBomChild = consumablesMap.get(normsId);
@@ -528,6 +544,137 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
 
         // 执行更新
         update(updateWrapper);
+    }
+
+    @Override
+    public void queryProcedureConsumablesByFarmId(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        // 1. 获取车间任务信息
+        MachinProcedureFarm machinProcedureFarm = selectById(id);
+        if (machinProcedureFarm == null) {
+            throw new CustomException("车间任务不存在");
+        }
+
+        // 2. 获取加工单子单据工序信息
+        String machinProcedureId = machinProcedureFarm.getMachinProcedureId();
+        MachinProcedure machinProcedure = machinProcedureService.selectById(machinProcedureId);
+        if (machinProcedure == null) {
+            throw new CustomException("加工单子单据工序不存在");
+        }
+
+        // 3. 获取工序ID和BOM子件ID
+        String procedureId = machinProcedure.getProcedureId();
+        String bomChildId = machinProcedure.getBomChildId();
+
+        // 4. 获取车间任务的目标数量
+        String targetNum = params.get("targetNum").toString();
+
+        List<BomProcedureConsumables> consumablesList = new ArrayList<>();
+        Bom bom = null;
+
+        // 5. 查询BOM子件的工序耗材（如果bomChildId不为空）
+        if (StrUtil.isNotEmpty(bomChildId)) {
+            List<BomProcedureConsumables> bomChildConsumables = bomProcedureConsumablesService.queryListByBomChildId(bomChildId);
+            if (CollectionUtil.isNotEmpty(bomChildConsumables)) {
+                // 过滤出匹配当前工序ID的耗材
+                bomChildConsumables.stream()
+                    .filter(consumable -> StrUtil.equals(consumable.getProcedureId(), procedureId))
+                    .forEach(consumablesList::add);
+            }
+
+            // 获取BOM信息（用于计算单元比例）
+            BomChild bomChild = bomChildService.selectById(bomChildId);
+            if (bomChild != null && StrUtil.isNotEmpty(bomChild.getBomId())) {
+                bom = bomService.selectById(bomChild.getBomId());
+            }
+        } else {
+            // 如果bomChildId为空，可能是BOM层主产品的工序，需要通过MachinChild获取bomId
+            String childId = machinProcedure.getChildId();
+            // 获取加工单信息
+            String machinId = machinProcedureFarm.getMachinId();
+            Machin machin = machinService.selectById(machinId);
+            if (machin != null && CollectionUtil.isNotEmpty(machin.getMachinChildList())) {
+                MachinChild machinChild = machin.getMachinChildList().stream()
+                    .filter(child -> StrUtil.equals(child.getId(), childId))
+                    .findFirst()
+                    .orElse(null);
+                if (machinChild != null && StrUtil.isNotEmpty(machinChild.getBomId())) {
+                    // 查询BOM层面的工序耗材（如果bomId不为空）
+                    List<BomProcedureConsumables> bomConsumables = bomProcedureConsumablesService.queryListByBomId(machinChild.getBomId());
+                    if (CollectionUtil.isNotEmpty(bomConsumables)) {
+                        // 过滤出匹配当前工序ID的耗材
+                        bomConsumables.stream()
+                            .filter(consumable -> StrUtil.equals(consumable.getProcedureId(), procedureId))
+                            .forEach(consumablesList::add);
+                    }
+                    // 获取BOM信息（用于计算单元比例）
+                    bom = bomService.selectById(machinChild.getBomId());
+                }
+            }
+        }
+
+        // 6. 根据目标数量计算耗材实际需要数量
+        if (CollectionUtil.isNotEmpty(consumablesList) && bom != null && bom.getMakeNum() != null && bom.getMakeNum() > 0) {
+            // 计算单元比例 = 目标数量 / BOM制造数量
+            String unitRatio = CalculationUtil.divide(targetNum, String.valueOf(bom.getMakeNum()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+
+            // 为每个耗材计算实际需要数量
+            consumablesList.forEach(consumable -> {
+                if (StrUtil.isNotEmpty(consumable.getNeedNum())) {
+                    // 计算实际需要数量 = 单元比例 * 耗材配置数量
+                    String actualNeedNum = CalculationUtil.multiply(unitRatio, consumable.getNeedNum(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+                    // 直接修改needNum为实际需要数量，因为这是实际生产需要的数量
+                    consumable.setNeedNum(actualNeedNum);
+                }
+            });
+        }
+
+        // 7. 设置耗材的商品、规格、工序信息
+        if (CollectionUtil.isNotEmpty(consumablesList)) {
+            materialService.setDataMation(consumablesList, BomProcedureConsumables::getMaterialId);
+            materialNormsService.setDataMation(consumablesList, BomProcedureConsumables::getNormsId);
+            workProcedureService.setDataMation(consumablesList, BomProcedureConsumables::getProcedureId);
+        }
+
+        outputObject.setBeans(consumablesList);
+        outputObject.settotal(consumablesList.size());
+    }
+
+    @Override
+    public void queryPendingAcceptNumByFarmId(InputObject inputObject, OutputObject outputObject) {
+        String id = inputObject.getParams().get("id").toString();
+
+        // 1. 获取车间任务信息
+        MachinProcedureFarm machinProcedureFarm = selectById(id);
+        if (machinProcedureFarm == null) {
+            throw new CustomException("车间任务不存在");
+        }
+
+        // 2. 获取目标数量和已验收数量
+        String targetNum = StrUtil.isEmpty(machinProcedureFarm.getTargetNum())
+            ? CommonNumConstants.NUM_ZERO.toString()
+            : machinProcedureFarm.getTargetNum();
+
+        String acceptNum = StrUtil.isEmpty(machinProcedureFarm.getAcceptNum())
+            ? CommonNumConstants.NUM_ZERO.toString()
+            : machinProcedureFarm.getAcceptNum();
+
+        // 3. 计算待验收数量 = 目标数量 - 已验收数量
+        String pendingAcceptNum = CalculationUtil.subtract(targetNum, acceptNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+
+        // 如果计算结果小于0，则返回0
+        if (CalculationUtil.compareTo(pendingAcceptNum, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
+            pendingAcceptNum = CommonNumConstants.NUM_ZERO.toString();
+        }
+
+        // 4. 返回结果
+        Map<String, Object> result = new HashMap<>();
+        result.put("pendingAcceptNum", pendingAcceptNum);
+        result.put("targetNum", targetNum);
+        result.put("acceptNum", acceptNum);
+
+        outputObject.setBean(result);
     }
 
 }

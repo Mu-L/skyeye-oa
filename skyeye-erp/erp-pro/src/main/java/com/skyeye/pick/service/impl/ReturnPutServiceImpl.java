@@ -199,7 +199,7 @@ public class ReturnPutServiceImpl extends SkyeyeErpOrderServiceImpl<ReturnPutDao
 
     private void checkDepartStockWhetherOutstrip(String departmentId, String farmId, List<ErpOrderItem> erpOrderItemList) {
         List<String> normsIds = erpOrderItemList.stream().map(ErpOrderItem::getNormsId).collect(Collectors.toList());
-        Map<String, String> normsDepartmentStock = departmentStockService.queryNormsDepartmentStock(departmentId, farmId, normsIds);
+        Map<String, String> normsDepartmentStock = departmentStockService.queryNormsDepartmentStock(departmentId, farmId, normsIds, false);
         for (ErpOrderItem bean : erpOrderItemList) {
             // 部门库存存量
             String departMentTock = normsDepartmentStock.get(bean.getNormsId());

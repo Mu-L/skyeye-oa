@@ -459,8 +459,9 @@ public class SkyeyeErpOrderServiceImpl<D extends SkyeyeBaseMapper<T>, T extends 
                 // 过滤掉空的，并且去重
                 List<String> normsCodeList = Arrays.asList(erpOrderItem.getNormsCode().split("\n")).stream()
                     .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
-                // 如果开启了一物一码，那么这个数量就默认是整型的
-                if (Integer.parseInt(erpOrderItem.getOperNumber()) != normsCodeList.size()) {
+                // 如果开启了一物一码，那么这个数量就默认是整型的，将数量转换为整数进行比较（处理小数情况，取整）
+                int operNumberInt = NumberUtil.parseInt(erpOrderItem.getOperNumber());
+                if (operNumberInt != normsCodeList.size()) {
                     throw new CustomException(
                         String.format(Locale.ROOT, "商品【%s】【%s】的条形码数量与明细数量不一致，请确认", material.getName(), norms.getName()));
                 }

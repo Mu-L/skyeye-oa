@@ -40,6 +40,10 @@ public interface MachinProcedureFarmService extends SkyeyeBusinessService<Machin
 
     void queryMachinProcedureFarmToInOrOutList(InputObject inputObject, OutputObject outputObject);
 
+    void queryProcedureConsumablesByFarmId(InputObject inputObject, OutputObject outputObject);
+
+    void queryPendingAcceptNumByFarmId(InputObject inputObject, OutputObject outputObject);
+
     void setOrderMationByFromId(List<Map<String, Object>> beans, String idKey, String mationKey);
 
     /**

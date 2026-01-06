@@ -66,21 +66,21 @@ public class ReimbursementChildServiceImpl extends SkyeyeLinkDataServiceImpl<Rei
     @Override
     @IgnoreTenant
     public List<Map<String, Object>> queryReimbursementAnalysis(String startPeriod, String endPeriod) {
-        MPJLambdaWrapper<ReimbursementChild> wrapper = JoinWrappers.lambda("t",ReimbursementChild.class)
-                .innerJoin(Reimbursement.class, "i", Reimbursement::getId, ReimbursementChild::getParentId)
-                .selectAs(Reimbursement::getDepartmentId,ReimbursementChild::getDepartmentId)
-                .selectAll(ReimbursementChild.class);
+        MPJLambdaWrapper<ReimbursementChild> wrapper = JoinWrappers.lambda("t", ReimbursementChild.class)
+            .innerJoin(Reimbursement.class, "i", Reimbursement::getId, ReimbursementChild::getParentId)
+            .selectAs(Reimbursement::getDepartmentId, ReimbursementChild::getDepartmentId)
+            .selectAll(ReimbursementChild.class);
         wrapper.apply("date_format(" + MybatisPlusUtil.toColumns(ReimbursementChild::getOccurTime) + ", '%Y-%m') >= {0}", startPeriod);
         wrapper.apply("date_format(" + MybatisPlusUtil.toColumns(ReimbursementChild::getOccurTime) + ", '%Y-%m') <= {0}", endPeriod);
 
-        if(tenantEnable){
+        if (tenantEnable) {
             String tenantId = TenantContext.getTenantId();
             wrapper.eq("t." + CommonConstants.TENANT_ID_FIELD, tenantId);
             wrapper.eq("i." + CommonConstants.TENANT_ID_FIELD, tenantId);
         }
-        List<ReimbursementChild> bean = skyeyeBaseMapper.selectJoinList(ReimbursementChild.class,wrapper);
+        List<ReimbursementChild> bean = skyeyeBaseMapper.selectJoinList(ReimbursementChild.class, wrapper);
         List<Map<String, Object>> result = new ArrayList<>();
-        if(CollectionUtil.isEmpty(bean)){
+        if (CollectionUtil.isEmpty(bean)) {
             return result;
         }
         iSysDictDataService.setDataMation(bean, ReimbursementChild::getReimburseProId);
@@ -89,15 +89,15 @@ public class ReimbursementChildServiceImpl extends SkyeyeLinkDataServiceImpl<Rei
         for (Map.Entry<String, List<ReimbursementChild>> entry : departMap.entrySet()) {
             //根据报销项目id分组
             Map<String, List<ReimbursementChild>> map = entry.getValue().stream().collect(Collectors.groupingBy(ReimbursementChild::getReimburseProId));
-            Map<String,Object> tempMap = new HashMap<>();
+            Map<String, Object> tempMap = new HashMap<>();
             List<Map<String, Object>> temp = new ArrayList<>();
             for (Map.Entry<String, List<ReimbursementChild>> childEntry : map.entrySet()) {
                 String reimburseProName = childEntry.getValue().get(CommonNumConstants.NUM_ZERO).getReimburseProMation().get("dictName").toString();
                 String price = "0";
                 for (ReimbursementChild reimbursementChild : childEntry.getValue()) {
                     price = CalculationUtil.add(CommonNumConstants.NUM_TWO,
-                            StrUtil.isEmpty(reimbursementChild.getPrice()) ? "0" : reimbursementChild.getPrice(),
-                            price);
+                        StrUtil.isEmpty(reimbursementChild.getPrice()) ? "0" : reimbursementChild.getPrice(),
+                        price);
                 }
                 Map<String, Object> deptInfo = new HashMap<>();
                 deptInfo.put("name", reimburseProName);
@@ -108,7 +108,7 @@ public class ReimbursementChildServiceImpl extends SkyeyeLinkDataServiceImpl<Rei
             tempMap.put("childList", temp);
             result.add(tempMap);
         }
-        iDepmentService.setMationForMap(result,"departmentId","departmentMation");
+        iDepmentService.setMationForMap(result, "departmentId", "departmentMation");
         return result;
     }
 

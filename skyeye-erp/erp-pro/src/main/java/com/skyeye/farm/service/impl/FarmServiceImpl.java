@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "车间管理", groupName = "车间管理")
+@SkyeyeService(name = "车间管理", groupName = "车间管理", allowDynamicAttrKey = false)
 public class FarmServiceImpl extends SkyeyeBusinessServiceImpl<FarmDao, Farm> implements FarmService {
 
     @Autowired

@@ -136,7 +136,8 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         // 查询耗材信息
         List<MachinProcedureAcceptChild> acceptChildList = machinProcedureAcceptChildService.selectByParentId(machinProcedureAcceptId);
         // 工序验收单信息中已经查询过员工生产数量列表
-        List<MachinProcedureAcceptProductNum> productNumList = machinProcedureAccept.getMachinProcedureAcceptProductNumList();
+        List<MachinProcedureAcceptProductNum> productNumList = CollectionUtil.isEmpty(machinProcedureAccept.getMachinProcedureAcceptProductNumList())
+            ? CollectionUtil.newArrayList() : machinProcedureAccept.getMachinProcedureAcceptProductNumList();
         Map<String, MachinProcedureAcceptProductNum> staffNumMap = calculateAcceptProductNum(productNumList);
         // 获取员工信息
         List<String> staffIdList = productNumList.stream()

@@ -4,15 +4,22 @@
 
 package com.skyeye.pick.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -32,6 +39,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -61,30 +70,149 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
     private FarmService farmService;
 
     @Override
-    public QueryWrapper<DepartmentStock> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<DepartmentStock> queryWrapper = super.getQueryWrapper(commonPageInfo);
+    @IgnoreTenant
+    public void queryDepartmentStockList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+
+        // 1. 先查询 MaterialNorms 作为主表，DepartmentStock 作为 left join
+        QueryWrapper<DepartmentStock> wrapper = new QueryWrapper<>();
+
+        // 添加查询条件（部门或车间）
         if (StrUtil.equals(commonPageInfo.getType(), "department")) {
-            // 我所在部门
             String departmentId = InputObject.getLogParamsStatic().get("departmentId").toString();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
+            wrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
         } else if (StrUtil.equals(commonPageInfo.getType(), "farm")) {
-            // 指定车间
             if (StrUtil.isEmpty(commonPageInfo.getObjectId())) {
                 commonPageInfo.setObjectId("-");
             }
-            queryWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), commonPageInfo.getObjectId());
+            wrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), commonPageInfo.getObjectId());
         }
-        return queryWrapper;
-    }
 
-    @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        materialService.setMationForMap(beans, "materialId", "materialMation");
-        materialNormsService.setMationForMap(beans, "normsId", "normsMation");
-        iDepmentService.setMationForMap(beans, "departmentId", "departmentMation");
-        farmService.setMationForMap(beans, "farmId", "farmMation");
-        return beans;
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            wrapper.eq(CommonConstants.TENANT_ID_FIELD, tenantId);
+        }
+
+        wrapper.groupBy(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId));
+        // 查询 MaterialNorms 列表
+        List<DepartmentStock> stocks = list(wrapper);
+
+        // 获取 normsIds
+        List<String> normsIds = stocks.stream()
+            .map(DepartmentStock::getNormsId)
+            .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+
+        // 查询 ORDER_STOCK 数据（单独查询以确保数据完整）
+        Map<String, DepartmentStock> orderStockDataMap = new HashMap<>();
+        if (CollectionUtil.isNotEmpty(normsIds)) {
+            QueryWrapper<DepartmentStock> orderStockWrapper = new QueryWrapper<>();
+            orderStockWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds)
+                .eq(MybatisPlusUtil.toColumns(DepartmentStock::getType), MaterialNormsStockType.ORDER_STOCK.getKey());
+            if (StrUtil.equals(commonPageInfo.getType(), "department")) {
+                String departmentId = InputObject.getLogParamsStatic().get("departmentId").toString();
+                orderStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
+            } else if (StrUtil.equals(commonPageInfo.getType(), "farm")) {
+                orderStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), commonPageInfo.getObjectId());
+            }
+            if (tenantEnable) {
+                String tenantId = TenantContext.getTenantId();
+                orderStockWrapper.eq(CommonConstants.TENANT_ID_FIELD, tenantId);
+            }
+            List<DepartmentStock> orderStockList = list(orderStockWrapper);
+            orderStockDataMap = orderStockList.stream()
+                .collect(Collectors.toMap(DepartmentStock::getNormsId, stock -> stock, (v1, v2) -> v1));
+        }
+
+        Map<String, DepartmentStock> inTransitStockMap = new HashMap<>();
+        Map<String, DepartmentStock> allocatedStockMap = new HashMap<>();
+
+        if (CollectionUtil.isNotEmpty(normsIds)) {
+            // 查询 IN_TRANSIT_STOCK
+            QueryWrapper<DepartmentStock> inTransitWrapper = new QueryWrapper<>();
+            inTransitWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds)
+                .eq(MybatisPlusUtil.toColumns(DepartmentStock::getType), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey());
+            if (StrUtil.equals(commonPageInfo.getType(), "department")) {
+                String departmentId = InputObject.getLogParamsStatic().get("departmentId").toString();
+                inTransitWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
+            } else if (StrUtil.equals(commonPageInfo.getType(), "farm")) {
+                inTransitWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), commonPageInfo.getObjectId());
+            }
+            if (tenantEnable) {
+                String tenantId = TenantContext.getTenantId();
+                inTransitWrapper.eq(CommonConstants.TENANT_ID_FIELD, tenantId);
+            }
+            List<DepartmentStock> inTransitStockList = list(inTransitWrapper);
+            inTransitStockMap = inTransitStockList.stream()
+                .collect(Collectors.toMap(DepartmentStock::getNormsId, stock -> stock, (v1, v2) -> v1));
+
+            // 查询 ALLOCATED_STOCK
+            QueryWrapper<DepartmentStock> allocatedWrapper = new QueryWrapper<>();
+            allocatedWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds)
+                .eq(MybatisPlusUtil.toColumns(DepartmentStock::getType), MaterialNormsStockType.ALLOCATED_STOCK.getKey());
+            if (StrUtil.equals(commonPageInfo.getType(), "department")) {
+                String departmentId = InputObject.getLogParamsStatic().get("departmentId").toString();
+                allocatedWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
+            } else if (StrUtil.equals(commonPageInfo.getType(), "farm")) {
+                allocatedWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), commonPageInfo.getObjectId());
+            }
+            if (tenantEnable) {
+                String tenantId = TenantContext.getTenantId();
+                allocatedWrapper.eq(CommonConstants.TENANT_ID_FIELD, tenantId);
+            }
+            List<DepartmentStock> allocatedStockList = list(allocatedWrapper);
+            allocatedStockMap = allocatedStockList.stream()
+                .collect(Collectors.toMap(DepartmentStock::getNormsId, stock -> stock, (v1, v2) -> v1));
+        }
+
+        // 3. 合并数据
+        List<Map<String, Object>> resultList = new ArrayList<>();
+        for (DepartmentStock departmentStock : stocks) {
+            Map<String, Object> resultMap = new HashMap<>();
+            String normsId = departmentStock.getNormsId();
+
+            // 复制 MaterialNorms 的基本信息
+            resultMap.put("id", normsId);
+            resultMap.put("materialId", departmentStock.getMaterialId());
+            resultMap.put("normsId", normsId);
+            resultMap.put("departmentId", departmentStock.getDepartmentId());
+            resultMap.put("farmId", departmentStock.getFarmId());
+
+            // 当前库存
+            DepartmentStock orderStock = orderStockDataMap.get(normsId);
+            if (orderStock != null) {
+                resultMap.put("orderStock", orderStock.getStock());
+            } else {
+                resultMap.put("orderStock", CommonNumConstants.NUM_ZERO.toString());
+            }
+
+            // 在途物料
+            DepartmentStock inTransitStock = normsId != null ? inTransitStockMap.get(normsId) : null;
+            if (inTransitStock != null) {
+                resultMap.put("inTransitStock", inTransitStock.getStock());
+            } else {
+                resultMap.put("inTransitStock", CommonNumConstants.NUM_ZERO.toString());
+            }
+
+            // 已分配库存
+            DepartmentStock allocatedStock = normsId != null ? allocatedStockMap.get(normsId) : null;
+            if (allocatedStock != null) {
+                resultMap.put("allocatedStock", allocatedStock.getStock());
+            } else {
+                resultMap.put("allocatedStock", CommonNumConstants.NUM_ZERO.toString());
+            }
+
+            resultList.add(resultMap);
+        }
+
+        // 4. 设置关联信息
+        materialService.setMationForMap(resultList, "materialId", "materialMation");
+        materialNormsService.setMationForMap(resultList, "normsId", "normsMation");
+        iDepmentService.setMationForMap(resultList, "departmentId", "departmentMation");
+        farmService.setMationForMap(resultList, "farmId", "farmMation");
+
+        outputObject.setBeans(resultList);
+        outputObject.settotal(page.getTotal());
     }
 
     @Override
@@ -185,29 +313,109 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
 
     @Override
     public Map<String, String> queryNormsDepartmentStock(String departmentId, String farmId, List<String> normsIds) {
-        QueryWrapper<DepartmentStock> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
+        // 默认不包含在途库存，保持向后兼容
+        return queryNormsDepartmentStock(departmentId, farmId, normsIds, true);
+    }
+
+    @Override
+    public Map<String, String> queryNormsDepartmentStock(String departmentId, String farmId, List<String> normsIds, boolean includeInTransitStock) {
+        if (CollectionUtil.isEmpty(normsIds)) {
+            return new HashMap<>();
+        }
+
+        // 1. 查询 ORDER_STOCK（现有库存）
+        QueryWrapper<DepartmentStock> orderStockWrapper = new QueryWrapper<>();
+        orderStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
         if (StrUtil.isNotEmpty(farmId)) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), farmId);
+            orderStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), farmId);
         } else {
             String farmIdKey = MybatisPlusUtil.toColumns(DepartmentStock::getFarmId);
-            queryWrapper.and(Wrapper -> {
+            orderStockWrapper.and(Wrapper -> {
                 Wrapper.isNull(farmIdKey).or().eq(farmIdKey, StrUtil.EMPTY);
             });
         }
-        queryWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds);
-        List<DepartmentStock> departmentStockList = list(queryWrapper);
-
-        Map<String, String> stockMap = departmentStockList.stream()
+        orderStockWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds)
+            .eq(MybatisPlusUtil.toColumns(DepartmentStock::getType), MaterialNormsStockType.ORDER_STOCK.getKey());
+        List<DepartmentStock> orderStockList = list(orderStockWrapper);
+        Map<String, String> orderStockMap = orderStockList.stream()
             .collect(Collectors.toMap(
                 DepartmentStock::getNormsId,
-                stock -> StrUtil.isEmpty(stock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : stock.getStock()
+                stock -> StrUtil.isEmpty(stock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : stock.getStock(),
+                (v1, v2) -> v1
             ));
-        normsIds.forEach(normsId -> {
-            if (!stockMap.containsKey(normsId)) {
-                stockMap.put(normsId, CommonNumConstants.NUM_ZERO.toString());
+
+        // 2. 查询 IN_TRANSIT_STOCK（在途物料/在制物料）- 根据参数决定是否查询
+        Map<String, String> inTransitStockMap = new HashMap<>();
+        if (includeInTransitStock) {
+            QueryWrapper<DepartmentStock> inTransitStockWrapper = new QueryWrapper<>();
+            inTransitStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
+            if (StrUtil.isNotEmpty(farmId)) {
+                inTransitStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), farmId);
+            } else {
+                String farmIdKey = MybatisPlusUtil.toColumns(DepartmentStock::getFarmId);
+                inTransitStockWrapper.and(Wrapper -> {
+                    Wrapper.isNull(farmIdKey).or().eq(farmIdKey, StrUtil.EMPTY);
+                });
             }
-        });
+            inTransitStockWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds)
+                .eq(MybatisPlusUtil.toColumns(DepartmentStock::getType), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey());
+            List<DepartmentStock> inTransitStockList = list(inTransitStockWrapper);
+            inTransitStockMap = inTransitStockList.stream()
+                .collect(Collectors.toMap(
+                    DepartmentStock::getNormsId,
+                    stock -> StrUtil.isEmpty(stock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : stock.getStock(),
+                    (v1, v2) -> v1
+                ));
+        }
+
+        // 3. 查询 ALLOCATED_STOCK（已分配量）
+        QueryWrapper<DepartmentStock> allocatedStockWrapper = new QueryWrapper<>();
+        allocatedStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
+        if (StrUtil.isNotEmpty(farmId)) {
+            allocatedStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), farmId);
+        } else {
+            String farmIdKey = MybatisPlusUtil.toColumns(DepartmentStock::getFarmId);
+            allocatedStockWrapper.and(Wrapper -> {
+                Wrapper.isNull(farmIdKey).or().eq(farmIdKey, StrUtil.EMPTY);
+            });
+        }
+        allocatedStockWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds)
+            .eq(MybatisPlusUtil.toColumns(DepartmentStock::getType), MaterialNormsStockType.ALLOCATED_STOCK.getKey());
+        List<DepartmentStock> allocatedStockList = list(allocatedStockWrapper);
+        Map<String, String> allocatedStockMap = allocatedStockList.stream()
+            .collect(Collectors.toMap(
+                DepartmentStock::getNormsId,
+                stock -> StrUtil.isEmpty(stock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : stock.getStock(),
+                (v1, v2) -> v1
+            ));
+
+        // 4. 计算可用库存
+        Map<String, String> stockMap = new HashMap<>();
+        for (String normsId : normsIds) {
+            String orderStock = orderStockMap.getOrDefault(normsId, CommonNumConstants.NUM_ZERO.toString());
+            String allocatedStock = allocatedStockMap.getOrDefault(normsId, CommonNumConstants.NUM_ZERO.toString());
+            String availableStock;
+
+            if (includeInTransitStock) {
+                // MRP计算：可用库存 = 现有库存 + 在途库存 - 已分配量
+                String inTransitStock = inTransitStockMap.getOrDefault(normsId, CommonNumConstants.NUM_ZERO.toString());
+                // 先计算：现有库存 + 在途库存
+                String totalStock = CalculationUtil.add(orderStock, inTransitStock, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+                // 再计算：总库存 - 已分配量 = 可用库存
+                availableStock = CalculationUtil.subtract(totalStock, allocatedStock, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            } else {
+                // 简单计算：可用库存 = 现有库存 - 已分配量
+                availableStock = CalculationUtil.subtract(orderStock, allocatedStock, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
+            }
+
+            // 如果计算结果小于0，则返回0
+            if (CalculationUtil.compareTo(availableStock, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
+                availableStock = CommonNumConstants.NUM_ZERO.toString();
+            }
+
+            stockMap.put(normsId, availableStock);
+        }
+
         return stockMap;
     }
 

@@ -30,17 +30,11 @@ public class DepartmentStockController {
     @Autowired
     private DepartmentStockService departmentStockService;
 
-    /**
-     * 获取登录人部门/车间物料库存信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "erpdepartstock001", value = "获取登录人部门/车间物料库存信息", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DepartmentStockController/queryDepartmentStockList")
     public void queryDepartmentStockList(InputObject inputObject, OutputObject outputObject) {
-        departmentStockService.queryPageList(inputObject, outputObject);
+        departmentStockService.queryDepartmentStockList(inputObject, outputObject);
     }
 
 }

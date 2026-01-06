@@ -130,7 +130,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
 
     private void checkProductNumList(MachinProcedureAccept entity) {
         if (CollectionUtil.isEmpty(entity.getMachinProcedureAcceptProductNumList())) {
-            throw new CustomException("请填写验收人生产数量列表");
+            return;
         }
         String allNumLast = CommonNumConstants.NUM_ZERO.toString();
         String qualifiedNumLast = CommonNumConstants.NUM_ZERO.toString();
@@ -172,17 +172,21 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         machinProcedureAcceptChildService.saveList(entity.getId(), childList);
         // 保存商品规格编码信息
         saveErpOrderItemCode(entity);
-        // 保存/修改员工生产数量信息
-        entity.getMachinProcedureAcceptProductNumList().forEach(productNum -> {
-            productNum.setParentId(entity.getId());
-            productNum.setMaterialId(productNum.getMaterialId());
-            productNum.setNormsId(productNum.getNormsId());
-        });
+
         if (StrUtil.isNotEmpty(entity.getId())) {
             // 更新操作删除原有员工生产数量信息
             machinProcedureAcceptProductNumService.deleteByParentId(entity.getId());
         }
-        machinProcedureAcceptProductNumService.writeList(entity.getId(), entity.getMachinProcedureAcceptProductNumList());
+        if (CollectionUtil.isNotEmpty(entity.getMachinProcedureAcceptProductNumList())) {
+            // 保存/修改员工生产数量信息
+            entity.getMachinProcedureAcceptProductNumList().forEach(productNum -> {
+                productNum.setParentId(entity.getId());
+                productNum.setMaterialId(productNum.getMaterialId());
+                productNum.setNormsId(productNum.getNormsId());
+            });
+            machinProcedureAcceptProductNumService.writeList(entity.getId(), entity.getMachinProcedureAcceptProductNumList());
+        }
+
         super.writePostpose(entity, userId);
     }
 
@@ -402,6 +406,24 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         List<String> normsIdList = childList.stream().map(MachinProcedureAcceptChild::getNormsId).distinct().collect(Collectors.toList());
         Map<String, Material> materialMap = materialService.selectMapByIds(materialIdList);
         Map<String, MaterialNorms> normsMap = materialNormsService.selectMapByIds(normsIdList);
+        // 1. 校验数量
+        Map<String, String> stock = departmentStockService.queryNormsDepartmentStock(entity.getDepartmentId(), entity.getFarmId(), normsIdList, false);
+        Map<String, String> collect = childList.stream()
+            .collect(Collectors.groupingBy(MachinProcedureAcceptChild::getNormsId,
+                Collectors.reducing(CommonNumConstants.NUM_ZERO.toString(),
+                    child -> StrUtil.isEmpty(child.getOperNumber()) ? CommonNumConstants.NUM_ZERO.toString() : String.valueOf(child.getOperNumber()),
+                    (a, b) -> CalculationUtil.add(a, b, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP))));
+        collect.forEach((normsId, changeNum) -> {
+            String departmentFarmStock = stock.getOrDefault(normsId, CommonNumConstants.NUM_ZERO.toString());
+            if (StrUtil.isEmpty(departmentFarmStock)) {
+                departmentFarmStock = CommonNumConstants.NUM_ZERO.toString();
+            }
+            if (CalculationUtil.compareTo(changeNum, departmentFarmStock, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0) {
+                throw new CustomException(
+                    String.format(Locale.ROOT, "商品【%s】超出当前车间的库存，请确认", normsMap.get(normsId).getName()));
+            }
+        });
+
         // 所有需要进行耗材处理的条形码编码
         List<String> allNormsCodeList = new ArrayList<>();
         Map<String, Integer> normsCodeType = new HashMap<>();
@@ -411,23 +433,6 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
             if (allCodeNum != allNormsCodeList.size()) {
                 throw new CustomException("商品明细中存在相同的条形码编号，请确认");
             }
-            // 1. 校验数量
-            Map<String, String> stock = departmentStockService.queryNormsDepartmentStock(entity.getDepartmentId(), entity.getFarmId(), normsIdList);
-            Map<String, String> collect = childList.stream()
-                .collect(Collectors.groupingBy(MachinProcedureAcceptChild::getNormsId,
-                    Collectors.reducing(CommonNumConstants.NUM_ZERO.toString(),
-                        child -> StrUtil.isEmpty(child.getOperNumber()) ? CommonNumConstants.NUM_ZERO.toString() : String.valueOf(child.getOperNumber()),
-                        (a, b) -> CalculationUtil.add(a, b, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP))));
-            collect.forEach((normsId, changeNum) -> {
-                String departmentFarmStock = stock.getOrDefault(normsId, CommonNumConstants.NUM_ZERO.toString());
-                if (StrUtil.isEmpty(departmentFarmStock)) {
-                    departmentFarmStock = CommonNumConstants.NUM_ZERO.toString();
-                }
-                if (CalculationUtil.compareTo(changeNum, departmentFarmStock, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0) {
-                    throw new CustomException(
-                        String.format(Locale.ROOT, "商品【%s】超出当前仓库的库存，请确认", normsMap.get(normsId).getName()));
-                }
-            });
             // 2. 校验条形码
             //  2.1 从数据库查询出库状态的条形码信息，
             //  2.2 只有部门信息不为空的说明已经领料，才可以进行工序耗材。

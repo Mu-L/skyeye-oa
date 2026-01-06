@@ -5,7 +5,6 @@
 package com.skyeye.material.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
-import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.material.entity.MaterialNormsStock;
 

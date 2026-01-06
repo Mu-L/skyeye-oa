@@ -62,4 +62,21 @@ public class MachinProcedureFarmController {
         machinProcedureFarmService.queryMachinProcedureFarmToInOrOutList(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryProcedureConsumablesByFarmId", value = "车间任务转工序验收时，根据车间任务id查询该工序的耗材信息", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "车间任务id", required = "required"),
+        @ApiImplicitParam(id = "targetNum", name = "targetNum", value = "目标数量", required = "required")})
+    @RequestMapping("/post/MachinProcedureFarmController/queryProcedureConsumablesByFarmId")
+    public void queryProcedureConsumablesByFarmId(InputObject inputObject, OutputObject outputObject) {
+        machinProcedureFarmService.queryProcedureConsumablesByFarmId(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryPendingAcceptNumByFarmId", value = "根据车间任务id获取待工序验收的数量", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "车间任务id", required = "required")})
+    @RequestMapping("/post/MachinProcedureFarmController/queryPendingAcceptNumByFarmId")
+    public void queryPendingAcceptNumByFarmId(InputObject inputObject, OutputObject outputObject) {
+        machinProcedureFarmService.queryPendingAcceptNumByFarmId(inputObject, outputObject);
+    }
+
 }
