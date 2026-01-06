@@ -39,6 +39,7 @@ import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.procedure.entity.WayProcedure;
 import com.skyeye.procedure.service.WayProcedureService;
+import com.skyeye.procedure.service.WorkProcedureService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -72,6 +73,9 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
 
     @Autowired
     private WayProcedureService wayProcedureService;
+
+    @Autowired
+    private WorkProcedureService workProcedureService;
 
     @Override
     public QueryWrapper<Bom> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -459,6 +463,8 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
             materialService.setDataMation(bom.getProcedureConsumablesList(), BomProcedureConsumables::getMaterialId);
             materialNormsService.setDataMation(bom.getProcedureConsumablesList(), BomProcedureConsumables::getNormsId);
         }
+        // 设置工序信息
+        workProcedureService.setDataMation(bom.getProcedureConsumablesList(), BomProcedureConsumables::getProcedureId);
         return bom;
     }
 
