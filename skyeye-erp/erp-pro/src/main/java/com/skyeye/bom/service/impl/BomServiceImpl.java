@@ -456,6 +456,7 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
             if (CollectionUtil.isNotEmpty(bomChild.getProcedureConsumablesList())) {
                 materialService.setDataMation(bomChild.getProcedureConsumablesList(), BomProcedureConsumables::getMaterialId);
                 materialNormsService.setDataMation(bomChild.getProcedureConsumablesList(), BomProcedureConsumables::getNormsId);
+                workProcedureService.setDataMation(bomChild.getProcedureConsumablesList(), BomProcedureConsumables::getProcedureId);
             }
         });
         // 查询工序耗材信息（BOM层面的）
