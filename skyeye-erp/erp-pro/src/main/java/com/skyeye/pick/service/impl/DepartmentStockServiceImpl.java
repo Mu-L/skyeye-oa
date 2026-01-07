@@ -39,10 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -68,6 +65,8 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
 
     @Autowired
     private FarmService farmService;
+
+    private static final String DEFAULT_OBJECT_ID = "defaultId";
 
     @Override
     @IgnoreTenant
@@ -216,31 +215,79 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
     }
 
     @Override
-    public void updateDepartmentStock(String departmentId, String farmId, String materialId, String normsId, String operNumber, int type, int stockType) {
-        DepartmentStock departmentStock = queryDepartmentStock(departmentId, farmId, normsId, stockType);
-        // 如果该规格在指定部门中已经有存储数据，则直接做修改
-        if (ObjectUtil.isNotEmpty(departmentStock)) {
-            String stock = StrUtil.isEmpty(departmentStock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : departmentStock.getStock();
-            if (type == DepotPutOutType.PUT.getKey()) {
-                // 入库
-                stock = CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, stock, StrUtil.isEmpty(operNumber) ? CommonNumConstants.NUM_ZERO.toString() : operNumber);
-            } else if (type == DepotPutOutType.OUT.getKey()) {
-                // 出库
-                stock = CalculationUtil.subtract(stock, StrUtil.isEmpty(operNumber) ? CommonNumConstants.NUM_ZERO.toString() : operNumber, ErpConstants.NUM_AFTER_DOT);
+    public void updateDepartmentStock(String departmentId, String farmId, String materialId, String normsId, String operNumber, int type, int stockType, String objectId) {
+        // 如果objectId为空，设置为默认值
+        if (StrUtil.isEmpty(objectId)) {
+            objectId = DEFAULT_OBJECT_ID;
+        }
+
+        String needOperNumber = StrUtil.isEmpty(operNumber) ? CommonNumConstants.NUM_ZERO.toString() : operNumber;
+
+        if (type == DepotPutOutType.PUT.getKey()) {
+            // 入库：直接增加到指定的objectId
+            DepartmentStock departmentStock = queryDepartmentStock(departmentId, farmId, normsId, stockType, objectId);
+            if (ObjectUtil.isNotEmpty(departmentStock)) {
+                String stock = StrUtil.isEmpty(departmentStock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : departmentStock.getStock();
+                stock = CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, stock, needOperNumber);
+                stock = checkStockNum(stockType, stock);
+                editDepartmentStock(departmentId, farmId, normsId, stock, stockType, objectId);
+            } else {
+                String stockNum = checkStockNum(stockType, needOperNumber);
+                saveDepartmentStock(departmentId, farmId, materialId, normsId, stockNum, stockType, objectId);
             }
-            stock = checkStockNum(stockType, stock);
-            editDepartmentStock(departmentId, farmId, normsId, stock, stockType);
-        } else {
-            String stockNum = CommonNumConstants.NUM_ZERO.toString();
-            if (type == DepotPutOutType.PUT.getKey()) {
-                // 入库
-                stockNum = StrUtil.isEmpty(operNumber) ? CommonNumConstants.NUM_ZERO.toString() : operNumber;
-            } else if (type == DepotPutOutType.OUT.getKey()) {
-                // 出库
-                stockNum = CalculationUtil.subtract(CommonNumConstants.NUM_ZERO.toString(), StrUtil.isEmpty(operNumber) ? CommonNumConstants.NUM_ZERO.toString() : operNumber, ErpConstants.NUM_AFTER_DOT);
+        } else if (type == DepotPutOutType.OUT.getKey()) {
+            // 出库：优先扣除特定objectId的库存，不足时再扣除通用库存
+            if (!DEFAULT_OBJECT_ID.equals(objectId)) {
+                // 先尝试从特定objectId扣除
+                DepartmentStock specificStock = queryDepartmentStock(departmentId, farmId, normsId, stockType, objectId);
+                String remainingNeed = needOperNumber;
+
+                if (ObjectUtil.isNotEmpty(specificStock)) {
+                    String specificStockValue = StrUtil.isEmpty(specificStock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : specificStock.getStock();
+                    if (CalculationUtil.compareTo(specificStockValue, remainingNeed, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) >= 0) {
+                        // 特定objectId的库存足够，直接扣除
+                        String newStock = CalculationUtil.subtract(specificStockValue, remainingNeed, ErpConstants.NUM_AFTER_DOT);
+                        newStock = checkStockNum(stockType, newStock);
+                        editDepartmentStock(departmentId, farmId, normsId, newStock, stockType, objectId);
+                        return;
+                    } else {
+                        // 特定objectId的库存不足，全部扣除，剩余部分从通用库存扣除
+                        remainingNeed = CalculationUtil.subtract(remainingNeed, specificStockValue, ErpConstants.NUM_AFTER_DOT);
+                        String newStock = checkStockNum(stockType, CommonNumConstants.NUM_ZERO.toString());
+                        editDepartmentStock(departmentId, farmId, normsId, newStock, stockType, objectId);
+                    }
+                }
+
+                // 从通用库存扣除剩余部分
+                if (CalculationUtil.compareTo(remainingNeed, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0) {
+                    DepartmentStock defaultStock = queryDepartmentStock(departmentId, farmId, normsId, stockType, DEFAULT_OBJECT_ID);
+                    if (ObjectUtil.isNotEmpty(defaultStock)) {
+                        String defaultStockValue = StrUtil.isEmpty(defaultStock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : defaultStock.getStock();
+                        if (CalculationUtil.compareTo(defaultStockValue, remainingNeed, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
+                            throw new CustomException(String.format(Locale.ROOT, "库存不足，需要 %s，但只有 %s", remainingNeed, defaultStockValue));
+                        }
+                        String newStock = CalculationUtil.subtract(defaultStockValue, remainingNeed, ErpConstants.NUM_AFTER_DOT);
+                        newStock = checkStockNum(stockType, newStock);
+                        editDepartmentStock(departmentId, farmId, normsId, newStock, stockType, DEFAULT_OBJECT_ID);
+                    } else {
+                        throw new CustomException(String.format(Locale.ROOT, "库存不足，需要 %s，但通用库存为0", remainingNeed));
+                    }
+                }
+            } else {
+                // 直接从通用库存扣除
+                DepartmentStock departmentStock = queryDepartmentStock(departmentId, farmId, normsId, stockType, DEFAULT_OBJECT_ID);
+                if (ObjectUtil.isNotEmpty(departmentStock)) {
+                    String stock = StrUtil.isEmpty(departmentStock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : departmentStock.getStock();
+                    if (CalculationUtil.compareTo(stock, needOperNumber, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
+                        throw new CustomException(String.format(Locale.ROOT, "库存不足，需要 %s，但只有 %s", needOperNumber, stock));
+                    }
+                    stock = CalculationUtil.subtract(stock, needOperNumber, ErpConstants.NUM_AFTER_DOT);
+                    stock = checkStockNum(stockType, stock);
+                    editDepartmentStock(departmentId, farmId, normsId, stock, stockType, DEFAULT_OBJECT_ID);
+                } else {
+                    throw new CustomException(String.format(Locale.ROOT, "库存不足，需要 %s，但库存为0", needOperNumber));
+                }
             }
-            stockNum = checkStockNum(stockType, stockNum);
-            saveDepartmentStock(departmentId, farmId, materialId, normsId, stockNum, stockType);
         }
     }
 
@@ -260,6 +307,14 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
 
     @Override
     public DepartmentStock queryDepartmentStock(String departmentId, String farmId, String normsId, int stockType) {
+        return queryDepartmentStock(departmentId, farmId, normsId, stockType, null);
+    }
+
+    private DepartmentStock queryDepartmentStock(String departmentId, String farmId, String normsId, int stockType, String objectId) {
+        // 如果objectId为空，设置为默认值
+        if (StrUtil.isEmpty(objectId)) {
+            objectId = DEFAULT_OBJECT_ID;
+        }
         QueryWrapper<DepartmentStock> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
         if (StrUtil.isNotEmpty(farmId)) {
@@ -274,10 +329,16 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
         }
         queryWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getType), stockType);
+        // 查询该objectId的记录
+        queryWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getObjectId), objectId);
         return getOne(queryWrapper);
     }
 
-    private void editDepartmentStock(String departmentId, String farmId, String normsId, String stock, int stockType) {
+    private void editDepartmentStock(String departmentId, String farmId, String normsId, String stock, int stockType, String objectId) {
+        // 如果objectId为空，设置为默认值
+        if (StrUtil.isEmpty(objectId)) {
+            objectId = DEFAULT_OBJECT_ID;
+        }
         UpdateWrapper<DepartmentStock> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
         if (StrUtil.isNotEmpty(farmId)) {
@@ -292,12 +353,18 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
         }
         updateWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsId);
         updateWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getType), stockType);
+        // 更新该objectId的记录
+        updateWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getObjectId), objectId);
         updateWrapper.set(MybatisPlusUtil.toColumns(DepartmentStock::getStock), stock);
         updateWrapper.set(MybatisPlusUtil.toColumns(DepartmentStock::getLastUpdateTime), DateUtil.getTimeAndToString());
         update(updateWrapper);
     }
 
-    private void saveDepartmentStock(String departmentId, String farmId, String materialId, String normsId, String stock, int stockType) {
+    private void saveDepartmentStock(String departmentId, String farmId, String materialId, String normsId, String stock, int stockType, String objectId) {
+        // 如果objectId为空，设置为默认值
+        if (StrUtil.isEmpty(objectId)) {
+            objectId = DEFAULT_OBJECT_ID;
+        }
         DepartmentStock departmentStock = new DepartmentStock();
         departmentStock.setDepartmentId(departmentId);
         departmentStock.setFarmId(farmId);
@@ -305,6 +372,7 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
         departmentStock.setNormsId(normsId);
         departmentStock.setStock(stock);
         departmentStock.setType(stockType);
+        departmentStock.setObjectId(objectId);
         String createTime = DateUtil.getTimeAndToString();
         departmentStock.setCreateTime(createTime);
         departmentStock.setLastUpdateTime(createTime);
@@ -319,75 +387,26 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
 
     @Override
     public Map<String, String> queryNormsDepartmentStock(String departmentId, String farmId, List<String> normsIds, boolean includeInTransitStock) {
+        return queryNormsDepartmentStock(departmentId, farmId, normsIds, includeInTransitStock, null);
+    }
+
+    @Override
+    public Map<String, String> queryNormsDepartmentStock(String departmentId, String farmId, List<String> normsIds, boolean includeInTransitStock, String includeObjectId) {
         if (CollectionUtil.isEmpty(normsIds)) {
             return new HashMap<>();
         }
 
         // 1. 查询 ORDER_STOCK（现有库存）
-        QueryWrapper<DepartmentStock> orderStockWrapper = new QueryWrapper<>();
-        orderStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
-        if (StrUtil.isNotEmpty(farmId)) {
-            orderStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), farmId);
-        } else {
-            String farmIdKey = MybatisPlusUtil.toColumns(DepartmentStock::getFarmId);
-            orderStockWrapper.and(Wrapper -> {
-                Wrapper.isNull(farmIdKey).or().eq(farmIdKey, StrUtil.EMPTY);
-            });
-        }
-        orderStockWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds)
-            .eq(MybatisPlusUtil.toColumns(DepartmentStock::getType), MaterialNormsStockType.ORDER_STOCK.getKey());
-        List<DepartmentStock> orderStockList = list(orderStockWrapper);
-        Map<String, String> orderStockMap = orderStockList.stream()
-            .collect(Collectors.toMap(
-                DepartmentStock::getNormsId,
-                stock -> StrUtil.isEmpty(stock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : stock.getStock(),
-                (v1, v2) -> v1
-            ));
+        Map<String, String> orderStockMap = queryOrderStock(departmentId, farmId, normsIds, includeObjectId);
 
         // 2. 查询 IN_TRANSIT_STOCK（在途物料/在制物料）- 根据参数决定是否查询
         Map<String, String> inTransitStockMap = new HashMap<>();
         if (includeInTransitStock) {
-            QueryWrapper<DepartmentStock> inTransitStockWrapper = new QueryWrapper<>();
-            inTransitStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
-            if (StrUtil.isNotEmpty(farmId)) {
-                inTransitStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), farmId);
-            } else {
-                String farmIdKey = MybatisPlusUtil.toColumns(DepartmentStock::getFarmId);
-                inTransitStockWrapper.and(Wrapper -> {
-                    Wrapper.isNull(farmIdKey).or().eq(farmIdKey, StrUtil.EMPTY);
-                });
-            }
-            inTransitStockWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds)
-                .eq(MybatisPlusUtil.toColumns(DepartmentStock::getType), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey());
-            List<DepartmentStock> inTransitStockList = list(inTransitStockWrapper);
-            inTransitStockMap = inTransitStockList.stream()
-                .collect(Collectors.toMap(
-                    DepartmentStock::getNormsId,
-                    stock -> StrUtil.isEmpty(stock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : stock.getStock(),
-                    (v1, v2) -> v1
-                ));
+            inTransitStockMap = queryInTransitStock(departmentId, farmId, normsIds, includeObjectId);
         }
 
         // 3. 查询 ALLOCATED_STOCK（已分配量）
-        QueryWrapper<DepartmentStock> allocatedStockWrapper = new QueryWrapper<>();
-        allocatedStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
-        if (StrUtil.isNotEmpty(farmId)) {
-            allocatedStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), farmId);
-        } else {
-            String farmIdKey = MybatisPlusUtil.toColumns(DepartmentStock::getFarmId);
-            allocatedStockWrapper.and(Wrapper -> {
-                Wrapper.isNull(farmIdKey).or().eq(farmIdKey, StrUtil.EMPTY);
-            });
-        }
-        allocatedStockWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds)
-            .eq(MybatisPlusUtil.toColumns(DepartmentStock::getType), MaterialNormsStockType.ALLOCATED_STOCK.getKey());
-        List<DepartmentStock> allocatedStockList = list(allocatedStockWrapper);
-        Map<String, String> allocatedStockMap = allocatedStockList.stream()
-            .collect(Collectors.toMap(
-                DepartmentStock::getNormsId,
-                stock -> StrUtil.isEmpty(stock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : stock.getStock(),
-                (v1, v2) -> v1
-            ));
+        Map<String, String> allocatedStockMap = queryAllocatedStock(departmentId, farmId, normsIds, includeObjectId);
 
         // 4. 计算可用库存
         Map<String, String> stockMap = new HashMap<>();
@@ -417,6 +436,117 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
         }
 
         return stockMap;
+    }
+
+    @Override
+    public Map<String, String> queryOrderStock(String departmentId, String farmId, List<String> normsIds, String includeObjectId) {
+        if (CollectionUtil.isEmpty(normsIds)) {
+            return new HashMap<>();
+        }
+
+        QueryWrapper<DepartmentStock> orderStockWrapper = new QueryWrapper<>();
+        orderStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
+        if (StrUtil.isNotEmpty(farmId)) {
+            orderStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), farmId);
+        } else {
+            String farmIdKey = MybatisPlusUtil.toColumns(DepartmentStock::getFarmId);
+            orderStockWrapper.and(Wrapper -> {
+                Wrapper.isNull(farmIdKey).or().eq(farmIdKey, StrUtil.EMPTY);
+            });
+        }
+        orderStockWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds)
+            .eq(MybatisPlusUtil.toColumns(DepartmentStock::getType), MaterialNormsStockType.ORDER_STOCK.getKey());
+        // 如果指定了includeObjectId且不等于DEFAULT_OBJECT_ID，则同时查询该objectId和DEFAULT_OBJECT_ID的库存（通用库存可被所有加工单使用）
+        // 否则只查询DEFAULT_OBJECT_ID的库存
+        if (StrUtil.isNotEmpty(includeObjectId) && !DEFAULT_OBJECT_ID.equals(includeObjectId)) {
+            String objectIdKey = MybatisPlusUtil.toColumns(DepartmentStock::getObjectId);
+            orderStockWrapper.and(Wrapper -> {
+                Wrapper.eq(objectIdKey, includeObjectId).or().eq(objectIdKey, DEFAULT_OBJECT_ID);
+            });
+        } else {
+            orderStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getObjectId), DEFAULT_OBJECT_ID);
+        }
+        List<DepartmentStock> orderStockList = list(orderStockWrapper);
+        return orderStockList.stream()
+            .collect(Collectors.toMap(
+                DepartmentStock::getNormsId,
+                stock -> StrUtil.isEmpty(stock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : stock.getStock(),
+                (v1, v2) -> CalculationUtil.add(v1, v2, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP)
+            ));
+    }
+
+    @Override
+    public Map<String, String> queryInTransitStock(String departmentId, String farmId, List<String> normsIds, String includeObjectId) {
+        if (CollectionUtil.isEmpty(normsIds)) {
+            return new HashMap<>();
+        }
+
+        QueryWrapper<DepartmentStock> inTransitStockWrapper = new QueryWrapper<>();
+        inTransitStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
+        if (StrUtil.isNotEmpty(farmId)) {
+            inTransitStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), farmId);
+        } else {
+            String farmIdKey = MybatisPlusUtil.toColumns(DepartmentStock::getFarmId);
+            inTransitStockWrapper.and(Wrapper -> {
+                Wrapper.isNull(farmIdKey).or().eq(farmIdKey, StrUtil.EMPTY);
+            });
+        }
+        inTransitStockWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds)
+            .eq(MybatisPlusUtil.toColumns(DepartmentStock::getType), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey());
+        // 如果指定了includeObjectId且不等于DEFAULT_OBJECT_ID，则同时查询该objectId和DEFAULT_OBJECT_ID的库存（通用库存可被所有加工单使用）
+        // 否则只查询DEFAULT_OBJECT_ID的库存
+        if (StrUtil.isNotEmpty(includeObjectId) && !DEFAULT_OBJECT_ID.equals(includeObjectId)) {
+            String objectIdKey = MybatisPlusUtil.toColumns(DepartmentStock::getObjectId);
+            inTransitStockWrapper.and(Wrapper -> {
+                Wrapper.eq(objectIdKey, includeObjectId).or().eq(objectIdKey, DEFAULT_OBJECT_ID);
+            });
+        } else {
+            inTransitStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getObjectId), DEFAULT_OBJECT_ID);
+        }
+        List<DepartmentStock> inTransitStockList = list(inTransitStockWrapper);
+        return inTransitStockList.stream()
+            .collect(Collectors.toMap(
+                DepartmentStock::getNormsId,
+                stock -> StrUtil.isEmpty(stock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : stock.getStock(),
+                (v1, v2) -> CalculationUtil.add(v1, v2, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP)
+            ));
+    }
+
+    @Override
+    public Map<String, String> queryAllocatedStock(String departmentId, String farmId, List<String> normsIds, String includeObjectId) {
+        if (CollectionUtil.isEmpty(normsIds)) {
+            return new HashMap<>();
+        }
+
+        QueryWrapper<DepartmentStock> allocatedStockWrapper = new QueryWrapper<>();
+        allocatedStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getDepartmentId), departmentId);
+        if (StrUtil.isNotEmpty(farmId)) {
+            allocatedStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getFarmId), farmId);
+        } else {
+            String farmIdKey = MybatisPlusUtil.toColumns(DepartmentStock::getFarmId);
+            allocatedStockWrapper.and(Wrapper -> {
+                Wrapper.isNull(farmIdKey).or().eq(farmIdKey, StrUtil.EMPTY);
+            });
+        }
+        allocatedStockWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds)
+            .eq(MybatisPlusUtil.toColumns(DepartmentStock::getType), MaterialNormsStockType.ALLOCATED_STOCK.getKey());
+        // 如果指定了includeObjectId且不等于DEFAULT_OBJECT_ID，则同时查询该objectId和DEFAULT_OBJECT_ID的已分配库存（通用库存可被所有加工单使用）
+        // 否则只查询DEFAULT_OBJECT_ID的已分配库存
+        if (StrUtil.isNotEmpty(includeObjectId) && !DEFAULT_OBJECT_ID.equals(includeObjectId)) {
+            String objectIdKey = MybatisPlusUtil.toColumns(DepartmentStock::getObjectId);
+            allocatedStockWrapper.and(Wrapper -> {
+                Wrapper.eq(objectIdKey, includeObjectId).or().eq(objectIdKey, DEFAULT_OBJECT_ID);
+            });
+        } else {
+            allocatedStockWrapper.eq(MybatisPlusUtil.toColumns(DepartmentStock::getObjectId), DEFAULT_OBJECT_ID);
+        }
+        List<DepartmentStock> allocatedStockList = list(allocatedStockWrapper);
+        return allocatedStockList.stream()
+            .collect(Collectors.toMap(
+                DepartmentStock::getNormsId,
+                stock -> StrUtil.isEmpty(stock.getStock()) ? CommonNumConstants.NUM_ZERO.toString() : stock.getStock(),
+                (v1, v2) -> CalculationUtil.add(v1, v2, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP)
+            ));
     }
 
 }

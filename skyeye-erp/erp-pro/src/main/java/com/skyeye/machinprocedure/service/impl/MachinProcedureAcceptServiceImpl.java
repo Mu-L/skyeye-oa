@@ -24,6 +24,7 @@ import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.machin.entity.Machin;
+import com.skyeye.machin.service.MachinService;
 import com.skyeye.machinprocedure.classenum.MachinProcedureAcceptChildType;
 import com.skyeye.machinprocedure.classenum.MachinProcedureFarmState;
 import com.skyeye.machinprocedure.dao.MachinProcedureAcceptDao;
@@ -88,6 +89,9 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
 
     @Autowired
     private FarmService farmService;
+
+    @Autowired
+    private MachinService machinService;
 
     @Override
     public void validatorEntity(MachinProcedureAccept entity) {
@@ -359,36 +363,11 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         } else {
             machinProcedureFarmService.editStateById(machinProcedureFarm.getId(), MachinProcedureFarmState.EXCESS_COMPLETED.getKey());
         }
-        // 校验并修改条形码信息
+        // 校验并修改条形码信息（同时减少当前库存和已分配库存）
         checkNormsCodeAndSave(realEntity, false);
-        // 根据正常耗材和报废耗材减少已分配库存
-        reduceAllocatedStock(realEntity);
         // 修改车间任务的完成数量情况
         machinProcedureFarmService.addAcceptNumsById(realEntity.getMachinProcedureFarmId(), realEntity.getAcceptNum(), realEntity.getQualifiedNum(),
             realEntity.getReworkNum(), realEntity.getScrapNum());
-    }
-
-    /**
-     * 根据正常耗材和报废耗材减少已分配库存
-     *
-     * @param entity 工序验收单
-     */
-    private void reduceAllocatedStock(MachinProcedureAccept entity) {
-        // 合并正常耗材和报废耗材
-        List<MachinProcedureAcceptChild> childList = new ArrayList<>();
-        mergeAcceptChild(entity, childList);
-        // 遍历所有耗材，减少已分配库存
-        if (CollectionUtil.isNotEmpty(childList)) {
-            childList.forEach(acceptChild -> {
-                String operNumber = StrUtil.isEmpty(acceptChild.getOperNumber())
-                    ? CommonNumConstants.NUM_ZERO.toString()
-                    : acceptChild.getOperNumber();
-                // 减少已分配库存（正常耗材和报废耗材都需要减少）
-                departmentStockService.updateDepartmentStock(entity.getDepartmentId(), entity.getFarmId(),
-                    acceptChild.getMaterialId(), acceptChild.getNormsId(), operNumber,
-                    DepotPutOutType.OUT.getKey(), MaterialNormsStockType.ALLOCATED_STOCK.getKey());
-            });
-        }
     }
 
     /**
@@ -406,8 +385,14 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         List<String> normsIdList = childList.stream().map(MachinProcedureAcceptChild::getNormsId).distinct().collect(Collectors.toList());
         Map<String, Material> materialMap = materialService.selectMapByIds(materialIdList);
         Map<String, MaterialNorms> normsMap = materialNormsService.selectMapByIds(normsIdList);
-        // 1. 校验数量
-        Map<String, String> stock = departmentStockService.queryNormsDepartmentStock(entity.getDepartmentId(), entity.getFarmId(), normsIdList, false);
+        // 1. 校验数量（查询该加工单的关联的当前库存）
+        // 获取加工单部门id信息，核心依据是：谁发起需求，谁承担成本 / 归属责任。加工单由 A 部门下达，意味着该物料的消耗是为了满足 A 部门的生产任务，B 部门（车间）只是执行方，负责领料、加工，其角色是 “代加工”，不承担物料的归属和成本责任
+        Machin machin = machinService.selectById(entity.getMachinId());
+        if (machin == null) {
+            throw new CustomException("加工单信息不存在");
+        }
+        String machinDepartmentId = machin.getDepartmentId();
+        Map<String, String> stock = departmentStockService.queryOrderStock(machinDepartmentId, entity.getFarmId(), normsIdList, entity.getMachinId());
         Map<String, String> collect = childList.stream()
             .collect(Collectors.groupingBy(MachinProcedureAcceptChild::getNormsId,
                 Collectors.reducing(CommonNumConstants.NUM_ZERO.toString(),
@@ -439,7 +424,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
             List<MaterialNormsCode> materialNormsCodeList = materialNormsCodeService.queryMaterialNormsCodeByCodeNum(StrUtil.EMPTY, allNormsCodeList,
                 MaterialNormsCodeInDepot.OUTBOUND.getKey());
             materialNormsCodeList = materialNormsCodeList.stream()
-                .filter(bean -> StrUtil.isNotEmpty(bean.getDepartmentId()) && StrUtil.equals(entity.getDepartmentId(), bean.getDepartmentId()))
+                .filter(bean -> StrUtil.isNotEmpty(bean.getDepartmentId()) && StrUtil.equals(machinDepartmentId, bean.getDepartmentId()))
                 .collect(Collectors.toList());
             //  2.3 如果车间不为空，则需要获取过滤出当前车间的库存
             if (StrUtil.isNotEmpty(entity.getFarmId())) {
@@ -471,8 +456,15 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         if (!onlyCheck) {
             // 修改部门/车间的库存
             childList.forEach(acceptChild -> {
-                departmentStockService.updateDepartmentStock(entity.getDepartmentId(), entity.getFarmId(), acceptChild.getMaterialId(),
-                    acceptChild.getNormsId(), acceptChild.getOperNumber(), DepotPutOutType.OUT.getKey(), MaterialNormsStockType.ORDER_STOCK.getKey());
+                String operNumber = StrUtil.isEmpty(acceptChild.getOperNumber())
+                    ? CommonNumConstants.NUM_ZERO.toString()
+                    : acceptChild.getOperNumber();
+                // 减少当前库存（ORDER_STOCK）
+                departmentStockService.updateDepartmentStock(machinDepartmentId, entity.getFarmId(), acceptChild.getMaterialId(),
+                    acceptChild.getNormsId(), operNumber, DepotPutOutType.OUT.getKey(), MaterialNormsStockType.ORDER_STOCK.getKey(), entity.getMachinId());
+                // 减少已分配库存（ALLOCATED_STOCK）
+                departmentStockService.updateDepartmentStock(machinDepartmentId, entity.getFarmId(), acceptChild.getMaterialId(),
+                    acceptChild.getNormsId(), operNumber, DepotPutOutType.OUT.getKey(), MaterialNormsStockType.ALLOCATED_STOCK.getKey(), entity.getMachinId());
             });
         }
         return allNormsCodeList;

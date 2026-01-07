@@ -79,4 +79,8 @@ public class DepartmentStock extends CommonInfo {
     @ApiModelProperty(value = "商品规格库存类型", enumClass = MaterialNormsStockType.class)
     private Integer type;
 
+    @TableField(value = "object_id")
+    @ApiModelProperty(value = "关联对象id（如加工单id等）")
+    private String objectId;
+
 }

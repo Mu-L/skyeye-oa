@@ -262,10 +262,10 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
             editStateById(id, MachinProcedureFarmState.WAIT_EXECUTED.getKey());
             // 计算所执行工序的耗材数量信息
             Map<String, BomChild> needConsumables = calculateProcedureConsumables(machinProcedureFarm);
-            // 增加已分配库存
+            // 增加已分配库存，记录关联的加工单ID（使用加工单的部门ID）
             needConsumables.forEach((normsId, newPutNum) -> {
-                departmentStockService.updateDepartmentStock(machinProcedureFarm.getFarmMation().getDepartmentId(), machinProcedureFarm.getFarmId(),
-                    newPutNum.getMaterialId(), newPutNum.getNormsId(), newPutNum.getNeedNum(), DepotPutOutType.PUT.getKey(), MaterialNormsStockType.ALLOCATED_STOCK.getKey());
+                departmentStockService.updateDepartmentStock(machinProcedureFarm.getMachinMation().getDepartmentId(), machinProcedureFarm.getFarmId(),
+                    newPutNum.getMaterialId(), newPutNum.getNormsId(), newPutNum.getNeedNum(), DepotPutOutType.PUT.getKey(), MaterialNormsStockType.ALLOCATED_STOCK.getKey(), machinProcedureFarm.getMachinId());
             });
         }
     }
@@ -278,17 +278,15 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
     private Map<String, BomChild> calculateProcedureConsumables(MachinProcedureFarm machinProcedureFarm) {
         // 获取加工单工序信息
         MachinProcedure machinProcedure = machinProcedureFarm.getMachinProcedureMation();
-        if (machinProcedure == null || StrUtil.isEmpty(machinProcedure.getBomChildId())
-            || StrUtil.isEmpty(machinProcedure.getProcedureId())) {
-            // 如果没有BOM子件清单ID或工序ID，说明该工序不需要耗材
+        if (machinProcedure == null || StrUtil.isEmpty(machinProcedure.getProcedureId())) {
+            // 如果没有工序ID，说明该工序不需要耗材
             return Collections.emptyMap();
         }
 
         // 获取加工单子单据信息
         String childId = machinProcedure.getChildId();
         MachinChild machinChild = machinProcedureFarm.getMachinMation().getMachinChildList().stream()
-            .filter(child -> StrUtil.equals(child.getId(), childId))
-            .findFirst().orElse(null);
+            .filter(child -> StrUtil.equals(child.getId(), childId)).findFirst().orElse(null);
         if (machinChild == null || StrUtil.isEmpty(machinChild.getBomId())) {
             // 如果没有BOM ID，无法计算耗材
             return Collections.emptyMap();
@@ -296,22 +294,12 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
 
         // 获取BOM信息
         Bom bom = bomService.selectById(machinChild.getBomId());
-        if (bom == null || CollectionUtil.isEmpty(bom.getBomChildList())) {
-            return Collections.emptyMap();
-        }
-
-        // 从BOM子件列表中找到对应的子件
-        BomChild targetBomChild = bom.getBomChildList().stream()
-            .filter(bomChild -> StrUtil.equals(bomChild.getId(), machinProcedure.getBomChildId()))
-            .findFirst().orElse(null);
-        if (targetBomChild == null) {
+        if (bom == null) {
             return Collections.emptyMap();
         }
 
         // 获取车间任务的目标数量
-        String targetNum = StrUtil.isEmpty(machinProcedureFarm.getTargetNum())
-            ? CommonNumConstants.NUM_ZERO.toString()
-            : machinProcedureFarm.getTargetNum();
+        String targetNum = StrUtil.isEmpty(machinProcedureFarm.getTargetNum()) ? CommonNumConstants.NUM_ZERO.toString() : machinProcedureFarm.getTargetNum();
         if (CalculationUtil.compareTo(targetNum, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) <= 0) {
             return Collections.emptyMap();
         }
@@ -320,7 +308,33 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
         String unitRatio = CalculationUtil.divide(targetNum, String.valueOf(bom.getMakeNum()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
 
         // 查询该工序配置的耗材列表
-        List<BomProcedureConsumables> currentProcedureConsumables = bomProcedureConsumablesService.queryListByBomChildId(targetBomChild.getId());
+        List<BomProcedureConsumables> currentProcedureConsumables;
+        if (StrUtil.isNotEmpty(machinProcedure.getBomChildId())) {
+            // 如果是子件清单的工序，查询子件清单的耗材
+            // 从BOM子件列表中找到对应的子件
+            if (CollectionUtil.isEmpty(bom.getBomChildList())) {
+                return Collections.emptyMap();
+            }
+            BomChild targetBomChild = bom.getBomChildList().stream()
+                .filter(bomChild -> StrUtil.equals(bomChild.getId(), machinProcedure.getBomChildId()))
+                .findFirst().orElse(null);
+            if (targetBomChild == null) {
+                return Collections.emptyMap();
+            }
+            // 查询子件清单的耗材，并过滤出匹配当前工序ID的耗材
+            List<BomProcedureConsumables> bomChildConsumables = bomProcedureConsumablesService.queryListByBomChildId(targetBomChild.getId());
+            currentProcedureConsumables = bomChildConsumables.stream()
+                .filter(consumables -> StrUtil.equals(consumables.getProcedureId(), machinProcedure.getProcedureId()))
+                .collect(Collectors.toList());
+        } else {
+            // 如果是BOM层的工序，查询BOM层的耗材（需要匹配procedureId）
+            List<BomProcedureConsumables> bomLevelConsumables = bomProcedureConsumablesService.queryListByBomId(machinChild.getBomId());
+            // 过滤出匹配当前工序ID的耗材
+            currentProcedureConsumables = bomLevelConsumables.stream()
+                .filter(consumables -> StrUtil.equals(consumables.getProcedureId(), machinProcedure.getProcedureId()))
+                .collect(Collectors.toList());
+        }
+
         if (CollectionUtil.isEmpty(currentProcedureConsumables)) {
             return Collections.emptyMap();
         }
@@ -365,10 +379,10 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
             editStateById(id, MachinProcedureFarmState.WAIT_RECEIVE.getKey());
             // 计算所执行工序的耗材数量信息
             Map<String, BomChild> needConsumables = calculateProcedureConsumables(machinProcedureFarm);
-            // 减少已分配库存
+            // 减少已分配库存，需要指定objectId以匹配对应的已分配库存（使用加工单的部门ID）
             needConsumables.forEach((normsId, newPutNum) -> {
-                departmentStockService.updateDepartmentStock(machinProcedureFarm.getFarmMation().getDepartmentId(), machinProcedureFarm.getFarmId(),
-                    newPutNum.getMaterialId(), newPutNum.getNormsId(), newPutNum.getNeedNum(), DepotPutOutType.OUT.getKey(), MaterialNormsStockType.ALLOCATED_STOCK.getKey());
+                departmentStockService.updateDepartmentStock(machinProcedureFarm.getMachinMation().getDepartmentId(), machinProcedureFarm.getFarmId(),
+                    newPutNum.getMaterialId(), newPutNum.getNormsId(), newPutNum.getNeedNum(), DepotPutOutType.OUT.getKey(), MaterialNormsStockType.ALLOCATED_STOCK.getKey(), machinProcedureFarm.getMachinId());
             });
         }
     }

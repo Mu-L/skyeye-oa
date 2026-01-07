@@ -15,12 +15,15 @@ import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
+import com.skyeye.machin.entity.Machin;
+import com.skyeye.machin.service.MachinService;
 import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.pick.classenum.OutLetState;
 import com.skyeye.pick.classenum.PatchOutLetFromType;
 import com.skyeye.pick.dao.PatchMaterialDao;
 import com.skyeye.pick.entity.PatchMaterial;
 import com.skyeye.pick.entity.PatchOutLet;
+import com.skyeye.pick.entity.PickChild;
 import com.skyeye.pick.service.DepartmentStockService;
 import com.skyeye.pick.service.PatchMaterialService;
 import com.skyeye.pick.service.PatchOutLetService;
@@ -45,6 +48,9 @@ import java.util.stream.Collectors;
 public class PatchMaterialServiceImpl extends ErpPickServiceImpl<PatchMaterialDao, PatchMaterial> implements PatchMaterialService {
 
     @Autowired
+    private MachinService machinService;
+
+    @Autowired
     private PatchOutLetService patchOutLetService;
 
     @Autowired
@@ -60,11 +66,18 @@ public class PatchMaterialServiceImpl extends ErpPickServiceImpl<PatchMaterialDa
     public void approvalEndIsSuccess(PatchMaterial entity) {
         PatchMaterial oldEntity = selectById(entity.getId());
 
-        // 增加在途库存
-        oldEntity.getPickChildList().forEach(pickChild -> {
-            departmentStockService.updateDepartmentStock(oldEntity.getDepartmentId(), oldEntity.getFarmId(),
-                pickChild.getMaterialId(), pickChild.getNormsId(), pickChild.getNeedNum(), DepotPutOutType.PUT.getKey(), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey());
-        });
+        // 增加在途库存，记录关联的对象ID（如果fromId存在）
+        String machinId = StrUtil.isNotEmpty(oldEntity.getFromId()) ? oldEntity.getFromId() : null;
+        // 补料单的归属部门和物料的归属主体是两个不同的维度，如果关联了加工单，那么领取的物料就按照加工单所属的部门走，否则按照领料部门走
+        String departmentId = oldEntity.getDepartmentId();
+        if (StrUtil.isNotEmpty(machinId)) {
+            Machin machin = machinService.selectById(machinId);
+            departmentId = machin.getDepartmentId();
+        }
+        for (PickChild pickChild : oldEntity.getPickChildList()) {
+            departmentStockService.updateDepartmentStock(departmentId, oldEntity.getFarmId(),
+                pickChild.getMaterialId(), pickChild.getNormsId(), pickChild.getNeedNum(), DepotPutOutType.PUT.getKey(), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey(), machinId);
+        }
     }
 
     @Override

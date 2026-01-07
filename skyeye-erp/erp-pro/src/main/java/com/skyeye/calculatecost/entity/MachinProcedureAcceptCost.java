@@ -40,16 +40,16 @@ public class MachinProcedureAcceptCost {
     private String consumablePrice;
 
     @ApiModelProperty(value = "总数量")
-    private Integer allNum;
+    private String allNum;
 
     @ApiModelProperty(value = "合格数量")
-    private Integer qualifiedNum;
+    private String qualifiedNum;
 
     @ApiModelProperty(value = "返工数量")
-    private Integer reworkNum;
+    private String reworkNum;
 
     @ApiModelProperty(value = "报废数量")
-    private Integer scrapNum;
+    private String scrapNum;
 
     @ApiModelProperty(value = "工资金额")
     private String wage;

@@ -16,11 +16,13 @@ import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
 import com.skyeye.machin.classenum.MachinPickStateEnum;
+import com.skyeye.machin.entity.Machin;
 import com.skyeye.machin.service.MachinService;
 import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.pick.classenum.OutLetState;
 import com.skyeye.pick.classenum.RequisitionOutLetFromType;
 import com.skyeye.pick.dao.RequisitionMaterialDao;
+import com.skyeye.pick.entity.PickChild;
 import com.skyeye.pick.entity.RequisitionMaterial;
 import com.skyeye.pick.entity.RequisitionOutLet;
 import com.skyeye.pick.service.DepartmentStockService;
@@ -67,11 +69,18 @@ public class RequisitionMaterialServiceImpl extends ErpPickServiceImpl<Requisiti
             machinService.editPickStateById(entity.getFromId(), MachinPickStateEnum.PICKED.getKey());
         }
         RequisitionMaterial oldEntity = selectById(entity.getId());
-        // 增加在途库存
-        oldEntity.getPickChildList().forEach(pickChild -> {
-            departmentStockService.updateDepartmentStock(oldEntity.getDepartmentId(), oldEntity.getFarmId(),
-                pickChild.getMaterialId(), pickChild.getNormsId(), pickChild.getNeedNum(), DepotPutOutType.PUT.getKey(), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey());
-        });
+        // 增加在途库存，记录关联的加工单ID（如果fromId是加工单ID）
+        String machinId = StrUtil.isNotEmpty(oldEntity.getFromId()) ? oldEntity.getFromId() : null;
+        // 领料单的归属部门和物料的归属主体是两个不同的维度，如果关联了加工单，那么领取的物料就按照加工单所属的部门走，否则按照领料部门走
+        String departmentId = oldEntity.getDepartmentId();
+        if (StrUtil.isNotEmpty(machinId)) {
+            Machin machin = machinService.selectById(machinId);
+            departmentId = machin.getDepartmentId();
+        }
+        for (PickChild pickChild : oldEntity.getPickChildList()) {
+            departmentStockService.updateDepartmentStock(departmentId, oldEntity.getFarmId(),
+                pickChild.getMaterialId(), pickChild.getNormsId(), pickChild.getNeedNum(), DepotPutOutType.PUT.getKey(), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey(), machinId);
+        }
     }
 
     @Override

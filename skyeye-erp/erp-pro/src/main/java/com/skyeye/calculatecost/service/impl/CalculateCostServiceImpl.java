@@ -130,11 +130,13 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         // 详细工序信息
         WorkProcedure workProcedure = workProcedureService.selectById(machinProcedure.getProcedureId());
         machinProcedure.setProcedureMation(workProcedure);
-        // 获取商品信息和规格信息
-        materialService.setDataMation(machinProcedure, MachinProcedure::getMaterialId);
-        materialNormsService.setDataMation(machinProcedure, MachinProcedure::getNormsId);
+
         // 查询耗材信息
         List<MachinProcedureAcceptChild> acceptChildList = machinProcedureAcceptChildService.selectByParentId(machinProcedureAcceptId);
+        // 获取商品信息和规格信息
+        materialService.setDataMation(acceptChildList, MachinProcedureAcceptChild::getMaterialId);
+        materialNormsService.setDataMation(acceptChildList, MachinProcedureAcceptChild::getNormsId);
+
         // 工序验收单信息中已经查询过员工生产数量列表
         List<MachinProcedureAcceptProductNum> productNumList = CollectionUtil.isEmpty(machinProcedureAccept.getMachinProcedureAcceptProductNumList())
             ? CollectionUtil.newArrayList() : machinProcedureAccept.getMachinProcedureAcceptProductNumList();
@@ -143,22 +145,28 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         List<String> staffIdList = productNumList.stream()
             .map(MachinProcedureAcceptProductNum::getStaffId).collect(Collectors.toList());
         Map<String, Map<String, Object>> staffMap = productNumList.stream().collect(Collectors.toMap(MachinProcedureAcceptProductNum::getStaffId, MachinProcedureAcceptProductNum::getStaffMation));
-        // 获取日期间的所有日期值
-        List<String> betweenDates = getBetweenDates(machinProcedure.getPlanStartTime(), machinProcedure.getPlanEndTime());
-        // 查询考勤信息
-        List<Map<String, Object>> checkWorkInfo = iCheckWorkService.queryInfoByStaffIdsAndDates(
-            Joiner.on(CommonCharConstants.COMMA_MARK).join(staffIdList), Joiner.on(CommonCharConstants.COMMA_MARK).join(betweenDates));
-        Map<String, List<String>> workHourListMap = checkWorkInfo.stream()
-            .collect(Collectors.groupingBy(m -> m.get("createId").toString(), Collectors.mapping(m -> m.get("workHours").toString(), Collectors.toList())));
-        // 计算所有员工的工时信息
-        Map<String, String> workHoursMap = calculateHours(workHourListMap);
-        // 计件工价格信息
-        List<FarmStaff> farmStaffList = farmStaffService.queryListByFarmIdsAndStaffIds(Collections.singletonList(machinProcedureAccept.getFarmId()), staffIdList);
-        Map<String, String> farmStaffMap = farmStaffList.stream().collect(
-            Collectors.toMap(FarmStaff::getStaffId, f -> StrUtil.isEmpty(f.getPieceWorkPrice()) ? "0" : f.getPieceWorkPrice()));
+
+        Map<String, String> farmStaffMap = new HashMap<>();
+        Map<String, String> workHoursMap = new HashMap<>();
+        if (CollectionUtil.isNotEmpty(staffIdList)) {
+            // 获取日期间的所有日期值
+            List<String> betweenDates = getBetweenDates(machinProcedure.getPlanStartTime(), machinProcedure.getPlanEndTime());
+            // 查询考勤信息
+            List<Map<String, Object>> checkWorkInfo = iCheckWorkService.queryInfoByStaffIdsAndDates(
+                Joiner.on(CommonCharConstants.COMMA_MARK).join(staffIdList), Joiner.on(CommonCharConstants.COMMA_MARK).join(betweenDates));
+            Map<String, List<String>> workHourListMap = checkWorkInfo.stream()
+                .collect(Collectors.groupingBy(m -> m.get("createId").toString(), Collectors.mapping(m -> m.get("workHours").toString(), Collectors.toList())));
+            // 计算所有员工的工时信息
+            workHoursMap = calculateHours(workHourListMap);
+            // 计件工价格信息
+            List<FarmStaff> farmStaffList = farmStaffService.queryListByFarmIdsAndStaffIds(Collections.singletonList(machinProcedureAccept.getFarmId()), staffIdList);
+            farmStaffMap = farmStaffList.stream().collect(
+                Collectors.toMap(FarmStaff::getStaffId, f -> StrUtil.isEmpty(f.getPieceWorkPrice()) ? "0" : f.getPieceWorkPrice()));
+        }
+
         // 计算所有员工的成本总和，并设置数量信息
         MachinProcedureAcceptCost bean = calculateMachinProcedureAcceptCost(
-            machinProcedure, staffNumMap, staffMap, workHoursMap, acceptChildList, farmStaffMap);
+            machinProcedure, staffNumMap, staffMap, workHoursMap, acceptChildList, farmStaffMap, machinProcedureAccept);
         outputObject.setBean(bean);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
@@ -492,7 +500,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
             MachinProcedureAcceptCost acceptCost = calculateMachinProcedureAcceptCost(
                 machinProcedure, productNumMapChild, staffMap, workHoursMap,
                 acceptChildMap.getOrDefault(procedureAcceptId, new ArrayList<>()),
-                farmStaffMap.getOrDefault(machinProcedureAccept.getFarmId(), new HashMap<>()));
+                farmStaffMap.getOrDefault(machinProcedureAccept.getFarmId(), new HashMap<>()), machinProcedureAccept);
             acceptCostList.add(acceptCost);
         }
         return acceptCostList;
@@ -638,7 +646,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         }
         for (MachinProcedureAcceptChild child : childList) {
             // 计算每一个耗材的成本     数量 * 采购价
-            String operNumber = child.getOperNumber() == null ? CommonNumConstants.NUM_ZERO.toString() : String.valueOf(child.getOperNumber());
+            String operNumber = child.getOperNumber() == null ? CommonNumConstants.NUM_ZERO.toString() : child.getOperNumber();
             if (StrUtil.isEmpty(operNumber)) {
                 operNumber = CommonNumConstants.NUM_ZERO.toString();
             }
@@ -656,27 +664,20 @@ public class CalculateCostServiceImpl implements CalculateCostService {
     /**
      * 计算每一位员工的成本，并设置数量信息
      *
-     * @param machinProcedure 工序信息
-     * @param staffNumMap     员工的生产数量信息
-     * @param staffMap        员工信息
-     * @param workHoursMap    员工工时信息
-     * @param childList       耗材列表
-     * @param farmStaffMap    计件工单价信息
+     * @param machinProcedure       工序信息
+     * @param staffNumMap           员工的生产数量信息
+     * @param staffMap              员工信息
+     * @param workHoursMap          员工工时信息
+     * @param childList             耗材列表
+     * @param farmStaffMap          计件工单价信息
+     * @param machinProcedureAccept 工序验收单信息
      * @Param childList 耗材列表
      */
     private MachinProcedureAcceptCost calculateMachinProcedureAcceptCost(
         MachinProcedure machinProcedure, Map<String, MachinProcedureAcceptProductNum> staffNumMap, Map<String, Map<String, Object>> staffMap
-        , Map<String, String> workHoursMap, List<MachinProcedureAcceptChild> childList, Map<String, String> farmStaffMap) {
+        , Map<String, String> workHoursMap, List<MachinProcedureAcceptChild> childList, Map<String, String> farmStaffMap, MachinProcedureAccept machinProcedureAccept) {
         MachinProcedureAcceptCost machinProcedureCost = new MachinProcedureAcceptCost();
-        // 设置总数量、 合格数量、返工数量、报废数量 均为0、工序信息、初始化员工生产数量信息
-        machinProcedureCost.setAllNum(CommonNumConstants.NUM_ZERO);
-        machinProcedureCost.setQualifiedNum(CommonNumConstants.NUM_ZERO);
-        machinProcedureCost.setReworkNum(CommonNumConstants.NUM_ZERO);
-        machinProcedureCost.setScrapNum(CommonNumConstants.NUM_ZERO);
-        String allNumStr = CommonNumConstants.NUM_ZERO.toString();
-        String qualifiedNumStr = CommonNumConstants.NUM_ZERO.toString();
-        String reworkNumStr = CommonNumConstants.NUM_ZERO.toString();
-        String scrapNumStr = CommonNumConstants.NUM_ZERO.toString();
+        // 设置工序信息、初始化员工生产数量信息
         machinProcedureCost.setProcedureName(machinProcedure.getProcedureMation().getName());
         machinProcedureCost.setProcedureNumber(machinProcedure.getProcedureMation().getNumber());
         machinProcedureCost.setProductNumMationList(new ArrayList<>());
@@ -699,11 +700,6 @@ public class CalculateCostServiceImpl implements CalculateCostService {
             }
             MachinProcedureAcceptProductNum staffProductNum = productNum.getValue();
             Map<String, Object> staffMation = staffMap.getOrDefault(productNum.getKey(), new HashMap<>());
-            // 计算数量信息
-            allNumStr = CalculationUtil.add(allNumStr, String.valueOf(staffProductNum.getAllNumber()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
-            qualifiedNumStr = CalculationUtil.add(qualifiedNumStr, String.valueOf(staffProductNum.getQualifiedNum()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
-            reworkNumStr = CalculationUtil.add(reworkNumStr, String.valueOf(staffProductNum.getReworkNum()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
-            scrapNumStr = CalculationUtil.add(scrapNumStr, String.valueOf(staffProductNum.getScrapNum()), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP);
             // 获取一位员工的成本
             String oneStaffCost = calculateOneStaffCost(
                 staffProductNum, staffMation,
@@ -715,10 +711,10 @@ public class CalculateCostServiceImpl implements CalculateCostService {
             machinProcedureCost.getProductNumMationList().add(staffProductNum);
             staffCost = CalculationUtil.add(staffCost, oneStaffCost, CommonNumConstants.NUM_SIX);
         }
-        machinProcedureCost.setAllNum(Integer.parseInt(allNumStr));
-        machinProcedureCost.setQualifiedNum(Integer.parseInt(qualifiedNumStr));
-        machinProcedureCost.setReworkNum(Integer.parseInt(reworkNumStr));
-        machinProcedureCost.setScrapNum(Integer.parseInt(scrapNumStr));
+        machinProcedureCost.setAllNum(machinProcedureAccept.getAcceptNum());
+        machinProcedureCost.setQualifiedNum(machinProcedureAccept.getQualifiedNum());
+        machinProcedureCost.setReworkNum(machinProcedureAccept.getReworkNum());
+        machinProcedureCost.setScrapNum(machinProcedureAccept.getScrapNum());
         machinProcedureCost.setWage(staffCost);
         // 总价 = 耗材成本 + 工资成本
         machinProcedureCost.setTotalPrice(CalculationUtil.add(consumablePrice, staffCost, CommonNumConstants.NUM_SIX));

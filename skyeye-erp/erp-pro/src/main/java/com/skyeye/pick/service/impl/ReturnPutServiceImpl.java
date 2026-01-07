@@ -25,6 +25,8 @@ import com.skyeye.depot.service.DepotPutService;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
+import com.skyeye.machin.entity.Machin;
+import com.skyeye.machin.service.MachinService;
 import com.skyeye.machinprocedure.classenum.MachinProcedureAcceptChildType;
 import com.skyeye.material.classenum.MaterialInOrderType;
 import com.skyeye.material.classenum.MaterialNormsCodeInDepot;
@@ -80,6 +82,9 @@ public class ReturnPutServiceImpl extends SkyeyeErpOrderServiceImpl<ReturnPutDao
 
     @Autowired
     private FarmService farmService;
+
+    @Autowired
+    private MachinService machinService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -229,18 +234,28 @@ public class ReturnPutServiceImpl extends SkyeyeErpOrderServiceImpl<ReturnPutDao
         // 所有需要进行入库的条形码编码
         List<String> allNormsCodeList = new ArrayList<>();
         int allCodeNum = checkErpOrderItemDetail(entity, materialMap, normsMap, allNormsCodeList);
+
+        // 获取实际部门信息，退料单的归属部门和物料的归属主体是两个不同的维度，如果关联了加工单，那么退掉的物料就按照加工单所属的部门走，否则按照退料部门走
+        String departmentId = entity.getDepartmentId();
+        String fromId = getMachinIdFromReturnPut(entity);
+        if (StrUtil.isNotEmpty(fromId)) {
+            Machin machin = machinService.selectById(fromId);
+            departmentId = machin.getDepartmentId();
+        }
+        String finalDepartmentId = departmentId;
         if (CollectionUtil.isNotEmpty(allNormsCodeList)) {
             allNormsCodeList = allNormsCodeList.stream().distinct().collect(Collectors.toList());
             if (allCodeNum != allNormsCodeList.size()) {
                 throw new CustomException("商品明细中存在相同的条形码编号，请确认");
             }
+
             // 1. 和数据库中条形码的状态做对比
             //  1.1 从数据库查询出库状态的条形码信息，
             //  1.2 只有部门信息不为空的说明没有退料，才可以进行退料。部门信息为空，说明该条形码还未进行领料
             List<MaterialNormsCode> materialNormsCodeList = materialNormsCodeService.queryMaterialNormsCodeByCodeNum(StrUtil.EMPTY, allNormsCodeList,
                 MaterialNormsCodeInDepot.OUTBOUND.getKey());
             materialNormsCodeList = materialNormsCodeList.stream()
-                .filter(bean -> StrUtil.isNotEmpty(bean.getDepartmentId()) && StrUtil.equals(entity.getDepartmentId(), bean.getDepartmentId()))
+                .filter(bean -> StrUtil.isNotEmpty(bean.getDepartmentId()) && StrUtil.equals(finalDepartmentId, bean.getDepartmentId()))
                 .collect(Collectors.toList());
             //  1.3 如果车间不为空，则需要获取过滤出当前车间的库存
             if (StrUtil.isNotEmpty(entity.getFarmId())) {
@@ -274,8 +289,8 @@ public class ReturnPutServiceImpl extends SkyeyeErpOrderServiceImpl<ReturnPutDao
         if (!onlyCheck) {
             // 修改部门/车间的库存
             entity.getErpOrderItemList().forEach(erpOrderItem -> {
-                departmentStockService.updateDepartmentStock(entity.getDepartmentId(), entity.getFarmId(), erpOrderItem.getMaterialId(),
-                    erpOrderItem.getNormsId(), erpOrderItem.getOperNumber(), DepotPutOutType.OUT.getKey(), MaterialNormsStockType.ORDER_STOCK.getKey());
+                departmentStockService.updateDepartmentStock(finalDepartmentId, entity.getFarmId(), erpOrderItem.getMaterialId(),
+                    erpOrderItem.getNormsId(), erpOrderItem.getOperNumber(), DepotPutOutType.OUT.getKey(), MaterialNormsStockType.ORDER_STOCK.getKey(), null);
             });
         }
         return allNormsCodeList;
@@ -314,6 +329,39 @@ public class ReturnPutServiceImpl extends SkyeyeErpOrderServiceImpl<ReturnPutDao
             depotPutService.createEntity(depotPut, userId);
         } else {
             outputObject.setreturnMessage("状态错误，无法下达仓库入库单.");
+        }
+    }
+
+    /**
+     * 从退料入库单获取关联的加工单ID
+     * 关联关系：ReturnPut.fromId -> ReturnMaterial.fromId -> Machin.id
+     * 注意：如果ReturnMaterial的fromId不是加工单ID，则返回null
+     *
+     * @param returnPut 退料入库单
+     * @return 加工单ID，如果找不到则返回null
+     */
+    public String getMachinIdFromReturnPut(ReturnPut returnPut) {
+        if (returnPut == null || StrUtil.isEmpty(returnPut.getFromId())) {
+            return null;
+        }
+
+        // 如果fromTypeId不是退料单类型，直接返回null
+        if (returnPut.getFromTypeId() == null || returnPut.getFromTypeId() != ReturnPutFromType.RETURN_PUT.getKey()) {
+            return null;
+        }
+
+        try {
+            // 1. 获取退料需求单
+            ReturnMaterial returnMaterial = returnMaterialService.selectById(returnPut.getFromId());
+            if (returnMaterial == null || StrUtil.isEmpty(returnMaterial.getFromId())) {
+                return null;
+            }
+
+            // 2. 返回加工单ID（ReturnMaterial的fromId应该就是加工单ID）
+            return returnMaterial.getFromId();
+        } catch (Exception e) {
+            // 如果查询失败，返回null，不影响主流程
+            return null;
         }
     }
 }

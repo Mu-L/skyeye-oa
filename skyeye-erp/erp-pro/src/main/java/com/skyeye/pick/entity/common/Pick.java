@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
 import com.skyeye.depot.entity.Depot;
 import com.skyeye.farm.entity.Farm;
+import com.skyeye.pick.classenum.PickFromType;
 import com.skyeye.pick.entity.PickChild;
 import lombok.Data;
 
@@ -61,7 +62,7 @@ public class Pick extends SkyeyeFlowable {
     private Farm farmMation;
 
     @TableField(value = "from_type_id", updateStrategy = FieldStrategy.NEVER)
-    @ApiModelProperty(value = "来源单据类型，参考#PickFromType")
+    @ApiModelProperty(value = "来源单据类型", enumClass = PickFromType.class)
     private Integer fromTypeId;
 
     @TableField(value = "from_id", updateStrategy = FieldStrategy.NEVER)

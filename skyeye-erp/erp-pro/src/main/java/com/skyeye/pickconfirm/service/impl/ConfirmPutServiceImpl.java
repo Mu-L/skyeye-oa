@@ -36,6 +36,10 @@ import com.skyeye.material.entity.MaterialNormsCode;
 import com.skyeye.organization.service.IDepmentService;
 import com.skyeye.pick.classenum.PickNormsCodeUseState;
 import com.skyeye.pick.service.DepartmentStockService;
+import com.skyeye.pick.service.RequisitionMaterialService;
+import com.skyeye.pick.service.RequisitionOutLetService;
+import com.skyeye.pick.entity.RequisitionMaterial;
+import com.skyeye.pick.entity.RequisitionOutLet;
 import com.skyeye.pickconfirm.classenum.ConfirmFromType;
 import com.skyeye.pickconfirm.dao.ConfirmPutDao;
 import com.skyeye.pickconfirm.entity.ConfirmPut;
@@ -75,6 +79,12 @@ public class ConfirmPutServiceImpl extends SkyeyeErpOrderServiceImpl<ConfirmPutD
 
     @Autowired
     private IDepmentService iDepmentService;
+
+    @Autowired
+    private RequisitionOutLetService requisitionOutLetService;
+
+    @Autowired
+    private RequisitionMaterialService requisitionMaterialService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -192,10 +202,11 @@ public class ConfirmPutServiceImpl extends SkyeyeErpOrderServiceImpl<ConfirmPutD
         checkMaterialNorms(oldEntity, true);
         // 校验并修改条形码信息
         checkNormsCodeAndSave(oldEntity, false);
-        // 减少在途库存
+        // 减少在途库存，需要指定objectId以匹配对应的在途库存
+        String machinId = getMachinIdFromConfirmPut(oldEntity);
         oldEntity.getErpOrderItemList().forEach(pickChild -> {
             departmentStockService.updateDepartmentStock(oldEntity.getDepartmentId(), oldEntity.getFarmId(),
-                pickChild.getMaterialId(), pickChild.getNormsId(), pickChild.getOperNumber(), DepotPutOutType.OUT.getKey(), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey());
+                pickChild.getMaterialId(), pickChild.getNormsId(), pickChild.getOperNumber(), DepotPutOutType.OUT.getKey(), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey(), machinId);
         });
     }
 
@@ -259,10 +270,11 @@ public class ConfirmPutServiceImpl extends SkyeyeErpOrderServiceImpl<ConfirmPutD
             }
         }
         if (!onlyCheck) {
-            // 修改部门/车间的库存
+            // 修改部门/车间的库存，记录关联的加工单ID
+            String machinId = getMachinIdFromConfirmPut(entity);
             entity.getErpOrderItemList().forEach(erpOrderItem -> {
                 departmentStockService.updateDepartmentStock(entity.getDepartmentId(), entity.getFarmId(), erpOrderItem.getMaterialId(),
-                    erpOrderItem.getNormsId(), erpOrderItem.getOperNumber(), DepotPutOutType.PUT.getKey(), MaterialNormsStockType.ORDER_STOCK.getKey());
+                    erpOrderItem.getNormsId(), erpOrderItem.getOperNumber(), DepotPutOutType.PUT.getKey(), MaterialNormsStockType.ORDER_STOCK.getKey(), machinId);
             });
         }
         return allNormsCodeList;
@@ -308,5 +320,44 @@ public class ConfirmPutServiceImpl extends SkyeyeErpOrderServiceImpl<ConfirmPutD
                     }
                 ))));
         return collect;
+    }
+
+    /**
+     * 从加工入库单获取关联的加工单ID
+     * 关联关系：ConfirmPut.fromId -> DepotOut.fromId -> RequisitionOutLet.fromId -> RequisitionMaterial.fromId -> Machin.id
+     *
+     * @param confirmPut 加工入库单
+     * @return 加工单ID，如果找不到则返回null
+     */
+    private String getMachinIdFromConfirmPut(ConfirmPut confirmPut) {
+        if (StrUtil.isEmpty(confirmPut.getFromId())) {
+            return null;
+        }
+
+        try {
+            // 1. 获取仓库出库单
+            DepotOut depotOut = depotOutService.selectById(confirmPut.getFromId());
+            if (depotOut == null || StrUtil.isEmpty(depotOut.getFromId())) {
+                return null;
+            }
+
+            // 2. 获取领料出库单
+            RequisitionOutLet requisitionOutLet = requisitionOutLetService.selectById(depotOut.getFromId());
+            if (requisitionOutLet == null || StrUtil.isEmpty(requisitionOutLet.getFromId())) {
+                return null;
+            }
+
+            // 3. 获取领料单
+            RequisitionMaterial requisitionMaterial = requisitionMaterialService.selectById(requisitionOutLet.getFromId());
+            if (requisitionMaterial == null || StrUtil.isEmpty(requisitionMaterial.getFromId())) {
+                return null;
+            }
+
+            // 4. 返回加工单ID
+            return requisitionMaterial.getFromId();
+        } catch (Exception e) {
+            // 如果查询失败，返回null，不影响主流程
+            return null;
+        }
     }
 }
