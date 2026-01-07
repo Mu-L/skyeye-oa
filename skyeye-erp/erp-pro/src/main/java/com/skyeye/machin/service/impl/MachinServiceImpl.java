@@ -16,7 +16,6 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.bom.entity.Bom;
 import com.skyeye.bom.entity.BomChild;
 import com.skyeye.bom.entity.BomProcedureConsumables;
-import com.skyeye.bom.service.BomProcedureConsumablesService;
 import com.skyeye.bom.service.BomService;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
@@ -106,9 +105,6 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
 
     @Autowired
     private BomService bomService;
-
-    @Autowired
-    private BomProcedureConsumablesService bomProcedureConsumablesService;
 
     @Autowired
     private WayProcedureService wayProcedureService;
@@ -535,6 +531,15 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         UpdateWrapper<Machin> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(Machin::getPickState), pickState);
+        update(updateWrapper);
+        refreshCache(id);
+    }
+
+    @Override
+    public void editMachinStateById(String id, String machinState) {
+        UpdateWrapper<Machin> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(Machin::getState), machinState);
         update(updateWrapper);
         refreshCache(id);
     }

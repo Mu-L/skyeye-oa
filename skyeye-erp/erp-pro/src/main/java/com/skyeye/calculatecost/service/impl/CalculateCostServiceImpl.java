@@ -193,6 +193,9 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         List<String> acceptIdList = acceptList.stream().map(MachinProcedureAccept::getId).collect(Collectors.toList());
         // 耗耗材信息
         List<MachinProcedureAcceptChild> machinProcedureAcceptChildList = machinProcedureAcceptChildService.queryListByParentId(acceptIdList);
+        // 获取商品信息和规格信息
+        materialService.setDataMation(machinProcedureAcceptChildList, MachinProcedureAcceptChild::getMaterialId);
+        materialNormsService.setDataMation(machinProcedureAcceptChildList, MachinProcedureAcceptChild::getNormsId);
         Map<String, List<MachinProcedureAcceptChild>> acceptChildMap = machinProcedureAcceptChildList.stream().collect(Collectors.groupingBy(MachinProcedureAcceptChild::getParentId));
         // 每个工序验收单信息中已经查询过员工生产数量列表
         List<MachinProcedureAcceptProductNum> productNumList = machinProcedureAcceptProductNumService.queryListByParentIds(acceptIdList);
@@ -250,6 +253,9 @@ public class CalculateCostServiceImpl implements CalculateCostService {
 
         // 耗材信息
         List<MachinProcedureAcceptChild> acceptChildList = machinProcedureAcceptChildService.queryListByParentId(acceptIdList);
+        // 获取商品信息和规格信息
+        materialService.setDataMation(acceptChildList, MachinProcedureAcceptChild::getMaterialId);
+        materialNormsService.setDataMation(acceptChildList, MachinProcedureAcceptChild::getNormsId);
         Map<String, List<MachinProcedureAcceptChild>> acceptChildMap = acceptChildList.stream().collect(Collectors.groupingBy(MachinProcedureAcceptChild::getParentId));
 
         // 每个工序验收单信息中已经查询过员工生产数量列表
@@ -311,6 +317,9 @@ public class CalculateCostServiceImpl implements CalculateCostService {
 
         // 耗材信息
         List<MachinProcedureAcceptChild> acceptChildList = machinProcedureAcceptChildService.queryListByParentId(acceptIdList);
+        // 获取商品信息和规格信息
+        materialService.setDataMation(acceptChildList, MachinProcedureAcceptChild::getMaterialId);
+        materialNormsService.setDataMation(acceptChildList, MachinProcedureAcceptChild::getNormsId);
         Map<String, List<MachinProcedureAcceptChild>> acceptChildMap = acceptChildList.stream().collect(Collectors.groupingBy(MachinProcedureAcceptChild::getParentId));
 
         // 生产数量信息

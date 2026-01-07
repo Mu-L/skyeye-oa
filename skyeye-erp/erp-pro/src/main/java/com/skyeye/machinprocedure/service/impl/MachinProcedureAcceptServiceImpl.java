@@ -11,6 +11,8 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.bom.entity.BomChild;
+import com.skyeye.bom.service.BomChildService;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -92,6 +94,9 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
 
     @Autowired
     private MachinService machinService;
+
+    @Autowired
+    private BomChildService bomChildService;
 
     @Override
     public void validatorEntity(MachinProcedureAccept entity) {
@@ -368,6 +373,63 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         // 修改车间任务的完成数量情况
         machinProcedureFarmService.addAcceptNumsById(realEntity.getMachinProcedureFarmId(), realEntity.getAcceptNum(), realEntity.getQualifiedNum(),
             realEntity.getReworkNum(), realEntity.getScrapNum());
+
+        // 如果是BOM子件清单的最后一道工序，将生产出来的子件商品入库到车间库存
+        handleBomChildProductStock(realEntity, qualifiedNum);
+    }
+
+    /**
+     * 处理BOM子件清单最后一道工序完成后的商品入库
+     *
+     * @param entity              工序验收单
+     * @param qualifiedNum        合格数量
+     */
+    private void handleBomChildProductStock(MachinProcedureAccept entity, String qualifiedNum) {
+        // 获取工序信息
+        MachinProcedure currentProcedure = machinProcedureService.selectById(entity.getMachinProcedureId());
+        if (currentProcedure == null || StrUtil.isEmpty(currentProcedure.getBomChildId())) {
+            // 如果不是BOM子件清单的工序，不需要处理
+            return;
+        }
+
+        // 查询该BOM子件的所有工序，按orderBy排序
+        QueryWrapper<MachinProcedure> procedureWrapper = new QueryWrapper<>();
+        procedureWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedure::getChildId), currentProcedure.getChildId());
+        procedureWrapper.eq(MybatisPlusUtil.toColumns(MachinProcedure::getBomChildId), currentProcedure.getBomChildId());
+        procedureWrapper.orderByAsc(MybatisPlusUtil.toColumns(MachinProcedure::getOrderBy));
+        List<MachinProcedure> allProcedures = machinProcedureService.list(procedureWrapper);
+
+        if (CollectionUtil.isEmpty(allProcedures)) {
+            return;
+        }
+
+        // 判断当前工序是否是最后一道工序（orderBy最大的）
+        MachinProcedure lastProcedure = allProcedures.get(allProcedures.size() - 1);
+        if (!StrUtil.equals(currentProcedure.getId(), lastProcedure.getId())) {
+            // 不是最后一道工序，不需要处理
+            return;
+        }
+
+        // 获取BOM子件信息，获取对应的商品信息
+        BomChild bomChild = bomChildService.selectById(currentProcedure.getBomChildId());
+        if (bomChild == null || StrUtil.isEmpty(bomChild.getMaterialId()) || StrUtil.isEmpty(bomChild.getNormsId())) {
+            return;
+        }
+
+        // 如果合格数量为0或负数，不需要入库
+        if (CalculationUtil.compareTo(qualifiedNum, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) <= 0) {
+            return;
+        }
+
+        // 获取加工单信息，使用加工单的部门ID
+        Machin machin = machinService.selectById(entity.getMachinId());
+        if (machin == null || StrUtil.isEmpty(machin.getDepartmentId())) {
+            return;
+        }
+
+        // 将生产出来的子件商品入库到车间库存（使用加工单的部门ID）
+        departmentStockService.updateDepartmentStock(machin.getDepartmentId(), entity.getFarmId(), bomChild.getMaterialId(),
+            bomChild.getNormsId(), qualifiedNum, DepotPutOutType.PUT.getKey(), MaterialNormsStockType.ORDER_STOCK.getKey(), entity.getMachinId());
     }
 
     /**
