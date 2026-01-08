@@ -36,6 +36,7 @@ import com.skyeye.machin.service.MachinService;
 import com.skyeye.machinprocedure.entity.MachinProcedureFarm;
 import com.skyeye.machinprocedure.service.MachinProcedureFarmService;
 import com.skyeye.material.classenum.MaterialInOrderType;
+import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.organization.service.IDepmentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -177,6 +178,14 @@ public class MachinPutServiceImpl extends SkyeyeErpOrderServiceImpl<MachinPutDao
     @Override
     public void approvalEndIsSuccess(MachinPut entity) {
         MachinPut oldEntity = selectById(entity.getId());
+        // 减少在制库存（加工单审批通过时增加了在制库存，现在加工入库单审批通过需要减去）
+        if (CollectionUtil.isNotEmpty(oldEntity.getErpOrderItemList())) {
+            oldEntity.getErpOrderItemList().forEach(erpOrderItem -> {
+                erpCommonService.editMaterialNormsDepotStock(MaterialNormsStockType.IN_TRANSIT_STOCK.getDefaultDepotId(), erpOrderItem.getMaterialId(),
+                    erpOrderItem.getNormsId(), erpOrderItem.getOperNumber(), DepotPutOutType.OUT.getKey(), MaterialNormsStockType.IN_TRANSIT_STOCK.getKey());
+            });
+        }
+
         // 获取车间任务
         MachinProcedureFarm machinProcedureFarm = machinProcedureFarmService.selectById(oldEntity.getFromId());
         if (machinProcedureFarm == null || StrUtil.isEmpty(machinProcedureFarm.getMachinId())) {
