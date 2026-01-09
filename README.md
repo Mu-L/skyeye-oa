@@ -2,7 +2,7 @@
 
 > 智能制造一体化，采用Springboot(微服务) + UNI-APP + Ant Design Vue的零代码平台开发模式。包含50多种电子流程，CRM、PM、ERP、MES、ADM、OA、EHR、AI、项目、商城、财务、多班次考勤、薪资、招聘、云售后、论坛、问卷、报表设计、工作流、Saas等功能。打造全网首套零代码、功能最全、价格最优惠的智能制造行业供应链一体化管理软件。
 
-# 为我投票可获取免费体验账号：https://gitee.com/dromara/skyeye/issues/ID3GFF
+
 
 <div align="center">
   <img src="https://gitee.com/dromara/skyeye/badge/star.svg?theme=blue" alt="gitee Star" height="20">
