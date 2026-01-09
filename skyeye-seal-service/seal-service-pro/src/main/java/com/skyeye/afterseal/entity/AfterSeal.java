@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.skyeye.afterseal.classenum.AfterSealState;
 import com.skyeye.afterseal.classenum.ProductWarrantyType;
 import com.skyeye.afterseal.classenum.SealOrderType;
+import com.skyeye.afterseal.classenum.ServiceAssignType;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
@@ -132,6 +133,10 @@ public class AfterSeal extends OperatorUserInfo implements EnclosureFace {
     @TableField(value = "urgency_id")
     @ApiModelProperty(value = "紧急程度，参考数据字典", required = "required")
     private String urgencyId;
+
+    @TableField(value = "assign_type")
+    @ApiModelProperty(value = "服务人员指派方式", enumClass = ServiceAssignType.class)
+    private String assignType;
 
     @TableField(value = "service_user_id")
     @ApiModelProperty(value = "服务人员id")
