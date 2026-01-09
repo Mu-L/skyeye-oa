@@ -35,6 +35,7 @@ import com.skyeye.erp.service.IMaterialService;
 import com.skyeye.eve.rest.mq.JobMateMation;
 import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.ordertype.service.SealOrderTypeAllowStaffService;
 import com.skyeye.worker.service.SealWorkerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -73,31 +74,55 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
     @Autowired
     private SealFaultService sealFaultService;
 
+    @Autowired
+    private SealOrderTypeAllowStaffService sealOrderTypeAllowStaffService;
+
+    @Override
+    public QueryWrapper<AfterSeal> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<AfterSeal> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        String state = commonPageInfo.getState();
+
+        if (StrUtil.isNotEmpty(state)) {
+            // 我创建的
+            if (StrUtil.equals(state, "myCreate")) {
+                queryWrapper.eq(MybatisPlusUtil.toColumns(AfterSeal::getCreateId), userId);
+            } else if (StrUtil.equals(state, AfterSealState.PENDING_ORDERS.getKey())
+                || StrUtil.equals(state, AfterSealState.BE_SIGNED.getKey())
+                || StrUtil.equals(state, AfterSealState.BE_COMPLETED.getKey())) {
+                // 待接单，待签到，待完工 - 需要查询该用户的工单
+                queryWrapper.eq(MybatisPlusUtil.toColumns(AfterSeal::getServiceUserId), userId)
+                    .eq(MybatisPlusUtil.toColumns(AfterSeal::getState), state);
+            } else if (StrUtil.equals(state, AfterSealState.BE_DISPATCHED.getKey())
+                || StrUtil.equals(state, AfterSealState.BE_EVALUATED.getKey())
+                || StrUtil.equals(state, AfterSealState.AUDIT.getKey())
+                || StrUtil.equals(state, AfterSealState.COMPLATE.getKey())) {
+                // 待派工，待评价，待审核，已完工 - 查询所有该状态的工单
+                queryWrapper.eq(MybatisPlusUtil.toColumns(AfterSeal::getState), state);
+            }
+        }
+
+        String projectId = commonPageInfo.getCustomParamsMapStr("projectId");
+        if (StrUtil.isNotEmpty(projectId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(AfterSeal::getProjectId), projectId);
+
+        }
+
+        if (StrUtil.isNotEmpty(commonPageInfo.getTypeId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(AfterSeal::getTypeId), commonPageInfo.getTypeId());
+        }
+
+        return queryWrapper;
+    }
+
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        setPageInfoOfType(pageInfo, inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.querySealServiceOrderList(pageInfo);
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
 
         iCustomerService.setMationForMap(beans, "holderId", "holderMation");
         iAuthUserService.setMationForMap(beans, "declarationId", "declarationMation");
         iAuthUserService.setMationForMap(beans, "serviceUserId", "serviceUserMation");
         return beans;
-    }
-
-    private void setPageInfoOfType(CommonPageInfo pageInfo, String userId) {
-        String state = pageInfo.getState();
-        if (StrUtil.isEmpty(state)) {
-            return;
-        }
-        if (StrUtil.equals(state, AfterSealState.BE_DISPATCHED.getKey())
-            || StrUtil.equals(state, AfterSealState.BE_EVALUATED.getKey())
-            || StrUtil.equals(state, AfterSealState.AUDIT.getKey())
-            || StrUtil.equals(state, AfterSealState.COMPLATE.getKey())) {
-            // 待派工，待评价，待审核，已完工的工单查询所有的
-        } else {
-            pageInfo.setCreateId(userId);
-        }
     }
 
     @Override
@@ -112,6 +137,8 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
 
         iMaterialService.setDataMation(afterSeal, AfterSeal::getProductId);
         iCustomerService.setDataMation(afterSeal, AfterSeal::getHolderId);
+
+        sealOrderTypeAllowStaffService.setDataMation(afterSeal, AfterSeal::getOrderTypeId);
         return afterSeal;
     }
 

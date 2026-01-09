@@ -23,7 +23,8 @@ import lombok.NoArgsConstructor;
 public enum SealOrderType implements SkyeyeEnumClass {
 
     WECHAR_USER(1, "微信用户报单", true, true),
-    SYS_USER(2, "系统用户报单", true, false);
+    SYS_USER(2, "系统用户报单", true, false),
+    CUSTOMER(3, "客户自行报单", true, false);
 
     private Integer key;
 

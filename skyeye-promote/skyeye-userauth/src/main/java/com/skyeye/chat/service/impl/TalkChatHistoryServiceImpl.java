@@ -5,6 +5,7 @@
 package com.skyeye.chat.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -167,6 +168,9 @@ public class TalkChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<TalkCh
                     // 我接收的消息
                     user = userMap.get(talkChatHistory.getSendId());
                 }
+                if (CollectionUtil.isEmpty(user)) {
+                    continue;
+                }
                 // 发送者信息
                 bean.put("name", user.get("userName").toString());
                 bean.put("avatar", user.get("userPhoto").toString());
@@ -175,6 +179,9 @@ public class TalkChatHistoryServiceImpl extends SkyeyeBusinessServiceImpl<TalkCh
             } else if (talkChatHistory.getChatType() == TalkChatType.GROUP_CHAT.getKey()) {
                 // 群信息
                 CompanyTalkGroup group = groupMap.get(talkChatHistory.getReceiveId());
+                if (ObjectUtil.isEmpty(group)) {
+                    continue;
+                }
                 if (group.getState() != CompanyTalkGroupState.NORMAL.getKey()) {
                     return;
                 }

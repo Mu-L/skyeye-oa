@@ -20,6 +20,7 @@ import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
 import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.ordertype.entity.SealOrderTypeAllowStaff;
 import com.skyeye.worker.entity.SealWorker;
 import lombok.Data;
 
@@ -45,7 +46,7 @@ public class AfterSeal extends OperatorUserInfo implements EnclosureFace {
     private String id;
 
     @TableField("odd_number")
-    @Property("单据编号")
+    @Property(value = "单据编号", fuzzyLike = true)
     private String oddNumber;
 
     @TableField(value = "declaration_time")
@@ -63,6 +64,18 @@ public class AfterSeal extends OperatorUserInfo implements EnclosureFace {
     @TableField(value = "declaration_open_id")
     @ApiModelProperty(value = "微信报单人的open_id")
     private String declarationOpenId;
+
+    @TableField(value = "project_id", updateStrategy = FieldStrategy.NEVER)
+    @ApiModelProperty(value = "项目ID")
+    private String projectId;
+
+    @TableField(value = "order_type_id")
+    @ApiModelProperty(value = "工单类型ID", required = "required")
+    private String orderTypeId;
+
+    @TableField(exist = false)
+    @Property(value = "工单类型信息")
+    private SealOrderTypeAllowStaff orderTypeMation;
 
     @TableField(exist = false)
     @Property(value = "微信报单人信息")
@@ -97,7 +110,7 @@ public class AfterSeal extends OperatorUserInfo implements EnclosureFace {
     private Map<String, Object> typeMation;
 
     @TableField(value = "product_id")
-    @ApiModelProperty(value = "产品id", required = "required")
+    @ApiModelProperty(value = "产品id")
     private String productId;
 
     @TableField(exist = false)
@@ -105,7 +118,7 @@ public class AfterSeal extends OperatorUserInfo implements EnclosureFace {
     private Map<String, Object> productMation;
 
     @TableField(value = "product_warranty")
-    @ApiModelProperty(value = "质保类型", enumClass = ProductWarrantyType.class, required = "required,num")
+    @ApiModelProperty(value = "质保类型", enumClass = ProductWarrantyType.class, required = "num")
     private Integer productWarranty;
 
     @TableField(value = "mode_id")
