@@ -11,7 +11,7 @@ import com.skyeye.common.object.OutputObject;
 
 /**
  * @ClassName: AfterSealService
- * @Description: 售后工单管理服务接口层
+ * @Description: 工单管理服务接口层
  * @author: skyeye云系列--卫志强
  * @date: 2023/8/10 13:21
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

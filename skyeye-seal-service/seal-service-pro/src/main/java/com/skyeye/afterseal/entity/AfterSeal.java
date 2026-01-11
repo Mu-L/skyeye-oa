@@ -30,7 +30,7 @@ import java.util.Map;
 
 /**
  * @ClassName: AfterSeal
- * @Description: 售后工单实体类
+ * @Description: 工单实体类
  * @author: skyeye云系列--卫志强
  * @date: 2023/8/10 13:20
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -39,7 +39,7 @@ import java.util.Map;
 @Data
 @RedisCacheField(name = "seal:server:order", cacheTime = RedisConstants.HALF_A_YEAR_SECONDS)
 @TableName(value = "crm_service", autoResultMap = true)
-@ApiModel("售后工单实体类")
+@ApiModel("工单实体类")
 public class AfterSeal extends OperatorUserInfo implements EnclosureFace {
 
     @TableId("id")

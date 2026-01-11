@@ -31,7 +31,7 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 @Service
-@SkyeyeService(name = "工单服务评价", groupName = "售后工单", teamAuth = true)
+@SkyeyeService(name = "工单服务评价", groupName = "工单管理", teamAuth = true)
 public class SealEvaluateServiceImpl extends SkyeyeBusinessServiceImpl<SealEvaluateDao, SealEvaluate> implements SealEvaluateService {
 
     @Autowired

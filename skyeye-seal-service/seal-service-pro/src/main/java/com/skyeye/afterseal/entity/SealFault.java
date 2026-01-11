@@ -22,7 +22,7 @@ import java.util.List;
 
 /**
  * @ClassName: SealFault
- * @Description: 售后服务故障信息实体类
+ * @Description: 工单故障信息实体类
  * @author: skyeye云系列--卫志强
  * @date: 2023/8/12 17:23
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -31,7 +31,7 @@ import java.util.List;
 @Data
 @RedisCacheField(name = "seal:server:fault", cacheTime = RedisConstants.THIRTY_DAY_SECONDS)
 @TableName(value = "crm_service_fault")
-@ApiModel("售后服务故障信息实体类")
+@ApiModel("工单故障信息实体类")
 public class SealFault extends OperatorUserInfo implements EnclosureFace {
 
     @TableId("id")

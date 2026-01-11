@@ -12,7 +12,7 @@ import java.util.Map;
 
 /**
  * @ClassName: SealFaultService
- * @Description: 售后服务故障信息服务接口层
+ * @Description: 工单故障信息服务接口层
  * @author: skyeye云系列--卫志强
  * @date: 2023/8/12 17:39
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.

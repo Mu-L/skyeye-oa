@@ -19,14 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @ClassName: SealFaultController
- * @Description: 售后服务故障信息控制层
+ * @Description: 工单故障信息控制层
  * @author: skyeye云系列--卫志强
  * @date: 2023/8/10 13:14
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 @RestController
-@Api(value = "售后服务故障信息", tags = "售后服务故障信息", modelName = "售后工单")
+@Api(value = "工单故障信息", tags = "工单故障信息", modelName = "工单管理")
 public class SealFaultController {
 
     @Autowired

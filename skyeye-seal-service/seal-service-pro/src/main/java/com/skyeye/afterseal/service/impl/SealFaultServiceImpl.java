@@ -42,14 +42,14 @@ import java.util.stream.Collectors;
 
 /**
  * @ClassName: SealFaultServiceImpl
- * @Description: 售后服务故障信息服务层
+ * @Description: 工单故障信息服务层
  * @author: skyeye云系列--卫志强
  * @date: 2023/8/12 17:39
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 @Service
-@SkyeyeService(name = "售后服务故障信息", groupName = "售后工单", teamAuth = true)
+@SkyeyeService(name = "工单故障信息", groupName = "工单管理", teamAuth = true)
 public class SealFaultServiceImpl extends SkyeyeBusinessServiceImpl<SealFaultDao, SealFault> implements SealFaultService {
 
     @Autowired
