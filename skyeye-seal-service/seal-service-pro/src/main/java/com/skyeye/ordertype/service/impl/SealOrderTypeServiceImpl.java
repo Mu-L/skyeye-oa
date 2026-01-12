@@ -5,9 +5,12 @@
 package com.skyeye.ordertype.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
@@ -20,6 +23,7 @@ import com.skyeye.ordertype.service.SealOrderTypeAllowStaffService;
 import com.skyeye.ordertype.service.SealOrderTypeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -159,6 +163,43 @@ public class SealOrderTypeServiceImpl extends SkyeyeBusinessServiceImpl<SealOrde
         List<SealOrderType> typeList = list(queryWrapper);
         outputObject.setBeans(typeList);
         outputObject.settotal(typeList.size());
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void designSealOrderTypeById(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> sealOrderType = inputObject.getParams();
+        String id = sealOrderType.get("id").toString();
+        String startTime = sealOrderType.get("startTime").toString();
+        String endTime = sealOrderType.get("endTime").toString();
+        Integer isAllowAllStaff = Integer.parseInt(sealOrderType.get("isAllowAllStaff").toString());
+        List<String> allowedStaffId = JSONUtil.toList(sealOrderType.get("allowedStaffId").toString(), null);
+        // 验证工单类型是否存在
+        SealOrderType existEntity = selectById(id);
+        if (existEntity == null) {
+            outputObject.setreturnMessage("工单类型不存在");
+            return;
+        }
+
+        // 使用 UpdateWrapper 更新设计相关字段
+        UpdateWrapper<SealOrderType> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SealOrderType::getStartTime), startTime);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SealOrderType::getEndTime), endTime);
+        updateWrapper.set(MybatisPlusUtil.toColumns(SealOrderType::getIsAllowAllStaff), isAllowAllStaff);
+        update(updateWrapper);
+
+        // 清除缓存
+        clearCache(id);
+
+        // 根据是否允许所有人接单，处理允许接单的人员列表
+        if (WhetherEnum.ENABLE_USING.getKey().equals(isAllowAllStaff)) {
+            // 如果允许所有人接单，那么就把工单类型允许的接单人数据全部删除
+            sealOrderTypeAllowStaffService.deleteByOrderTypeId(id);
+        } else if (WhetherEnum.DISABLE_USING.getKey().equals(isAllowAllStaff)) {
+            // 如果不允许所有人接单，那么就只保存特定人
+            sealOrderTypeAllowStaffService.saveList(id, allowedStaffId);
+        }
     }
 
 }

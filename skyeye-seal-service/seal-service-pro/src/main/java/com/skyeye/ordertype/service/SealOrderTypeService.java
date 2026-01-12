@@ -27,5 +27,12 @@ public interface SealOrderTypeService extends SkyeyeBusinessService<SealOrderTyp
      */
     void queryEnabledSealOrderTypeList(InputObject inputObject, OutputObject outputObject);
 
+    /**
+     * 对工单类型进行设计（设置工单提交时间、允许接单人员等）
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    void designSealOrderTypeById(InputObject inputObject, OutputObject outputObject);
 }
 

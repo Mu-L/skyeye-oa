@@ -9,6 +9,7 @@ import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.ordertype.entity.SealOrderType;
@@ -74,6 +75,18 @@ public class SealOrderTypeController {
     @RequestMapping("/post/SealOrderTypeController/queryEnabledSealOrderTypeList")
     public void queryEnabledSealOrderTypeList(InputObject inputObject, OutputObject outputObject) {
         sealOrderTypeService.queryEnabledSealOrderTypeList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "designSealOrderTypeById", value = "对工单类型进行设计", method = "POST", allUse = "1")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "工单类型id", required = "required"),
+        @ApiImplicitParam(id = "startTime", name = "startTime", value = "工单提交开始时间", required = "required"),
+        @ApiImplicitParam(id = "endTime", name = "endTime", value = "工单提交结束时间", required = "required"),
+        @ApiImplicitParam(id = "isAllowAllStaff", name = "isAllowAllStaff", value = "是否允许所有人接单", enumClass = WhetherEnum.class, required = "required,num"),
+        @ApiImplicitParam(id = "allowedStaffId", name = "allowedStaffId", value = "允许接单的人员ID列表", required = "json")})
+    @RequestMapping("/post/SealOrderTypeController/designSealOrderTypeById")
+    public void designSealOrderTypeById(InputObject inputObject, OutputObject outputObject) {
+        sealOrderTypeService.designSealOrderTypeById(inputObject, outputObject);
     }
 
 }

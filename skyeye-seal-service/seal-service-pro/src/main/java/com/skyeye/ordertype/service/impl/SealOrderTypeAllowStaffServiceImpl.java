@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "工单类型允许的接单人设置", groupName = "工单类型设置")
+@SkyeyeService(name = "工单类型允许的接单人设置", groupName = "工单类型设置", allowDynamicAttrKey = false)
 public class SealOrderTypeAllowStaffServiceImpl extends SkyeyeBusinessServiceImpl<SealOrderTypeAllowStaffDao, SealOrderTypeAllowStaff> implements SealOrderTypeAllowStaffService {
 
     @Override
@@ -50,6 +50,7 @@ public class SealOrderTypeAllowStaffServiceImpl extends SkyeyeBusinessServiceImp
                 SealOrderTypeAllowStaff sealOrderTypeAllowStaff = new SealOrderTypeAllowStaff();
                 sealOrderTypeAllowStaff.setOrderTypeId(orderTypeId);
                 sealOrderTypeAllowStaff.setStaffId(staffId);
+                beans.add(sealOrderTypeAllowStaff);
             }
             createEntity(beans, userId);
         }
