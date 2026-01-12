@@ -23,10 +23,10 @@ import lombok.NoArgsConstructor;
 public enum ServiceAssignType implements SkyeyeEnumClass {
 
     MANUAL("manual", "手动指派", true, true),
-    AUTO("auto", "自动指派", true, false),
-    BY_AREA("byArea", "按区域指派", true, false),
-    BY_SKILL("bySkill", "按技能指派", true, false),
-    BY_ORDER_TYPE("byOrderType", "按工单类型指派", true, false);
+    AUTO("auto", "自动指派，不做区分", true, false),
+    BY_AREA("byArea", "按区域指派(自动)", true, false),
+    BY_SKILL("bySkill", "按技能指派(自动)", true, false),
+    BY_ORDER_TYPE("byOrderType", "按工单类型指派(自动)", true, false);
 
     private String key;
 
