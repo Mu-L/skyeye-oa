@@ -21,7 +21,6 @@ import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
 import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
-import com.skyeye.ordertype.entity.SealOrderTypeAllowStaff;
 import com.skyeye.worker.entity.SealWorker;
 import lombok.Data;
 
@@ -76,7 +75,7 @@ public class AfterSeal extends OperatorUserInfo implements EnclosureFace {
 
     @TableField(exist = false)
     @Property(value = "工单类型信息")
-    private SealOrderTypeAllowStaff orderTypeMation;
+    private com.skyeye.ordertype.entity.SealOrderType orderTypeMation;
 
     @TableField(exist = false)
     @Property(value = "微信报单人信息")

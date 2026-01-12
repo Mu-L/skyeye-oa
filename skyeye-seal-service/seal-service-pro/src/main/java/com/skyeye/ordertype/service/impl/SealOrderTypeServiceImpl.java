@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "工单类型", groupName = "工单类型")
+@SkyeyeService(name = "工单类型", groupName = "工单类型", allowDynamicAttrKey = false)
 public class SealOrderTypeServiceImpl extends SkyeyeBusinessServiceImpl<SealOrderTypeDao, SealOrderType> implements SealOrderTypeService {
 
     @Autowired

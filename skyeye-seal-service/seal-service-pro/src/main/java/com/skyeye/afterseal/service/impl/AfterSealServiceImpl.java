@@ -35,7 +35,7 @@ import com.skyeye.erp.service.IMaterialService;
 import com.skyeye.eve.rest.mq.JobMateMation;
 import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.exception.CustomException;
-import com.skyeye.ordertype.service.SealOrderTypeAllowStaffService;
+import com.skyeye.ordertype.service.SealOrderTypeService;
 import com.skyeye.worker.service.SealWorkerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -75,7 +75,7 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
     private SealFaultService sealFaultService;
 
     @Autowired
-    private SealOrderTypeAllowStaffService sealOrderTypeAllowStaffService;
+    private SealOrderTypeService sealOrderTypeService;
 
     @Override
     public QueryWrapper<AfterSeal> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -105,7 +105,6 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         String projectId = commonPageInfo.getCustomParamsMapStr("projectId");
         if (StrUtil.isNotEmpty(projectId)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(AfterSeal::getProjectId), projectId);
-
         }
 
         if (StrUtil.isNotEmpty(commonPageInfo.getTypeId())) {
@@ -138,7 +137,7 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         iMaterialService.setDataMation(afterSeal, AfterSeal::getProductId);
         iCustomerService.setDataMation(afterSeal, AfterSeal::getHolderId);
 
-        sealOrderTypeAllowStaffService.setDataMation(afterSeal, AfterSeal::getOrderTypeId);
+        sealOrderTypeService.setDataMation(afterSeal, AfterSeal::getOrderTypeId);
         return afterSeal;
     }
 
