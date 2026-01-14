@@ -39,7 +39,7 @@ public class ProSchemeController {
         proSchemeService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "writeProScheme", value = "新增/编辑项目方案", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeProScheme", value = "新增/编辑项目方案", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ProScheme.class)
     @RequestMapping("/post/ProSchemeController/writeProScheme")
     public void writeProScheme(InputObject inputObject, OutputObject outputObject) {
@@ -62,7 +62,7 @@ public class ProSchemeController {
         proSchemeService.selectByIds(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteProSchemeById", value = "根据ID删除项目方案信息", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteProSchemeById", value = "根据ID删除项目方案信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/ProSchemeController/deleteProSchemeById")
@@ -86,7 +86,7 @@ public class ProSchemeController {
         proSchemeService.querySchemeListBySchemeCode(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "publishSchemeVersionById", value = "根据id发布方案版本", method = "POST", allUse = "1")
+    @ApiOperation(id = "publishSchemeVersionById", value = "根据id发布方案版本", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "方案id", required = "required")})
     @RequestMapping("/post/ProSchemeController/publishSchemeVersionById")
