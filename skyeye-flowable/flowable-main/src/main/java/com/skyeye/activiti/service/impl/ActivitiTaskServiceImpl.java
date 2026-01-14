@@ -400,12 +400,13 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
         map.put("taskKey", task.getTaskDefinitionKey());
         map.put("taskKeyName", task.getName());
         // 是否委派，如果是委派，则不需要选择下一个节点的审批人
-        map.put("delegation", task.getDelegationState() != null && DelegationState.PENDING == task.getDelegationState());
+        boolean delegation = task.getDelegationState() != null && DelegationState.PENDING == task.getDelegationState();
+        map.put("delegation", delegation);
         // 是否是多实例
         Boolean isMultiInstance = isMultiInstance(task.getId(), map);
         map.put("isMultiInstance", isMultiInstance);
-        // 获取提交时候的信息
-        if (!isMultiInstance) {
+        // 获取提交时候的信息（委派任务不需要判断下一个节点，因为委派完成后会回到原委派人）
+        if (!isMultiInstance && !delegation) {
             // 因为获取下一个节点可能会遇到网关节点，所以默认设置审批结果为true
             Map<String, Object> variable = new HashMap<>();
             variable.put("flag", 1);

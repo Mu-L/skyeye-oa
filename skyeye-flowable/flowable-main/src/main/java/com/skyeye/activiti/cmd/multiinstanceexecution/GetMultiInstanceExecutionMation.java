@@ -65,6 +65,7 @@ public class GetMultiInstanceExecutionMation extends AbstractCountersignCmd impl
         result.put("nrOfCompletedInstances", nrOfCompletedInstances);
         result.put("completionCondition", currentTaskNode.getLoopCharacteristics().getCompletionCondition());
         Object behavior = currentTaskNode.getBehavior();
+        // multilnStanceExecttionChild：是否是子实例
         if (behavior instanceof ParallelMultiInstanceBehavior) {
             // 并行会签
             // 判断是否是子实例
