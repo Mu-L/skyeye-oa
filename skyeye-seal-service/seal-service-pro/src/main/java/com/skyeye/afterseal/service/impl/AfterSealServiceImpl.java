@@ -15,7 +15,6 @@ import com.skyeye.afterseal.classenum.AfterSealState;
 import com.skyeye.afterseal.dao.AfterSealDao;
 import com.skyeye.afterseal.entity.AfterSeal;
 import com.skyeye.afterseal.service.AfterSealService;
-import com.skyeye.afterseal.service.SealFaultService;
 import com.skyeye.afterseal.service.SealFaultUseMaterialService;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -72,10 +71,10 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
     private SealFaultUseMaterialService sealFaultUseMaterialService;
 
     @Autowired
-    private SealFaultService sealFaultService;
+    private SealOrderTypeService sealOrderTypeService;
 
     @Autowired
-    private SealOrderTypeService sealOrderTypeService;
+    private com.skyeye.afterseal.service.SealSignService sealSignService;
 
     @Override
     public QueryWrapper<AfterSeal> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -310,9 +309,10 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         resultMap.put("completedOrders", completedOrders);
         // 配件使用数
         resultMap.put("useCount", sealFaultUseMaterialService.queryUseCount(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime()));
-        // 平均处理时长
+        // 平均处理时长（从签到报工获取）
         if (completedOrders > CommonNumConstants.NUM_ZERO) {
-            resultMap.put("avgProcessTime", CalculationUtil.divide(String.valueOf(sealFaultService.getAllFinishedServiceTime(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime())),
+            String totalWorkHours = sealSignService.getAllFinishedWorkHours(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
+            resultMap.put("avgProcessTime", CalculationUtil.divide(totalWorkHours,
                 String.valueOf(completedOrders), CommonNumConstants.NUM_TWO));
         } else {
             resultMap.put("avgProcessTime", CommonNumConstants.NUM_ZERO);
@@ -321,15 +321,12 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
-    private Map<String, Long> getAllFinishedServiceNum(List<String> userIds, String startTime, String endTime) {
+    private Map<String, Long> getAllFinishedServiceNum(String startTime, String endTime) {
         QueryWrapper<AfterSeal> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(AfterSeal::getState), AfterSealState.COMPLATE.getKey());
         if (StrUtil.isNotEmpty(startTime) && StrUtil.isNotEmpty(endTime)) {
             queryWrapper.apply(MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + " <= {0}", endTime)
                 .apply(MybatisPlusUtil.toColumns(AfterSeal::getCreateTime) + " >= {0}", startTime);
-        }
-        if (CollectionUtil.isNotEmpty(userIds)) {
-            queryWrapper.in(MybatisPlusUtil.toColumns(AfterSeal::getServiceUserId), userIds);
         }
         List<AfterSeal> afterSealList = list(queryWrapper);
         return afterSealList.stream().collect(Collectors.groupingBy(AfterSeal::getServiceUserId, Collectors.counting()));
@@ -426,36 +423,58 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
 
     @Override
     public void querySealServiceOrderWorkerStats(InputObject inputObject, OutputObject outputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        sealWorkerService.queryPageList(inputObject, outputObject);
-        List<Map<String, Object>> beans = (List<Map<String, Object>>) outputObject.getObject().get("rows");
-        if (CollectionUtil.isEmpty(beans)) {
+        TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
+
+        // 先查询工单数量、工时、配件数的数据
+        Map<String, Long> allFinishedServiceNum = getAllFinishedServiceNum(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
+        Map<String, String> finishedServiceTime = sealSignService.getAllFinishedWorkHoursByUserId(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
+        Map<String, Long> useCount = sealFaultUseMaterialService.queryUseCountByUserId(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
+
+        // 合并所有数据中的用户ID（即使工人走了，只要有数据就能显示）
+        Set<String> allUserIds = new HashSet<>();
+        allUserIds.addAll(allFinishedServiceNum.keySet());
+        allUserIds.addAll(finishedServiceTime.keySet());
+        allUserIds.addAll(useCount.keySet());
+
+        if (CollectionUtil.isEmpty(allUserIds)) {
+            outputObject.setBeans(new ArrayList<>());
             return;
         }
-        List<String> userId = beans.stream().map(bean -> bean.get("userId").toString()).collect(Collectors.toList());
-        // 查询工单数量
-        Map<String, Long> allFinishedServiceNum = getAllFinishedServiceNum(userId, commonPageInfo.getStartTime(), commonPageInfo.getEndTime());
-        // 查询工时
-        Map<String, Double> finishedServiceTime = sealFaultService.getAllFinishedServiceTime(userId, commonPageInfo.getStartTime(), commonPageInfo.getEndTime());
-        // 查询使用配件数
-        Map<String, Long> useCount = sealFaultUseMaterialService.queryUseCountByUserId(userId, commonPageInfo.getStartTime(), commonPageInfo.getEndTime());
-        // 合并数据
+
+        // 根据合并后的用户ID查询用户信息
+        Map<String, Map<String, Object>> userInfoMap = iAuthUserService.queryUserNameList(new ArrayList<>(allUserIds));
+
+        // 根据用户信息构建结果列表
+        List<Map<String, Object>> beans = new ArrayList<>();
         Long defaultValue = Long.valueOf(CommonNumConstants.NUM_ZERO);
-        Double defaultValueDouble = Double.valueOf(CommonNumConstants.NUM_ZERO);
-        for (Map<String, Object> bean : beans) {
-            String userIdStr = bean.get("userId").toString();
+
+        for (String userId : allUserIds) {
+            Map<String, Object> bean = new HashMap<>();
+            bean.put("userId", userId);
+
+            // 设置用户信息
+            Map<String, Object> userInfo = userInfoMap.getOrDefault(userId, new HashMap<>());
+            bean.put("userMation", userInfo);
+
             // 完成工单数量
-            bean.put("completedOrders", allFinishedServiceNum.getOrDefault(userIdStr, defaultValue));
+            Long completedOrders = allFinishedServiceNum.getOrDefault(userId, defaultValue);
+            bean.put("completedOrders", completedOrders);
+
             // 平均工时
-            if (allFinishedServiceNum.getOrDefault(userIdStr, defaultValue) == 0) {
+            if (completedOrders == 0) {
                 bean.put("avgProcessTime", CommonNumConstants.NUM_ZERO);
             } else {
-                bean.put("avgProcessTime", CalculationUtil.divide(String.valueOf(finishedServiceTime.getOrDefault(userIdStr, defaultValueDouble)),
-                    allFinishedServiceNum.getOrDefault(userIdStr, defaultValue).toString(), CommonNumConstants.NUM_TWO));
+                String userWorkHours = finishedServiceTime.getOrDefault(userId, "0");
+                bean.put("avgProcessTime", CalculationUtil.divide(userWorkHours,
+                    completedOrders.toString(), CommonNumConstants.NUM_TWO));
             }
+
             // 配件使用数
-            bean.put("totalParts", useCount.getOrDefault(userIdStr, defaultValue));
+            bean.put("totalParts", useCount.getOrDefault(userId, defaultValue));
+
+            beans.add(bean);
         }
+
         // 根据平均工时倒序排序
         beans.sort((o1, o2) -> Double.compare(Double.parseDouble(o2.get("avgProcessTime").toString()), Double.parseDouble(o1.get("avgProcessTime").toString())));
         outputObject.setBeans(beans);

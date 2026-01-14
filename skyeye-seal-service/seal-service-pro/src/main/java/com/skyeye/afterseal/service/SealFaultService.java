@@ -7,9 +7,6 @@ package com.skyeye.afterseal.service;
 import com.skyeye.afterseal.entity.SealFault;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
 
-import java.util.List;
-import java.util.Map;
-
 /**
  * @ClassName: SealFaultService
  * @Description: 工单故障信息服务接口层
@@ -20,11 +17,5 @@ import java.util.Map;
  */
 public interface SealFaultService extends SkyeyeBusinessService<SealFault> {
 
-    /**
-     * 获取所有已完工的故障信息的服务总时长
-     */
-    Double getAllFinishedServiceTime(String startTime, String endTime);
-
-    Map<String, Double> getAllFinishedServiceTime(List<String> userIds, String startTime, String endTime);
 
 }

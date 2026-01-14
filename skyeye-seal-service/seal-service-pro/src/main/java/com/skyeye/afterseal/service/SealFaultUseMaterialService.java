@@ -33,6 +33,6 @@ public interface SealFaultUseMaterialService extends SkyeyeLinkDataService<SealF
      */
     Long queryUseCount(String startTime, String endTime);
 
-    Map<String, Long> queryUseCountByUserId(List<String> userIdList, String startTime, String endTime);
+    Map<String, Long> queryUseCountByUserId(String startTime, String endTime);
 
 }

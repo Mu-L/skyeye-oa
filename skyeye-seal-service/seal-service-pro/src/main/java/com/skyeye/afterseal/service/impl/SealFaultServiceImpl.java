@@ -7,26 +7,20 @@ package com.skyeye.afterseal.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import com.github.yulichang.toolkit.JoinWrappers;
-import com.github.yulichang.wrapper.MPJLambdaWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.accessory.classenum.UserStockPutOutType;
 import com.skyeye.accessory.entity.ServiceUserStock;
 import com.skyeye.accessory.service.ServiceUserStockService;
-import com.skyeye.afterseal.classenum.AfterSealState;
 import com.skyeye.afterseal.dao.SealFaultDao;
-import com.skyeye.afterseal.entity.AfterSeal;
 import com.skyeye.afterseal.entity.SealFault;
 import com.skyeye.afterseal.entity.SealFaultUseMaterial;
 import com.skyeye.afterseal.service.SealFaultService;
 import com.skyeye.afterseal.service.SealFaultUseMaterialService;
 import com.skyeye.annotation.service.SkyeyeService;
-import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
-import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
@@ -35,7 +29,6 @@ import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -65,9 +58,17 @@ public class SealFaultServiceImpl extends SkyeyeBusinessServiceImpl<SealFaultDao
     private ServiceUserStockService serviceUserStockService;
 
     @Override
+    protected QueryWrapper<SealFault> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<SealFault> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(SealFault::getObjectId), commonPageInfo.getObjectId());
+        }
+        return queryWrapper;
+    }
+
+    @Override
     protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        List<Map<String, Object>> beans = skyeyeBaseMapper.querySealFaultList(commonPageInfo);
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         return beans;
     }
 
@@ -170,53 +171,4 @@ public class SealFaultServiceImpl extends SkyeyeBusinessServiceImpl<SealFaultDao
         return sealFault;
     }
 
-    @Override
-    @IgnoreTenant
-    public Double getAllFinishedServiceTime(String startTime, String endTime) {
-        // 查询已完成的售后工单，并统计总耗时
-        MPJLambdaWrapper<SealFault> wrapper = JoinWrappers.lambda("seal", SealFault.class)
-            .innerJoin(AfterSeal.class,"after", AfterSeal::getId, SealFault::getObjectId);
-        wrapper.eq(MybatisPlusUtil.toColumns(AfterSeal::getState), AfterSealState.COMPLATE.getKey());
-        if (StrUtil.isNotEmpty(startTime) && StrUtil.isNotEmpty(endTime)) {
-            wrapper.applyFunc("date_format(%s, '%%Y-%%m-%%d') <= date_format({0}, '%%Y-%%m-%%d')", arg -> arg.accept(SealFault::getCreateTime), endTime)
-                .applyFunc("date_format(%s, '%%Y-%%m-%%d') >= date_format({0}, '%%Y-%%m-%%d')", arg -> arg.accept(SealFault::getCreateTime), startTime);
-        }
-        if (tenantEnable) {
-            String tenantId = TenantContext.getTenantId();
-            wrapper.eq("seal." + CommonConstants.TENANT_ID_FIELD, tenantId);
-            wrapper.eq("after." + CommonConstants.TENANT_ID_FIELD, tenantId);
-        }
-        List<SealFault> sealFaultUseMaterials = this.baseMapper.selectJoinList(SealFault.class, wrapper);
-        if (CollectionUtil.isNotEmpty(sealFaultUseMaterials)) {
-            return sealFaultUseMaterials.stream().mapToDouble(SealFault::getDoubleComWorkTime).sum();
-        }
-        return 0.0;
-    }
-
-    @Override
-    @IgnoreTenant
-    public Map<String, Double> getAllFinishedServiceTime(List<String> userIds, String startTime, String endTime) {
-        // 查询已完成的售后工单，并统计总耗时
-        MPJLambdaWrapper<SealFault> wrapper = JoinWrappers.lambda("seal", SealFault.class)
-            .innerJoin(AfterSeal.class,"after", AfterSeal::getId, SealFault::getObjectId);
-        wrapper.eq(AfterSeal::getState, AfterSealState.COMPLATE.getKey());
-        if (StrUtil.isNotEmpty(startTime) && StrUtil.isNotEmpty(endTime)) {
-            wrapper.applyFunc("date_format(%s, '%%Y-%%m-%%d') <= date_format({0}, '%%Y-%%m-%%d')", arg -> arg.accept(SealFault::getCreateTime), endTime)
-                .applyFunc("date_format(%s, '%%Y-%%m-%%d') >= date_format({0}, '%%Y-%%m-%%d')", arg -> arg.accept(SealFault::getCreateTime), startTime);
-        }
-        if (CollectionUtil.isNotEmpty(userIds)) {
-            wrapper.in(SealFault::getCreateId, userIds);
-        }
-        if (tenantEnable) {
-            String tenantId = TenantContext.getTenantId();
-            wrapper.eq("seal." + CommonConstants.TENANT_ID_FIELD, tenantId);
-            wrapper.eq("after." + CommonConstants.TENANT_ID_FIELD, tenantId);
-        }
-        List<SealFault> sealFaultUseMaterials = this.baseMapper.selectJoinList(SealFault.class, wrapper);
-        if (CollectionUtil.isNotEmpty(sealFaultUseMaterials)) {
-            return sealFaultUseMaterials.stream().collect(Collectors.groupingBy(SealFault::getCreateId,
-                Collectors.summingDouble(SealFault::getDoubleComWorkTime)));
-        }
-        return new HashMap<>();
-    }
 }

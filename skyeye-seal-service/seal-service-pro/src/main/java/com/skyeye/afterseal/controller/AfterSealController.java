@@ -125,7 +125,7 @@ public class AfterSealController {
     }
 
     @ApiOperation(id = "querySealServiceOrderWorkerStats", value = "获取工人效率统计", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/AfterSealController/querySealServiceOrderWorkerStats")
     public void querySealServiceOrderWorkerStats(InputObject inputObject, OutputObject outputObject) {
         afterSealService.querySealServiceOrderWorkerStats(inputObject, outputObject);

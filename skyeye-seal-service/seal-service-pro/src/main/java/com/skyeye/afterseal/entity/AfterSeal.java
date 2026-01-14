@@ -173,4 +173,8 @@ public class AfterSeal extends OperatorUserInfo implements EnclosureFace {
     @ApiModelProperty(value = "工单来源类型", enumClass = SealOrderType.class, required = "required,num", defaultValue = "2")
     private Integer type;
 
+    @TableField(value = "install_fee")
+    @ApiModelProperty(value = "安装费用", required = "double", defaultValue = "0")
+    private String installFee;
+
 }

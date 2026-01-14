@@ -39,7 +39,7 @@ public class SealFault extends OperatorUserInfo implements EnclosureFace {
     private String id;
 
     @TableField("odd_number")
-    @Property("单据编号")
+    @Property(value = "单据编号", fuzzyLike = true)
     private String oddNumber;
 
     @TableField(value = "type_id")
@@ -65,25 +65,6 @@ public class SealFault extends OperatorUserInfo implements EnclosureFace {
     @TableField(exist = false)
     @ApiModelProperty(value = "完工附件", required = "json")
     private Enclosure enclosureInfo;
-
-    @TableField(value = "com_start_time")
-    @ApiModelProperty(value = "实际开工时间")
-    private String comStartTime;
-
-    @TableField(value = "com_end_time")
-    @ApiModelProperty(value = "实际完工时间")
-    private String comEndTime;
-
-    @TableField(value = "com_work_time")
-    @ApiModelProperty(value = "工时")
-    private String comWorkTime;
-
-    public Double getDoubleComWorkTime() {
-        if (StrUtil.isBlank(comWorkTime)) {
-            return 0.0;
-        }
-        return Double.parseDouble(comWorkTime);
-    }
 
     @TableField(value = "material_cost")
     @ApiModelProperty(value = "材料费")
