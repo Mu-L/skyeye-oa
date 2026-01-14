@@ -55,4 +55,13 @@ public interface SealSignService extends SkyeyeBusinessService<SealSign> {
      */
     Map<String, String> getAllFinishedWorkHoursByUserId(String startTime, String endTime);
 
+    /**
+     * 获取指定时间范围内各用户已审核通过的签到报工的工单数量
+     *
+     * @param startTime 开始时间
+     * @param endTime   结束时间
+     * @return 按用户ID分组的工单数量Map
+     */
+    Map<String, Long> getOrderCountByUserId(String startTime, String endTime);
+
 }

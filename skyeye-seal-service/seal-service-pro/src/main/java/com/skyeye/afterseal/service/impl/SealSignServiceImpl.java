@@ -4,30 +4,39 @@
 
 package com.skyeye.afterseal.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.afterseal.classenum.AfterSealState;
 import com.skyeye.afterseal.classenum.SealSignState;
+import com.skyeye.afterseal.classenum.SealSignWorkUnit;
 import com.skyeye.afterseal.dao.SealSignDao;
 import com.skyeye.afterseal.entity.AfterSeal;
 import com.skyeye.afterseal.entity.SealSign;
 import com.skyeye.afterseal.service.AfterSealService;
+import com.skyeye.afterseal.service.ProjectInstallerCommissionService;
 import com.skyeye.afterseal.service.SealSignService;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @ClassName: SealSignServiceImpl
@@ -37,12 +46,16 @@ import java.util.Map;
  * @Copyright: 2026 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
+@Slf4j
 @Service
 @SkyeyeService(name = "工人签到报工信息", groupName = "工单管理")
 public class SealSignServiceImpl extends SkyeyeBusinessServiceImpl<SealSignDao, SealSign> implements SealSignService {
 
     @Autowired
     private AfterSealService afterSealService;
+
+    @Autowired
+    private ProjectInstallerCommissionService projectInstallerCommissionService;
 
     @Override
     protected QueryWrapper<SealSign> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -177,6 +190,172 @@ public class SealSignServiceImpl extends SkyeyeBusinessServiceImpl<SealSignDao, 
 
         // 清除缓存
         clearCache(id);
+
+        // 如果审核通过，自动计算提成
+        if (state.equals(SealSignState.APPROVED.getKey())) {
+            try {
+                // 调用提成计算服务
+                projectInstallerCommissionService.calculateCommission(existEntity.getObjectId());
+            } catch (Exception e) {
+                // 提成计算失败不影响审核结果，只记录日志
+                log.error("提成计算失败", e);
+            }
+        }
+    }
+
+    /**
+     * 获取指定时间范围内所有已审核通过的签到报工的总工时（转换为小时）
+     *
+     * @param startTime 开始时间
+     * @param endTime   结束时间
+     * @return 总工时（小时）的字符串
+     */
+    @Override
+    public String getAllFinishedWorkHours(String startTime, String endTime) {
+        // 查询指定时间范围内所有已审核通过的签到报工记录
+        QueryWrapper<SealSign> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SealSign::getState), SealSignState.APPROVED.getKey());
+
+        // 如果指定了时间范围，直接使用签到时间过滤
+        if (StrUtil.isNotEmpty(startTime) && StrUtil.isNotEmpty(endTime)) {
+            queryWrapper.apply(MybatisPlusUtil.toColumns(SealSign::getSignTime) + " <= {0}", endTime)
+                .apply(MybatisPlusUtil.toColumns(SealSign::getSignTime) + " >= {0}", startTime);
+        }
+
+        List<SealSign> sealSignList = list(queryWrapper);
+
+        if (CollectionUtil.isEmpty(sealSignList)) {
+            return "0";
+        }
+
+        // 将工时转换为小时并累加
+        String totalWorkHours = "0";
+        for (SealSign sealSign : sealSignList) {
+            String workHours = sealSign.getWorkHours();
+            String workUnit = sealSign.getWorkUnit();
+
+            if (StrUtil.isEmpty(workHours)) {
+                continue;
+            }
+
+            // 根据单位转换为小时
+            String workHoursInHours = getHourTime(workUnit, workHours);
+
+            // 累加
+            totalWorkHours = CalculationUtil.add(CommonNumConstants.NUM_FOUR, totalWorkHours, workHoursInHours);
+        }
+
+        return totalWorkHours;
+    }
+
+    private static String getHourTime(String workUnit, String workHours) {
+        String workHoursInHours;
+        if (SealSignWorkUnit.HOUR.getKey().equals(workUnit)) {
+            // 小时：直接使用
+            workHoursInHours = workHours;
+        } else if (SealSignWorkUnit.DAY.getKey().equals(workUnit)) {
+            // 天转换为小时：乘以8
+            workHoursInHours = CalculationUtil.multiply(CommonNumConstants.NUM_TWO, workHours, "8");
+        } else {
+            // 其他单位，默认按小时处理
+            workHoursInHours = workHours;
+        }
+        return workHoursInHours;
+    }
+
+    /**
+     * 获取指定时间范围内各用户已审核通过的签到报工的总工时（转换为小时）
+     *
+     * @param startTime 开始时间
+     * @param endTime   结束时间
+     * @return 按用户ID分组的工时（小时）Map
+     */
+    @Override
+    public Map<String, String> getAllFinishedWorkHoursByUserId(String startTime, String endTime) {
+        // 查询指定时间范围内所有已审核通过的签到报工记录
+        QueryWrapper<SealSign> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SealSign::getState), SealSignState.APPROVED.getKey());
+
+        // 如果指定了时间范围，直接使用签到时间过滤
+        if (StrUtil.isNotEmpty(startTime) && StrUtil.isNotEmpty(endTime)) {
+            queryWrapper.apply(MybatisPlusUtil.toColumns(SealSign::getSignTime) + " <= {0}", endTime)
+                .apply(MybatisPlusUtil.toColumns(SealSign::getSignTime) + " >= {0}", startTime);
+        }
+
+        List<SealSign> sealSignList = list(queryWrapper);
+
+        if (CollectionUtil.isEmpty(sealSignList)) {
+            return new HashMap<>();
+        }
+
+        // 按用户ID分组，将工时转换为小时并累加
+        Map<String, String> userWorkHoursMap = new HashMap<>();
+        for (SealSign sealSign : sealSignList) {
+            String signId = sealSign.getSignId();
+            String workHours = sealSign.getWorkHours();
+            String workUnit = sealSign.getWorkUnit();
+
+            if (StrUtil.isEmpty(signId) || StrUtil.isEmpty(workHours)) {
+                continue;
+            }
+
+            // 根据单位转换为小时
+            String workHoursInHours = getHourTime(workUnit, workHours);
+
+            // 累加该用户的工时
+            String currentWorkHours = userWorkHoursMap.getOrDefault(signId, "0");
+            userWorkHoursMap.put(signId, CalculationUtil.add(CommonNumConstants.NUM_FOUR, currentWorkHours, workHoursInHours));
+        }
+
+        return userWorkHoursMap;
+    }
+
+    /**
+     * 获取指定时间范围内各用户已审核通过的签到报工的工单数量
+     *
+     * @param startTime 开始时间
+     * @param endTime   结束时间
+     * @return 按用户ID分组的工单数量Map
+     */
+    @Override
+    public Map<String, Long> getOrderCountByUserId(String startTime, String endTime) {
+        // 查询指定时间范围内所有已审核通过的签到报工记录
+        QueryWrapper<SealSign> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(SealSign::getState), SealSignState.APPROVED.getKey());
+
+        // 如果指定了时间范围，直接使用签到时间过滤
+        if (StrUtil.isNotEmpty(startTime) && StrUtil.isNotEmpty(endTime)) {
+            queryWrapper.apply(MybatisPlusUtil.toColumns(SealSign::getSignTime) + " <= {0}", endTime)
+                .apply(MybatisPlusUtil.toColumns(SealSign::getSignTime) + " >= {0}", startTime);
+        }
+
+        List<SealSign> sealSignList = list(queryWrapper);
+
+        if (CollectionUtil.isEmpty(sealSignList)) {
+            return new HashMap<>();
+        }
+
+        // 按用户ID分组，统计每个用户的不重复工单数量
+        Map<String, Set<String>> userOrderIdMap = new HashMap<>();
+        for (SealSign sealSign : sealSignList) {
+            String signId = sealSign.getSignId();
+            String objectId = sealSign.getObjectId();
+
+            if (StrUtil.isEmpty(signId) || StrUtil.isEmpty(objectId)) {
+                continue;
+            }
+
+            // 使用Set去重，确保每个工单只统计一次
+            userOrderIdMap.computeIfAbsent(signId, k -> new HashSet<>()).add(objectId);
+        }
+
+        // 转换为数量Map
+        Map<String, Long> userOrderCountMap = new HashMap<>();
+        for (Map.Entry<String, Set<String>> entry : userOrderIdMap.entrySet()) {
+            userOrderCountMap.put(entry.getKey(), (long) entry.getValue().size());
+        }
+
+        return userOrderCountMap;
     }
 
 }

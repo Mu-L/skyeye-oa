@@ -426,13 +426,14 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
 
         // 先查询工单数量、工时、配件数的数据
-        Map<String, Long> allFinishedServiceNum = getAllFinishedServiceNum(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
+        // 工单数量：从已审核通过的签到报工记录中统计（确保数据一致性）
+        Map<String, Long> allServiceOrderNum = sealSignService.getOrderCountByUserId(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
         Map<String, String> finishedServiceTime = sealSignService.getAllFinishedWorkHoursByUserId(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
         Map<String, Long> useCount = sealFaultUseMaterialService.queryUseCountByUserId(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
 
         // 合并所有数据中的用户ID（即使工人走了，只要有数据就能显示）
         Set<String> allUserIds = new HashSet<>();
-        allUserIds.addAll(allFinishedServiceNum.keySet());
+        allUserIds.addAll(allServiceOrderNum.keySet());
         allUserIds.addAll(finishedServiceTime.keySet());
         allUserIds.addAll(useCount.keySet());
 
@@ -457,16 +458,16 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
             bean.put("userMation", userInfo);
 
             // 完成工单数量
-            Long completedOrders = allFinishedServiceNum.getOrDefault(userId, defaultValue);
-            bean.put("completedOrders", completedOrders);
+            Long orderNum = allServiceOrderNum.getOrDefault(userId, defaultValue);
+            bean.put("orderNum", orderNum);
 
             // 平均工时
-            if (completedOrders == 0) {
+            if (orderNum == 0) {
                 bean.put("avgProcessTime", CommonNumConstants.NUM_ZERO);
             } else {
                 String userWorkHours = finishedServiceTime.getOrDefault(userId, "0");
                 bean.put("avgProcessTime", CalculationUtil.divide(userWorkHours,
-                    completedOrders.toString(), CommonNumConstants.NUM_TWO));
+                    orderNum.toString(), CommonNumConstants.NUM_TWO));
             }
 
             // 配件使用数
