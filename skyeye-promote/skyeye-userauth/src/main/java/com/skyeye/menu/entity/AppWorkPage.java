@@ -63,7 +63,7 @@ public class AppWorkPage extends OperatorUserInfo {
     private Integer type;
 
     @TableField("page_type")
-    @ApiModelProperty(value = "页面类型", enumClass = AppMenuPageType.class, required = "required")
+    @ApiModelProperty(value = "页面类型", enumClass = AppMenuPageType.class)
     private Integer pageType;
 
     @TableField("page_id")
