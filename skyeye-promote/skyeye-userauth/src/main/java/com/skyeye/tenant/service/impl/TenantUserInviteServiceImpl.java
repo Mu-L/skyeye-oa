@@ -251,10 +251,10 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
         }
         UpdateWrapper<TenantUserInvite> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
-        updateWrapper.eq(MybatisPlusUtil.toColumns(TenantUserInvite::getExitType), exitType);
-        updateWrapper.eq(MybatisPlusUtil.toColumns(TenantUserInvite::getExitTime), DateUtil.getTimeAndToString());
-        updateWrapper.eq(MybatisPlusUtil.toColumns(TenantUserInvite::getExitIp), ToolUtil.getIpByRequest(PutObject.getRequest()));
-        updateWrapper.eq(MybatisPlusUtil.toColumns(TenantUserInvite::getExitTerminalType), PutObject.getRequest().getHeader("requestType"));
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUserInvite::getExitType), exitType);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUserInvite::getExitTime), DateUtil.getTimeAndToString());
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUserInvite::getExitIp), ToolUtil.getIpByRequest(PutObject.getRequest()));
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantUserInvite::getExitTerminalType), PutObject.getRequest().getHeader("requestType"));
         update(updateWrapper);
     }
 
