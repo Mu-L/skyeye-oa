@@ -49,8 +49,10 @@ public class UserEnterpriseServiceImpl extends SkyeyeBusinessServiceImpl<UserEnt
     @Override
     protected QueryWrapper<UserEnterprise> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<UserEnterprise> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        // 认证状态
-        queryWrapper.eq(MybatisPlusUtil.toColumns(UserEnterprise::getState), commonPageInfo.getState());
+        if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
+            // 认证状态
+            queryWrapper.eq(MybatisPlusUtil.toColumns(UserEnterprise::getState), commonPageInfo.getState());
+        }
         return queryWrapper;
     }
 

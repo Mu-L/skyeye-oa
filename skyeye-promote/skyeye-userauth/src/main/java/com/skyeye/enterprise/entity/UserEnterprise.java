@@ -80,7 +80,7 @@ public class UserEnterprise extends CommonInfo {
     private String phone;
 
     @TableField("state")
-    @Property(value = "认证状态", enumClass = UserEnterpriseState.class)
+    @ApiModelProperty(value = "认证状态", enumClass = UserEnterpriseState.class)
     private Integer state;
 
     @TableField(value = "create_time", updateStrategy = FieldStrategy.NEVER)
