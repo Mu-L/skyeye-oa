@@ -177,4 +177,48 @@ public class AfterSeal extends OperatorUserInfo implements EnclosureFace {
     @ApiModelProperty(value = "安装费用", required = "double", defaultValue = "0")
     private String installFee;
 
+    @TableField("province_id")
+    @ApiModelProperty(value = "省ID")
+    private String provinceId;
+
+    @TableField(exist = false)
+    @Property(value = "省信息")
+    private Map<String, Object> provinceMation;
+
+    @TableField("city_id")
+    @ApiModelProperty(value = "市ID")
+    private String cityId;
+
+    @TableField(exist = false)
+    @Property(value = "市信息")
+    private Map<String, Object> cityMation;
+
+    @TableField("area_id")
+    @ApiModelProperty(value = "区县ID")
+    private String areaId;
+
+    @TableField(exist = false)
+    @Property(value = "区/县信息")
+    private Map<String, Object> areaMation;
+
+    @TableField("township_id")
+    @ApiModelProperty(value = "乡镇ID")
+    private String townshipId;
+
+    @TableField(exist = false)
+    @Property(value = "乡镇信息")
+    private Map<String, Object> townshipMation;
+
+    @TableField("absolute_address")
+    @ApiModelProperty(value = "具体地址")
+    private String absoluteAddress;
+
+    @TableField(value = "longitude")
+    @ApiModelProperty(value = "经度")
+    private String longitude;
+
+    @TableField(value = "latitude")
+    @ApiModelProperty(value = "纬度")
+    private String latitude;
+
 }

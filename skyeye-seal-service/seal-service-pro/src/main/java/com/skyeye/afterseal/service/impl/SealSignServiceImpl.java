@@ -31,12 +31,9 @@ import com.skyeye.exception.CustomException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @ClassName: SealSignServiceImpl
@@ -120,6 +117,8 @@ public class SealSignServiceImpl extends SkyeyeBusinessServiceImpl<SealSignDao, 
     /**
      * 报工：更新工时信息，状态改为"待审核"
      */
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void reportWork(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> entity = inputObject.getParams();
         String id = entity.get("id").toString();
@@ -154,6 +153,8 @@ public class SealSignServiceImpl extends SkyeyeBusinessServiceImpl<SealSignDao, 
     /**
      * 审核：更新审核信息，状态改为"已通过"或"已驳回"
      */
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void auditSign(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> entity = inputObject.getParams();
         String id = entity.get("id").toString();
@@ -193,13 +194,8 @@ public class SealSignServiceImpl extends SkyeyeBusinessServiceImpl<SealSignDao, 
 
         // 如果审核通过，自动计算提成
         if (state.equals(SealSignState.APPROVED.getKey())) {
-            try {
-                // 调用提成计算服务
-                projectInstallerCommissionService.calculateCommission(existEntity.getObjectId());
-            } catch (Exception e) {
-                // 提成计算失败不影响审核结果，只记录日志
-                log.error("提成计算失败", e);
-            }
+            // 调用提成计算服务
+            projectInstallerCommissionService.calculateCommission(existEntity.getObjectId());
         }
     }
 

@@ -73,10 +73,7 @@ public class ProjectInstallerCommissionServiceImpl extends SkyeyeBusinessService
         if (dispatch == null) {
             throw new CustomException("工单不存在");
         }
-        String totalCommissionStr = dispatch.getInstallFee();
-        if (StrUtil.isEmpty(totalCommissionStr) || "0".equals(totalCommissionStr)) {
-            throw new CustomException("工单未设置安装费用，无法计算提成");
-        }
+        String totalCommissionStr = StrUtil.isEmpty(dispatch.getInstallFee()) ? "0" : dispatch.getInstallFee();
 
         // 2. 查询该工单下所有已审核通过的工时记录（SealSign）
         QueryWrapper<SealSign> worktimeQueryWrapper = new QueryWrapper<>();
@@ -173,7 +170,6 @@ public class ProjectInstallerCommissionServiceImpl extends SkyeyeBusinessService
         List<ProjectInstallerCommission> commissionList = list(queryWrapper);
 
         if (CollectionUtil.isEmpty(commissionList)) {
-            outputObject.setBean(new HashMap<>());
             return;
         }
 
@@ -197,10 +193,9 @@ public class ProjectInstallerCommissionServiceImpl extends SkyeyeBusinessService
             .map(ProjectInstallerCommission::getInstallerCommission)
             .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_TWO, a, b));
 
-        // 计算总工时
+        // 计算总工时（等于所有个人工时的总和）
         String totalWorkHours = commissionList.stream()
-            .map(ProjectInstallerCommission::getTotalWorkHours)
-            .distinct()
+            .map(ProjectInstallerCommission::getWorkHours)
             .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_FOUR, a, b));
 
         // 计算平均工时
@@ -222,9 +217,37 @@ public class ProjectInstallerCommissionServiceImpl extends SkyeyeBusinessService
                 .map(ProjectInstallerCommission::getWorkHours)
                 .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_FOUR, a, b));
 
-            String avgDailyCommission = CalculationUtil.compareTo(installerTotalWorkHours, "0", CommonNumConstants.NUM_FOUR, RoundingMode.UP) > 0
-                ? CalculationUtil.divide(installerTotalCommission, installerTotalWorkHours, CommonNumConstants.NUM_TWO)
-                : "0";
+            // 按工单分组，分别计算每个工单的平均日提，然后取平均值
+            // 示例：如果工人在两个工单工作
+            //   - 工单A：提成100元，工时2天 → 平均日提 = 50元/天
+            //   - 工单B：提成300元，工时3天 → 平均日提 = 100元/天
+            // 平均日提 = (50 + 100) / 2 = 75元/天
+            // 注意：只计算当前安装员参与的工单，而不是所有工单
+            Map<String, List<ProjectInstallerCommission>> installerDispatchGroupMap = installerCommissions.stream()
+                .collect(Collectors.groupingBy(ProjectInstallerCommission::getDispatchId));
+            
+            List<String> avgDailyCommissionList = new ArrayList<>();
+            for (List<ProjectInstallerCommission> dispatchCommissions : installerDispatchGroupMap.values()) {
+                String dispatchCommission = dispatchCommissions.stream()
+                    .map(ProjectInstallerCommission::getInstallerCommission)
+                    .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_TWO, a, b));
+                String dispatchWorkHours = dispatchCommissions.stream()
+                    .map(ProjectInstallerCommission::getWorkHours)
+                    .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_FOUR, a, b));
+                
+                if (CalculationUtil.compareTo(dispatchWorkHours, "0", CommonNumConstants.NUM_FOUR, RoundingMode.UP) > 0) {
+                    String dispatchAvgDailyCommission = CalculationUtil.divide(dispatchCommission, dispatchWorkHours, CommonNumConstants.NUM_TWO);
+                    avgDailyCommissionList.add(dispatchAvgDailyCommission);
+                }
+            }
+            
+            // 计算所有工单的平均日提的算术平均值
+            String avgDailyCommission = "0";
+            if (!avgDailyCommissionList.isEmpty()) {
+                String sum = avgDailyCommissionList.stream()
+                    .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_TWO, a, b));
+                avgDailyCommission = CalculationUtil.divide(sum, String.valueOf(avgDailyCommissionList.size()), CommonNumConstants.NUM_TWO);
+            }
 
             Map<String, Object> installerSummary = new HashMap<>();
             installerSummary.put("installerId", installerId);
@@ -235,11 +258,12 @@ public class ProjectInstallerCommissionServiceImpl extends SkyeyeBusinessService
             installerSummaryList.add(installerSummary);
         }
 
-        // 按提成排序计算排名
+        // 按提成排序计算排名（降序：提成多的在前）
         installerSummaryList.sort((a, b) -> {
             String commissionA = a.get("totalCommission").toString();
             String commissionB = b.get("totalCommission").toString();
-            return CalculationUtil.compareTo(commissionB, commissionA, CommonNumConstants.NUM_TWO, RoundingMode.UP);
+            // 降序排序：如果A > B，返回负数（A排在前面）；如果A < B，返回正数（A排在后面）
+            return -CalculationUtil.compareTo(commissionA, commissionB, CommonNumConstants.NUM_TWO, RoundingMode.UP);
         });
 
         // 生成项目明细数据
@@ -255,24 +279,21 @@ public class ProjectInstallerCommissionServiceImpl extends SkyeyeBusinessService
             }
 
             String dispatchTotalPrice = dispatch.getInstallFee() != null ? dispatch.getInstallFee() : "0";
+            // 项目明细中的总工时 = 该工单下所有安装员的个人工时之和
             String dispatchTotalWorkHours = dispatchCommissions.stream()
-                .map(ProjectInstallerCommission::getTotalWorkHours)
-                .findFirst()
-                .orElse("0");
+                .map(ProjectInstallerCommission::getWorkHours)
+                .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_FOUR, a, b));
 
             String dispatchAvgWorkHours = CalculationUtil.compareTo(dispatchTotalWorkHours, "0", CommonNumConstants.NUM_FOUR, RoundingMode.UP) > 0
                 ? CalculationUtil.divide(dispatchTotalPrice, dispatchTotalWorkHours, CommonNumConstants.NUM_TWO)
                 : "0";
 
-            String status = "未完成";
-
             Map<String, Object> projectDetail = new HashMap<>();
             projectDetail.put("dispatchId", dispatchId);
-            projectDetail.put("location", dispatch.getOddNumber() != null ? dispatch.getOddNumber() : "-");
+            projectDetail.put("oddNumber", dispatch.getOddNumber());
             projectDetail.put("totalPrice", dispatchTotalPrice);
             projectDetail.put("totalWorkHours", dispatchTotalWorkHours);
             projectDetail.put("avgWorkHours", dispatchAvgWorkHours);
-            projectDetail.put("status", status);
 
             // 按安装员组织数据
             Map<String, Map<String, String>> installerDataMap = new HashMap<>();
@@ -295,7 +316,6 @@ public class ProjectInstallerCommissionServiceImpl extends SkyeyeBusinessService
         summaryMap.put("avgWorkHours", avgWorkHours);
         result.put("summary", summaryMap);
         result.put("installerSummaryList", installerSummaryList);
-        result.put("totalCommissionRanking", installerSummaryList);
         result.put("projectDetailList", projectDetailList);
 
         outputObject.setBean(result);
@@ -309,19 +329,10 @@ public class ProjectInstallerCommissionServiceImpl extends SkyeyeBusinessService
         Map<String, Object> params = inputObject.getParams();
         String dispatchId = params.get("dispatchId").toString();
 
-        if (StrUtil.isEmpty(dispatchId)) {
-            throw new CustomException("工单ID不能为空");
-        }
-
         // 查询该工单下所有提成记录
         QueryWrapper<ProjectInstallerCommission> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ProjectInstallerCommission::getDispatchId), dispatchId);
         List<ProjectInstallerCommission> commissionList = list(queryWrapper);
-
-        if (CollectionUtil.isEmpty(commissionList)) {
-            outputObject.setBean(new HashMap<>());
-            return;
-        }
 
         // 获取工单信息
         AfterSeal dispatch = afterSealService.selectById(dispatchId);
@@ -340,16 +351,10 @@ public class ProjectInstallerCommissionServiceImpl extends SkyeyeBusinessService
             installerInfoMap = iAuthUserService.queryUserNameList(new ArrayList<>(installerIds));
         }
 
-        // 计算该工单的总提成
-        String totalCommission = commissionList.stream()
-            .map(ProjectInstallerCommission::getInstallerCommission)
-            .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_TWO, a, b));
-
-        // 获取该工单的总工时（所有提成记录的总工时应该相同，取第一个）
+        // 计算该工单的总工时（等于所有安装员的个人工时之和）
         String totalWorkHours = commissionList.stream()
-            .map(ProjectInstallerCommission::getTotalWorkHours)
-            .findFirst()
-            .orElse("0");
+            .map(ProjectInstallerCommission::getWorkHours)
+            .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_FOUR, a, b));
 
         // 获取工单的安装费用
         String totalPrice = dispatch.getInstallFee() != null ? dispatch.getInstallFee() : "0";
@@ -358,9 +363,6 @@ public class ProjectInstallerCommissionServiceImpl extends SkyeyeBusinessService
         String avgWorkHours = CalculationUtil.compareTo(totalWorkHours, "0", CommonNumConstants.NUM_FOUR, RoundingMode.UP) > 0
             ? CalculationUtil.divide(totalPrice, totalWorkHours, CommonNumConstants.NUM_TWO)
             : "0";
-
-        // 判断完成状态
-        String status = "未完成";
 
         // 该工单下各安装员的提成明细
         List<Map<String, Object>> installerDetailList = new ArrayList<>();
@@ -371,7 +373,7 @@ public class ProjectInstallerCommissionServiceImpl extends SkyeyeBusinessService
             installerDetail.put("installerName", installerInfoMap.getOrDefault(installerId, new HashMap<>()).getOrDefault("name", "未知"));
             installerDetail.put("commission", commission.getInstallerCommission());
             installerDetail.put("workHours", commission.getWorkHours());
-            installerDetail.put("totalWorkHours", commission.getTotalWorkHours());
+            installerDetail.put("totalWorkHours", totalWorkHours); // 使用计算出来的总工时（所有安装员的个人工时之和）
             installerDetail.put("commissionRate", commission.getCommissionRate());
             installerDetailList.add(installerDetail);
         }
@@ -379,13 +381,11 @@ public class ProjectInstallerCommissionServiceImpl extends SkyeyeBusinessService
         // 组装返回数据
         Map<String, Object> result = new HashMap<>();
         result.put("dispatchId", dispatchId);
-        result.put("dispatchNumber", dispatch.getOddNumber() != null ? dispatch.getOddNumber() : "-");
-        result.put("location", dispatch.getOddNumber() != null ? dispatch.getOddNumber() : "-");
+        result.put("dispatchNumber", dispatch.getOddNumber());
+        result.put("location", dispatch.getAbsoluteAddress());
         result.put("totalPrice", totalPrice);
-        result.put("totalCommission", totalCommission);
         result.put("totalWorkHours", totalWorkHours);
         result.put("avgWorkHours", avgWorkHours);
-        result.put("status", status);
         result.put("installerDetailList", installerDetailList);
 
         outputObject.setBean(result);
