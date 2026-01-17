@@ -8,6 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.skyeye.afterseal.classenum.AfterSealState;
 import com.skyeye.afterseal.classenum.SealSignState;
 import com.skyeye.afterseal.classenum.SealSignWorkUnit;
 import com.skyeye.afterseal.dao.ProjectInstallerCommissionDao;
@@ -225,7 +226,7 @@ public class ProjectInstallerCommissionServiceImpl extends SkyeyeBusinessService
             // 注意：只计算当前安装员参与的工单，而不是所有工单
             Map<String, List<ProjectInstallerCommission>> installerDispatchGroupMap = installerCommissions.stream()
                 .collect(Collectors.groupingBy(ProjectInstallerCommission::getDispatchId));
-            
+
             List<String> avgDailyCommissionList = new ArrayList<>();
             for (List<ProjectInstallerCommission> dispatchCommissions : installerDispatchGroupMap.values()) {
                 String dispatchCommission = dispatchCommissions.stream()
@@ -234,13 +235,13 @@ public class ProjectInstallerCommissionServiceImpl extends SkyeyeBusinessService
                 String dispatchWorkHours = dispatchCommissions.stream()
                     .map(ProjectInstallerCommission::getWorkHours)
                     .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_FOUR, a, b));
-                
+
                 if (CalculationUtil.compareTo(dispatchWorkHours, "0", CommonNumConstants.NUM_FOUR, RoundingMode.UP) > 0) {
                     String dispatchAvgDailyCommission = CalculationUtil.divide(dispatchCommission, dispatchWorkHours, CommonNumConstants.NUM_TWO);
                     avgDailyCommissionList.add(dispatchAvgDailyCommission);
                 }
             }
-            
+
             // 计算所有工单的平均日提的算术平均值
             String avgDailyCommission = "0";
             if (!avgDailyCommissionList.isEmpty()) {
@@ -387,6 +388,192 @@ public class ProjectInstallerCommissionServiceImpl extends SkyeyeBusinessService
         result.put("totalWorkHours", totalWorkHours);
         result.put("avgWorkHours", avgWorkHours);
         result.put("installerDetailList", installerDetailList);
+
+        outputObject.setBean(result);
+    }
+
+    /**
+     * 查询安装员考核大屏数据
+     */
+    @Override
+    public void queryInstallerDashboard(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String startDate = params.get("startDate").toString();
+        String endDate = params.get("endDate").toString();
+        String status = params.get("status").toString();
+
+        // 查询所有提成记录（根据时间范围筛选）
+        QueryWrapper<ProjectInstallerCommission> commissionQueryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotEmpty(startDate) && StrUtil.isNotEmpty(endDate)) {
+            commissionQueryWrapper.apply("DATE(create_time) >= {0}", startDate)
+                .apply("DATE(create_time) <= {0}", endDate);
+        }
+        List<ProjectInstallerCommission> allCommissionList = list(commissionQueryWrapper);
+
+        if (CollectionUtil.isEmpty(allCommissionList)) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("summary", new HashMap<>());
+            result.put("commissionRanking", new ArrayList<>());
+            result.put("workHoursRanking", new ArrayList<>());
+            result.put("avgDailyCommissionRanking", new ArrayList<>());
+            outputObject.setBean(result);
+            return;
+        }
+
+        // 获取所有工单ID
+        Set<String> dispatchIds = allCommissionList.stream()
+            .map(ProjectInstallerCommission::getDispatchId)
+            .collect(Collectors.toSet());
+
+        // 查询工单信息，用于状态筛选
+        Map<String, AfterSeal> dispatchMap = new HashMap<>();
+        if (CollectionUtil.isNotEmpty(dispatchIds)) {
+            List<AfterSeal> dispatchList = afterSealService.listByIds(new ArrayList<>(dispatchIds));
+            dispatchMap = dispatchList.stream()
+                .collect(Collectors.toMap(AfterSeal::getId, d -> d));
+        }
+
+        // 根据项目状态筛选提成记录
+        List<ProjectInstallerCommission> filteredCommissionList = new ArrayList<>();
+        if ("completed".equals(status)) {
+            // 已完成：工单状态为已完工
+            for (ProjectInstallerCommission commission : allCommissionList) {
+                AfterSeal dispatch = dispatchMap.get(commission.getDispatchId());
+                if (dispatch != null && AfterSealState.COMPLATE.getKey().equals(dispatch.getState())) {
+                    filteredCommissionList.add(commission);
+                }
+            }
+        } else if ("uncompleted".equals(status)) {
+            // 未完成：工单状态不是已完工
+            for (ProjectInstallerCommission commission : allCommissionList) {
+                AfterSeal dispatch = dispatchMap.get(commission.getDispatchId());
+                if (dispatch != null && !AfterSealState.COMPLATE.getKey().equals(dispatch.getState())) {
+                    filteredCommissionList.add(commission);
+                }
+            }
+        } else {
+            // 全部
+            filteredCommissionList = allCommissionList;
+        }
+
+        if (CollectionUtil.isEmpty(filteredCommissionList)) {
+            Map<String, Object> result = new HashMap<>();
+            result.put("summary", new HashMap<>());
+            result.put("commissionRanking", new ArrayList<>());
+            result.put("workHoursRanking", new ArrayList<>());
+            result.put("avgDailyCommissionRanking", new ArrayList<>());
+            outputObject.setBean(result);
+            return;
+        }
+
+        // 按安装员分组统计
+        Map<String, List<ProjectInstallerCommission>> installerGroupMap = filteredCommissionList.stream()
+            .collect(Collectors.groupingBy(ProjectInstallerCommission::getInstallerId));
+
+        // 获取所有安装员信息
+        Set<String> installerIds = installerGroupMap.keySet();
+        Map<String, Map<String, Object>> installerInfoMap = new HashMap<>();
+        if (CollectionUtil.isNotEmpty(installerIds)) {
+            installerInfoMap = iAuthUserService.queryUserNameList(new ArrayList<>(installerIds));
+        }
+
+        // 计算总体数据
+        String totalCommission = filteredCommissionList.stream()
+            .map(ProjectInstallerCommission::getInstallerCommission)
+            .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_TWO, a, b));
+
+        String totalWorkHours = filteredCommissionList.stream()
+            .map(ProjectInstallerCommission::getWorkHours)
+            .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_FOUR, a, b));
+
+        String avgWorkHours = CalculationUtil.compareTo(totalWorkHours, "0", CommonNumConstants.NUM_FOUR, RoundingMode.UP) > 0
+            ? CalculationUtil.divide(totalCommission, totalWorkHours, CommonNumConstants.NUM_TWO)
+            : "0";
+
+        // 计算安装员汇总数据
+        List<Map<String, Object>> installerSummaryList = new ArrayList<>();
+        for (Map.Entry<String, List<ProjectInstallerCommission>> entry : installerGroupMap.entrySet()) {
+            String installerId = entry.getKey();
+            List<ProjectInstallerCommission> installerCommissions = entry.getValue();
+
+            String installerTotalCommission = installerCommissions.stream()
+                .map(ProjectInstallerCommission::getInstallerCommission)
+                .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_TWO, a, b));
+
+            String installerTotalWorkHours = installerCommissions.stream()
+                .map(ProjectInstallerCommission::getWorkHours)
+                .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_FOUR, a, b));
+
+            // 按工单分组，分别计算每个工单的平均日提，然后取平均值
+            Map<String, List<ProjectInstallerCommission>> installerDispatchGroupMap = installerCommissions.stream()
+                .collect(Collectors.groupingBy(ProjectInstallerCommission::getDispatchId));
+
+            List<String> avgDailyCommissionList = new ArrayList<>();
+            for (List<ProjectInstallerCommission> dispatchCommissions : installerDispatchGroupMap.values()) {
+                String dispatchCommission = dispatchCommissions.stream()
+                    .map(ProjectInstallerCommission::getInstallerCommission)
+                    .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_TWO, a, b));
+                String dispatchWorkHours = dispatchCommissions.stream()
+                    .map(ProjectInstallerCommission::getWorkHours)
+                    .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_FOUR, a, b));
+
+                if (CalculationUtil.compareTo(dispatchWorkHours, "0", CommonNumConstants.NUM_FOUR, RoundingMode.UP) > 0) {
+                    String dispatchAvgDailyCommission = CalculationUtil.divide(dispatchCommission, dispatchWorkHours, CommonNumConstants.NUM_TWO);
+                    avgDailyCommissionList.add(dispatchAvgDailyCommission);
+                }
+            }
+
+            String avgDailyCommission = "0";
+            if (!avgDailyCommissionList.isEmpty()) {
+                String sum = avgDailyCommissionList.stream()
+                    .reduce("0", (a, b) -> CalculationUtil.add(CommonNumConstants.NUM_TWO, a, b));
+                avgDailyCommission = CalculationUtil.divide(sum, String.valueOf(avgDailyCommissionList.size()), CommonNumConstants.NUM_TWO);
+            }
+
+            Map<String, Object> installerSummary = new HashMap<>();
+            installerSummary.put("installerId", installerId);
+            installerSummary.put("installerName", installerInfoMap.getOrDefault(installerId, new HashMap<>()).getOrDefault("name", "未知"));
+            installerSummary.put("totalCommission", installerTotalCommission);
+            installerSummary.put("totalWorkHours", installerTotalWorkHours);
+            installerSummary.put("avgDailyCommission", avgDailyCommission);
+            installerSummaryList.add(installerSummary);
+        }
+
+        // 生成排名数据
+        // 提成排名（按提成金额降序）
+        List<Map<String, Object>> commissionRanking = new ArrayList<>(installerSummaryList);
+        commissionRanking.sort((a, b) -> {
+            String commissionA = a.get("totalCommission").toString();
+            String commissionB = b.get("totalCommission").toString();
+            return -CalculationUtil.compareTo(commissionA, commissionB, CommonNumConstants.NUM_TWO, RoundingMode.UP);
+        });
+
+        // 工时排名（按工时降序）
+        List<Map<String, Object>> workHoursRanking = new ArrayList<>(installerSummaryList);
+        workHoursRanking.sort((a, b) -> {
+            String workHoursA = a.get("totalWorkHours").toString();
+            String workHoursB = b.get("totalWorkHours").toString();
+            return -CalculationUtil.compareTo(workHoursA, workHoursB, CommonNumConstants.NUM_FOUR, RoundingMode.UP);
+        });
+
+        // 平均日提排名（按平均日提降序）
+        List<Map<String, Object>> avgDailyCommissionRanking = new ArrayList<>(installerSummaryList);
+        avgDailyCommissionRanking.sort((a, b) -> {
+            String avgA = a.get("avgDailyCommission").toString();
+            String avgB = b.get("avgDailyCommission").toString();
+            return -CalculationUtil.compareTo(avgA, avgB, CommonNumConstants.NUM_TWO, RoundingMode.UP);
+        });
+
+        // 组装返回数据
+        Map<String, Object> result = new HashMap<>();
+        Map<String, Object> summaryMap = new HashMap<>();
+        summaryMap.put("totalCommission", totalCommission);
+        summaryMap.put("totalWorkHours", totalWorkHours);
+        summaryMap.put("avgWorkHours", avgWorkHours);
+        result.put("summary", summaryMap);
+        result.put("commissionRanking", commissionRanking);
+        result.put("workHoursRanking", workHoursRanking);
+        result.put("avgDailyCommissionRanking", avgDailyCommissionRanking);
 
         outputObject.setBean(result);
     }

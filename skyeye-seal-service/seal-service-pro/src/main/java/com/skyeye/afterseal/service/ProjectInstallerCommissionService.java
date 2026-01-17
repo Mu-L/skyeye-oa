@@ -42,5 +42,13 @@ public interface ProjectInstallerCommissionService extends SkyeyeBusinessService
      */
     void queryCommissionStatisticsByDispatchId(InputObject inputObject, OutputObject outputObject);
 
+    /**
+     * 查询安装员考核大屏数据
+     *
+     * @param inputObject  输入对象
+     * @param outputObject 输出对象
+     */
+    void queryInstallerDashboard(InputObject inputObject, OutputObject outputObject);
+
 }
 

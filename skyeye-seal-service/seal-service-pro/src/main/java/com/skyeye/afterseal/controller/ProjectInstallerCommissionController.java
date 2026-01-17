@@ -54,5 +54,15 @@ public class ProjectInstallerCommissionController {
         projectInstallerCommissionService.queryCommissionStatisticsByDispatchId(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryInstallerDashboard", value = "查询安装员考核大屏数据", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "startDate", name = "startDate", value = "开始日期", required = "required"),
+        @ApiImplicitParam(id = "endDate", name = "endDate", value = "结束日期", required = "required"),
+        @ApiImplicitParam(id = "status", name = "status", value = "项目状态：all-全部，completed-已完成，uncompleted-未完成", required = "required")})
+    @RequestMapping("/post/ProjectInstallerCommissionController/queryInstallerDashboard")
+    public void queryInstallerDashboard(InputObject inputObject, OutputObject outputObject) {
+        projectInstallerCommissionService.queryInstallerDashboard(inputObject, outputObject);
+    }
+
 }
 
