@@ -38,4 +38,13 @@ public interface ShopStoreStaffService extends SkyeyeBusinessService<ShopStoreSt
     void queryStaffBelongStoreList(InputObject inputObject, OutputObject outputObject);
 
     void deleteStoreStaffMationByStaffId(InputObject inputObject, OutputObject outputObject);
+
+    /**
+     * 执行员工调拨：将员工从一个门店调拨到另一个门店
+     *
+     * @param staffId     员工ID
+     * @param fromStoreId 原门店ID
+     * @param toStoreId   目标门店ID
+     */
+    void executeStaffTransfer(String staffId, String fromStoreId, String toStoreId);
 }

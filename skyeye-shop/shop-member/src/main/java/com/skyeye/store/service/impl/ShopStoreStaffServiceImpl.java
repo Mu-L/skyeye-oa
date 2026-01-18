@@ -8,13 +8,16 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.exception.CustomException;
 import com.skyeye.store.dao.ShopStoreStaffDao;
 import com.skyeye.store.entity.ShopArea;
 import com.skyeye.store.entity.ShopStore;
@@ -179,5 +182,47 @@ public class ShopStoreStaffServiceImpl extends SkyeyeBusinessServiceImpl<ShopSto
         QueryWrapper<ShopStoreStaff> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ShopStoreStaff::getStaffId), staffId);
         remove(queryWrapper);
+    }
+
+    /**
+     * 执行员工调拨：将员工从一个门店调拨到另一个门店
+     *
+     * @param staffId     员工ID
+     * @param fromStoreId 原门店ID
+     * @param toStoreId   目标门店ID
+     */
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void executeStaffTransfer(String staffId, String fromStoreId, String toStoreId) {
+        // 如果原门店和目标门店相同，不需要调拨
+        if (StrUtil.equals(fromStoreId, toStoreId)) {
+            throw new CustomException("原门店和目标门店相同，无需调拨");
+        }
+
+        // 查询员工在原门店的关系记录
+        QueryWrapper<ShopStoreStaff> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ShopStoreStaff::getStaffId), staffId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ShopStoreStaff::getStoreId), fromStoreId);
+        ShopStoreStaff fromStoreStaff = getOne(queryWrapper);
+
+        if (ObjectUtil.isEmpty(fromStoreStaff) || StrUtil.isEmpty(fromStoreStaff.getId())) {
+            throw new CustomException("员工在原门店不存在，无法调拨");
+        }
+
+        // 检查员工在目标门店是否已存在
+        QueryWrapper<ShopStoreStaff> checkWrapper = new QueryWrapper<>();
+        checkWrapper.eq(MybatisPlusUtil.toColumns(ShopStoreStaff::getStaffId), staffId);
+        checkWrapper.eq(MybatisPlusUtil.toColumns(ShopStoreStaff::getStoreId), toStoreId);
+        ShopStoreStaff toStoreStaff = getOne(checkWrapper);
+
+        if (ObjectUtil.isNotEmpty(toStoreStaff) && StrUtil.isNotEmpty(toStoreStaff.getId())) {
+            throw new CustomException("员工在目标门店已存在，无法调拨");
+        }
+
+        // 更新门店ID：将原门店的关系更新为目标门店
+        UpdateWrapper<ShopStoreStaff> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, fromStoreStaff.getId());
+        updateWrapper.set(MybatisPlusUtil.toColumns(ShopStoreStaff::getStoreId), toStoreId);
+        update(updateWrapper);
     }
 }
