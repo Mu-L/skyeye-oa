@@ -7,8 +7,10 @@ package com.skyeye.reward.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -17,6 +19,7 @@ import com.skyeye.reward.entity.RewardPunish;
 import com.skyeye.reward.service.RewardPunishService;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,6 +56,32 @@ public class RewardPunishServiceImpl extends SkyeyeBusinessServiceImpl<RewardPun
         RewardPunish rewardPunish = super.selectById(id);
         iSysDictDataService.setDataMation(rewardPunish, RewardPunish::getTypeId);
         return rewardPunish;
+    }
+
+    @Override
+    public List<RewardPunish> queryUnAccountedByStaffIdAndMonth(String staffId, String accountMonth) {
+        QueryWrapper<RewardPunish> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(RewardPunish::getObjectId), staffId);
+        // 查询未计入薪资的记录：isAccounted 为未计入或为空
+        // 不管 accountMonth 是否设置，只要是未计入薪资的记录，都会计入当前计算的月份
+        queryWrapper.and(wrapper -> wrapper
+            .eq(MybatisPlusUtil.toColumns(RewardPunish::getIsAccounted), WhetherEnum.DISABLE_USING.getKey())
+            .or()
+            .isNull(MybatisPlusUtil.toColumns(RewardPunish::getIsAccounted)));
+        return list(queryWrapper);
+    }
+
+    @Override
+    public void markAsAccountedBatch(List<String> rewardPunishIds, String accountMonth) {
+        if (rewardPunishIds == null || rewardPunishIds.isEmpty()) {
+            return;
+        }
+        UpdateWrapper<RewardPunish> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.in(CommonConstants.ID, rewardPunishIds);
+        updateWrapper.set(MybatisPlusUtil.toColumns(RewardPunish::getIsAccounted), WhetherEnum.ENABLE_USING.getKey());
+        updateWrapper.set(MybatisPlusUtil.toColumns(RewardPunish::getAccountMonth), accountMonth);
+        update(updateWrapper);
+        clearCache(rewardPunishIds);
     }
 
 }

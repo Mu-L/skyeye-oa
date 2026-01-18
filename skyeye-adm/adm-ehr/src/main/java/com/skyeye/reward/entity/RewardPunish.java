@@ -14,6 +14,7 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.reward.classenum.RewardPunishType;
 import lombok.Data;
 
 import java.util.Map;
@@ -75,6 +76,10 @@ public class RewardPunish extends BaseGeneralInfo {
     @TableField(value = "link_key", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "关联得其他业务数据得key(工单key)")
     private String linkKey;
+
+    @TableField(value = "reward_punish_type")
+    @ApiModelProperty(value = "奖惩类型", enumClass = RewardPunishType.class, required = "num")
+    private Integer rewardPunishType;
 
     @TableField(value = "is_accounted")
     @ApiModelProperty(value = "是否已计入薪资", enumClass = WhetherEnum.class)

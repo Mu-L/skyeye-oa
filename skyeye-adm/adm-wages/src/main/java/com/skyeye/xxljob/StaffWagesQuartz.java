@@ -8,7 +8,6 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
-import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.constans.WagesConstant;
 import com.skyeye.common.enumeration.AbnormalCheckworkType;
@@ -40,6 +39,8 @@ import com.skyeye.eve.social.entity.ApplicableObjects;
 import com.skyeye.eve.social.entity.SocialSecurityFund;
 import com.skyeye.eve.social.service.WagesSocialSecurityFundService;
 import com.skyeye.jedis.JedisClientService;
+import com.skyeye.reward.entity.RewardPunish;
+import com.skyeye.reward.service.RewardPunishService;
 import com.skyeye.worktime.entity.CheckWorkTime;
 import com.skyeye.worktime.service.CheckWorkTimeService;
 import com.xxl.job.core.handler.annotation.XxlJob;
@@ -103,6 +104,9 @@ public class StaffWagesQuartz {
 
     @Autowired
     protected IAuthUserService iAuthUserService;
+
+    @Autowired
+    private RewardPunishService rewardPunishService;
 
     /**
      * 当前薪资统计中的员工id存储在redis的key，因为存在多台机器同时处理员工薪资的情况，所以不去主动删除该缓存信息，等待自动失效即可
@@ -227,9 +231,13 @@ public class StaffWagesQuartz {
         // 计算员工的考勤相关应扣的薪资
         String staffCheckWorkMoney = calcStaffCheckWork(staffId, systemFoundationSettings, workTime, staffModelFieldMap, lastMonthDate, tenantId);
         LOGGER.info("staffId is {}, staffCheckWorkMoney is {}", staffId, staffCheckWorkMoney);
+        // 计算员工的奖惩金额
+        String rewardPunishMoney = calcRewardPunishMoney(staffId, lastMonthDate);
+        LOGGER.info("staffId is {}, rewardPunishMoney is {}", staffId, rewardPunishMoney);
+        staffModelFieldMap.put(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_REWARD_PUNISH_MONEY.getKey(), rewardPunishMoney);
         // 开始计算上月实发工资
         String monthlyStandardRealMoney = calcMonthRealMoney(lastMonthDate, taxRate, companyId, actWages,
-            staffModelField, staffModelFieldMap, socialSecurityFundMoney, staffCheckWorkMoney);
+            staffModelField, staffModelFieldMap, socialSecurityFundMoney, staffCheckWorkMoney, rewardPunishMoney);
         // 实发薪资
         staffModelFieldMap.put(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.MONTHLY_STANDARD_REAL_MONEY.getKey(), monthlyStandardRealMoney);
         // 开始输出json
@@ -260,13 +268,16 @@ public class StaffWagesQuartz {
      * @param staffModelFieldMap      该员工拥有的所有薪资要素字段以及对应的值转成的map
      * @param socialSecurityFundMoney 该员工应该缴纳的社保公积金的金额
      * @param staffCheckWorkMoney     员工的考勤相关应扣的薪资，如果为负数，则说明加班和销假>请假以及异常考勤
+     * @param rewardPunishMoney       员工的奖惩金额，正数为奖励，负数为惩罚
      * @return
      */
     private String calcMonthRealMoney(String lastMonthDate, Map<String, List<Map<String, Object>>> taxRate,
                                       String companyId, String actWages, List<Map<String, Object>> staffModelField,
-                                      Map<String, String> staffModelFieldMap, String socialSecurityFundMoney, String staffCheckWorkMoney) {
+                                      Map<String, String> staffModelFieldMap, String socialSecurityFundMoney, String staffCheckWorkMoney, String rewardPunishMoney) {
         String monthlyStandardRealMoney = CalculationUtil.subtract(actWages, socialSecurityFundMoney, CommonNumConstants.NUM_TWO);
         monthlyStandardRealMoney = CalculationUtil.subtract(monthlyStandardRealMoney, staffCheckWorkMoney, CommonNumConstants.NUM_TWO);
+        // 奖惩金额：正数为奖励（增加），负数为惩罚（减少）
+        monthlyStandardRealMoney = CalculationUtil.add(monthlyStandardRealMoney, rewardPunishMoney, CommonNumConstants.NUM_TWO);
         for (Map<String, Object> bean : staffModelField) {
             if (IsDefaultEnum.IS_DEFAULT.getKey().equals(bean.get("monthlyClearing").toString())) {
                 // 只算自动清零的
@@ -337,6 +348,7 @@ public class StaffWagesQuartz {
         }
         beans.addAll(getSocialSecurityFundWagesJson(staffModelFieldMap));
         beans.addAll(getTaxRateWagesJson(staffModelFieldMap));
+        beans.addAll(getRewardPunishWagesJson(staffModelFieldMap));
         return beans;
     }
 
@@ -401,6 +413,31 @@ public class StaffWagesQuartz {
     }
 
     /**
+     * 获取奖惩信息
+     *
+     * @param staffModelFieldMap 薪资数据
+     * @return
+     */
+    private List<Map<String, Object>> getRewardPunishWagesJson(Map<String, String> staffModelFieldMap) {
+        List<Map<String, Object>> beans = new ArrayList<>();
+        Map<String, Object> bean = new HashMap<>();
+        bean.put("name", "奖惩信息");
+        List<WagesModelField> childFields = new ArrayList<>();
+        WagesModelField childField = new WagesModelField();
+        FieldType fieldKeyMation = new FieldType();
+        fieldKeyMation.setName("奖惩金额");
+        childField.setFieldKeyMation(fieldKeyMation);
+        childField.setMoneyValue(staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_REWARD_PUNISH_MONEY.getKey()));
+        childField.setFieldKey(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_REWARD_PUNISH_MONEY.getKey());
+        childField.setFieldType(WagesModelFieldType.FIELD.getKey());
+        childField.setOrderBy(CommonNumConstants.NUM_ONE);
+        childFields.add(childField);
+        bean.put("childFields", childFields);
+        beans.add(bean);
+        return beans;
+    }
+
+    /**
      * 获取减去个人所得税之后的钱
      *
      * @param monthlyStandardRealMoney 未缴税的金额
@@ -431,6 +468,44 @@ public class StaffWagesQuartz {
         monthlyStandardRealMoney = CalculationUtil.subtract(monthlyStandardRealMoney,
             taxRateMoney, CommonNumConstants.NUM_FOUR);
         return monthlyStandardRealMoney;
+    }
+
+    /**
+     * 计算员工的奖惩金额
+     *
+     * @param staffId      员工ID
+     * @param accountMonth 年月（如：2025-01）
+     * @return 奖惩金额（正数为奖励，负数为惩罚）
+     */
+    private String calcRewardPunishMoney(String staffId, String accountMonth) {
+        List<RewardPunish> rewardPunishList = rewardPunishService.queryUnAccountedByStaffIdAndMonth(staffId, accountMonth);
+        if (CollectionUtil.isEmpty(rewardPunishList)) {
+            return "0";
+        }
+        String totalRewardPunishMoney = "0";
+        List<String> rewardPunishIds = new ArrayList<>();
+        for (RewardPunish rp : rewardPunishList) {
+            if (StrUtil.isNotBlank(rp.getPrice())) {
+                // 根据 rewardPunishType 判断是奖励还是惩罚
+                // price 字段都是正数，需要通过 rewardPunishType 来区分
+                if (rp.getRewardPunishType() != null) {
+                    if (rp.getRewardPunishType().equals(com.skyeye.reward.classenum.RewardPunishType.REWARD.getKey())) {
+                        // 奖励：增加金额（正数）
+                        totalRewardPunishMoney = CalculationUtil.add(totalRewardPunishMoney, rp.getPrice(), CommonNumConstants.NUM_TWO);
+                    } else if (rp.getRewardPunishType().equals(com.skyeye.reward.classenum.RewardPunishType.PUNISH.getKey())) {
+                        // 惩罚：减少金额（负数）
+                        totalRewardPunishMoney = CalculationUtil.subtract(totalRewardPunishMoney, rp.getPrice(), CommonNumConstants.NUM_TWO);
+                    }
+                }
+                // 收集需要标记的奖惩记录ID
+                rewardPunishIds.add(rp.getId());
+            }
+        }
+        // 批量标记为已计入薪资
+        if (CollectionUtil.isNotEmpty(rewardPunishIds)) {
+            rewardPunishService.markAsAccountedBatch(rewardPunishIds, accountMonth);
+        }
+        return totalRewardPunishMoney;
     }
 
     /**
