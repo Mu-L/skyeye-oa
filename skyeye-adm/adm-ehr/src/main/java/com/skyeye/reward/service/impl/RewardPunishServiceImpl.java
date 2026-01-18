@@ -4,16 +4,20 @@
 
 package com.skyeye.reward.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.reward.dao.RewardPunishDao;
 import com.skyeye.reward.entity.RewardPunish;
 import com.skyeye.reward.service.RewardPunishService;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 /**
  * @ClassName: RewardPunishServiceImpl
@@ -26,6 +30,14 @@ import org.springframework.stereotype.Service;
 @Service
 @SkyeyeService(name = "员工奖惩信息", groupName = "员工奖惩信息", teamAuth = true)
 public class RewardPunishServiceImpl extends SkyeyeBusinessServiceImpl<RewardPunishDao, RewardPunish> implements RewardPunishService {
+
+    @Override
+    protected void createPrepose(RewardPunish entity) {
+        Map<String, Object> business = BeanUtil.beanToMap(entity);
+        String oddNumber = iCodeRuleService.getNextCodeByClassName(getServiceClassName(), business);
+        entity.setOddNumber(oddNumber);
+        entity.setIsAccounted(WhetherEnum.DISABLE_USING.getKey());
+    }
 
     @Override
     protected QueryWrapper<RewardPunish> getQueryWrapper(CommonPageInfo commonPageInfo) {

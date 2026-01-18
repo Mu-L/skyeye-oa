@@ -32,12 +32,6 @@ public class RewardPunishController {
     @Autowired
     private RewardPunishService rewardPunishService;
 
-    /**
-     * 查询奖惩列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryRewardPunishList", value = "查询奖惩列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/RewardPunishController/queryRewardPunishList")
@@ -45,12 +39,6 @@ public class RewardPunishController {
         rewardPunishService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑员工奖惩信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeRewardPunish", value = "新增/编辑员工奖惩信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = RewardPunish.class)
     @RequestMapping("/post/RewardPunishController/writeRewardPunish")
@@ -58,12 +46,6 @@ public class RewardPunishController {
         rewardPunishService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除员工奖惩信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteRewardPunishById", value = "根据id删除员工奖惩信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

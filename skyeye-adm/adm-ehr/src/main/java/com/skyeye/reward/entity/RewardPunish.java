@@ -13,6 +13,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
 import java.util.Map;
@@ -30,6 +31,10 @@ import java.util.Map;
 @TableName(value = "sys_staff_reward_punish")
 @ApiModel("员工奖惩信息实体类")
 public class RewardPunish extends BaseGeneralInfo {
+
+    @TableField(value = "odd_number", updateStrategy = FieldStrategy.NEVER)
+    @Property(value = "单据编号", fuzzyLike = true)
+    private String oddNumber;
 
     @TableField(value = "reward_punish_time")
     @ApiModelProperty(value = "奖惩时间", required = "required")
@@ -62,5 +67,21 @@ public class RewardPunish extends BaseGeneralInfo {
     @TableField(value = "object_key", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "所属第三方业务数据的key(员工key)", required = "required")
     private String objectKey;
+
+    @TableField(value = "link_id", updateStrategy = FieldStrategy.NEVER)
+    @ApiModelProperty(value = "关联得其他业务数据得id(工单id)")
+    private String linkId;
+
+    @TableField(value = "link_key", updateStrategy = FieldStrategy.NEVER)
+    @ApiModelProperty(value = "关联得其他业务数据得key(工单key)")
+    private String linkKey;
+
+    @TableField(value = "is_accounted")
+    @ApiModelProperty(value = "是否已计入薪资", enumClass = WhetherEnum.class)
+    private Integer isAccounted;
+
+    @TableField(value = "account_month")
+    @ApiModelProperty(value = "计入薪资的年月（如：2025-09）")
+    private String accountMonth;
 
 }
