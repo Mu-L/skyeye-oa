@@ -81,10 +81,16 @@ public class AfterSealController {
         afterSealService.deleteById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "sealseservice022", value = "查询我的待完工状态的工单", method = "GET", allUse = "2")
+    @ApiOperation(id = "sealseservice022", value = "查询我负责的待完工状态的工单", method = "GET", allUse = "2")
     @RequestMapping("/post/AfterSealController/querySealSeServiceSignon")
     public void querySealSeServiceSignon(InputObject inputObject, OutputObject outputObject) {
         afterSealService.querySealSeServiceSignon(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryMyParticipatedPendingCompletedOrders", value = "查询我参与的待完工工单（作为负责人或协助人）", method = "GET", allUse = "2")
+    @RequestMapping("/post/AfterSealController/queryMyParticipatedPendingCompletedOrders")
+    public void queryMyParticipatedPendingCompletedOrders(InputObject inputObject, OutputObject outputObject) {
+        afterSealService.queryMyParticipatedPendingCompletedOrders(inputObject, outputObject);
     }
 
     @ApiOperation(id = "sealseservice035", value = "完工操作", method = "POST", allUse = "1")

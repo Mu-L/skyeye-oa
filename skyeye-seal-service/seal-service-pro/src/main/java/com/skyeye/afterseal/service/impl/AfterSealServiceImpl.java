@@ -255,6 +255,28 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
     }
 
     @Override
+    public void queryMyParticipatedPendingCompletedOrders(InputObject inputObject, OutputObject outputObject) {
+        String currentUserId = InputObject.getLogParamsStatic().get("id").toString();
+
+        // 查询所有待完工状态的工单
+        QueryWrapper<AfterSeal> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(AfterSeal::getState), AfterSealState.BE_COMPLETED.getKey());
+
+        // 条件1：我作为负责人
+        // 条件2：我作为协助人（使用 JSON_CONTAINS 查询 JSON 数组）
+        // 合并查询：我作为负责人 或 我作为协助人
+        queryWrapper.and(wrapper -> {
+            wrapper.or(w -> w.eq(MybatisPlusUtil.toColumns(AfterSeal::getServiceUserId), currentUserId))
+                .or(w -> w.apply("JSON_CONTAINS(cooperation_user_id, {0})", "\"" + currentUserId + "\""));
+        });
+
+        List<AfterSeal> afterSealList = list(queryWrapper);
+
+        outputObject.setBeans(afterSealList);
+        outputObject.settotal(afterSealList.size());
+    }
+
+    @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void auditSealSeServiceOrderById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();

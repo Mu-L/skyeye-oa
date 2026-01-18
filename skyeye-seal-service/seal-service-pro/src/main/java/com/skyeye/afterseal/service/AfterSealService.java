@@ -27,6 +27,8 @@ public interface AfterSealService extends SkyeyeBusinessService<AfterSeal> {
 
     void querySealSeServiceSignon(InputObject inputObject, OutputObject outputObject);
 
+    void queryMyParticipatedPendingCompletedOrders(InputObject inputObject, OutputObject outputObject);
+
     void auditSealSeServiceOrderById(InputObject inputObject, OutputObject outputObject);
 
     void finishSealSeServiceOrderById(InputObject inputObject, OutputObject outputObject);
