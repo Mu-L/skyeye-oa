@@ -14,6 +14,7 @@ import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.FileUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.framework.file.core.client.FileClient;
@@ -79,6 +80,9 @@ public class UploadServiceImpl implements UploadService {
 
     @Autowired
     private FileService fileService;
+
+    @Value("${skyeye.tenant.enable}")
+    protected boolean tenantEnable;
 
     /**
      * 断点续传上传文件
@@ -302,7 +306,14 @@ public class UploadServiceImpl implements UploadService {
                 userId = InputObject.getLogParamsStatic().get("id").toString();
             }
         }
-        fileService.createEntity(file, userId);
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            if (StrUtil.isNotEmpty(tenantId)) {
+                fileService.createEntity(file, userId);
+            }
+        } else {
+            fileService.createEntity(file, userId);
+        }
     }
 
     /**
