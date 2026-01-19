@@ -65,7 +65,7 @@ public class UserEnterpriseServiceImpl extends SkyeyeBusinessServiceImpl<UserEnt
         if (ObjectUtil.isNotEmpty(userEnterprise)) {
             throw new CustomException("用户名已存在，请更换！");
         }
-        return createEntity(entity, userId);
+        return super.createEntity(entity, userId);
     }
 
     @Override
@@ -123,7 +123,7 @@ public class UserEnterpriseServiceImpl extends SkyeyeBusinessServiceImpl<UserEnt
     @Override
     public void loginUserEnterprise(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        String phone = map.get("phone").toString();
+        String phone = map.get("userCode").toString();
         UserEnterprise userEnterprise = queryUserByUserCode(phone);
         if (ObjectUtil.isEmpty(userEnterprise)) {
             throw new CustomException("用户名不存在，请先注册！");
