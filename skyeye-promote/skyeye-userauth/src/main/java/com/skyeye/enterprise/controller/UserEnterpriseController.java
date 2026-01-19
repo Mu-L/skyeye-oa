@@ -81,11 +81,25 @@ public class UserEnterpriseController {
         userEnterpriseService.queryCurrentLoginUserEnterprise(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryUserEnterpriseById", value = "根据id获取企业账户信息", method = "GET", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/UserEnterpriseController/queryUserEnterpriseById")
+    public void queryUserEnterpriseById(InputObject inputObject, OutputObject outputObject) {
+        userEnterpriseService.selectById(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "queryUserEnterpriseList", value = "查询企业账户列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/UserEnterpriseController/queryUserEnterpriseList")
     public void queryUserEnterpriseList(InputObject inputObject, OutputObject outputObject) {
         userEnterpriseService.queryPageList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "existUserEnterprise", value = "企业账户退出", method = "POST", allUse = "2")
+    @RequestMapping("/post/UserEnterpriseController/existUserEnterprise")
+    public void existUserEnterprise(InputObject inputObject, OutputObject outputObject) {
+        userEnterpriseService.existUserEnterprise(inputObject, outputObject);
     }
 
 }

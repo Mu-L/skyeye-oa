@@ -26,4 +26,6 @@ public interface UserEnterpriseService extends SkyeyeBusinessService<UserEnterpr
     void updateUserEnterprisePassword(InputObject inputObject, OutputObject outputObject);
 
     void editUserEnterpriseState(String id, Integer state);
+
+    void existUserEnterprise(InputObject inputObject, OutputObject outputObject);
 }

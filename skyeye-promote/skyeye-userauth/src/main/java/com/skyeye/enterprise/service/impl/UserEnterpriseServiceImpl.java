@@ -20,6 +20,7 @@ import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.object.PutObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -169,6 +170,13 @@ public class UserEnterpriseServiceImpl extends SkyeyeBusinessServiceImpl<UserEnt
         if (SysUserAuthConstants.exitUserLoginRedisCache(userEnterprise.getId() + SysUserAuthConstants.APP_IDENTIFYING)) {
             SysUserAuthConstants.setUserLoginRedisCache(userEnterprise.getId() + SysUserAuthConstants.APP_IDENTIFYING, BeanUtil.beanToMap(userEnterprise));
         }
+    }
+
+    @Override
+    public void existUserEnterprise(InputObject inputObject, OutputObject outputObject) {
+        String userTokenId = GetUserToken.getUserTokenUserId(PutObject.getRequest());
+        SysUserAuthConstants.delUserLoginRedisCache(userTokenId);
+        inputObject.removeSession();
     }
 
     public UserEnterprise queryUserByUserCode(String userCode) {
