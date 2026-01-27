@@ -57,7 +57,7 @@
         <if test="mealByStoreName != '' and mealByStoreName != null">
             AND c.name LIKE '%${mealByStoreName}%'
         </if>
-        <if test="state != '' and state != null and mealByStoreId != '' and mealByStoreId != null">
+        <if test="state != '' and state != null">
             <if test="state == '1'.toString()">
                 AND s.state = 1
             </if>
@@ -65,7 +65,7 @@
                 AND s.state IN(2, 3)
             </if>
         </if>
-        <if test="state != '' and state != null and keepfitStoreId != '' and keepfitStoreId != null">
+        <if test="state != '' and state != null">
             <if test="state == '1'.toString()">
                 AND s.state IN(1, 2)
             </if>

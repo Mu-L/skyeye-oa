@@ -89,12 +89,6 @@ public class StoreIntercourseServiceImpl implements StoreIntercourseService {
         storeIntercourseDao.insertStoreIntercourse(shopStoreIntercourseMationList, tenantId);
     }
 
-    /**
-     * 获取指定门店的支出/收入往来的数据
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @IgnoreTenant
     public void queryStoreIntercourseList(InputObject inputObject, OutputObject outputObject) {
@@ -107,12 +101,6 @@ public class StoreIntercourseServiceImpl implements StoreIntercourseService {
         outputObject.settotal(pages.getTotal());
     }
 
-    /**
-     * 编辑指定门店的支出/收入往来的状态
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void editStoreIntercourseState(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();

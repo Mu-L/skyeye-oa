@@ -5,11 +5,12 @@
 package com.skyeye.scheme.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
-import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.scheme.enums.BydgetType;
 import lombok.Data;
 
@@ -24,7 +25,11 @@ import lombok.Data;
 @Data
 @TableName(value = "pro_scheme_budget_detail")
 @ApiModel("项目方案预算明细实体类")
-public class ProSchemeBudgetDetail extends CommonInfo {
+public class ProSchemeBudgetDetail extends OperatorUserInfo {
+
+    @TableId("id")
+    @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
+    private String id;
 
     @TableField(value = "scheme_id")
     @Property(value = "关联方案id")
