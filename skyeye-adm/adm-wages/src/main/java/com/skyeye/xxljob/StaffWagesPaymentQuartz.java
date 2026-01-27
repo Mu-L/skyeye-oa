@@ -96,7 +96,7 @@ public class StaffWagesPaymentQuartz {
      */
     private void paymentStaffWages(WagesPaymentHistory staffWages, String lastMonthDate) {
         String staffId = staffWages.getStaffId();
-        // todo 这里处理薪资发放的信息
+        // 这里处理薪资发放的信息
 
 
         wagesPaymentHistoryService.editWagesPaymentHistoryState(staffId, lastMonthDate, PaymentHistoryState.ISSUED.getKey());

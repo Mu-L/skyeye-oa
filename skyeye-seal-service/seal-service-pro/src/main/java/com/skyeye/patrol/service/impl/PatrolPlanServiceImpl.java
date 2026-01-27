@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: PatrolPlanServiceImpl
@@ -95,6 +96,25 @@ public class PatrolPlanServiceImpl extends SkyeyeBusinessServiceImpl<PatrolPlanD
         // 查询关联的项目ID列表
         patrolPlan.setItemIds(patrolPlanItemService.selectByParentId(id));
         return patrolPlan;
+    }
+
+    @Override
+    public List<PatrolPlan> getDataFromDb(List<String> idList) {
+        List<PatrolPlan> planList = super.getDataFromDb(idList);
+        if (CollectionUtil.isEmpty(planList)) {
+            return planList;
+        }
+        List<String> planIdList = planList.stream().map(PatrolPlan::getId).collect(Collectors.toList());
+        // 批量查询关联的点位ID列表
+        Map<String, List<String>> pointIdMap = patrolPlanPointService.selectMapByParentId(planIdList);
+        // 批量查询关联的项目ID列表
+        Map<String, List<String>> itemIdMap = patrolPlanItemService.selectMapByParentId(planIdList);
+        // 设置关联的点位ID和项目ID
+        planList.forEach(plan -> {
+            plan.setPointIds(pointIdMap.get(plan.getId()));
+            plan.setItemIds(itemIdMap.get(plan.getId()));
+        });
+        return planList;
     }
 
     @Override

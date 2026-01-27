@@ -128,7 +128,6 @@
         if (stream.match(/^[1-9][\d_]*(e[\+\-]?[\d_]+)?/)) {
           // Decimal literals may be "imaginary"
           stream.eat(/J/i);
-          // TODO - Can you have imaginary longs?
           intLiteral = true;
         }
         // Zero by itself with no other piece of number.

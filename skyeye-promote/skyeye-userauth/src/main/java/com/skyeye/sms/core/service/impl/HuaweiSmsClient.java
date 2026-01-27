@@ -32,8 +32,6 @@ import java.util.stream.Collectors;
 
 import static cn.hutool.crypto.digest.DigestUtil.sha256Hex;
 
-// todo @scholar：参考阿里云在优化下
-
 /**
  * @ClassName: HuaweiSmsClient
  * @Description: 华为短信客户端的实现类

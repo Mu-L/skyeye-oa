@@ -220,7 +220,7 @@ public class TaskListenerDemo implements TaskListener {
      */
     private void sendTaskCreateNotification(DelegateTask delegateTask) {
         LOGGER.info("发送任务创建通知 - 任务: {}", delegateTask.getName());
-        // TODO: 实现通知发送逻辑
+        // 实现通知发送逻辑
     }
 
     /**
@@ -228,7 +228,7 @@ public class TaskListenerDemo implements TaskListener {
      */
     private void recordTaskCreateLog(DelegateTask delegateTask) {
         LOGGER.info("记录任务创建日志 - 任务ID: {}", delegateTask.getId());
-        // TODO: 实现日志记录逻辑
+        // 实现日志记录逻辑
     }
 
     /**
@@ -236,7 +236,7 @@ public class TaskListenerDemo implements TaskListener {
      */
     private void sendTaskAssignmentNotification(DelegateTask delegateTask, String assignee) {
         LOGGER.info("发送任务分配通知 - 任务: {}, 负责人: {}", delegateTask.getName(), assignee);
-        // TODO: 实现通知发送逻辑
+        // 实现通知发送逻辑
     }
 
     /**
@@ -244,7 +244,7 @@ public class TaskListenerDemo implements TaskListener {
      */
     private void recordTaskAssignmentLog(DelegateTask delegateTask, String assignee) {
         LOGGER.info("记录任务分配日志 - 任务ID: {}, 负责人: {}", delegateTask.getId(), assignee);
-        // TODO: 实现日志记录逻辑
+        // 实现日志记录逻辑
     }
 
     /**
@@ -252,7 +252,7 @@ public class TaskListenerDemo implements TaskListener {
      */
     private void updateTaskStatistics(DelegateTask delegateTask, String assignee) {
         LOGGER.info("更新任务统计信息 - 负责人: {}", assignee);
-        // TODO: 实现统计信息更新逻辑
+        // 实现统计信息更新逻辑
     }
 
     /**
@@ -260,7 +260,7 @@ public class TaskListenerDemo implements TaskListener {
      */
     private void updateBusinessStatusAfterComplete(DelegateTask delegateTask, String result) {
         LOGGER.info("更新业务状态 - 任务ID: {}, 结果: {}", delegateTask.getId(), result);
-        // TODO: 实现业务状态更新逻辑
+        // 实现业务状态更新逻辑
     }
 
     /**
@@ -268,7 +268,7 @@ public class TaskListenerDemo implements TaskListener {
      */
     private void sendTaskCompleteNotification(DelegateTask delegateTask, String result) {
         LOGGER.info("发送任务完成通知 - 任务: {}, 结果: {}", delegateTask.getName(), result);
-        // TODO: 实现通知发送逻辑
+        // 实现通知发送逻辑
     }
 
     /**
@@ -276,7 +276,7 @@ public class TaskListenerDemo implements TaskListener {
      */
     private void recordTaskCompleteLog(DelegateTask delegateTask, String result) {
         LOGGER.info("记录任务完成日志 - 任务ID: {}, 结果: {}", delegateTask.getId(), result);
-        // TODO: 实现日志记录逻辑
+        // 实现日志记录逻辑
     }
 
     /**
@@ -284,7 +284,7 @@ public class TaskListenerDemo implements TaskListener {
      */
     private void cleanupTaskData(DelegateTask delegateTask) {
         LOGGER.info("清理任务数据 - 任务ID: {}", delegateTask.getId());
-        // TODO: 实现数据清理逻辑
+        // 实现数据清理逻辑
     }
 
     /**
@@ -292,7 +292,7 @@ public class TaskListenerDemo implements TaskListener {
      */
     private void recordTaskDeleteLog(DelegateTask delegateTask) {
         LOGGER.info("记录任务删除日志 - 任务ID: {}", delegateTask.getId());
-        // TODO: 实现日志记录逻辑
+        // 实现日志记录逻辑
     }
 
     /**
@@ -300,7 +300,7 @@ public class TaskListenerDemo implements TaskListener {
      */
     private void cleanupTaskResources(DelegateTask delegateTask) {
         LOGGER.info("清理任务资源 - 任务ID: {}", delegateTask.getId());
-        // TODO: 实现资源清理逻辑
+        // 实现资源清理逻辑
     }
 }
 

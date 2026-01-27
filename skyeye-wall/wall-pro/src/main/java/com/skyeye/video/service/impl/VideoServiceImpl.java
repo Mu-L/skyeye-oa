@@ -205,7 +205,6 @@ public class VideoServiceImpl extends SkyeyeBusinessServiceImpl<VideoDao, Video>
         return -1; // 获取失败
     }
 
-    // TODO 待优化
     @Override
     public void queryRecommendVideoList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);

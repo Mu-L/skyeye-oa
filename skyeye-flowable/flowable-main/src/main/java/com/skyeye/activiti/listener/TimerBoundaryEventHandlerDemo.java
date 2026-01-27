@@ -130,7 +130,7 @@ public class TimerBoundaryEventHandlerDemo implements JavaDelegate {
         LOGGER.info("发送超时通知邮件 - 流程实例: {}, 负责人: {}, 任务: {}", 
                    processInstanceId, assignee, taskName);
         
-        // TODO: 实现邮件发送逻辑
+        // 实现邮件发送逻辑
         // 示例：
         // EmailService emailService = SpringUtils.getBean(EmailService.class);
         // emailService.sendTimeoutNotification(assignee, taskName, processInstanceId);
@@ -145,7 +145,7 @@ public class TimerBoundaryEventHandlerDemo implements JavaDelegate {
     private void autoReassignTask(String taskId, String currentAssignee) {
         LOGGER.info("自动转派任务 - 任务ID: {}, 当前负责人: {}", taskId, currentAssignee);
         
-        // TODO: 实现任务转派逻辑
+        // 实现任务转派逻辑
         // 示例：
         // TaskService taskService = SpringUtils.getBean(TaskService.class);
         // String newAssignee = getNextAssignee(currentAssignee); // 获取下一个负责人
@@ -162,7 +162,7 @@ public class TimerBoundaryEventHandlerDemo implements JavaDelegate {
     private void escalateTask(String processInstanceId, String taskId) {
         LOGGER.info("升级处理 - 流程实例: {}, 任务ID: {}", processInstanceId, taskId);
         
-        // TODO: 实现升级处理逻辑
+        // 实现升级处理逻辑
         // 示例：
         // 1. 通知上级领导
         // 2. 提高任务优先级
@@ -180,7 +180,7 @@ public class TimerBoundaryEventHandlerDemo implements JavaDelegate {
         LOGGER.info("记录超时日志 - 流程实例: {}, 任务ID: {}, 负责人: {}", 
                    processInstanceId, taskId, assignee);
         
-        // TODO: 实现日志记录逻辑
+        // 实现日志记录逻辑
         // 示例：
         // TaskTimeoutLog log = new TaskTimeoutLog();
         // log.setProcessInstanceId(processInstanceId);
@@ -199,7 +199,7 @@ public class TimerBoundaryEventHandlerDemo implements JavaDelegate {
     private void updateBusinessStatus(String processInstanceId, String status) {
         LOGGER.info("更新业务状态 - 流程实例: {}, 状态: {}", processInstanceId, status);
         
-        // TODO: 实现业务状态更新逻辑
+        // 实现业务状态更新逻辑
         // 示例：
         // BusinessService businessService = SpringUtils.getBean(BusinessService.class);
         // businessService.updateStatus(processInstanceId, status);

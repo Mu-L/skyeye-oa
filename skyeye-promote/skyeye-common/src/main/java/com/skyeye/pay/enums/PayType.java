@@ -44,7 +44,7 @@ public enum PayType implements SkyeyeEnumClass {
     ALIPAY_BAR("alipay_bar", "支付宝条码支付", AlipayPayClientConfig.class, true, false),
     MOCK("mock", "模拟支付", NonePayClientConfig.class, true, false),
 
-    // TODO 钱包支付暂时不支持，后续再添加
+    // 钱包支付暂时不支持，后续再添加
     WALLET("wallet", "钱包支付", NonePayClientConfig.class, false, false);
 
     private String key;

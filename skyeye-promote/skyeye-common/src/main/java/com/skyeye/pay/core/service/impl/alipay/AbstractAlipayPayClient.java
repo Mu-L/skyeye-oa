@@ -244,8 +244,6 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
         Participant payeeInfo = new Participant();
         PayTransferType transferType = PayTransferType.typeOf(reqDTO.getType());
         switch (transferType) {
-            // TODO @jason：是不是不用传递 transferType 参数哈？因为应该已经明确是支付宝啦？
-            // @芋艿。 是不是还要考虑转账到银行卡。所以传 transferType 但是转账到银行卡不知道要如何测试??
             case ALIPAY_BALANCE: {
                 payeeInfo.setIdentityType("ALIPAY_LOGON_ID");
                 payeeInfo.setIdentity(reqDTO.getAlipayLogonId()); // 支付宝登录号
@@ -255,7 +253,6 @@ public abstract class AbstractAlipayPayClient extends AbstractPayClient<AlipayPa
             }
             case BANK_CARD: {
                 payeeInfo.setIdentityType("BANKCARD_ACCOUNT");
-                // TODO 待实现
                 throw new CustomException("功能未实现/未开启");
             }
             default: {

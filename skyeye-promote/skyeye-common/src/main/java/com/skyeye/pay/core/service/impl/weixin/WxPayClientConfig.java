@@ -77,7 +77,7 @@ public class WxPayClientConfig implements PayClientConfig {
     @NotBlank(message = "证书序列号不能为空", groups = V3.class)
     private String certSerialNo;
 
-    @Deprecated // TODO 待移除
+    @Deprecated
     private String privateCertContent;
 
     /**

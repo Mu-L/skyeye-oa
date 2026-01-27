@@ -5,6 +5,7 @@
 package com.skyeye.patrol.controller;
 
 import com.skyeye.annotation.api.Api;
+import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -46,14 +47,16 @@ public class PatrolPlanController {
     }
 
     @ApiOperation(id = "queryPatrolPlanById", value = "根据ID查询巡检计划详情", method = "GET", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/PatrolPlanController/queryPatrolPlanById")
     public void queryPatrolPlanById(InputObject inputObject, OutputObject outputObject) {
         patrolPlanService.selectById(inputObject, outputObject);
     }
 
     @ApiOperation(id = "deletePatrolPlanById", value = "根据ID删除巡检计划", method = "DELETE", allUse = "1")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/PatrolPlanController/deletePatrolPlanById")
     public void deletePatrolPlanById(InputObject inputObject, OutputObject outputObject) {
         patrolPlanService.deleteById(inputObject, outputObject);

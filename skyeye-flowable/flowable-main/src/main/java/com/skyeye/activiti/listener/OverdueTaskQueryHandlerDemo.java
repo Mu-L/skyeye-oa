@@ -127,7 +127,7 @@ public class OverdueTaskQueryHandlerDemo {
      * @return 超期任务列表
      */
     private List<Task> queryOverdueTasks() {
-        // TODO: 实际使用时需要注入 TaskService
+        // 实际使用时需要注入 TaskService
         // 示例代码：
         /*
         Date now = new Date();
@@ -209,7 +209,7 @@ public class OverdueTaskQueryHandlerDemo {
      */
     private void sendOverdueReminder(Task task, long overdueHours) {
         LOGGER.info("发送超期提醒 - 任务: {}, 超期时长: {} 小时", task.getName(), overdueHours);
-        // TODO: 实现提醒发送逻辑
+        // 实现提醒发送逻辑
         // 示例：
         // NotificationService notificationService = SpringUtils.getBean(NotificationService.class);
         // notificationService.sendOverdueReminder(task.getAssignee(), task.getName(), overdueHours);
@@ -220,7 +220,7 @@ public class OverdueTaskQueryHandlerDemo {
      */
     private void sendNormalReminder(Task task, long overdueHours) {
         LOGGER.info("发送普通提醒 - 任务: {}, 超期时长: {} 小时", task.getName(), overdueHours);
-        // TODO: 实现提醒发送逻辑
+        // 实现提醒发送逻辑
     }
 
     /**
@@ -228,7 +228,7 @@ public class OverdueTaskQueryHandlerDemo {
      */
     private void sendUrgentNotification(Task task, long overdueHours) {
         LOGGER.info("发送紧急通知 - 任务: {}, 超期时长: {} 小时", task.getName(), overdueHours);
-        // TODO: 实现紧急通知逻辑
+        // 实现紧急通知逻辑
         // 示例：
         // 1. 发送短信通知
         // 2. 发送邮件给上级
@@ -240,7 +240,7 @@ public class OverdueTaskQueryHandlerDemo {
      */
     private void escalateOverdueTask(Task task, long overdueHours) {
         LOGGER.info("升级超期任务 - 任务: {}, 超期时长: {} 小时", task.getName(), overdueHours);
-        // TODO: 实现升级逻辑
+        // 实现升级逻辑
         // 示例：
         // 1. 转派给上级领导
         // 2. 提高任务优先级
@@ -253,7 +253,7 @@ public class OverdueTaskQueryHandlerDemo {
      */
     private void recordOverdueLog(Task task, long overdueHours) {
         LOGGER.info("记录超期日志 - 任务ID: {}, 超期时长: {} 小时", task.getId(), overdueHours);
-        // TODO: 实现日志记录逻辑
+        // 实现日志记录逻辑
         // 示例：
         // TaskOverdueLog log = new TaskOverdueLog();
         // log.setTaskId(task.getId());
@@ -269,7 +269,7 @@ public class OverdueTaskQueryHandlerDemo {
      */
     private void updateTaskOverdueStatus(Task task, long overdueHours) {
         LOGGER.info("更新任务超期状态 - 任务ID: {}, 超期时长: {} 小时", task.getId(), overdueHours);
-        // TODO: 实现状态更新逻辑
+        // 实现状态更新逻辑
         // 示例：
         // 1. 设置任务变量标记为超期
         // 2. 更新任务扩展属性

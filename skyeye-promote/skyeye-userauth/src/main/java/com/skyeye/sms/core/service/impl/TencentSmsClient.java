@@ -143,7 +143,6 @@ public class TencentSmsClient extends AbstractSmsClient {
         body.put("TemplateIdSet", new Integer[]{Integer.valueOf(apiTemplateId)});
         JSONObject response = request("DescribeSmsTemplateList", body);
 
-        // TODO @scholar：会有请求失败的情况么？类似发送的（那块逻辑我补充了）
         JSONObject TemplateStatusSet = response.getJSONObject("Response").getJSONArray("DescribeTemplateStatusSet").getJSONObject(0);
         String content = TemplateStatusSet.get("TemplateContent").toString();
         int templateStatus = Integer.parseInt(TemplateStatusSet.get("StatusCode").toString());
@@ -177,15 +176,12 @@ public class TencentSmsClient extends AbstractSmsClient {
      */
     private JSONObject request(String action, TreeMap<String, Object> body) throws Exception {
         String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
-        // TODO @scholar：这个 format，看看怎么写的可以简化点
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         // 注意时区，否则容易出错
         sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
         String date = sdf.format(new Date(Long.valueOf(timestamp + "000")));
 
-        // TODO @scholar：这个步骤，看看怎么参考阿里云 client，归类下；1. 2.1 2.2 这种
         // ************* 步骤 1：拼接规范请求串 *************
-        // TODO @scholar：这个 hsot 枚举下；
         String host = "sms.tencentcloudapi.com"; //APP接入地址+接口访问URI
         String httpMethod = "POST"; // 请求方式
         String canonicalUri = "/";
@@ -195,7 +191,6 @@ public class TencentSmsClient extends AbstractSmsClient {
             + "host:" + host + "\n" + "x-tc-action:" + action.toLowerCase() + "\n";
         String signedHeaders = "content-type;host;x-tc-action";
         String hashedRequestBody = sha256Hex(JSONUtil.toJsonStr(body));
-        // TODO @scholar：换行下，不然单行太长了
         String canonicalRequest = httpMethod + "\n" + canonicalUri + "\n" + canonicalQueryString + "\n" + canonicalHeaders + "\n" + signedHeaders + "\n" + hashedRequestBody;
 
         // ************* 步骤 2：拼接待签名字符串 *************
@@ -228,7 +223,6 @@ public class TencentSmsClient extends AbstractSmsClient {
         return JSONUtil.parseObj(responseBody);
     }
 
-    // TODO @scholar：使用 hutool 简化下
     private static byte[] hmac256(byte[] key, String msg) throws Exception {
         Mac mac = Mac.getInstance("HmacSHA256");
         SecretKeySpec secretKeySpec = new SecretKeySpec(key, mac.getAlgorithm());

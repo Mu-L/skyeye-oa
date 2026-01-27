@@ -160,7 +160,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         List<String> normsIdList = orderItemList.stream().map(OrderItem::getNormsId).collect(Collectors.toList());
         List<Map<String, Object>> normsListMap = iShopMaterialNormsService.queryShopMaterialByNormsIdList(Joiner.on(CommonCharConstants.COMMA_MARK).join(normsIdList));
         Map<String, String> normsPriceMap = normsListMap.stream()
-                .collect(Collectors.toMap(map -> map.get("normsId").toString(), map -> map.get("salePrice").toString()));
+            .collect(Collectors.toMap(map -> map.get("normsId").toString(), map -> map.get("salePrice").toString()));
         for (OrderItem orderItem : orderItemList) {// 计算每一个子单的总价
             if (!normsPriceMap.containsKey(orderItem.getNormsId())) {
                 throw new CustomException("商城不存在normsId: " + orderItem.getNormsId());
@@ -212,7 +212,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             setOrderAndOrderItem(couponUse, order, orderItem);// 操作订单和子单的优惠券
         } else if (Objects.equals(couponUse.getProductScope(), PromotionMaterialScope.SPU.getKey())) {// 指定商品
             List<String> couponUseMaterialIds = couponUseMaterialService.queryListByCouponIds(Collections.singletonList(couponUseId))
-                    .stream().map(CouponUseMaterial::getMaterialId).collect(Collectors.toList());// 收集子单商品id
+                .stream().map(CouponUseMaterial::getMaterialId).collect(Collectors.toList());// 收集子单商品id
             List<OrderItem> newOrderItemList = new ArrayList<>();
             for (OrderItem item : orderItemList) {// 筛选出优惠券可用的商品
                 if (couponUseMaterialIds.contains(item.getMaterialId())) {
@@ -323,33 +323,33 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
                 break;
             case "2": // 待收货
                 stateList = Arrays.asList(new Integer[]{
-                        ShopOrderState.UNDELIVERED.getKey(),// 待发货
-                        ShopOrderState.DELIVERED.getKey(), //  已发货
-                        ShopOrderState.TRANSPORTING.getKey()});//运输中
+                    ShopOrderState.UNDELIVERED.getKey(),// 待发货
+                    ShopOrderState.DELIVERED.getKey(), //  已发货
+                    ShopOrderState.TRANSPORTING.getKey()});//运输中
                 break;
             case "3":// 已完成
                 stateList = Arrays.asList(new Integer[]{
-                        ShopOrderState.SIGN.getKey(),       // 已签收
-                        ShopOrderState.COMPLETED.getKey(),  // 已完成
-                        ShopOrderState.UNEVALUATE.getKey(), // 待评价
-                        ShopOrderState.EVALUATED.getKey(),// 已评价
-                        ShopOrderState.PARTIALLYDONE.getKey(),//部分完成
-                        ShopOrderState.PARTIALEVALUATION.getKey()});//部分评价
+                    ShopOrderState.SIGN.getKey(),       // 已签收
+                    ShopOrderState.COMPLETED.getKey(),  // 已完成
+                    ShopOrderState.UNEVALUATE.getKey(), // 待评价
+                    ShopOrderState.EVALUATED.getKey(),// 已评价
+                    ShopOrderState.PARTIALLYDONE.getKey(),//部分完成
+                    ShopOrderState.PARTIALEVALUATION.getKey()});//部分评价
                 break;
             case "4":// 已取消
                 stateList = Arrays.asList(new Integer[]{ShopOrderState.CANCELED.getKey()});
                 break;
             case "5":// 处理中
                 stateList = Arrays.asList(new Integer[]{
-                        ShopOrderState.REFUNDING.getKey(),  // 退款中
-                        ShopOrderState.SALESRETURNING.getKey(),//退货中
-                        ShopOrderState.EXCHANGEING.getKey()});//换货中
+                    ShopOrderState.REFUNDING.getKey(),  // 退款中
+                    ShopOrderState.SALESRETURNING.getKey(),//退货中
+                    ShopOrderState.EXCHANGEING.getKey()});//换货中
                 break;
             case "6": // 申请记录
                 stateList = Arrays.asList(new Integer[]{
-                        ShopOrderState.REFUND.getKey(),     // 已退款
-                        ShopOrderState.SALESRETURNED.getKey(),//已退货
-                        ShopOrderState.EXCHANGED.getKey()});//已换货
+                    ShopOrderState.REFUND.getKey(),     // 已退款
+                    ShopOrderState.SALESRETURNED.getKey(),//已退货
+                    ShopOrderState.EXCHANGED.getKey()});//已换货
         }
         QueryWrapper<Order> wrapper = super.getQueryWrapper(commonPageInfo);
         if (CollectionUtil.isNotEmpty(stateList)) { // 状态列表为空时，则查询全部订单
@@ -380,39 +380,35 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         List<Integer> stateList = new ArrayList<>();
         switch (StrUtil.isEmpty(commonPageInfo.getType()) ? CommonNumConstants.NUM_ZERO.toString() : commonPageInfo.getType()) {
-            // todo 未提交、已提交和支付失败三个枚举未现
+            // 未提交、已提交和支付失败三个枚举未处理
             case "1": // 未支付
-                stateList = Arrays.asList(new Integer[]{ShopOrderState.UNPAID.getKey()});
+                stateList = Arrays.asList(ShopOrderState.UNPAID.getKey());
                 break;
             case "2": // 待收货
-                stateList = Arrays.asList(new Integer[]{
-                        ShopOrderState.UNDELIVERED.getKey(),// 待发货
-                        ShopOrderState.DELIVERED.getKey(), //  已发货
-                        ShopOrderState.TRANSPORTING.getKey()});//运输中
+                stateList = Arrays.asList(ShopOrderState.UNDELIVERED.getKey(),// 待发货
+                    ShopOrderState.DELIVERED.getKey(), //  已发货
+                    ShopOrderState.TRANSPORTING.getKey());//运输中
                 break;
             case "3":// 已完成
-                stateList = Arrays.asList(new Integer[]{
-                        ShopOrderState.SIGN.getKey(),       // 已签收
-                        ShopOrderState.COMPLETED.getKey(),  // 已完成
-                        ShopOrderState.UNEVALUATE.getKey(), // 待评价
-                        ShopOrderState.EVALUATED.getKey(),// 已评价
-                        ShopOrderState.PARTIALLYDONE.getKey(),//部分完成
-                        ShopOrderState.PARTIALEVALUATION.getKey()});//部分评价
+                stateList = Arrays.asList(ShopOrderState.SIGN.getKey(),       // 已签收
+                    ShopOrderState.COMPLETED.getKey(),  // 已完成
+                    ShopOrderState.UNEVALUATE.getKey(), // 待评价
+                    ShopOrderState.EVALUATED.getKey(),// 已评价
+                    ShopOrderState.PARTIALLYDONE.getKey(),//部分完成
+                    ShopOrderState.PARTIALEVALUATION.getKey());//部分评价
                 break;
             case "4":// 已取消
-                stateList = Arrays.asList(new Integer[]{ShopOrderState.CANCELED.getKey()});
+                stateList = Arrays.asList(ShopOrderState.CANCELED.getKey());
                 break;
             case "5":// 处理中
-                stateList = Arrays.asList(new Integer[]{
-                        ShopOrderState.REFUNDING.getKey(),  // 退款中
-                        ShopOrderState.SALESRETURNING.getKey(),//退货中
-                        ShopOrderState.EXCHANGEING.getKey()});//换货中
+                stateList = Arrays.asList(ShopOrderState.REFUNDING.getKey(),  // 退款中
+                    ShopOrderState.SALESRETURNING.getKey(),//退货中
+                    ShopOrderState.EXCHANGEING.getKey());//换货中
                 break;
             case "6": // 申请记录
-                stateList = Arrays.asList(new Integer[]{
-                        ShopOrderState.REFUND.getKey(),     // 已退款
-                        ShopOrderState.SALESRETURNED.getKey(),//已退货
-                        ShopOrderState.EXCHANGED.getKey()});//已换货
+                stateList = Arrays.asList(ShopOrderState.REFUND.getKey(),     // 已退款
+                    ShopOrderState.SALESRETURNED.getKey(),//已退货
+                    ShopOrderState.EXCHANGED.getKey());//已换货
         }
         QueryWrapper<Order> wrapper = new QueryWrapper<>();
         if (CollectionUtil.isNotEmpty(stateList)) { // 状态列表为空时，则查询全部订单
@@ -481,12 +477,12 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
     private List<Order> setAddressMationForList(List<Order> orderList) {
         Map<String, Map<String, Object>> addressMap = new HashMap<>();
         List<String> addressTableIdList = orderList.stream().filter(order -> Objects.equals(order.getAddressFromType(), AddressFromTypeEnums.ADDRESS_TABLE.getKey()))
-                .map(Order::getAddressId).distinct().collect(Collectors.toList());
+            .map(Order::getAddressId).distinct().collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(addressTableIdList)) {
             addressMap.putAll(shopAddressService.queryListByIds(addressTableIdList));
         }
         List<String> addressHistoryIdList = orderList.stream().filter(order -> Objects.equals(order.getAddressFromType(), AddressFromTypeEnums.ADDRESS_HISTORY_TABLE.getKey()))
-                .map(Order::getAddressId).distinct().collect(Collectors.toList());
+            .map(Order::getAddressId).distinct().collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(addressHistoryIdList)) {
             addressMap.putAll(shopAddressHistoryService.queryListByIds(addressHistoryIdList));
         }
@@ -511,9 +507,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         }
         // 可取消的订单状态：未提交(0)、已提交(1)、待支付(2)、待发货(5)
         if (Objects.equals(one.getState(), ShopOrderState.UNSUBMIT.getKey()) ||
-                Objects.equals(one.getState(), ShopOrderState.SUBMIT.getKey()) ||
-                Objects.equals(one.getState(), ShopOrderState.UNPAID.getKey()) ||
-                Objects.equals(one.getState(), ShopOrderState.UNDELIVERED.getKey())) {
+            Objects.equals(one.getState(), ShopOrderState.SUBMIT.getKey()) ||
+            Objects.equals(one.getState(), ShopOrderState.UNPAID.getKey()) ||
+            Objects.equals(one.getState(), ShopOrderState.UNDELIVERED.getKey())) {
             updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.CANCELED.getKey());
             updateWrapper.set(MybatisPlusUtil.toColumns(Order::getCancelType), params.get("cancelType"));
             updateWrapper.set(MybatisPlusUtil.toColumns(Order::getCancelTime), DateUtil.getTimeAndToString());
@@ -577,7 +573,7 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getPayTime), payOrderRespDTO.get("successTime").toString());
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getChannelFeeRate), payChannel.get("feeRate").toString());
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getChannelFeePrice), CalculationUtil.multiply(
-                one.getPayPrice(), payChannel.get("feeRate").toString()));
+            one.getPayPrice(), payChannel.get("feeRate").toString()));
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getExtensionId), payOrderRespDTO.get("id").toString());
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getExtensionNo), payOrderRespDTO.get("no").toString());
         update(updateWrapper);
@@ -622,8 +618,8 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
         UpdateWrapper<Order> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, orderId);
         updateWrapper.set(MybatisPlusUtil.toColumns(Order::getState), ShopOrderState.CANCELED.getKey())
-                .set(MybatisPlusUtil.toColumns(Order::getCancelType), ShopOrderCancelType.PAY_TIMEOUT.getKey())
-                .set(MybatisPlusUtil.toColumns(Order::getCancelTime), DateUtil.getTimeAndToString());
+            .set(MybatisPlusUtil.toColumns(Order::getCancelType), ShopOrderCancelType.PAY_TIMEOUT.getKey())
+            .set(MybatisPlusUtil.toColumns(Order::getCancelTime), DateUtil.getTimeAndToString());
         update(updateWrapper);
         refreshCache(orderId);
     }
@@ -667,9 +663,9 @@ public class OrderServiceImpl extends SkyeyeBusinessServiceImpl<OrderDao, Order>
             throw new CustomException("订单不存在");
         }
         List<Integer> stateList = Arrays.asList(ShopOrderState.UNSUBMIT.getKey(), ShopOrderState.SUBMIT.getKey(),
-                ShopOrderState.UNPAID.getKey(), ShopOrderState.FAIRPAID.getKey(),
-                ShopOrderState.CANCELED.getKey(), ShopOrderState.UNDELIVERED.getKey(),
-                ShopOrderState.DELIVERED.getKey(), ShopOrderState.TRANSPORTING.getKey());
+            ShopOrderState.UNPAID.getKey(), ShopOrderState.FAIRPAID.getKey(),
+            ShopOrderState.CANCELED.getKey(), ShopOrderState.UNDELIVERED.getKey(),
+            ShopOrderState.DELIVERED.getKey(), ShopOrderState.TRANSPORTING.getKey());
         if (!stateList.contains(order.getState())) {
             throw new CustomException("订单的当前状态不允许修改收货地址");
         }
