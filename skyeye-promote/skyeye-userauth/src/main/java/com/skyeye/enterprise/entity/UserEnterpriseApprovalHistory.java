@@ -41,6 +41,6 @@ public class UserEnterpriseApprovalHistory extends OperatorUserInfo {
 
     @TableField(value = "approval_content", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "审批时填写的备注内容")
-    private Integer approvalContent;
+    private String approvalContent;
 
 }

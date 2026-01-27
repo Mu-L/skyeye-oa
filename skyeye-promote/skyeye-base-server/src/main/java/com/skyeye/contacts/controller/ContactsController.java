@@ -32,12 +32,6 @@ public class ContactsController {
     @Autowired
     private ContactsService contactsService;
 
-    /**
-     * 获取联系人列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryContactsList", value = "获取联系人列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ContactsController/queryContactsList")
@@ -45,12 +39,6 @@ public class ContactsController {
         contactsService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑联系人信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeContactsMation", value = "新增/编辑联系人信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = Contacts.class)
     @RequestMapping("/post/ContactsController/writeContactsMation")
@@ -58,12 +46,6 @@ public class ContactsController {
         contactsService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id删除联系人信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteContactsMationById", value = "根据id删除联系人信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -72,12 +54,6 @@ public class ContactsController {
         contactsService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 根据id批量获取联系人信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryContactsByIds", value = "根据id批量获取联系人信息", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "ids", name = "ids", value = "主键id", required = "required")})
@@ -86,12 +62,6 @@ public class ContactsController {
         contactsService.selectByIds(inputObject, outputObject);
     }
 
-    /**
-     * 根据业务数据id获取联系人列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryContactsListByObject", value = "根据业务数据id获取联系人列表", method = "GET", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "业务数据id")})
@@ -100,12 +70,6 @@ public class ContactsController {
         contactsService.queryContactsListByObject(inputObject, outputObject);
     }
 
-    /**
-     * 根据业务数据id批量获取联系人列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryContactsListByObjectIds", value = "根据业务数据id批量获取联系人列表", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "objectIds", name = "objectIds", value = "业务数据id集合", required = "json")})
