@@ -8,6 +8,7 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.patrol.entity.PatrolPlanItem;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: PatrolPlanItemService
@@ -40,7 +41,7 @@ public interface PatrolPlanItemService extends SkyeyeBusinessService<PatrolPlanI
      * @param planIds 计划ID列表
      * @return Map<计划ID, 项目ID列表>
      */
-    java.util.Map<String, List<String>> selectMapByParentId(List<String> planIds);
+    Map<String, List<String>> selectMapByParentId(List<String> planIds);
 
     /**
      * 保存计划关联的项目列表
