@@ -33,9 +33,9 @@ public class ProEvaluationServiceImpl extends SkyeyeBusinessServiceImpl<ProEvalu
     @Override
     protected QueryWrapper<ProEvaluation> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<ProEvaluation> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        if (StrUtil.isNotEmpty(commonPageInfo.getHolderKey())) {
+        if (StrUtil.isNotEmpty(commonPageInfo.getCustomParamsMapStr("projectId"))) {
             // 根据项目ID过滤
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ProEvaluation::getProjectId), commonPageInfo.getHolderKey());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ProEvaluation::getProjectId), commonPageInfo.getCustomParamsMapStr("projectId"));
         }
         return queryWrapper;
     }
