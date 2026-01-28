@@ -56,10 +56,6 @@ public class EnterpriseProduct extends BaseGeneralInfo {
     @ApiModelProperty(value = "商品编码", required = "required", fuzzyLike = true)
     private String productCode;
 
-    @TableField(value = "norms_spec", typeHandler = JacksonTypeHandler.class)
-    @ApiModelProperty(value = "商品规格类型，多规格时具备该数据")
-    private List<Map<String, Object>> normsSpec;
-
     @TableField(exist = false)
     @Property(value = "所属分类信息")
     private Map<String, Object> categoryMation;
@@ -84,8 +80,12 @@ public class EnterpriseProduct extends BaseGeneralInfo {
     @ApiModelProperty(value = "启用状态", enumClass = EnableEnum.class, required = "required,num")
     private Integer enabled;
 
+    @TableField(value = "norms_spec", typeHandler = JacksonTypeHandler.class)
+    @ApiModelProperty(value = "商品规格类型，多规格时具备该数据")
+    private List<Map<String, Object>> normsSpec;
+
     @TableField(exist = false)
-    @Property(value = "商品规格列表")
+    @ApiModelProperty(value = "商品规格列表", required = "required,json")
     private List<EnterpriseProductNorms> materialNorms;
 
 }
