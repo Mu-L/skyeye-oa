@@ -13,6 +13,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import lombok.Data;
 
 import java.util.List;
@@ -80,7 +81,7 @@ public class MaterialNorms extends OperatorUserInfo {
     private List<MaterialNormsStock> orderStock;
 
     @TableField(value = "enabled")
-    @ApiModelProperty(value = "状态，参考#EnableEnum", required = "required,num")
+    @ApiModelProperty(value = "状态", enumClass = EnableEnum.class, required = "required,num")
     private Integer enabled;
 
     @TableField(value = "order_by")
