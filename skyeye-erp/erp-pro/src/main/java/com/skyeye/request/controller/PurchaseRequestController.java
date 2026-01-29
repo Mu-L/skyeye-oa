@@ -119,4 +119,11 @@ public class PurchaseRequestController {
         purchaseRequestService.setQuoteInfo(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryEnterpriseQuoteRequestList", value = "获取企业账户允许参与报价的单据信息", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/PurchaseRequestController/queryEnterpriseQuoteRequestList")
+    public void queryEnterpriseQuoteRequestList(InputObject inputObject, OutputObject outputObject) {
+        purchaseRequestService.queryEnterpriseQuoteRequestList(inputObject, outputObject);
+    }
+
 }

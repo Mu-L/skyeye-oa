@@ -58,4 +58,12 @@ public interface PurchaseRequestService extends SkyeyeBusinessService<PurchaseRe
      */
     void setQuoteInfo(InputObject inputObject, OutputObject outputObject);
 
+    /**
+     * 获取企业账户允许参与报价的单据信息
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    void queryEnterpriseQuoteRequestList(InputObject inputObject, OutputObject outputObject);
+
 }

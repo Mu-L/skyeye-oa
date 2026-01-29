@@ -10,10 +10,17 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
+import com.github.yulichang.toolkit.JoinWrappers;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.DeleteFlagEnum;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -25,6 +32,7 @@ import com.skyeye.constants.ErpConstants;
 import com.skyeye.contract.classenum.SupplierContractFromType;
 import com.skyeye.contract.entity.SupplierContract;
 import com.skyeye.contract.service.SupplierContractService;
+import com.skyeye.eve.service.ITenantService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.service.MaterialService;
@@ -87,6 +95,9 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
 
     @Autowired
     private IProProjectService iProProjectService;
+
+    @Autowired
+    private ITenantService iTenantService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -444,6 +455,77 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
 
         update(updateWrapper);
         refreshCache(id);
+    }
+
+    @Override
+    @IgnoreTenant
+    public void queryEnterpriseQuoteRequestList(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+
+        // 从登录用户信息中获取营业执照注册号
+        String socialCreditCode = InputObject.getLogParamsStatic().getOrDefault("socialCreditCode", StrUtil.EMPTY).toString();
+        if (StrUtil.isEmpty(socialCreditCode)) {
+            throw new CustomException("未获取到企业营业执照注册号，请先登录企业账户");
+        }
+
+        // 使用 MPJLambdaWrapper 关联查询采购申请表和供应商表
+        MPJLambdaWrapper<PurchaseRequest> wrapper = JoinWrappers.lambda("pr", PurchaseRequest.class)
+            .leftJoin(Supplier.class, "s", Supplier::getId, PurchaseRequest::getId);
+
+        // 根据营业执照注册号匹配供应商（实际关联条件）
+        wrapper.eq("s." + MybatisPlusUtil.toColumns(Supplier::getSocialCreditCode), socialCreditCode);
+        wrapper.eq("s." + MybatisPlusUtil.toColumns(Supplier::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
+
+        // 只查询已设置报价信息的采购申请
+        wrapper.isNotNull("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getSupplierQuoteType));
+
+        // 检查报价类型：全部供应商或指定供应商（且当前供应商ID在 supplierId JSON 数组中）
+        wrapper.and(w -> w
+            .eq("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getSupplierQuoteType),
+                PurchaseRequestSupplierQuoteType.ALL_SUPPLIER.getKey())
+            .or(subW -> {
+                // 指定供应商模式，需要检查 supplierId 字段（JSON 数组）中是否包含当前供应商ID
+                // supplierId 是 JSON 数组格式，例如：["id1","id2"]，使用 JSON_CONTAINS
+                subW.eq("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getSupplierQuoteType),
+                        PurchaseRequestSupplierQuoteType.SPECIFIED_SUPPLIER.getKey())
+                    .apply("JSON_CONTAINS(pr.supplier_id, s.supplier_id)");
+            })
+        );
+
+        // 检查报价时间段：如果设置了时间段，当前时间必须在时间段内（包含等于的情况）
+        String currentTime = DateUtil.getYmdTimeAndToString();
+        wrapper.and(w -> w
+            .isNull("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getQuoteStartTime))
+            .or(subW -> subW.le("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getQuoteStartTime), currentTime))
+        );
+        wrapper.and(w -> w
+            .isNull("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getQuoteEndTime))
+            .or(subW -> subW.ge("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getQuoteEndTime), currentTime))
+        );
+
+        // 关键词查询：根据 oddNumber（单据编号）进行模糊查询
+        if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
+            wrapper.and(w -> w
+                .like("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getOddNumber), commonPageInfo.getKeyword())
+            );
+        }
+
+        // 只查询已提交审批或审批中的单据（状态为审批通过），询价状态是待询价或者是询价中的
+        wrapper.eq("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getState), FlowableStateEnum.PASS.getKey());
+        wrapper.in("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getInquiryState), PurchaseRequestInquiryState.WAIT_INQUIRY.getKey(),
+            PurchaseRequestInquiryState.INQUIRYING.getKey());
+
+        // 排序：按创建时间倒序
+        wrapper.orderByDesc("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getCreateTime));
+
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        // 执行查询
+        List<Map<String, Object>> resultList = baseMapper.selectJoinMaps(wrapper);
+
+        iTenantService.setMationForMap(resultList, "tenantId", "tenantMation");
+
+        outputObject.setBeans(resultList);
+        outputObject.settotal(pages.getTotal());
     }
 
 }

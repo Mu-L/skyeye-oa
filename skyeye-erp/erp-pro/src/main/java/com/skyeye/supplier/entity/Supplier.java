@@ -4,17 +4,17 @@
 
 package com.skyeye.supplier.entity;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.AreaGeneralInfo;
-import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.DeleteFlagEnum;
 import lombok.Data;
 
 /**
@@ -85,6 +85,7 @@ public class Supplier extends AreaGeneralInfo {
     private String bankAddress;
 
     @TableField(value = "delete_flag")
+    @Property(value = "删除标识", enumClass = DeleteFlagEnum.class)
     private Integer deleteFlag;
 
     @TableField(value = "team_template_id", updateStrategy = FieldStrategy.NEVER)
