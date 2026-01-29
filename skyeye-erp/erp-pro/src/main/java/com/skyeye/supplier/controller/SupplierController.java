@@ -62,4 +62,10 @@ public class SupplierController {
         supplierService.deleteById(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryAllSupplierList", value = "获取所有供应商信息列表", method = "POST", allUse = "2")
+    @RequestMapping("/post/SupplierController/queryAllSupplierList")
+    public void queryAllSupplierList(InputObject inputObject, OutputObject outputObject) {
+        supplierService.queryAllSupplierList(inputObject, outputObject);
+    }
+
 }

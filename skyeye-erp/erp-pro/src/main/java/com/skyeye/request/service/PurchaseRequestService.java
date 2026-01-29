@@ -49,4 +49,13 @@ public interface PurchaseRequestService extends SkyeyeBusinessService<PurchaseRe
     void purchaseRequestToContract(InputObject inputObject, OutputObject outputObject);
 
     void setRequestMationByFromId(List<Map<String, Object>> beans, String idKey, String mationKey);
+
+    /**
+     * 设置采购申请报价信息（包含供应商权限和时间段）
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    void setQuoteInfo(InputObject inputObject, OutputObject outputObject);
+
 }

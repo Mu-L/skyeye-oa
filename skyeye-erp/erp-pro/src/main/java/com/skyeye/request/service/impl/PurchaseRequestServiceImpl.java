@@ -18,6 +18,7 @@ import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.MapUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.constants.ErpConstants;
@@ -30,6 +31,7 @@ import com.skyeye.material.service.MaterialService;
 import com.skyeye.request.classenum.PurchaseRequestChildInquiry;
 import com.skyeye.request.classenum.PurchaseRequestInquiryState;
 import com.skyeye.request.classenum.PurchaseRequestStateEnum;
+import com.skyeye.request.classenum.PurchaseRequestSupplierQuoteType;
 import com.skyeye.request.dao.PurchaseRequestDao;
 import com.skyeye.request.entity.PurchaseRequest;
 import com.skyeye.request.entity.PurchaseRequestChild;
@@ -40,6 +42,7 @@ import com.skyeye.request.service.PurchaseRequestFixedChildService;
 import com.skyeye.request.service.PurchaseRequestInquiryChildService;
 import com.skyeye.request.service.PurchaseRequestService;
 import com.skyeye.rest.project.service.IProProjectService;
+import com.skyeye.supplier.entity.Supplier;
 import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -213,6 +216,13 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
         iProProjectService.setDataMation(purchaseRequest, PurchaseRequest::getProjectId);
         // 设置定价人员信息
         iAuthUserService.setDataMation(purchaseRequest, PurchaseRequest::getFixedPriceUserId);
+
+        // 设置允许报价的供应商信息
+        if (PurchaseRequestSupplierQuoteType.SPECIFIED_SUPPLIER.getKey().equals(purchaseRequest.getSupplierQuoteType())
+            && CollectionUtil.isNotEmpty(purchaseRequest.getSupplierId())) {
+            List<Supplier> supplierMationList = supplierService.selectByIds(purchaseRequest.getSupplierId().toArray(new String[]{}));
+            purchaseRequest.setSupplierMation(supplierMationList);
+        }
         return purchaseRequest;
     }
 
@@ -324,8 +334,8 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
             return purchaseRequest;
         }
         purchaseRequest.getPurchaseRequestFixedChildList().forEach(purchaseRequestFixedChild -> {
-            String operNumber = StrUtil.isEmpty(purchaseRequestFixedChild.getOperNumber()) 
-                ? CommonNumConstants.NUM_ZERO.toString() 
+            String operNumber = StrUtil.isEmpty(purchaseRequestFixedChild.getOperNumber())
+                ? CommonNumConstants.NUM_ZERO.toString()
                 : purchaseRequestFixedChild.getOperNumber();
             String contractNum = executeNum.getOrDefault(purchaseRequestFixedChild.getNormsId(), CommonNumConstants.NUM_ZERO.toString());
             if (StrUtil.isEmpty(contractNum)) {
@@ -338,8 +348,8 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
         // 过滤掉申请数量为0的进行生成合同
         purchaseRequest.setPurchaseRequestFixedChildList(purchaseRequest.getPurchaseRequestFixedChildList().stream()
             .filter(purchaseRequestChild -> {
-                String operNumber = StrUtil.isEmpty(purchaseRequestChild.getOperNumber()) 
-                    ? CommonNumConstants.NUM_ZERO.toString() 
+                String operNumber = StrUtil.isEmpty(purchaseRequestChild.getOperNumber())
+                    ? CommonNumConstants.NUM_ZERO.toString()
                     : purchaseRequestChild.getOperNumber();
                 return CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) > 0;
             }).collect(Collectors.toList()));
@@ -383,4 +393,57 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
             }
         }
     }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void setQuoteInfo(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String id = map.get("id").toString();
+        String supplierQuoteType = map.get("supplierQuoteType").toString();
+        String supplierId = map.get("supplierId").toString();
+        String quoteStartTime = map.get("quoteStartTime").toString();
+        String quoteEndTime = map.get("quoteEndTime").toString();
+        String userId = inputObject.getLogParams().get("id").toString();
+
+        PurchaseRequest purchaseRequest = selectById(id);
+        if (purchaseRequest == null) {
+            outputObject.setreturnMessage("采购申请不存在");
+            return;
+        }
+
+        // 验证供应商报价类型参数
+        if (!PurchaseRequestSupplierQuoteType.ALL_SUPPLIER.getKey().equals(supplierQuoteType) &&
+            !PurchaseRequestSupplierQuoteType.SPECIFIED_SUPPLIER.getKey().equals(supplierQuoteType)) {
+            outputObject.setreturnMessage("供应商报价类型参数错误");
+            return;
+        }
+
+        // 验证指定供应商时的必填性
+        if (PurchaseRequestSupplierQuoteType.SPECIFIED_SUPPLIER.getKey().equals(supplierQuoteType) && StrUtil.isEmpty(supplierId)) {
+            outputObject.setreturnMessage("选择指定供应商报价时，必须选择至少一个供应商");
+            return;
+        }
+
+        // 验证时间段合理性
+        if (StrUtil.isNotEmpty(quoteStartTime) && StrUtil.isNotEmpty(quoteEndTime)) {
+            if (quoteStartTime.compareTo(quoteEndTime) > 0) {
+                outputObject.setreturnMessage("报价开始时间不能晚于结束时间");
+                return;
+            }
+        }
+
+        // 更新报价信息
+        UpdateWrapper<PurchaseRequest> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id)
+            .set(MybatisPlusUtil.toColumns(PurchaseRequest::getSupplierQuoteType), supplierQuoteType)
+            .set(MybatisPlusUtil.toColumns(PurchaseRequest::getSupplierId), supplierId)
+            .set(MybatisPlusUtil.toColumns(PurchaseRequest::getQuoteStartTime), quoteStartTime)
+            .set(MybatisPlusUtil.toColumns(PurchaseRequest::getQuoteEndTime), quoteEndTime)
+            .set(MybatisPlusUtil.toColumns(PurchaseRequest::getLastUpdateId), userId)
+            .set(MybatisPlusUtil.toColumns(PurchaseRequest::getLastUpdateTime), DateUtil.getTimeAndToString());
+
+        update(updateWrapper);
+        refreshCache(id);
+    }
+
 }

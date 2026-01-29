@@ -32,21 +32,21 @@ public class EnterpriseProductController {
     @Autowired
     private EnterpriseProductService enterpriseProductService;
 
-    @ApiOperation(id = "queryEnterpriseProductList", value = "获取企业商品信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryEnterpriseProductList", value = "获取企业商品信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/EnterpriseProductController/queryEnterpriseProductList")
     public void queryEnterpriseProductList(InputObject inputObject, OutputObject outputObject) {
         enterpriseProductService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "writeEnterpriseProduct", value = "新增/编辑企业商品信息", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeEnterpriseProduct", value = "新增/编辑企业商品信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = EnterpriseProduct.class)
     @RequestMapping("/post/EnterpriseProductController/writeEnterpriseProduct")
     public void writeEnterpriseProduct(InputObject inputObject, OutputObject outputObject) {
         enterpriseProductService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteEnterpriseProductById", value = "删除企业商品信息", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteEnterpriseProductById", value = "删除企业商品信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/EnterpriseProductController/deleteEnterpriseProductById")

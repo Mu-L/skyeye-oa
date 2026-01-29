@@ -11,6 +11,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.DeleteFlagEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.ResultEntity;
@@ -103,6 +104,16 @@ public class SupplierServiceImpl extends SkyeyeBusinessServiceImpl<SupplierDao, 
     @Override
     public void deletePostpose(String id) {
         iTeamBusinessService.deleteTeamBusiness(id, getServiceClassName());
+    }
+
+    @Override
+    public void queryAllSupplierList(InputObject inputObject, OutputObject outputObject) {
+        QueryWrapper<Supplier> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Supplier::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(Supplier::getCreateTime));
+        List<Supplier> supplierList = list(queryWrapper);
+        outputObject.setBeans(supplierList);
+        outputObject.settotal(supplierList.size());
     }
 
 }

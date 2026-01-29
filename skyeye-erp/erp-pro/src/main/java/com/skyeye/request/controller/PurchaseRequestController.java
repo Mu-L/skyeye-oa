@@ -13,6 +13,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.contract.entity.SupplierContract;
+import com.skyeye.request.classenum.PurchaseRequestSupplierQuoteType;
 import com.skyeye.request.entity.PurchaseRequest;
 import com.skyeye.request.service.PurchaseRequestService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -104,6 +105,18 @@ public class PurchaseRequestController {
     @RequestMapping("/post/PurchaseRequestController/purchaseRequestToContract")
     public void purchaseRequestToContract(InputObject inputObject, OutputObject outputObject) {
         purchaseRequestService.purchaseRequestToContract(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "setQuoteInfo", value = "设置采购申请报价信息", method = "POST", allUse = "1")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "id", name = "id", value = "采购申请id", required = "required"),
+        @ApiImplicitParam(id = "supplierQuoteType", name = "supplierQuoteType", value = "供应商报价类型", enumClass = PurchaseRequestSupplierQuoteType.class, required = "required"),
+        @ApiImplicitParam(id = "supplierId", name = "supplierId", value = "指定供应商IDs，json字符串", required = "json"),
+        @ApiImplicitParam(id = "quoteStartTime", name = "quoteStartTime", value = "报价开始时间"),
+        @ApiImplicitParam(id = "quoteEndTime", name = "quoteEndTime", value = "报价结束时间")})
+    @RequestMapping("/post/PurchaseRequestController/setQuoteInfo")
+    public void setQuoteInfo(InputObject inputObject, OutputObject outputObject) {
+        purchaseRequestService.setQuoteInfo(inputObject, outputObject);
     }
 
 }

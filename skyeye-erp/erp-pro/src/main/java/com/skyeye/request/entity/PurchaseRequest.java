@@ -6,12 +6,17 @@ package com.skyeye.request.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
+import com.skyeye.request.classenum.PurchaseRequestFromType;
+import com.skyeye.request.classenum.PurchaseRequestInquiryState;
+import com.skyeye.request.classenum.PurchaseRequestSupplierQuoteType;
+import com.skyeye.supplier.entity.Supplier;
 import lombok.Data;
 
 import java.util.List;
@@ -27,7 +32,7 @@ import java.util.Map;
  */
 @Data
 @RedisCacheField(name = "erp:order:purchaseRequest", cacheTime = RedisConstants.THIRTY_DAY_SECONDS)
-@TableName(value = "erp_purchase_request")
+@TableName(value = "erp_purchase_request", autoResultMap = true)
 @ApiModel("采购申请实体类")
 public class PurchaseRequest extends SkyeyeFlowable {
 
@@ -40,7 +45,7 @@ public class PurchaseRequest extends SkyeyeFlowable {
     private String operTime;
 
     @TableField("from_type_id")
-    @ApiModelProperty(value = "来源单据类型，参考#PurchaseRequestFromType")
+    @ApiModelProperty(value = "来源单据类型", enumClass = PurchaseRequestFromType.class)
     private Integer fromTypeId;
 
     @TableField("from_id")
@@ -48,8 +53,28 @@ public class PurchaseRequest extends SkyeyeFlowable {
     private String fromId;
 
     @TableField("inquiry_state")
-    @Property(value = "询价状态，参考#PurchaseRequestInquiryState")
+    @Property(value = "询价状态", enumClass = PurchaseRequestInquiryState.class)
     private Integer inquiryState;
+
+    @TableField("supplier_quote_type")
+    @ApiModelProperty(value = "供应商报价类型", enumClass = PurchaseRequestSupplierQuoteType.class)
+    private String supplierQuoteType;
+
+    @TableField(value = "supplier_id", typeHandler = JacksonTypeHandler.class)
+    @ApiModelProperty(value = "指定供应商IDs，json字符串")
+    private List<String> supplierId;
+
+    @TableField(exist = false)
+    @Property(value = "指定供应商信息列表")
+    private List<Supplier> supplierMation;
+
+    @TableField("quote_start_time")
+    @ApiModelProperty(value = "报价开始时间")
+    private String quoteStartTime;
+
+    @TableField("quote_end_time")
+    @ApiModelProperty(value = "报价结束时间")
+    private String quoteEndTime;
 
     @TableField("total_price")
     @ApiModelProperty(value = "合计总金额")

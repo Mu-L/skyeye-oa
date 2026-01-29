@@ -21,4 +21,6 @@ public interface SupplierService extends SkyeyeBusinessService<Supplier> {
 
     void querySupplierList(InputObject inputObject, OutputObject outputObject);
 
+    void queryAllSupplierList(InputObject inputObject, OutputObject outputObject);
+
 }
