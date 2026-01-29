@@ -12,7 +12,7 @@ import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
-import com.skyeye.common.entity.features.Version;
+import com.skyeye.common.entity.features.VersionFlowable;
 import lombok.Data;
 
 import java.util.List;
@@ -30,7 +30,7 @@ import java.util.Map;
 @RedisCacheField(name = "pm:projectScheme", cacheTime = RedisConstants.TOW_MONTH_SECONDS)
 @TableName(value = "pro_scheme")
 @ApiModel("项目方案实体类")
-public class ProScheme extends Version {
+public class ProScheme extends VersionFlowable {
 
     @TableField("`name`")
     @ApiModelProperty(value = "名称", required = "required", fuzzyLike = true)

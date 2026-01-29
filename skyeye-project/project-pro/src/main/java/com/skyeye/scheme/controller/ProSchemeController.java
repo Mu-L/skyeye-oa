@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.features.SubmitSkyeyeFlowable;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -92,6 +93,21 @@ public class ProSchemeController {
     @RequestMapping("/post/ProSchemeController/publishSchemeVersionById")
     public void publishSchemeVersionById(InputObject inputObject, OutputObject outputObject) {
         proSchemeService.publishVersionById(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "submitToApprovalProScheme", value = "项目方案提交审批", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
+    @RequestMapping("/post/ProSchemeController/submitToApproval")
+    public void submitToApproval(InputObject inputObject, OutputObject outputObject) {
+        proSchemeService.submitToApproval(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "revokeProScheme", value = "撤销项目方案审批申请", method = "PUT", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
+    @RequestMapping("/post/ProSchemeController/revoke")
+    public void revoke(InputObject inputObject, OutputObject outputObject) {
+        proSchemeService.revoke(inputObject, outputObject);
     }
 
 }

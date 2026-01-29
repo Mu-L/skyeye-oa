@@ -4,7 +4,6 @@
 
 package com.skyeye.scheme.service.impl;
 
-import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -38,7 +37,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "项目方案管理", groupName = "项目方案管理")
+@SkyeyeService(name = "项目方案管理", groupName = "项目方案管理", flowable = true)
 public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao, ProScheme> implements ProSchemeService {
 
     @Autowired
@@ -73,15 +72,8 @@ public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao
         calculateBudget(entity);
         if (StrUtil.isNotEmpty(entity.getId())) {
             // 查询上一个版本的信息
-            ProScheme preVersionProScheme = selectById(entity.getId());
-            entity.setSchemeCode(preVersionProScheme.getSchemeCode());
             // 如果id不为空，说明可能是创建新版本或者编辑已有版本，要清空缓存，防止创建新版本情况下，老版本数据缓存
             clearCache(entity.getId());
-        } else {
-            // 生成单据编号
-            Map<String, Object> business = BeanUtil.beanToMap(entity);
-            String oddNumber = iCodeRuleService.getNextCodeByClassName(this.getClass().getName(), business);
-            entity.setSchemeCode(oddNumber);
         }
     }
 
