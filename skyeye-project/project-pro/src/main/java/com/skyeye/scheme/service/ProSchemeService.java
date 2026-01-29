@@ -27,6 +27,6 @@ public interface ProSchemeService extends SkyeyeBusinessService<ProScheme> {
      */
     void querySchemeListByProjectId(InputObject inputObject, OutputObject outputObject);
 
-    void querySchemeListBySchemeCode(InputObject inputObject, OutputObject outputObject);
+    void querySchemeListByVersionNo(InputObject inputObject, OutputObject outputObject);
 }
 

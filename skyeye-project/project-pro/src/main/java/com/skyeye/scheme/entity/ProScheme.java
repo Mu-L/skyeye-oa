@@ -36,10 +36,6 @@ public class ProScheme extends VersionFlowable {
     @ApiModelProperty(value = "名称", required = "required", fuzzyLike = true)
     private String name;
 
-    @TableField(value = "scheme_code", updateStrategy = FieldStrategy.NEVER)
-    @Property(value = "方案编号", fuzzyLike = true)
-    private String schemeCode;
-
     @TableField(value = "project_background")
     @ApiModelProperty(value = "项目背景")
     private String projectBackground;

@@ -169,12 +169,12 @@ public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao
     }
 
     @Override
-    public void querySchemeListBySchemeCode(InputObject inputObject, OutputObject outputObject) {
+    public void querySchemeListByVersionNo(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        String schemeCode = map.get("schemeCode").toString();
+        String versionNo = map.get("versionNo").toString();
 
         QueryWrapper<ProScheme> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ProScheme::getSchemeCode), schemeCode);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ProScheme::getVersionNo), versionNo);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ProScheme::getLargeVersion));
         List<ProScheme> schemeList = list(queryWrapper);
         outputObject.setBeans(schemeList);

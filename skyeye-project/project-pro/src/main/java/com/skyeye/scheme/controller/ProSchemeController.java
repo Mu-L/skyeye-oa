@@ -79,12 +79,12 @@ public class ProSchemeController {
         proSchemeService.querySchemeListByProjectId(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "querySchemeListBySchemeCode", value = "根据方案编码查询方案历史版本列表", method = "GET", allUse = "2")
+    @ApiOperation(id = "querySchemeListByVersionNo", value = "根据版本号组查询方案历史版本列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "schemeCode", name = "schemeCode", value = "方案编码", required = "required")})
-    @RequestMapping("/post/ProSchemeController/querySchemeListBySchemeCode")
-    public void querySchemeListBySchemeCode(InputObject inputObject, OutputObject outputObject) {
-        proSchemeService.querySchemeListBySchemeCode(inputObject, outputObject);
+        @ApiImplicitParam(id = "versionNo", name = "versionNo", value = "版本号组", required = "required")})
+    @RequestMapping("/post/ProSchemeController/querySchemeListByVersionNo")
+    public void querySchemeListByVersionNo(InputObject inputObject, OutputObject outputObject) {
+        proSchemeService.querySchemeListByVersionNo(inputObject, outputObject);
     }
 
     @ApiOperation(id = "publishSchemeVersionById", value = "根据id发布方案版本", method = "POST", allUse = "2")
