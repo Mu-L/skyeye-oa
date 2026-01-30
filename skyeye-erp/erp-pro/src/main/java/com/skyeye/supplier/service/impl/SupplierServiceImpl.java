@@ -8,6 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -87,6 +88,23 @@ public class SupplierServiceImpl extends SkyeyeBusinessServiceImpl<SupplierDao, 
     }
 
     @Override
+    protected void validatorEntity(Supplier entity) {
+        super.validatorEntity(entity);
+        // 营业执照注册号不为空时，校验唯一性（排除已逻辑删除的记录）
+        if (StrUtil.isNotEmpty(entity.getSocialCreditCode())) {
+            QueryWrapper<Supplier> queryWrapper = new QueryWrapper<>();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Supplier::getSocialCreditCode), entity.getSocialCreditCode());
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Supplier::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
+            if (StrUtil.isNotEmpty(entity.getId())) {
+                queryWrapper.ne(CommonConstants.ID, entity.getId());
+            }
+            if (getOne(queryWrapper, false) != null) {
+                throw new CustomException("营业执照注册号已存在");
+            }
+        }
+    }
+
+    @Override
     public void createPostpose(Supplier entity, String userId) {
         // 创建团队信息
         iTeamBusinessService.createTeamBusiness(entity.getTeamTemplateId(), entity.getId(), getServiceClassName());
@@ -114,6 +132,18 @@ public class SupplierServiceImpl extends SkyeyeBusinessServiceImpl<SupplierDao, 
         List<Supplier> supplierList = list(queryWrapper);
         outputObject.setBeans(supplierList);
         outputObject.settotal(supplierList.size());
+    }
+
+    @Override
+    @IgnoreTenant
+    public Supplier queryBySocialCreditCodeAndPointTenant(String socialCreditCode, String tenantId) {
+        QueryWrapper<Supplier> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Supplier::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Supplier::getSocialCreditCode), socialCreditCode);
+        if (tenantEnable) {
+            queryWrapper.eq(CommonConstants.TENANT_ID_FIELD, tenantId);
+        }
+        return getOne(queryWrapper, false);
     }
 
 }

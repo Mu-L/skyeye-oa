@@ -23,4 +23,6 @@ public interface SupplierService extends SkyeyeBusinessService<Supplier> {
 
     void queryAllSupplierList(InputObject inputObject, OutputObject outputObject);
 
+    Supplier queryBySocialCreditCodeAndPointTenant(String socialCreditCode, String tenantId);
+
 }

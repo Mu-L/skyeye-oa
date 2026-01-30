@@ -4,6 +4,7 @@
 
 package com.skyeye.request.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -13,6 +14,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
+import com.skyeye.request.classenum.InquiryQuoteSourceEnum;
 import com.skyeye.supplier.entity.Supplier;
 import lombok.Data;
 
@@ -36,7 +38,7 @@ public class PurchaseRequestInquiryChild extends CommonInfo {
     private String id;
 
     @TableField("parent_id")
-    @Property("单据id")
+    @ApiModelProperty("单据id")
     private String parentId;
 
     @TableField("supplier_id")
@@ -106,5 +108,13 @@ public class PurchaseRequestInquiryChild extends CommonInfo {
     @TableField("remark")
     @ApiModelProperty(value = "备注")
     private String remark;
+
+    @TableField(value = "quote_source", updateStrategy = FieldStrategy.NEVER)
+    @ApiModelProperty(value = "报价来源", enumClass = InquiryQuoteSourceEnum.class)
+    private String quoteSource;
+
+    @TableField(value = "tenant_id", updateStrategy = FieldStrategy.NEVER)
+    @Property("租户id")
+    private String tenantId;
 
 }

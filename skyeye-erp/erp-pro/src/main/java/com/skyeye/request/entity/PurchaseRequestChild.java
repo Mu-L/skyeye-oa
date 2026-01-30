@@ -94,4 +94,8 @@ public class PurchaseRequestChild extends CommonInfo {
     @ApiModelProperty(value = "备注")
     private String remark;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "当前企业账户是否已对该商品规格报过价")
+    private Boolean enterpriseHasQuoted;
+
 }

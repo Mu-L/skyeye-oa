@@ -66,4 +66,14 @@ public interface PurchaseRequestService extends SkyeyeBusinessService<PurchaseRe
      */
     void queryEnterpriseQuoteRequestList(InputObject inputObject, OutputObject outputObject);
 
+    /**
+     * 企业账户查询采购申请详情（忽略租户，仅含采购申请、商品明细、租户信息）
+     *
+     * @param inputObject  入参以及用户信息等获取对象
+     * @param outputObject 出参以及提示信息的返回值对象
+     */
+    void queryEnterprisePurchaseRequestDetail(InputObject inputObject, OutputObject outputObject);
+
+    PurchaseRequest queryByIdAndNoIsolation(String id);
+
 }

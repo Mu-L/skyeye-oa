@@ -4,6 +4,7 @@
 
 package com.skyeye.request.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
@@ -36,10 +37,7 @@ import com.skyeye.eve.service.ITenantService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.service.MaterialService;
-import com.skyeye.request.classenum.PurchaseRequestChildInquiry;
-import com.skyeye.request.classenum.PurchaseRequestInquiryState;
-import com.skyeye.request.classenum.PurchaseRequestStateEnum;
-import com.skyeye.request.classenum.PurchaseRequestSupplierQuoteType;
+import com.skyeye.request.classenum.*;
 import com.skyeye.request.dao.PurchaseRequestDao;
 import com.skyeye.request.entity.PurchaseRequest;
 import com.skyeye.request.entity.PurchaseRequestChild;
@@ -61,6 +59,7 @@ import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -153,7 +152,7 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
     @Override
     public void deletePostpose(String id) {
         purchaseRequestChildService.deleteByParentId(id);
-        purchaseRequestInquiryChildService.deleteByParentId(id);
+        purchaseRequestInquiryChildService.deleteByParentId(id, StrUtil.EMPTY);
     }
 
     @Override
@@ -163,9 +162,19 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
         List<PurchaseRequestChild> purchaseRequestChildList = purchaseRequestChildService.selectByParentId(purchaseRequest.getId());
         purchaseRequest.setPurchaseRequestChildList(purchaseRequestChildList);
 
-        // 询价信息
+        // 询价信息：按 quoteSource 拆分为后端添加与供应商报价
         List<PurchaseRequestInquiryChild> purchaseRequestInquiryChildList = purchaseRequestInquiryChildService.selectByParentId(purchaseRequest.getId());
         purchaseRequest.setPurchaseRequestInquiryChildList(purchaseRequestInquiryChildList);
+        if (CollectionUtil.isNotEmpty(purchaseRequestInquiryChildList)) {
+            List<PurchaseRequestInquiryChild> backendList = purchaseRequestInquiryChildList.stream()
+                .filter(bean -> InquiryQuoteSourceEnum.BACKEND.getKey().equals(bean.getQuoteSource()))
+                .collect(Collectors.toList());
+            List<PurchaseRequestInquiryChild> supplierList = purchaseRequestInquiryChildList.stream()
+                .filter(bean -> InquiryQuoteSourceEnum.SUPPLIER.getKey().equals(bean.getQuoteSource()))
+                .collect(Collectors.toList());
+            purchaseRequest.setPurchaseRequestInquiryChildList(backendList);
+            purchaseRequest.setPurchaseRequestSupplierInquiryChildList(supplierList);
+        }
 
         // 定价信息
         List<PurchaseRequestFixedChild> purchaseRequestFixedChildList = purchaseRequestFixedChildService.selectByParentId(purchaseRequest.getId());
@@ -526,6 +535,64 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
 
         outputObject.setBeans(resultList);
         outputObject.settotal(pages.getTotal());
+    }
+
+    @Override
+    @IgnoreTenant
+    public PurchaseRequest queryByIdAndNoIsolation(String id) {
+        QueryWrapper<PurchaseRequest> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, id);
+        return getOne(queryWrapper);
+    }
+
+    @Override
+    @IgnoreTenant
+    public void queryEnterprisePurchaseRequestDetail(InputObject inputObject, OutputObject outputObject) {
+        String id = inputObject.getParams().get("id").toString();
+        // 采购申请：自己写 wrapper，忽略租户
+        QueryWrapper<PurchaseRequest> prWrapper = new QueryWrapper<>();
+        prWrapper.eq(CommonConstants.ID, id);
+        PurchaseRequest purchaseRequest = getOne(prWrapper);
+        if (purchaseRequest == null) {
+            throw new CustomException("采购申请不存在");
+        }
+        // 商品明细：调用子单据 service
+        List<PurchaseRequestChild> purchaseRequestChildList = purchaseRequestChildService.selectByParentId(id);
+        // 判断当前企业账户是否已对各商品规格报过价
+        setEnterpriseHasQuotedForChildList(id, purchaseRequest.getTenantId(), purchaseRequestChildList);
+        purchaseRequest.setPurchaseRequestChildList(purchaseRequestChildList);
+        // 组装结果并填充租户信息
+        Map<String, Object> result = BeanUtil.beanToMap(purchaseRequest);
+        iTenantService.setMationForMap(result, "tenantId", "tenantMation");
+        outputObject.setBean(result);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    /**
+     * 为商品明细设置当前企业账户是否已报过价
+     * 若未登录企业账户或未关联供应商，则均设为 false
+     */
+    private void setEnterpriseHasQuotedForChildList(String parentId, String tenantId, List<PurchaseRequestChild> purchaseRequestChildList) {
+        if (CollectionUtil.isEmpty(purchaseRequestChildList)) {
+            return;
+        }
+        purchaseRequestChildList.forEach(c -> c.setEnterpriseHasQuoted(false));
+        String socialCreditCode = InputObject.getLogParamsStatic().getOrDefault("socialCreditCode", StrUtil.EMPTY).toString();
+        if (StrUtil.isEmpty(socialCreditCode)) {
+            return;
+        }
+        Supplier supplier = supplierService.queryBySocialCreditCodeAndPointTenant(socialCreditCode, tenantId);
+        if (supplier == null) {
+            return;
+        }
+        List<PurchaseRequestInquiryChild> quotedList = purchaseRequestInquiryChildService.selectByParentId(parentId);
+        Set<String> quotedKeys = quotedList.stream()
+            .filter(c -> supplier.getId().equals(c.getSupplierId()) && InquiryQuoteSourceEnum.SUPPLIER.getKey().equals(c.getQuoteSource()))
+            .map(c -> c.getMaterialId() + "_" + c.getNormsId())
+            .collect(Collectors.toSet());
+        for (PurchaseRequestChild child : purchaseRequestChildList) {
+            child.setEnterpriseHasQuoted(quotedKeys.contains(child.getMaterialId() + "_" + child.getNormsId()));
+        }
     }
 
 }

@@ -4,6 +4,7 @@
 
 package com.skyeye.request.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
@@ -105,11 +106,19 @@ public class PurchaseRequest extends SkyeyeFlowable {
     private List<PurchaseRequestChild> purchaseRequestChildList;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "采购申请询价明细信息", required = "json")
+    @ApiModelProperty(value = "采购申请询价明细信息（后端设置的）", required = "json")
     private List<PurchaseRequestInquiryChild> purchaseRequestInquiryChildList;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "采购申请询价明细信息（供应商报价的）", required = "json")
+    private List<PurchaseRequestInquiryChild> purchaseRequestSupplierInquiryChildList;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "采购申请定价明细信息", required = "json")
     private List<PurchaseRequestFixedChild> purchaseRequestFixedChildList;
+
+    @TableField(value = "tenant_id", updateStrategy = FieldStrategy.NEVER)
+    @Property(value = "租户id")
+    private String tenantId;
 
 }

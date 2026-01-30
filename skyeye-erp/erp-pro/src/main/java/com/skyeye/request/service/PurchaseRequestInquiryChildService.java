@@ -5,6 +5,8 @@
 package com.skyeye.request.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.request.entity.PurchaseRequestInquiryChild;
 
 import java.util.List;
@@ -21,8 +23,11 @@ public interface PurchaseRequestInquiryChildService extends SkyeyeBusinessServic
 
     void saveList(String parentId, List<PurchaseRequestInquiryChild> beans);
 
-    void deleteByParentId(String parentId);
+    void deleteByParentId(String parentId, String quoteSource);
 
     List<PurchaseRequestInquiryChild> selectByParentId(String parentId);
 
+    void queryPurchaseRequestInquiryChildList(InputObject inputObject, OutputObject outputObject);
+
+    void queryEnterpriseQuoteByItemAndNorms(InputObject inputObject, OutputObject outputObject);
 }

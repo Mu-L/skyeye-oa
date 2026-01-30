@@ -126,4 +126,12 @@ public class PurchaseRequestController {
         purchaseRequestService.queryEnterpriseQuoteRequestList(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryEnterprisePurchaseRequestDetail", value = "企业账户查询采购申请详情", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "采购申请id", required = "required")})
+    @RequestMapping("/post/PurchaseRequestController/queryEnterprisePurchaseRequestDetail")
+    public void queryEnterprisePurchaseRequestDetail(InputObject inputObject, OutputObject outputObject) {
+        purchaseRequestService.queryEnterprisePurchaseRequestDetail(inputObject, outputObject);
+    }
+
 }

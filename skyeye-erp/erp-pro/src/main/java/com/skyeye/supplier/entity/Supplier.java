@@ -15,6 +15,7 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.AreaGeneralInfo;
 import com.skyeye.common.enumeration.DeleteFlagEnum;
+import com.skyeye.common.enumeration.EnableEnum;
 import lombok.Data;
 
 /**
@@ -37,7 +38,7 @@ public class Supplier extends AreaGeneralInfo {
     private String fax;
 
     @TableField(value = "enabled")
-    @ApiModelProperty(value = "启用状态，参考#EnableEnum", required = "required,num")
+    @ApiModelProperty(value = "启用状态", enumClass = EnableEnum.class, required = "required,num")
     private Integer enabled;
 
     @TableField(value = "tax_num")
