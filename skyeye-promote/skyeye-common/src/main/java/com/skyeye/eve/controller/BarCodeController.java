@@ -31,12 +31,6 @@ public class BarCodeController {
     @Autowired
     private BarCodeService barCodeService;
 
-    /**
-     * 批量新增条形码
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeBarCode", value = "批量新增条形码", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = BarCodeApiMation.class)
     @RequestMapping("/post/BarCodeController/writeBarCode")
@@ -44,12 +38,6 @@ public class BarCodeController {
         barCodeService.writeBarCode(inputObject, outputObject);
     }
 
-    /**
-     * 根据条形码code获取数据信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "getDataByBarCode", value = "根据条形码code获取数据信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "barCode", name = "barCode", value = "条形码code", required = "required")})
@@ -58,12 +46,6 @@ public class BarCodeController {
         barCodeService.getDataByBarCode(inputObject, outputObject);
     }
 
-    /**
-     * 根据业务数据id获取条形码数据
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryBarCodeByObjectIds", value = "根据业务数据id获取条形码数据", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "springApplicationName", name = "springApplicationName", value = "服务名", required = "required"),
@@ -74,18 +56,21 @@ public class BarCodeController {
         barCodeService.queryBarCodeByObjectIds(inputObject, outputObject);
     }
 
-    /**
-     * 根据业务数据id删除条形码数据
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteBarCodeByObjectId", value = "根据业务数据id删除条形码数据", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "业务数据id", required = "required")})
     @RequestMapping("/post/BarCodeController/deleteBarCodeByObjectId")
     public void deleteBarCodeByObjectId(InputObject inputObject, OutputObject outputObject) {
         barCodeService.deleteBarCodeByObjectId(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "regenerateImageByBarCode", value = "根据条形码编码重新生成图片", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "barCode", name = "barCode", value = "条形码编码", required = "required"),
+        @ApiImplicitParam(id = "codeImplClass", name = "codeImplClass", value = "条形码类型，对应的服务层类地址", required = "required")})
+    @RequestMapping("/post/BarCodeController/regenerateImageByBarCode")
+    public void regenerateImageByBarCode(InputObject inputObject, OutputObject outputObject) {
+        barCodeService.regenerateImageByBarCode(inputObject, outputObject);
     }
 
 }

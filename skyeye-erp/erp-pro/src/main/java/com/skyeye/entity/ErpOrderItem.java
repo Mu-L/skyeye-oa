@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.business.classenum.OrderItemQualityInspectionType;
 import com.skyeye.common.entity.features.SkyeyeLinkData;
 import com.skyeye.depot.entity.Depot;
+import com.skyeye.material.classenum.MaterialInOrderType;
 import com.skyeye.material.entity.Material;
 import com.skyeye.material.entity.MaterialNorms;
 import lombok.Data;
@@ -97,7 +98,7 @@ public class ErpOrderItem extends SkyeyeLinkData {
     private String taxLastMoney;
 
     @TableField("m_type")
-    @ApiModelProperty(value = "商品在单据中的类型，参考#MaterialInOrderType", required = "num")
+    @ApiModelProperty(value = "商品在单据中的类型", enumClass = MaterialInOrderType.class, required = "num")
     private Integer mType;
 
     @TableField(exist = false)

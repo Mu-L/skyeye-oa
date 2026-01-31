@@ -26,4 +26,9 @@ public interface BarCodeService extends SkyeyeBusinessService<BarCodeMation> {
     void queryBarCodeByObjectIds(InputObject inputObject, OutputObject outputObject);
 
     void deleteBarCodeByObjectId(InputObject inputObject, OutputObject outputObject);
+
+    /**
+     * 根据条形码编码重新生成图片
+     */
+    void regenerateImageByBarCode(InputObject inputObject, OutputObject outputObject);
 }

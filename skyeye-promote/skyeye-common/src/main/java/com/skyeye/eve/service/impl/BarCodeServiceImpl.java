@@ -4,6 +4,7 @@
 
 package com.skyeye.eve.service.impl;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -11,6 +12,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.BarCodeUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.FileUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -28,6 +30,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -44,9 +50,6 @@ import java.util.Map;
 public class BarCodeServiceImpl extends SkyeyeBusinessServiceImpl<BarCodeDao, BarCodeMation> implements BarCodeService {
 
     @Autowired
-    private BarCodeDao barCodeDao;
-
-    @Autowired
     private IDataService iDataService;
 
     @Autowired
@@ -55,12 +58,6 @@ public class BarCodeServiceImpl extends SkyeyeBusinessServiceImpl<BarCodeDao, Ba
     @Value("${IMAGES_PATH}")
     private String tPath;
 
-    /**
-     * 批量新增条形码
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void writeBarCode(InputObject inputObject, OutputObject outputObject) {
@@ -75,18 +72,15 @@ public class BarCodeServiceImpl extends SkyeyeBusinessServiceImpl<BarCodeDao, Ba
         this.saveBatch(barCodeList);
     }
 
-    /**
-     * 根据条形码code获取数据信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void getDataByBarCode(InputObject inputObject, OutputObject outputObject) {
         String barCode = inputObject.getParams().get("barCode").toString();
         QueryWrapper<BarCodeMation> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(BarCodeMation::getCodeNum), barCode);
-        BarCodeMation barCodeMation = barCodeDao.selectOne(queryWrapper);
+        BarCodeMation barCodeMation = getOne(queryWrapper, false);
+        if (barCodeMation == null) {
+            return;
+        }
 
         // 根据服务名获取服务实例
         List<ServiceInstance> allInstances = discoveryClient.getInstances(barCodeMation.getSpringApplicationName());
@@ -102,12 +96,6 @@ public class BarCodeServiceImpl extends SkyeyeBusinessServiceImpl<BarCodeDao, Ba
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
-    /**
-     * 根据业务数据id获取条形码数据
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryBarCodeByObjectIds(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
@@ -134,5 +122,25 @@ public class BarCodeServiceImpl extends SkyeyeBusinessServiceImpl<BarCodeDao, Ba
         FileUtil.deleteFile(basePath);
         // 删除数据
         deleteById(barCodeMation.getId());
+    }
+
+    @Override
+    public void regenerateImageByBarCode(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String barCode = params.get("barCode").toString();
+        String codeImplClass = params.get("codeImplClass").toString();
+        QueryWrapper<BarCodeMation> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(BarCodeMation::getCodeNum), barCode);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(BarCodeMation::getCodeImplClass), codeImplClass);
+        BarCodeMation barCodeMation = getOne(queryWrapper, false);
+        if (barCodeMation == null) {
+            return;
+        }
+        BufferedImage image = BarCodeUtil.insertWords(barCodeMation.getCodeNum());
+        try {
+            ImageIO.write(image, "jpg", new File(tPath.replace("images", StrUtil.EMPTY) + barCodeMation.getImagePath()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
