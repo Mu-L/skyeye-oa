@@ -177,6 +177,7 @@ public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao
         queryWrapper.eq(MybatisPlusUtil.toColumns(ProScheme::getVersionNo), versionNo);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ProScheme::getLargeVersion));
         List<ProScheme> schemeList = list(queryWrapper);
+        iAuthUserService.setName(schemeList, "createId", "createName");
         outputObject.setBeans(schemeList);
         outputObject.settotal(schemeList.size());
     }
