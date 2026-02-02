@@ -60,6 +60,7 @@ public class EnterpriseProductServiceImpl extends SkyeyeBusinessServiceImpl<Ente
                 .or().eq(MybatisPlusUtil.toColumns(EnterpriseProduct::getProductCode), entity.getProductCode()));
         // 企业ID过滤
         String enterpriseId = InputObject.getLogParamsStatic().get("id").toString();
+        entity.setEnterpriseId(enterpriseId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(EnterpriseProduct::getEnterpriseId), enterpriseId);
         if (StrUtil.isNotEmpty(entity.getId())) {
             queryWrapper.ne(CommonConstants.ID, entity.getId());

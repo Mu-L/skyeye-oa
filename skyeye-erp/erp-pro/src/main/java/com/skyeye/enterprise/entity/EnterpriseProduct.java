@@ -37,7 +37,7 @@ import java.util.Map;
 public class EnterpriseProduct extends BaseGeneralInfo {
 
     @TableField(value = "enterprise_id", updateStrategy = FieldStrategy.NEVER)
-    @ApiModelProperty(value = "企业账户ID", required = "required")
+    @ApiModelProperty(value = "企业账户ID")
     private String enterpriseId;
 
     @TableField(exist = false)
