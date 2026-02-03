@@ -41,7 +41,7 @@ public class EnterpriseProductNorms extends OperatorUserInfo {
     private EnterpriseProduct enterpriseProductMation;
 
     @TableField(value = "`name`")
-    @ApiModelProperty(value = "规格名称", required = "required")
+    @ApiModelProperty(value = "规格名称")
     private String name;
 
     @TableField(value = "logo")

@@ -20,10 +20,7 @@ import com.skyeye.followup.entity.ProFollowup;
 import com.skyeye.followup.service.ProFollowupService;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +43,13 @@ public class ProFollowupServiceImpl extends SkyeyeBusinessServiceImpl<ProFollowu
             queryWrapper.eq(MybatisPlusUtil.toColumns(ProFollowup::getProjectId), commonPageInfo.getCustomParamsMapStr("projectId"));
         }
         return queryWrapper;
+    }
+
+    @Override
+    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        iAuthUserService.setMationForMap(beans, "followupPersonId", "followupPersonMation");
+        return beans;
     }
 
     @Override
@@ -125,10 +129,24 @@ public class ProFollowupServiceImpl extends SkyeyeBusinessServiceImpl<ProFollowu
             statistics.put("lastFollowupTime", latestFollowup.getCreateTime());
         }
 
-        // 跟进人统计
+        // 跟进人统计（含跟进人信息）
         Map<String, Long> personCount = followupList.stream()
+            .filter(f -> StrUtil.isNotEmpty(f.getFollowupPersonId()))
             .collect(Collectors.groupingBy(ProFollowup::getFollowupPersonId, Collectors.counting()));
-        statistics.put("personStatistics", personCount);
+        List<String> personIds = new ArrayList<>(personCount.keySet());
+        Map<String, Map<String, Object>> personMationMap = CollectionUtil.isEmpty(personIds)
+            ? new HashMap<>()
+            : iAuthUserService.queryUserMationListByStaffIds(personIds);
+        List<Map<String, Object>> personStatistics = personCount.entrySet().stream()
+            .map(entry -> {
+                Map<String, Object> item = new HashMap<>();
+                item.put("followupPersonId", entry.getKey());
+                item.put("count", entry.getValue());
+                item.put("followupPersonMation", personMationMap.getOrDefault(entry.getKey(), new HashMap<>()));
+                return item;
+            })
+            .collect(Collectors.toList());
+        statistics.put("personStatistics", personStatistics);
 
         outputObject.setBean(statistics);
     }
