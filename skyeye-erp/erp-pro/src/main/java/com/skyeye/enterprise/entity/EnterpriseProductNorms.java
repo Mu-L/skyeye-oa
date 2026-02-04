@@ -33,7 +33,7 @@ public class EnterpriseProductNorms extends OperatorUserInfo {
     private String id;
 
     @TableField(value = "enterprise_product_id")
-    @ApiModelProperty(value = "企业商品id", required = "required")
+    @ApiModelProperty(value = "企业商品id")
     private String enterpriseProductId;
 
     @TableField(exist = false)
