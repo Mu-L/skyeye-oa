@@ -34,6 +34,8 @@ import com.skyeye.erp.service.IMaterialService;
 import com.skyeye.eve.rest.mq.JobMateMation;
 import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.dispatch.entity.SealDispatchConfig;
+import com.skyeye.dispatch.service.SealDispatchConfigService;
 import com.skyeye.ordertype.service.SealOrderTypeService;
 import com.skyeye.worker.service.SealWorkerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,6 +77,9 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
 
     @Autowired
     private com.skyeye.afterseal.service.SealSignService sealSignService;
+
+    @Autowired
+    private SealDispatchConfigService sealDispatchConfigService;
 
     @Override
     public QueryWrapper<AfterSeal> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -202,13 +207,23 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
     public void editSealSeServiceWaitToWorkMation(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
+        String serviceUserId = map.get("serviceUserId").toString();
         AfterSeal afterSeal = selectById(id);
         if (StrUtil.equals(afterSeal.getState(), AfterSealState.BE_DISPATCHED.getKey())) {
+            // 封顶接单量校验
+            SealDispatchConfig config = sealDispatchConfigService.getConfigForTenant();
+            if (config != null && config.getCapOrderQuantity() != null && config.getCapOrderQuantity() > 0) {
+                long currentCount = countWorkerCurrentOrderCount(serviceUserId);
+                if (currentCount >= config.getCapOrderQuantity()) {
+                    outputObject.setreturnMessage("该服务人员待接单和进行中的工单数已达封顶接单量（" + config.getCapOrderQuantity() + "），无法再指派新工单");
+                    return;
+                }
+            }
             // 待派工可以进行派工
             UpdateWrapper<AfterSeal> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(CommonConstants.ID, afterSeal.getId());
             updateWrapper.set(MybatisPlusUtil.toColumns(AfterSeal::getState), AfterSealState.PENDING_ORDERS.getKey());
-            updateWrapper.set(MybatisPlusUtil.toColumns(AfterSeal::getServiceUserId), map.get("serviceUserId").toString());
+            updateWrapper.set(MybatisPlusUtil.toColumns(AfterSeal::getServiceUserId), serviceUserId);
             updateWrapper.set(MybatisPlusUtil.toColumns(AfterSeal::getCooperationUserId), map.get("cooperationUserId").toString());
             updateWrapper.set(MybatisPlusUtil.toColumns(AfterSeal::getServiceTime), DateUtil.getTimeAndToString());
             update(updateWrapper);
@@ -297,6 +312,27 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         updateWrapper.set(MybatisPlusUtil.toColumns(AfterSeal::getState), state);
         update(updateWrapper);
         refreshCache(id);
+    }
+
+    @Override
+    public long countWorkerCurrentOrderCount(String serviceUserId) {
+        if (StrUtil.isEmpty(serviceUserId)) return 0;
+        QueryWrapper<AfterSeal> qw = new QueryWrapper<>();
+        qw.eq(MybatisPlusUtil.toColumns(AfterSeal::getServiceUserId), serviceUserId);
+        qw.in(MybatisPlusUtil.toColumns(AfterSeal::getState),
+            AfterSealState.PENDING_ORDERS.getKey(), AfterSealState.BE_SIGNED.getKey(), AfterSealState.BE_COMPLETED.getKey());
+        return count(qw);
+    }
+
+    @Override
+    public Map<String, Long> batchCountWorkerCurrentOrderCount(List<String> serviceUserIds) {
+        if (CollectionUtil.isEmpty(serviceUserIds)) return new HashMap<>();
+        QueryWrapper<AfterSeal> qw = new QueryWrapper<>();
+        qw.in(MybatisPlusUtil.toColumns(AfterSeal::getServiceUserId), serviceUserIds);
+        qw.in(MybatisPlusUtil.toColumns(AfterSeal::getState),
+            AfterSealState.PENDING_ORDERS.getKey(), AfterSealState.BE_SIGNED.getKey(), AfterSealState.BE_COMPLETED.getKey());
+        List<AfterSeal> list = list(qw);
+        return list.stream().collect(Collectors.groupingBy(AfterSeal::getServiceUserId, Collectors.counting()));
     }
 
     @Override

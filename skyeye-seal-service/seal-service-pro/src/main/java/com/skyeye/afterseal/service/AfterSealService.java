@@ -9,6 +9,9 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @ClassName: AfterSealService
  * @Description: 工单管理服务接口层
@@ -40,5 +43,16 @@ public interface AfterSealService extends SkyeyeBusinessService<AfterSeal> {
     void querySealSeServiceOrderTrendStats(InputObject inputObject, OutputObject outputObject);
 
     void querySealServiceOrderWorkerStats(InputObject inputObject, OutputObject outputObject);
+
+    /**
+     * 统计服务人员当前待接单+进行中的工单数（用于封顶接单量校验）
+     */
+    long countWorkerCurrentOrderCount(String serviceUserId);
+
+    /**
+     * 批量统计服务人员当前待接单+进行中的工单数
+     * @return userId -> 工单数量
+     */
+    Map<String, Long> batchCountWorkerCurrentOrderCount(List<String> serviceUserIds);
 
 }
