@@ -39,6 +39,8 @@ import com.skyeye.eve.social.entity.ApplicableObjects;
 import com.skyeye.eve.social.entity.SocialSecurityFund;
 import com.skyeye.eve.social.service.WagesSocialSecurityFundService;
 import com.skyeye.jedis.JedisClientService;
+import com.skyeye.leave.entity.LeaveTimeSlot;
+import com.skyeye.leave.service.LeaveTimeSlotService;
 import com.skyeye.reward.entity.RewardPunish;
 import com.skyeye.reward.service.RewardPunishService;
 import com.skyeye.worktime.entity.CheckWorkTime;
@@ -107,6 +109,9 @@ public class StaffWagesQuartz {
 
     @Autowired
     private RewardPunishService rewardPunishService;
+
+    @Autowired
+    private LeaveTimeSlotService leaveTimeSlotService;
 
     /**
      * 当前薪资统计中的员工id存储在redis的key，因为存在多台机器同时处理员工薪资的情况，所以不去主动删除该缓存信息，等待自动失效即可
@@ -766,12 +771,12 @@ public class StaffWagesQuartz {
     private String calcLeaveTimeMation(Map<String, Object> systemFoundationSettings, String staffId, String lastMonthDate, Map<String, String> staffModelFieldMap,
                                        String tenantId) {
         // 获取上个月指定员工的所有审批通过请假记录信息
-        List<Map<String, Object>> leaveTime = wagesStaffMationDao.queryLastMonthLeaveTime(staffId, lastMonthDate,
+        List<LeaveTimeSlot> leaveTime = leaveTimeSlotService.queryLastMonthLeaveTime(staffId, lastMonthDate,
             FlowableStateEnum.PASS.getKey(), FlowableChildStateEnum.ADEQUATE.getKey(), tenantId);
         // 企业假期类型以及扣薪信息
         List<Map<String, Object>> holidaysTypeJson = JSONUtil.toList(systemFoundationSettings.get("holidaysTypeJson").toString(), null);
-        Map<String, List<Map<String, Object>>> leaveTimeGroupType = leaveTime.stream()
-            .collect(Collectors.groupingBy(map -> map.get("leaveType").toString()));
+        Map<String, List<LeaveTimeSlot>> leaveTimeGroupType = leaveTime.stream()
+            .collect(Collectors.groupingBy(map -> map.getLeaveType()));
         // 上个月应出勤的小时数
         String lastMonthBeHour = staffModelFieldMap.get(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_BE_HOUR.getKey());
         // 判断是否为0
@@ -785,12 +790,12 @@ public class StaffWagesQuartz {
         // 计算请假的小时以及请假扣的钱
         String allLeaveHourTime = "0";
         String allLeaveHourMoney = "0";
-        for (Map.Entry<String, List<Map<String, Object>>> entry : leaveTimeGroupType.entrySet()) {
+        for (Map.Entry<String, List<LeaveTimeSlot>> entry : leaveTimeGroupType.entrySet()) {
             String leaveType = entry.getKey();
             List<Map<String, Object>> holidays = holidaysTypeJson.stream().filter(bean -> leaveType.equals(bean.get("holidayNo").toString())).collect(Collectors.toList());
-            for (Map<String, Object> bean : entry.getValue()) {
+            for (LeaveTimeSlot bean : entry.getValue()) {
                 // 请假的时长（分钟）
-                String leaveMinuteTime = DateUtil.getDistanceMinuteByHMS(bean.get("leaveStartTime").toString(), bean.get("leaveEndTime").toString());
+                String leaveMinuteTime = DateUtil.getDistanceMinuteByHMS(bean.getLeaveStartTime(), bean.getLeaveEndTime());
                 // 请假的时长（小时）
                 String leaveHourTime = CalculationUtil.divide(leaveMinuteTime, "60", CommonNumConstants.NUM_TWO);
                 allLeaveHourTime = CalculationUtil.add(allLeaveHourTime, leaveHourTime, CommonNumConstants.NUM_TWO);

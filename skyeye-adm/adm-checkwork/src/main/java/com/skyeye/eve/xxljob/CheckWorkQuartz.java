@@ -15,6 +15,7 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.eve.service.IScheduleDayService;
 import com.skyeye.eve.service.ITenantService;
+import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
 import com.skyeye.worktime.classenum.CheckWorkTimeWeekType;
 import com.skyeye.worktime.entity.CheckWorkTime;
@@ -188,8 +189,8 @@ public class CheckWorkQuartz {
         for (Map<String, Object> b : beans) {
             String createId = b.get("createId").toString();
             // 判断昨天是否有请假记录,如果有，则不填充这条记录
-            Map<String, Object> leaveMation = checkWorkLeaveService.queryCheckWorkLeaveByMation(timeId, createId, yesterdayTime);
-            if (CollectionUtil.isEmpty(leaveMation)) {
+            LeaveTimeSlot leaveMation = checkWorkLeaveService.queryCheckWorkLeaveByMation(timeId, createId, yesterdayTime);
+            if (ObjectUtil.isEmpty(leaveMation)) {
                 // 找不到该员工这个班次在这一天的请假记录，则记为旷工
                 listBeans.add(getNoCheckWorkObject(timeId, createId, yesterdayTime));
             }

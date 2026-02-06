@@ -83,30 +83,6 @@
         </if>
     </select>
 
-    <select id="queryLastMonthLeaveTime" resultType="java.util.Map">
-        SELECT
-            b.leave_type leaveType,
-            b.leave_day leaveDay,
-            b.leave_start_time leaveStartTime,
-            b.leave_end_time leaveEndTime,
-            b.time_id timeId,
-            b.use_year_holiday useYearHoliday
-        FROM
-            check_work_leave a,
-            check_work_leave_time_slot b,
-            sys_eve_user_staff c
-        WHERE
-            a.create_id = c.id
-          AND a.id = b.parent_id
-          AND a.state = #{leaveTimeState}
-          AND b.state = #{leaveTimeSlotState}
-          AND c.id = #{staffId}
-          AND date_format(b.leave_day, '%Y-%m') = #{lastMonthDate}
-        <if test="tenantId != '' and tenantId != null">
-            AND a.tenant_id = #{tenantId} AND b.tenant_id = #{tenantId}
-        </if>
-    </select>
-
     <update id="editStaffMonthlyClearingWagesByStaffId">
         UPDATE
             wages_field_staff_mation a,

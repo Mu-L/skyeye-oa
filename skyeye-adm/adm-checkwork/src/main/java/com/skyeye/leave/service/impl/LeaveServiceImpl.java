@@ -10,6 +10,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.cancleleave.entity.CancelLeave;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -66,14 +67,10 @@ public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave>
     private ISystemFoundationSettingsService iSystemFoundationSettingsService;
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        if (tenantEnable) {
-            pageInfo.setTenantId(TenantContext.getTenantId());
-        }
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryMyCheckWorkLeaveList(pageInfo);
-        return beans;
+    protected QueryWrapper<Leave> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<Leave> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CancelLeave::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        return queryWrapper;
     }
 
     @Override
@@ -252,15 +249,20 @@ public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave>
     @Override
     public List<Map<String, Object>> queryStateIsSuccessLeaveDayByUserIdAndMonths(String userId, String timeId, List<String> months) {
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryStateIsSuccessLeaveDayByUserIdAndMonths(userId, timeId, months, tenantId);
-        beans.forEach(bean -> {
+        List<LeaveTimeSlot> slotList = leaveTimeSlotService.queryStateIsSuccessLeaveDayByUserIdAndMonths(userId, timeId, months, tenantId);
+        List<Map<String, Object>> beans = slotList.stream().map(slot -> {
+            Map<String, Object> bean = new HashMap<>();
+            bean.put("id", slot.getId());
+            bean.put("start", slot.getLeaveDay());
+            bean.put("end", slot.getLeaveDay());
             bean.put("title", CheckDayType.DAY_IS_BUSINESS_TRAVEL.getValue());
             bean.put("type", CheckDayType.DAY_IS_LEAVE.getKey());
             bean.put("className", CheckDayType.DAY_IS_LEAVE.getClassName());
             bean.put("allDay", "1");
             bean.put("showBg", "2");
             bean.put("editable", false);
-        });
+            return bean;
+        }).collect(Collectors.toList());
         return beans;
     }
 
@@ -304,11 +306,15 @@ public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave>
      * @return
      */
     @Override
-    public Map<String, Object> queryCheckWorkLeaveByMation(String timeId, String createId, String leaveDay) {
+    public LeaveTimeSlot queryCheckWorkLeaveByMation(String timeId, String createId, String leaveDay) {
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 获取请假日期信息
-        Map<String, Object> leaveDayMation = skyeyeBaseMapper.queryCheckWorkLeaveByMation(timeId, createId, leaveDay, tenantId);
-        return leaveDayMation;
+        List<LeaveTimeSlot> list = leaveTimeSlotService.queryCheckWorkLeaveSlotByMation(timeId, createId, leaveDay, tenantId);
+        if (CollectionUtil.isEmpty(list)) {
+            return null;
+        }
+        LeaveTimeSlot slot = list.get(0);
+        return slot;
     }
 
     /**

@@ -5,13 +5,19 @@
 package com.skyeye.leave.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.yulichang.toolkit.JoinWrappers;
+import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeLinkDataServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.leave.dao.LeaveTimeSlotDao;
+import com.skyeye.leave.entity.Leave;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveTimeSlotService;
 import org.springframework.stereotype.Service;
@@ -61,5 +67,57 @@ public class LeaveTimeSlotServiceImpl extends SkyeyeLinkDataServiceImpl<LeaveTim
         queryWrapper.ge(MybatisPlusUtil.toColumns(LeaveTimeSlot::getLeaveDay), startTime);
         queryWrapper.le(MybatisPlusUtil.toColumns(LeaveTimeSlot::getLeaveDay), endTime);
         return list(queryWrapper);
+    }
+
+    @Override
+    @IgnoreTenant
+    public List<LeaveTimeSlot> queryLastMonthLeaveTime(String staffId, String lastMonthDate,
+                                                       String leaveTimeState, String leaveTimeSlotState, String tenantId) {
+        MPJLambdaWrapper<LeaveTimeSlot> wrapper = JoinWrappers.lambda("b", LeaveTimeSlot.class)
+            .innerJoin(Leave.class, "a", Leave::getId, LeaveTimeSlot::getParentId)
+            .eq("a." + MybatisPlusUtil.toColumns(Leave::getCreateId), staffId)
+            .eq("a." + MybatisPlusUtil.toColumns(Leave::getState), leaveTimeState)
+            .eq("b." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getState), leaveTimeSlotState)
+            .apply("date_format(b." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getLeaveDay) + ", '%Y-%m') = {0}", lastMonthDate);
+        if (StrUtil.isNotEmpty(tenantId)) {
+            wrapper.eq("a." + CommonConstants.TENANT_ID_FIELD, tenantId);
+            wrapper.eq("b." + CommonConstants.TENANT_ID_FIELD, tenantId);
+        }
+        return skyeyeBaseMapper.selectJoinList(LeaveTimeSlot.class, wrapper);
+    }
+
+    @Override
+    @IgnoreTenant
+    public List<LeaveTimeSlot> queryCheckWorkLeaveSlotByMation(String timeId, String createId, String leaveDay, String tenantId) {
+        MPJLambdaWrapper<LeaveTimeSlot> wrapper = JoinWrappers.lambda("b", LeaveTimeSlot.class)
+            .innerJoin(Leave.class, "a", Leave::getId, LeaveTimeSlot::getParentId)
+            .eq("a." + MybatisPlusUtil.toColumns(Leave::getCreateId), createId)
+            .eq("b." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getState), FlowableChildStateEnum.ADEQUATE.getKey())
+            .eq("b." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getLeaveDay), leaveDay)
+            .eq("b." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getTimeId), timeId);
+        if (StrUtil.isNotEmpty(tenantId)) {
+            wrapper.eq("a." + CommonConstants.TENANT_ID_FIELD, tenantId);
+            wrapper.eq("b." + CommonConstants.TENANT_ID_FIELD, tenantId);
+        }
+        return skyeyeBaseMapper.selectJoinList(LeaveTimeSlot.class, wrapper);
+    }
+
+    @Override
+    @IgnoreTenant
+    public List<LeaveTimeSlot> queryStateIsSuccessLeaveDayByUserIdAndMonths(String userId, String timeId, List<String> months, String tenantId) {
+        MPJLambdaWrapper<LeaveTimeSlot> wrapper = JoinWrappers.lambda("a", LeaveTimeSlot.class)
+            .innerJoin(Leave.class, "b", Leave::getId, LeaveTimeSlot::getParentId)
+            .eq("b." + MybatisPlusUtil.toColumns(Leave::getCreateId), userId)
+            .eq("a." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getState), FlowableChildStateEnum.ADEQUATE.getKey())
+            .eq("a." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getTimeId), timeId);
+        if (CollectionUtil.isNotEmpty(months)) {
+            String inValues = months.stream().map(m -> "'" + m.replace("'", "''") + "'").collect(Collectors.joining(", "));
+            wrapper.apply("date_format(a." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getLeaveDay) + ", '%Y-%m') in (" + inValues + ")");
+        }
+        if (StrUtil.isNotEmpty(tenantId)) {
+            wrapper.eq("a." + CommonConstants.TENANT_ID_FIELD, tenantId);
+            wrapper.eq("b." + CommonConstants.TENANT_ID_FIELD, tenantId);
+        }
+        return skyeyeBaseMapper.selectJoinList(LeaveTimeSlot.class, wrapper);
     }
 }

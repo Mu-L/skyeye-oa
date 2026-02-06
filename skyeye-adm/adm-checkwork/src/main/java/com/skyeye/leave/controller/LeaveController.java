@@ -33,12 +33,6 @@ public class LeaveController {
     @Autowired
     private LeaveService leaveService;
 
-    /**
-     * 获取我的请假申请列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkworkleave001", value = "获取我的请假申请列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/LeaveController/queryLeaveList")
@@ -46,12 +40,6 @@ public class LeaveController {
         leaveService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑请假申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeLeave", value = "新增/编辑请假申请", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Leave.class)
     @RequestMapping("/post/LeaveController/writeLeave")
@@ -59,12 +47,6 @@ public class LeaveController {
         leaveService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 根据id查询请假申请信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryLeaveById", value = "根据id查询请假申请信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class LeaveController {
         leaveService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 请假申请提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkworkleave006", value = "请假申请提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/LeaveController/submitToApproval")
@@ -86,12 +62,6 @@ public class LeaveController {
         leaveService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 作废请假申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkworkleave007", value = "作废请假申请", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -100,12 +70,6 @@ public class LeaveController {
         leaveService.invalid(inputObject, outputObject);
     }
 
-    /**
-     * 撤销请假申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkworkleave009", value = "撤销请假申请", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
@@ -114,12 +78,6 @@ public class LeaveController {
         leaveService.revoke(inputObject, outputObject);
     }
 
-    /**
-     * 获取基础设置中的请假类型
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "getLeaveTypeList", value = "获取基础设置中的请假类型", method = "GET", allUse = "2")
     @RequestMapping("/post/LeaveController/getLeaveTypeList")
     public void getLeaveTypeList(InputObject inputObject, OutputObject outputObject) {

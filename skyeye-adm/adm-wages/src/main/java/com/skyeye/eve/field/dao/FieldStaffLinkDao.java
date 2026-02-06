@@ -51,22 +51,6 @@ public interface FieldStaffLinkDao extends SkyeyeBaseMapper<FieldStaffLink> {
                                                       @Param("tenantId") String tenantId);
 
     /**
-     * 获取上个月指定员工的所有审批通过请假记录信息
-     *
-     * @param staffId            员工id
-     * @param lastMonthDate      上个月的年月
-     * @param leaveTimeState     请假记录状态  {@link com.skyeye.common.enumeration.FlowableStateEnum}
-     * @param leaveTimeSlotState 请假时间段状态 {@link com.skyeye.common.enumeration.FlowableChildStateEnum}
-     * @return
-     */
-    @IgnoreTenant
-    List<Map<String, Object>> queryLastMonthLeaveTime(@Param("staffId") String staffId,
-                                                      @Param("lastMonthDate") String lastMonthDate,
-                                                      @Param("leaveTimeState") String leaveTimeState,
-                                                      @Param("leaveTimeSlotState") String leaveTimeSlotState,
-                                                      @Param("tenantId") String tenantId);
-
-    /**
      * 获取上个月指定员工的所有审批通过销假记录信息
      *
      * @param staffId            员工id

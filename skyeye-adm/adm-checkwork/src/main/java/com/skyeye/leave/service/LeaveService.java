@@ -35,7 +35,7 @@ public interface LeaveService extends SkyeyeBusinessService<Leave> {
 
     Map<String, List<LeaveTimeSlot>> queryStateIsSuccessLeaveDayByUserId(String startTime, String endTime, List<Map<String, Object>> staffListWithUserId);
 
-    Map<String, Object> queryCheckWorkLeaveByMation(String timeId, String createId, String leaveDay);
+    LeaveTimeSlot queryCheckWorkLeaveByMation(String timeId, String createId, String leaveDay);
 
     void getLeaveTypeList(InputObject inputObject, OutputObject outputObject);
 

@@ -28,6 +28,7 @@ import com.skyeye.eve.centerrest.entity.checkwork.UserStaffHolidayRest;
 import com.skyeye.eve.centerrest.user.SysEveUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.leave.classenum.UseYearHolidayType;
+import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
 import com.skyeye.worktime.entity.CheckWorkTime;
 import com.skyeye.worktime.service.CheckWorkTimeService;
@@ -167,13 +168,12 @@ public class CancelLeaveServiceImpl extends SkyeyeBusinessServiceImpl<CancelLeav
             Map<String, Object> mation = skyeyeBaseMapper.queryCheckWorkCancelLeaveByMation(createId, cancelDay, FlowableChildStateEnum.ADEQUATE.getKey(), tenantId);
             if (CollectionUtil.isEmpty(mation)) {
                 // 判断该员工在这一天是否有请假记录，如果没有，则审核失败，如果有，则继续操作
-                Map<String, Object> leaveDayMation = leaveService.queryCheckWorkLeaveByMation(createId, timeId, cancelDay);
-                if (leaveDayMation != null && !leaveDayMation.isEmpty()) {
-                    Integer useYearHoliday = Integer.parseInt(leaveDayMation.get("useYearHoliday").toString());
-                    if (useYearHoliday.equals(UseYearHolidayType.USE_ANNUAL_LEAVE.getKey())) {
+                LeaveTimeSlot leaveDayMation = leaveService.queryCheckWorkLeaveByMation(createId, timeId, cancelDay);
+                if (leaveDayMation != null) {
+                    if (leaveDayMation.getUseYearHoliday().equals(UseYearHolidayType.USE_ANNUAL_LEAVE.getKey())) {
                         // 如果之前请假使用的是年假，则恢复年假
                         annualLeave = CalculationUtil.add(annualLeave, cancelHour, CommonNumConstants.NUM_TWO);
-                    } else if (useYearHoliday.equals(UseYearHolidayType.USE_COMPENSATORY_LEAVE.getKey())) {
+                    } else if (leaveDayMation.getUseYearHoliday().equals(UseYearHolidayType.USE_COMPENSATORY_LEAVE.getKey())) {
                         // 如果之前请假使用的是补休，则恢复补休
                         retiredHolidayNumber = CalculationUtil.subtract(retiredHolidayNumber, cancelHour, CommonNumConstants.NUM_TWO);
                         holidayNumber = CalculationUtil.add(holidayNumber, cancelHour, CommonNumConstants.NUM_TWO);

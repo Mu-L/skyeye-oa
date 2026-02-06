@@ -25,4 +25,39 @@ public interface LeaveTimeSlotService extends SkyeyeLinkDataService<LeaveTimeSlo
     Map<String, List<LeaveTimeSlot>> queryLeaveTimeSlotListByLeaveIds(List<String> leaveIds);
 
     List<LeaveTimeSlot> queryTimeAndIds(List<String> leaveIds, String startTime, String endTime);
+
+    /**
+     * 获取上个月指定员工的所有审批通过请假记录信息
+     *
+     * @param staffId            员工id
+     * @param lastMonthDate      上个月的年月，格式：yyyy-MM
+     * @param leaveTimeState     请假记录状态  {@link com.skyeye.common.enumeration.FlowableStateEnum}
+     * @param leaveTimeSlotState 请假时间段状态 {@link com.skyeye.common.enumeration.FlowableChildStateEnum}
+     * @param tenantId           租户id
+     * @return 请假记录列表，包含 leaveType、leaveDay、leaveStartTime、leaveEndTime、timeId、useYearHoliday
+     */
+    List<LeaveTimeSlot> queryLastMonthLeaveTime(String staffId, String lastMonthDate,
+                                                String leaveTimeState, String leaveTimeSlotState, String tenantId);
+
+    /**
+     * 获取指定日期已经审核通过的请假时间段信息
+     *
+     * @param timeId   班次id
+     * @param createId 创建人/申请人id
+     * @param leaveDay 指定日期，格式：yyyy-MM-dd
+     * @param tenantId 租户id
+     * @return 请假时间段列表
+     */
+    List<LeaveTimeSlot> queryCheckWorkLeaveSlotByMation(String timeId, String createId, String leaveDay, String tenantId);
+
+    /**
+     * 获取指定员工在指定月份和班次的所有审核通过的请假时间段
+     *
+     * @param userId   用户id
+     * @param timeId   班次id
+     * @param months   指定月份，月格式（yyyy-MM）
+     * @param tenantId 租户id
+     * @return 请假时间段列表
+     */
+    List<LeaveTimeSlot> queryStateIsSuccessLeaveDayByUserIdAndMonths(String userId, String timeId, List<String> months, String tenantId);
 }
