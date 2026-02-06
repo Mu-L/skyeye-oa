@@ -35,6 +35,14 @@ public interface ShopStoreStaffService extends SkyeyeBusinessService<ShopStoreSt
 
     List<ShopStoreStaff> getShopStoresByStoreId(String storeId);
 
+    /**
+     * 根据门店ID获取员工信息列表
+     *
+     * @param inputObject  入参（storeId）
+     * @param outputObject 出参（员工列表）
+     */
+    void queryStaffListByStoreId(InputObject inputObject, OutputObject outputObject);
+
     void queryStaffBelongStoreList(InputObject inputObject, OutputObject outputObject);
 
     void deleteStoreStaffMationByStaffId(InputObject inputObject, OutputObject outputObject);

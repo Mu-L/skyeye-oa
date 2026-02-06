@@ -69,6 +69,10 @@ public class RewardPunish extends BaseGeneralInfo {
     @ApiModelProperty(value = "所属第三方业务数据的key(员工key)", required = "required")
     private String objectKey;
 
+    @TableField(exist = false)
+    @Property(value = "所属第三方业务数据的信息")
+    private Map<String, Object> objectMation;
+
     @TableField(value = "link_id", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "关联得其他业务数据得id(工单id)")
     private String linkId;

@@ -169,6 +169,21 @@ public class ShopStoreStaffServiceImpl extends SkyeyeBusinessServiceImpl<ShopSto
         return list;
     }
 
+    @Override
+    public void queryStaffListByStoreId(InputObject inputObject, OutputObject outputObject) {
+        String storeId = inputObject.getParams().get("storeId").toString();
+        List<ShopStoreStaff> list = getShopStoresByStoreId(storeId);
+        List<String> staffIds = list.stream().map(ShopStoreStaff::getStaffId)
+            .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(staffIds)) {
+            return;
+        }
+        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
+        List<Map<String, Object>> beans = staffMap.values().stream().collect(Collectors.toList());
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
+    }
+
     /**
      * 根据员工id删除所有的所属门店信息
      *

@@ -54,6 +54,14 @@ public class ShopStoreStaffController {
         shopStoreStaffService.insertStoreStaffMation(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryStaffListByStoreId", value = "根据门店ID获取员工信息列表", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "storeId", name = "storeId", value = "门店ID", required = "required")})
+    @RequestMapping("/post/ShopStoreStaffController/queryStaffListByStoreId")
+    public void queryStaffListByStoreId(InputObject inputObject, OutputObject outputObject) {
+        shopStoreStaffService.queryStaffListByStoreId(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "storeStaff004", value = "获取当前登陆用户所属的区域列表", method = "GET", allUse = "2")
     @RequestMapping("/post/ShopStoreStaffController/queryStaffBelongAreaList")
     public void queryStaffBelongAreaList(InputObject inputObject, OutputObject outputObject) {

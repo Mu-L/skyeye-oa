@@ -64,8 +64,8 @@ public class LeaveTimeSlotServiceImpl extends SkyeyeLinkDataServiceImpl<LeaveTim
     public List<LeaveTimeSlot> queryTimeAndIds(List<String> leaveIds, String startTime, String endTime) {
         QueryWrapper<LeaveTimeSlot> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(LeaveTimeSlot::getParentId), leaveIds);
-        queryWrapper.ge(MybatisPlusUtil.toColumns(LeaveTimeSlot::getLeaveDay), startTime);
-        queryWrapper.le(MybatisPlusUtil.toColumns(LeaveTimeSlot::getLeaveDay), endTime);
+        queryWrapper.le(MybatisPlusUtil.toColumns(LeaveTimeSlot::getLeaveStartTime), endTime + " 23:59:59");
+        queryWrapper.ge(MybatisPlusUtil.toColumns(LeaveTimeSlot::getLeaveEndTime), startTime + " 00:00:00");
         return list(queryWrapper);
     }
 
@@ -78,7 +78,7 @@ public class LeaveTimeSlotServiceImpl extends SkyeyeLinkDataServiceImpl<LeaveTim
             .eq("a." + MybatisPlusUtil.toColumns(Leave::getCreateId), staffId)
             .eq("a." + MybatisPlusUtil.toColumns(Leave::getState), leaveTimeState)
             .eq("b." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getState), leaveTimeSlotState)
-            .apply("date_format(b." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getLeaveDay) + ", '%Y-%m') = {0}", lastMonthDate);
+            .apply("(b.leave_start_time <= LAST_DAY(CONCAT({0}, '-01')) AND b.leave_end_time >= CONCAT({0}, '-01'))", lastMonthDate);
         if (StrUtil.isNotEmpty(tenantId)) {
             wrapper.eq("a." + CommonConstants.TENANT_ID_FIELD, tenantId);
             wrapper.eq("b." + CommonConstants.TENANT_ID_FIELD, tenantId);
@@ -88,12 +88,13 @@ public class LeaveTimeSlotServiceImpl extends SkyeyeLinkDataServiceImpl<LeaveTim
 
     @Override
     @IgnoreTenant
-    public List<LeaveTimeSlot> queryCheckWorkLeaveSlotByMation(String timeId, String createId, String leaveDay, String tenantId) {
+    public List<LeaveTimeSlot> queryCheckWorkLeaveSlotByMation(String timeId, String createId, String leaveStartDay, String tenantId) {
         MPJLambdaWrapper<LeaveTimeSlot> wrapper = JoinWrappers.lambda("b", LeaveTimeSlot.class)
             .innerJoin(Leave.class, "a", Leave::getId, LeaveTimeSlot::getParentId)
             .eq("a." + MybatisPlusUtil.toColumns(Leave::getCreateId), createId)
             .eq("b." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getState), FlowableChildStateEnum.ADEQUATE.getKey())
-            .eq("b." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getLeaveDay), leaveDay)
+            .le("b.leave_start_time", leaveStartDay + " 23:59:59")
+            .ge("b.leave_end_time", leaveStartDay + " 00:00:00")
             .eq("b." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getTimeId), timeId);
         if (StrUtil.isNotEmpty(tenantId)) {
             wrapper.eq("a." + CommonConstants.TENANT_ID_FIELD, tenantId);
@@ -111,8 +112,10 @@ public class LeaveTimeSlotServiceImpl extends SkyeyeLinkDataServiceImpl<LeaveTim
             .eq("a." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getState), FlowableChildStateEnum.ADEQUATE.getKey())
             .eq("a." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getTimeId), timeId);
         if (CollectionUtil.isNotEmpty(months)) {
-            String inValues = months.stream().map(m -> "'" + m.replace("'", "''") + "'").collect(Collectors.joining(", "));
-            wrapper.apply("date_format(a." + MybatisPlusUtil.toColumns(LeaveTimeSlot::getLeaveDay) + ", '%Y-%m') in (" + inValues + ")");
+            String conds = months.stream()
+                .map(m -> "(a.leave_start_time <= LAST_DAY('" + m + "-01') AND a.leave_end_time >= '" + m + "-01')")
+                .collect(Collectors.joining(" OR "));
+            wrapper.apply("(" + conds + ")");
         }
         if (StrUtil.isNotEmpty(tenantId)) {
             wrapper.eq("a." + CommonConstants.TENANT_ID_FIELD, tenantId);

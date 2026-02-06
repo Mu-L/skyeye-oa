@@ -777,12 +777,16 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
                 // 检查是否请假
                 if (leaveMap.containsKey(staffId)) {
                     for (LeaveTimeSlot leave : leaveMap.get(staffId)) {
-                        if (dateRange.contains(LocalDate.parse(leave.getLeaveDay()))) {
-                            // 检查时间段是否冲突
-                            String leaveStartTime = leave.getLeaveStartTime();
-                            String leaveEndTime = leave.getLeaveEndTime();
-                            if (isTimeOverlap(shiftStartTime, shiftEndTime, leaveStartTime, leaveEndTime)) {
-                                return false;
+                        LocalDateTime leaveStart = DateUtil.parseLeaveDateTime(leave.getLeaveStartTime());
+                        LocalDateTime leaveEnd = DateUtil.parseLeaveDateTime(leave.getLeaveEndTime());
+                        if (leaveStart == null || leaveEnd == null) {
+                            continue;
+                        }
+                        for (LocalDate d : dateRange) {
+                            if (!d.isBefore(leaveStart.toLocalDate()) && !d.isAfter(leaveEnd.toLocalDate())) {
+                                if (isDateTimeOverlap(shiftStartTime, shiftEndTime, d, leaveStart, leaveEnd)) {
+                                    return false;
+                                }
                             }
                         }
                     }
@@ -828,6 +832,24 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
 
         // 检查时间段是否重叠
         return !(e1.isBefore(s2) || s1.isAfter(e2));
+    }
+
+    /**
+     * 检查排班时间段与请假时间段（支持跨天）是否重叠
+     */
+    private boolean isDateTimeOverlap(String shiftStartStr, String shiftEndStr, LocalDate day,
+                                      LocalDateTime leaveStart, LocalDateTime leaveEnd) {
+        if (StrUtil.isEmpty(shiftStartStr) || StrUtil.isEmpty(shiftEndStr)) {
+            return false;
+        }
+        String s1 = shiftStartStr.length() == 7 ? "0" + shiftStartStr : shiftStartStr;
+        String e1 = shiftEndStr.length() == 7 ? "0" + shiftEndStr : shiftEndStr;
+        DateTimeFormatter formatter = s1.length() > 5 ? DateTimeFormatter.ofPattern("HH:mm:ss") : DateTimeFormatter.ofPattern("HH:mm");
+        LocalDateTime shiftStart = day.atTime(LocalTime.parse(s1, formatter));
+        LocalDateTime shiftEnd = day.atTime(LocalTime.parse(e1, formatter));
+        LocalDateTime leaveOnDayStart = leaveStart.toLocalDate().equals(day) ? leaveStart : day.atStartOfDay();
+        LocalDateTime leaveOnDayEnd = leaveEnd.toLocalDate().equals(day) ? leaveEnd : day.atTime(23, 59, 59);
+        return !shiftEnd.isBefore(leaveOnDayStart) && !shiftStart.isAfter(leaveOnDayEnd);
     }
 
     /**

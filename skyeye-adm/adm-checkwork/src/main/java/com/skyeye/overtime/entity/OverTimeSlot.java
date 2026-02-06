@@ -10,6 +10,8 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.SkyeyeLinkData;
+import com.skyeye.common.enumeration.OvertimeSettlementType;
+import com.skyeye.overtime.classenum.OvertimeSoltSettleState;
 import lombok.Data;
 
 /**
@@ -42,11 +44,11 @@ public class OverTimeSlot extends SkyeyeLinkData {
     private String overtimeHour;
 
     @TableField(value = "settle_state")
-    @Property(value = "加班是否计入补休/薪资结算状态，参考#OvertimeSoltSettleState")
+    @Property(value = "加班是否计入补休/薪资结算状态", enumClass = OvertimeSoltSettleState.class)
     private Integer settleState;
 
     @TableField(value = "overtime_settlement_type")
-    @Property(value = "部门加班结算方式，参考#OvertimeSettlementType")
+    @Property(value = "部门加班结算方式", enumClass = OvertimeSettlementType.class)
     private Integer overtimeSettlementType;
 
 }

@@ -52,6 +52,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -794,10 +799,15 @@ public class StaffWagesQuartz {
             String leaveType = entry.getKey();
             List<Map<String, Object>> holidays = holidaysTypeJson.stream().filter(bean -> leaveType.equals(bean.get("holidayNo").toString())).collect(Collectors.toList());
             for (LeaveTimeSlot bean : entry.getValue()) {
-                // 请假的时长（分钟）
-                String leaveMinuteTime = DateUtil.getDistanceMinuteByHMS(bean.getLeaveStartTime(), bean.getLeaveEndTime());
-                // 请假的时长（小时）
-                String leaveHourTime = CalculationUtil.divide(leaveMinuteTime, "60", CommonNumConstants.NUM_TWO);
+                CheckWorkTime workTime = checkWorkTimeService.getById(bean.getTimeId());
+                if (workTime == null) {
+                    continue;
+                }
+                long totalMinutes = calcLeaveMinutesInMonth(bean, lastMonthDate, workTime);
+                if (totalMinutes <= 0) {
+                    continue;
+                }
+                String leaveHourTime = CalculationUtil.divide(String.valueOf(totalMinutes), "60", CommonNumConstants.NUM_TWO);
                 allLeaveHourTime = CalculationUtil.add(allLeaveHourTime, leaveHourTime, CommonNumConstants.NUM_TWO);
                 if (holidays != null && !holidays.isEmpty()) {
                     // 该扣薪规则存在，获取扣钱百分比
@@ -814,6 +824,66 @@ public class StaffWagesQuartz {
         }
         staffModelFieldMap.put(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_HOLIDAY_HOUR.getKey(), String.valueOf(allLeaveHourTime));
         return allLeaveHourMoney;
+    }
+
+    /**
+     * 计算请假时间段在指定月份内与工作时间的交集分钟数（支持跨天如今天下午到明天上午）
+     */
+    private long calcLeaveMinutesInMonth(LeaveTimeSlot slot, String lastMonthDate, CheckWorkTime workTime) {
+        try {
+            LocalDateTime leaveStart = DateUtil.parseLeaveDateTime(slot.getLeaveStartTime());
+            LocalDateTime leaveEnd = DateUtil.parseLeaveDateTime(slot.getLeaveEndTime());
+            if (leaveStart == null || leaveEnd == null) {
+                return 0;
+            }
+            YearMonth ym = YearMonth.parse(lastMonthDate);
+            LocalDate monthFirst = ym.atDay(1);
+            LocalDate monthLast = ym.atEndOfMonth();
+            LocalDateTime rangeStart = leaveStart.toLocalDate().isBefore(monthFirst) ? monthFirst.atStartOfDay() : leaveStart;
+            LocalDateTime rangeEnd = leaveEnd.toLocalDate().isAfter(monthLast) ? monthLast.atTime(23, 59, 59) : leaveEnd;
+            if (!rangeStart.isBefore(rangeEnd)) {
+                return 0;
+            }
+            LocalTime workStart = parseLeaveTime(workTime.getStartTime());
+            LocalTime workEnd = parseLeaveTime(workTime.getEndTime());
+            LocalTime restStart = StrUtil.isNotEmpty(workTime.getRestStartTime()) ? parseLeaveTime(workTime.getRestStartTime()) : null;
+            LocalTime restEnd = StrUtil.isNotEmpty(workTime.getRestEndTime()) ? parseLeaveTime(workTime.getRestEndTime()) : null;
+            long total = 0;
+            for (LocalDate d = rangeStart.toLocalDate(); !d.isAfter(rangeEnd.toLocalDate()); d = d.plusDays(1)) {
+                LocalDateTime dayWorkStart = d.atTime(workStart);
+                LocalDateTime dayWorkEnd = d.atTime(workEnd);
+                LocalDateTime overlapStart = rangeStart.isAfter(dayWorkStart) ? rangeStart : dayWorkStart;
+                LocalDateTime overlapEnd = rangeEnd.isBefore(dayWorkEnd) ? rangeEnd : dayWorkEnd;
+                if (!overlapStart.isBefore(overlapEnd)) {
+                    continue;
+                }
+                long mins = ChronoUnit.MINUTES.between(overlapStart, overlapEnd);
+                if (restStart != null && restEnd != null) {
+                    LocalDateTime dayRestStart = d.atTime(restStart);
+                    LocalDateTime dayRestEnd = d.atTime(restEnd);
+                    LocalDateTime restOverlapStart = overlapStart.isAfter(dayRestStart) ? overlapStart : dayRestStart;
+                    LocalDateTime restOverlapEnd = overlapEnd.isBefore(dayRestEnd) ? overlapEnd : dayRestEnd;
+                    if (restOverlapStart.isBefore(restOverlapEnd)) {
+                        mins -= ChronoUnit.MINUTES.between(restOverlapStart, restOverlapEnd);
+                    }
+                }
+                total += Math.max(0, mins);
+            }
+            return total;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    private LocalTime parseLeaveTime(String t) {
+        if (StrUtil.isEmpty(t)) {
+            return LocalTime.MIN;
+        }
+        String s = t.trim();
+        if (s.length() == 5) {
+            s = s + ":00";
+        }
+        return LocalTime.parse(s);
     }
 
     /**

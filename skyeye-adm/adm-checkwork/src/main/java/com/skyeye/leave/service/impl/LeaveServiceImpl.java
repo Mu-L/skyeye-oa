@@ -14,10 +14,7 @@ import com.skyeye.cancleleave.entity.CancelLeave;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.enumeration.CheckDayType;
-import com.skyeye.common.enumeration.FlowableChildStateEnum;
-import com.skyeye.common.enumeration.FlowableStateEnum;
-import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.common.enumeration.*;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.tenant.context.TenantContext;
@@ -34,12 +31,22 @@ import com.skyeye.leave.entity.Leave;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
 import com.skyeye.leave.service.LeaveTimeSlotService;
+import com.skyeye.worktime.classenum.CheckWorkTimeWeekType;
 import com.skyeye.worktime.entity.CheckWorkTime;
+import com.skyeye.worktime.entity.CheckWorkTimeWeek;
 import com.skyeye.worktime.service.CheckWorkTimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -80,16 +87,50 @@ public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave>
 
     @Override
     public void writePostpose(Leave entity, String userId) {
+        List<String> timeIds = entity.getLeaveTimeSlotList().stream().map(LeaveTimeSlot::getTimeId).distinct().collect(Collectors.toList());
+        Map<String, CheckWorkTime> checkWorkTimeMap = CollectionUtil.isEmpty(timeIds) ? new HashMap<>() : checkWorkTimeService.selectMapByIds(timeIds);
+        for (LeaveTimeSlot slot : entity.getLeaveTimeSlotList()) {
+            CheckWorkTime wt = checkWorkTimeMap.get(slot.getTimeId());
+            if (StrUtil.isNotEmpty(slot.getLeaveStartTime()) && StrUtil.isNotEmpty(slot.getLeaveEndTime()) && wt != null) {
+                LocalDateTime start = DateUtil.parseLeaveDateTime(slot.getLeaveStartTime());
+                LocalDateTime end = DateUtil.parseLeaveDateTime(slot.getLeaveEndTime());
+                if (start != null && end != null) {
+                    long mins = calcLeaveMinutesInRange(start, end, wt);
+                    slot.setLeaveHour(CalculationUtil.divide(String.valueOf(mins), "60", CommonNumConstants.NUM_TWO));
+                }
+            }
+        }
         leaveTimeSlotService.saveLinkList(entity.getId(), entity.getLeaveTimeSlotList());
         super.writePostpose(entity, userId);
     }
 
     private void chectOrderItem(List<LeaveTimeSlot> leaveTimeSlots) {
-        List<String> leaveDays = leaveTimeSlots.stream()
-            .map(bean -> String.format(Locale.ROOT, "%s-%s", bean.getTimeId(), bean.getLeaveDay())).distinct()
-            .collect(Collectors.toList());
-        if (leaveTimeSlots.size() != leaveDays.size()) {
-            throw new CustomException("同一班次中不允许出现相同的请假日期");
+        for (LeaveTimeSlot slot : leaveTimeSlots) {
+            if (StrUtil.isEmpty(slot.getLeaveStartTime()) || StrUtil.isEmpty(slot.getLeaveEndTime())) {
+                throw new CustomException("请假开始、结束时间不能为空");
+            }
+            LocalDateTime start = DateUtil.parseLeaveDateTime(slot.getLeaveStartTime());
+            LocalDateTime end = DateUtil.parseLeaveDateTime(slot.getLeaveEndTime());
+            if (start == null || end == null || !end.isAfter(start)) {
+                throw new CustomException("请假结束时间必须晚于开始时间");
+            }
+        }
+        for (int i = 0; i < leaveTimeSlots.size(); i++) {
+            LeaveTimeSlot a = leaveTimeSlots.get(i);
+            LocalDateTime aStart = DateUtil.parseLeaveDateTime(a.getLeaveStartTime());
+            LocalDateTime aEnd = DateUtil.parseLeaveDateTime(a.getLeaveEndTime());
+            for (int j = i + 1; j < leaveTimeSlots.size(); j++) {
+                LeaveTimeSlot b = leaveTimeSlots.get(j);
+                if (!a.getTimeId().equals(b.getTimeId())) {
+                    continue;
+                }
+                LocalDateTime bStart = DateUtil.parseLeaveDateTime(b.getLeaveStartTime());
+                LocalDateTime bEnd = DateUtil.parseLeaveDateTime(b.getLeaveEndTime());
+                if (aStart != null && aEnd != null && bStart != null && bEnd != null
+                    && !aEnd.isBefore(bStart) && !aStart.isAfter(bEnd)) {
+                    throw new CustomException("同一班次中不允许出现时间重叠的请假时间段");
+                }
+            }
         }
     }
 
@@ -170,10 +211,13 @@ public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave>
         List<Map<String, Object>> holidaysTypeMation = getSystemHolidaysTypeJsonMation();
         // 获取请假天数信息
         List<LeaveTimeSlot> leaveTimeSlotList = leaveTimeSlotService.selectByPId(leaveId);
+        List<String> timeIds = leaveTimeSlotList.stream().map(LeaveTimeSlot::getTimeId).distinct().collect(Collectors.toList());
+        Map<String, CheckWorkTime> checkWorkTimeMap = CollectionUtil.isEmpty(timeIds) ? new HashMap<>() : checkWorkTimeService.selectMapByIds(timeIds);
         for (LeaveTimeSlot day : leaveTimeSlotList) {
+            day.setTimeMation(checkWorkTimeMap.get(day.getTimeId()));
             String leaveSoltId = day.getId();
-            // 请假时长
-            String leaveHour = day.getLeaveHour();
+            // 请假时长（从 leaveStartTime~leaveEndTime 与工作时间的交集计算）
+            String leaveHour = getTotalLeaveHours(day, day.getTimeMation());
             // 假期类型
             String leaveType = day.getLeaveType();
             Map<String, Object> holiday = holidaysTypeMation.stream()
@@ -228,6 +272,96 @@ public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave>
     }
 
     /**
+     * 获取请假时间段的总工时（leaveStartTime~leaveEndTime 与工作时间的交集，支持跨天）
+     */
+    private String getTotalLeaveHours(LeaveTimeSlot slot, CheckWorkTime workTime) {
+        try {
+            if (StrUtil.isEmpty(slot.getLeaveStartTime()) || StrUtil.isEmpty(slot.getLeaveEndTime()) || workTime == null) {
+                return StrUtil.isNotEmpty(slot.getLeaveHour()) ? slot.getLeaveHour() : "0";
+            }
+            LocalDateTime start = DateUtil.parseLeaveDateTime(slot.getLeaveStartTime());
+            LocalDateTime end = DateUtil.parseLeaveDateTime(slot.getLeaveEndTime());
+            if (start == null || end == null) {
+                return StrUtil.isNotEmpty(slot.getLeaveHour()) ? slot.getLeaveHour() : "0";
+            }
+            long totalMinutes = calcLeaveMinutesInRange(start, end, workTime);
+            return CalculationUtil.divide(String.valueOf(totalMinutes), "60", CommonNumConstants.NUM_TWO);
+        } catch (Exception e) {
+            return StrUtil.isNotEmpty(slot.getLeaveHour()) ? slot.getLeaveHour() : "0";
+        }
+    }
+
+    /**
+     * 判断某日在该班次是否为上班日（参考 CheckWorkServiceImpl.getTimeWhetherWork）
+     */
+    private boolean isWorkDay(LocalDate date, CheckWorkTime workTime) {
+        if (CollectionUtil.isEmpty(workTime.getCheckWorkTimeWeekList())) {
+            return true;
+        }
+        int weekDay = DateUtil.getWeek(date.format(DateTimeFormatter.ISO_LOCAL_DATE));
+        int weekType = DateUtil.getWeekType(date.format(DateTimeFormatter.ISO_LOCAL_DATE));
+        CheckWorkTimeWeek simpleDay = workTime.getCheckWorkTimeWeekList().stream()
+            .filter(item -> item.getWeekNumber() == weekDay && !CheckWorkTimeWeekType.DOUBLE.getKey().equals(item.getType()))
+            .findFirst().orElse(null);
+        if (simpleDay == null) {
+            return false;
+        }
+        if (weekType == WeekTypeEnum.ODD_WEEKS.getKey() && CheckWorkTimeWeekType.SINGLE_DAY.getKey().equals(simpleDay.getType())) {
+            return true;
+        }
+        if (weekType == WeekTypeEnum.BIWEEKLY.getKey() && CheckWorkTimeWeekType.SINGLE_DAY.getKey().equals(simpleDay.getType())) {
+            return false;
+        }
+        return CheckWorkTimeWeekType.DAY.getKey().equals(simpleDay.getType());
+    }
+
+    /**
+     * 计算请假时间段与工作时间的交集分钟数（支持跨天、午休扣除、按 checkWorkTimeWeekList 仅计算工作日）
+     */
+    private long calcLeaveMinutesInRange(LocalDateTime leaveStart, LocalDateTime leaveEnd, CheckWorkTime workTime) {
+        LocalTime workStart = parseTime(workTime.getStartTime());
+        LocalTime workEnd = parseTime(workTime.getEndTime());
+        LocalTime restStart = StrUtil.isNotEmpty(workTime.getRestStartTime()) ? parseTime(workTime.getRestStartTime()) : null;
+        LocalTime restEnd = StrUtil.isNotEmpty(workTime.getRestEndTime()) ? parseTime(workTime.getRestEndTime()) : null;
+        long total = 0;
+        for (LocalDate d = leaveStart.toLocalDate(); !d.isAfter(leaveEnd.toLocalDate()); d = d.plusDays(1)) {
+            if (!isWorkDay(d, workTime)) {
+                continue;
+            }
+            LocalDateTime dayWorkStart = d.atTime(workStart);
+            LocalDateTime dayWorkEnd = d.atTime(workEnd);
+            LocalDateTime overlapStart = leaveStart.isAfter(dayWorkStart) ? leaveStart : dayWorkStart;
+            LocalDateTime overlapEnd = leaveEnd.isBefore(dayWorkEnd) ? leaveEnd : dayWorkEnd;
+            if (!overlapStart.isBefore(overlapEnd)) {
+                continue;
+            }
+            long mins = ChronoUnit.MINUTES.between(overlapStart, overlapEnd);
+            if (restStart != null && restEnd != null) {
+                LocalDateTime dayRestStart = d.atTime(restStart);
+                LocalDateTime dayRestEnd = d.atTime(restEnd);
+                LocalDateTime restOverlapStart = overlapStart.isAfter(dayRestStart) ? overlapStart : dayRestStart;
+                LocalDateTime restOverlapEnd = overlapEnd.isBefore(dayRestEnd) ? overlapEnd : dayRestEnd;
+                if (restOverlapStart.isBefore(restOverlapEnd)) {
+                    mins -= ChronoUnit.MINUTES.between(restOverlapStart, restOverlapEnd);
+                }
+            }
+            total += Math.max(0, mins);
+        }
+        return total;
+    }
+
+    private LocalTime parseTime(String t) {
+        if (StrUtil.isEmpty(t)) {
+            return LocalTime.MIN;
+        }
+        String s = t.trim();
+        if (s.length() == 5) {
+            s = s + ":00";
+        }
+        return LocalTime.parse(s);
+    }
+
+    /**
      * 获取请假扣薪制度
      *
      * @return 请假扣薪制度
@@ -253,8 +387,8 @@ public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave>
         List<Map<String, Object>> beans = slotList.stream().map(slot -> {
             Map<String, Object> bean = new HashMap<>();
             bean.put("id", slot.getId());
-            bean.put("start", slot.getLeaveDay());
-            bean.put("end", slot.getLeaveDay());
+            bean.put("start", StrUtil.isNotEmpty(slot.getLeaveStartTime()) ? slot.getLeaveStartTime() : "");
+            bean.put("end", StrUtil.isNotEmpty(slot.getLeaveEndTime()) ? slot.getLeaveEndTime() : "");
             bean.put("title", CheckDayType.DAY_IS_BUSINESS_TRAVEL.getValue());
             bean.put("type", CheckDayType.DAY_IS_LEAVE.getKey());
             bean.put("className", CheckDayType.DAY_IS_LEAVE.getClassName());
@@ -300,16 +434,16 @@ public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave>
     /**
      * 获取指定日期已经审核通过的请假信息
      *
-     * @param timeId   班次id
-     * @param createId 申请人id
-     * @param leaveDay 申请日期
+     * @param timeId        班次id
+     * @param createId      申请人id
+     * @param leaveStartDay 申请日期
      * @return
      */
     @Override
-    public LeaveTimeSlot queryCheckWorkLeaveByMation(String timeId, String createId, String leaveDay) {
+    public LeaveTimeSlot queryCheckWorkLeaveByMation(String timeId, String createId, String leaveStartDay) {
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         // 获取请假日期信息
-        List<LeaveTimeSlot> list = leaveTimeSlotService.queryCheckWorkLeaveSlotByMation(timeId, createId, leaveDay, tenantId);
+        List<LeaveTimeSlot> list = leaveTimeSlotService.queryCheckWorkLeaveSlotByMation(timeId, createId, leaveStartDay, tenantId);
         if (CollectionUtil.isEmpty(list)) {
             return null;
         }

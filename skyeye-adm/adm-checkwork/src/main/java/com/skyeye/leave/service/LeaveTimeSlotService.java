@@ -22,8 +22,22 @@ public interface LeaveTimeSlotService extends SkyeyeLinkDataService<LeaveTimeSlo
 
     void editStateById(String id, String state, Integer useYearHoliday);
 
+    /**
+     * 根据请假单 id 列表查询对应的请假时间段，并按请假单 id 分组
+     *
+     * @param leaveIds 请假单 id 列表
+     * @return key 为请假单 id，value 为该单下的请假时间段列表
+     */
     Map<String, List<LeaveTimeSlot>> queryLeaveTimeSlotListByLeaveIds(List<String> leaveIds);
 
+    /**
+     * 根据请假单 id 列表和日期范围，查询与该范围有交集的请假时间段
+     *
+     * @param leaveIds  请假单 id 列表
+     * @param startTime 开始日期，格式：yyyy-MM-dd
+     * @param endTime   结束日期，格式：yyyy-MM-dd
+     * @return 与 [startTime, endTime] 有重叠的请假时间段列表
+     */
     List<LeaveTimeSlot> queryTimeAndIds(List<String> leaveIds, String startTime, String endTime);
 
     /**
@@ -34,7 +48,7 @@ public interface LeaveTimeSlotService extends SkyeyeLinkDataService<LeaveTimeSlo
      * @param leaveTimeState     请假记录状态  {@link com.skyeye.common.enumeration.FlowableStateEnum}
      * @param leaveTimeSlotState 请假时间段状态 {@link com.skyeye.common.enumeration.FlowableChildStateEnum}
      * @param tenantId           租户id
-     * @return 请假记录列表，包含 leaveType、leaveDay、leaveStartTime、leaveEndTime、timeId、useYearHoliday
+     * @return 请假记录列表
      */
     List<LeaveTimeSlot> queryLastMonthLeaveTime(String staffId, String lastMonthDate,
                                                 String leaveTimeState, String leaveTimeSlotState, String tenantId);
@@ -42,13 +56,13 @@ public interface LeaveTimeSlotService extends SkyeyeLinkDataService<LeaveTimeSlo
     /**
      * 获取指定日期已经审核通过的请假时间段信息
      *
-     * @param timeId   班次id
-     * @param createId 创建人/申请人id
-     * @param leaveDay 指定日期，格式：yyyy-MM-dd
-     * @param tenantId 租户id
+     * @param timeId        班次id
+     * @param createId      创建人/申请人id
+     * @param leaveStartDay 指定日期，格式：yyyy-MM-dd
+     * @param tenantId      租户id
      * @return 请假时间段列表
      */
-    List<LeaveTimeSlot> queryCheckWorkLeaveSlotByMation(String timeId, String createId, String leaveDay, String tenantId);
+    List<LeaveTimeSlot> queryCheckWorkLeaveSlotByMation(String timeId, String createId, String leaveStartDay, String tenantId);
 
     /**
      * 获取指定员工在指定月份和班次的所有审核通过的请假时间段

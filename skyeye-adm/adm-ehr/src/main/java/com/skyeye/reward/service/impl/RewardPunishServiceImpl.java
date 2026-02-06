@@ -13,14 +13,17 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.reward.dao.RewardPunishDao;
 import com.skyeye.reward.entity.RewardPunish;
 import com.skyeye.reward.service.RewardPunishService;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: RewardPunishServiceImpl
@@ -52,9 +55,23 @@ public class RewardPunishServiceImpl extends SkyeyeBusinessServiceImpl<RewardPun
     }
 
     @Override
+    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        List<String> staffIds = beans.stream().map(bean -> bean.get("objectId").toString()).collect(Collectors.toList());
+        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
+        beans.forEach(bean -> {
+            String objectId = bean.get("objectId").toString();
+            bean.put("objectMation", staffMap.get(objectId));
+        });
+        return beans;
+    }
+
+    @Override
     public RewardPunish selectById(String id) {
         RewardPunish rewardPunish = super.selectById(id);
         iSysDictDataService.setDataMation(rewardPunish, RewardPunish::getTypeId);
+        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(Arrays.asList(rewardPunish.getObjectId()));
+        rewardPunish.setObjectMation(staffMap.get(rewardPunish.getObjectId()));
         return rewardPunish;
     }
 

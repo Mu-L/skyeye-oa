@@ -45,16 +45,12 @@ public class LeaveTimeSlot extends SkyeyeLinkData {
     @Property(value = "请假类型信息")
     private Map<String, Object> leaveTypeMation;
 
-    @TableField(value = "leave_day")
-    @ApiModelProperty(value = "请假日期，格式：yyyy-MM-dd", required = "required")
-    private String leaveDay;
-
     @TableField(value = "leave_start_time")
-    @ApiModelProperty(value = "请假开始时间，格式：HH:mm:ss", required = "required")
+    @ApiModelProperty(value = "请假开始时间，格式：yyyy-MM-dd HH:mm", required = "required")
     private String leaveStartTime;
 
     @TableField(value = "leave_end_time")
-    @ApiModelProperty(value = "请假结束时间，格式：HH:mm:ss", required = "required")
+    @ApiModelProperty(value = "请假结束时间，格式：yyyy-MM-dd HH:mm", required = "required")
     private String leaveEndTime;
 
     @TableField(value = "leave_hour")
