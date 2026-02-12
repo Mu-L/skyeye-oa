@@ -56,7 +56,7 @@ public class ShopStoreStaffController {
 
     @ApiOperation(id = "queryStaffListByStoreId", value = "根据门店ID获取员工信息列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "storeId", name = "storeId", value = "门店ID", required = "required")})
+        @ApiImplicitParam(id = "storeId", name = "storeId", value = "门店ID")})
     @RequestMapping("/post/ShopStoreStaffController/queryStaffListByStoreId")
     public void queryStaffListByStoreId(InputObject inputObject, OutputObject outputObject) {
         shopStoreStaffService.queryStaffListByStoreId(inputObject, outputObject);

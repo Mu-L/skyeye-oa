@@ -172,6 +172,9 @@ public class ShopStoreStaffServiceImpl extends SkyeyeBusinessServiceImpl<ShopSto
     @Override
     public void queryStaffListByStoreId(InputObject inputObject, OutputObject outputObject) {
         String storeId = inputObject.getParams().get("storeId").toString();
+        if (StrUtil.isEmpty(storeId)) {
+            return;
+        }
         List<ShopStoreStaff> list = getShopStoresByStoreId(storeId);
         List<String> staffIds = list.stream().map(ShopStoreStaff::getStaffId)
             .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
