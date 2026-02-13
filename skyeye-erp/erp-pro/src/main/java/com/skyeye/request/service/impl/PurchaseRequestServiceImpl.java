@@ -519,7 +519,7 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
             );
         }
 
-        // 只查询已提交审批或审批中的单据（状态为审批通过），询价状态是待询价或者是询价中的
+        // 只查询已状态为审批通过，询价状态是待询价或者是询价中的
         wrapper.eq("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getState), FlowableStateEnum.PASS.getKey());
         wrapper.in("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getInquiryState), PurchaseRequestInquiryState.WAIT_INQUIRY.getKey(),
             PurchaseRequestInquiryState.INQUIRYING.getKey());
@@ -561,6 +561,12 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
         // 判断当前企业账户是否已对各商品规格报过价
         setEnterpriseHasQuotedForChildList(id, purchaseRequest.getTenantId(), purchaseRequestChildList);
         purchaseRequest.setPurchaseRequestChildList(purchaseRequestChildList);
+        materialService.setDataMation(purchaseRequest.getPurchaseRequestChildList(), PurchaseRequestChild::getMaterialId);
+        purchaseRequest.getPurchaseRequestChildList().forEach(purchaseRequestChild -> {
+            MaterialNorms norms = purchaseRequestChild.getMaterialMation().getMaterialNorms()
+                .stream().filter(bean -> StrUtil.equals(purchaseRequestChild.getNormsId(), bean.getId())).findFirst().orElse(null);
+            purchaseRequestChild.setNormsMation(norms);
+        });
         // 组装结果并填充租户信息
         Map<String, Object> result = BeanUtil.beanToMap(purchaseRequest);
         iTenantService.setMationForMap(result, "tenantId", "tenantMation");
