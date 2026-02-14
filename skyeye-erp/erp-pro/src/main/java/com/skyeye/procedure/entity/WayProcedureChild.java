@@ -65,6 +65,15 @@ public class WayProcedureChild extends CommonInfo {
     @ApiModelProperty(value = "作业人数", required = "required,num")
     private Integer homeworkAbility;
 
+    /**
+     * 标准工时(分钟/件)，用于APS排产计算加工时长。
+     * 计算公式：加工时长(分钟) = 数量 * standardTimeMinutes。
+     * 若为空且quotaCapacity>0，可推算：60/quotaCapacity(件/小时) ≈ 分钟/件。
+     */
+    @TableField(value = "standard_time_minutes")
+    @ApiModelProperty(value = "标准工时(分钟/件)，用于APS排产")
+    private String standardTimeMinutes;
+
     @TableField(exist = false)
     @Property(value = "加工单子单据关联的工序信息----加工单特有")
     private MachinProcedure machinProcedureMation;

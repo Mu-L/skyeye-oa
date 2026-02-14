@@ -15,6 +15,7 @@ import com.skyeye.procedure.entity.WayProcedureChild;
 import com.skyeye.procedure.service.WayProcedureChildService;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -44,6 +45,8 @@ public class WayProcedureChildServiceImpl extends SkyeyeBusinessServiceImpl<WayP
         if (CollectionUtil.isNotEmpty(wayProcedureList)) {
             for (WayProcedureChild wayProcedureChild : wayProcedureList) {
                 wayProcedureChild.setWayId(wayId);
+                // 保存时计算并设置标准工时(分钟/件)
+                wayProcedureChild.setStandardTimeMinutes(calcStandardTimeMinutes(wayProcedureChild));
             }
             createEntity(wayProcedureList, userId);
         }
@@ -75,6 +78,20 @@ public class WayProcedureChildServiceImpl extends SkyeyeBusinessServiceImpl<WayP
         List<WayProcedureChild> wayProcedureChildList = list(queryWrapper);
         Map<String, List<WayProcedureChild>> listMap = wayProcedureChildList.stream().collect(Collectors.groupingBy(WayProcedureChild::getWayId));
         return listMap;
+    }
+
+    /**
+     * 根据定额能力计算标准工时(分钟/件)：60/定额能力(件/小时)
+     */
+    private String calcStandardTimeMinutes(WayProcedureChild wayProcedureChild) {
+        if (wayProcedureChild == null) {
+            return null;
+        }
+        Integer quotaCapacity = wayProcedureChild.getQuotaCapacity();
+        if (quotaCapacity == null || quotaCapacity <= 0) {
+            return null;
+        }
+        return CalculationUtil.divide("60", String.valueOf(quotaCapacity), 4, RoundingMode.HALF_UP);
     }
 
 }
