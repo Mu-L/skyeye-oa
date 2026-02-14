@@ -67,7 +67,13 @@ public class FarmServiceImpl extends SkyeyeBusinessServiceImpl<FarmDao, Farm> im
         }
         Farm checkFarm = getOne(queryWrapper);
         if (ObjectUtil.isNotEmpty(checkFarm)) {
-            throw new CustomException("this 【name/number】 is exist.");
+            throw new CustomException("车间名称或编号已存在");
+        }
+        // 每日可用工时校验：若填写则必须在1~1440分钟之间(1分钟~24小时)
+        if (entity.getDailyWorkMinutes() != null) {
+            if (entity.getDailyWorkMinutes() < 1 || entity.getDailyWorkMinutes() > 1440) {
+                throw new CustomException("每日可用工时必须在1~1440分钟之间(1分钟~24小时)");
+            }
         }
     }
 

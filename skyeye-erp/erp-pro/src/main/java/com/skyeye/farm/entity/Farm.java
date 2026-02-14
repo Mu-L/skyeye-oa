@@ -51,6 +51,13 @@ public class Farm extends BaseGeneralInfo {
     @ApiModelProperty(value = "车间负责人", required = "required")
     private String chargePerson;
 
+    /**
+     * 每日可用工时(分钟)，用于APS排产计算车间产能。默认480(8小时)。
+     */
+    @TableField(value = "daily_work_minutes")
+    @ApiModelProperty(value = "每日可用工时(分钟)，APS排产用")
+    private Integer dailyWorkMinutes;
+
     @TableField(exist = false)
     @Property(value = "车间负责人")
     private Map<String, Object> chargePersonMation;
