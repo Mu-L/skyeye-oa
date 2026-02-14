@@ -10,6 +10,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ApsConstants;
 import com.skyeye.procedure.dao.WayProcedureChildDao;
 import com.skyeye.procedure.entity.WayProcedureChild;
 import com.skyeye.procedure.service.WayProcedureChildService;
@@ -81,7 +82,8 @@ public class WayProcedureChildServiceImpl extends SkyeyeBusinessServiceImpl<WayP
     }
 
     /**
-     * 根据定额能力计算标准工时(分钟/件)：60/定额能力(件/小时)
+     * 根据定额能力计算标准工时(分钟/件)：60/定额能力(件/小时)。
+     * 后续可扩展：不同行业/工艺的工时计算策略。
      */
     private String calcStandardTimeMinutes(WayProcedureChild wayProcedureChild) {
         if (wayProcedureChild == null) {
@@ -91,7 +93,8 @@ public class WayProcedureChildServiceImpl extends SkyeyeBusinessServiceImpl<WayP
         if (quotaCapacity == null || quotaCapacity <= 0) {
             return null;
         }
-        return CalculationUtil.divide("60", String.valueOf(quotaCapacity), 4, RoundingMode.HALF_UP);
+        return CalculationUtil.divide(String.valueOf(ApsConstants.MINUTES_PER_HOUR), String.valueOf(quotaCapacity),
+            ApsConstants.STANDARD_TIME_DECIMAL_SCALE, RoundingMode.HALF_UP);
     }
 
 }

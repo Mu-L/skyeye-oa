@@ -53,9 +53,10 @@ public class Farm extends BaseGeneralInfo {
 
     /**
      * 每日可用工时(分钟)，用于APS排产计算车间产能。默认480(8小时)。
+     * 扩展：复杂场景使用 erp_farm_calendar 表，按日/按星期/节假日配置，本字段作为默认值。
      */
     @TableField(value = "daily_work_minutes")
-    @ApiModelProperty(value = "每日可用工时(分钟)，APS排产用")
+    @ApiModelProperty(value = "每日可用工时(分钟)，APS排产用", required = "required")
     private Integer dailyWorkMinutes;
 
     @TableField(exist = false)

@@ -6,6 +6,7 @@ package com.skyeye.farm.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -15,9 +16,11 @@ import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ApsConstants;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.dao.FarmDao;
 import com.skyeye.farm.entity.Farm;
+import com.skyeye.farm.service.FarmCalendarService;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.organization.service.IDepmentService;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +47,9 @@ public class FarmServiceImpl extends SkyeyeBusinessServiceImpl<FarmDao, Farm> im
     @Autowired
     private IDepmentService iDepmentService;
 
+    @Autowired
+    private FarmCalendarService farmCalendarService;
+
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
@@ -69,10 +75,12 @@ public class FarmServiceImpl extends SkyeyeBusinessServiceImpl<FarmDao, Farm> im
         if (ObjectUtil.isNotEmpty(checkFarm)) {
             throw new CustomException("车间名称或编号已存在");
         }
-        // 每日可用工时校验：若填写则必须在1~1440分钟之间(1分钟~24小时)
+        // 每日可用工时校验：若填写则必须在规范范围内，便于后续扩展校验规则
         if (entity.getDailyWorkMinutes() != null) {
-            if (entity.getDailyWorkMinutes() < 1 || entity.getDailyWorkMinutes() > 1440) {
-                throw new CustomException("每日可用工时必须在1~1440分钟之间(1分钟~24小时)");
+            if (entity.getDailyWorkMinutes() < ApsConstants.MIN_DAILY_WORK_MINUTES
+                || entity.getDailyWorkMinutes() > ApsConstants.MAX_DAILY_WORK_MINUTES) {
+                throw new CustomException("每日可用工时必须在" + ApsConstants.MIN_DAILY_WORK_MINUTES + "~"
+                    + ApsConstants.MAX_DAILY_WORK_MINUTES + "分钟之间(1分钟~24小时)");
             }
         }
     }
@@ -151,6 +159,29 @@ public class FarmServiceImpl extends SkyeyeBusinessServiceImpl<FarmDao, Farm> im
         QueryWrapper<Farm> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(CommonConstants.ID, farmIds);
         return list(queryWrapper) == null ? Collections.emptyList() : list(queryWrapper);
+    }
+
+    @Override
+    public int getDailyWorkMinutes(String farmId) {
+        return getDailyWorkMinutes(farmId, null);
+    }
+
+    @Override
+    public int getDailyWorkMinutes(String farmId, String dateStr) {
+        if (farmId == null) {
+            return ApsConstants.DEFAULT_DAILY_WORK_MINUTES;
+        }
+        if (StrUtil.isNotEmpty(dateStr)) {
+            Integer calendarMinutes = farmCalendarService.getDailyWorkMinutesByDate(farmId, dateStr);
+            if (calendarMinutes != null) {
+                return calendarMinutes;
+            }
+        }
+        Farm farm = selectById(farmId);
+        if (farm == null || farm.getDailyWorkMinutes() == null || farm.getDailyWorkMinutes() <= 0) {
+            return ApsConstants.DEFAULT_DAILY_WORK_MINUTES;
+        }
+        return farm.getDailyWorkMinutes();
     }
 
 }

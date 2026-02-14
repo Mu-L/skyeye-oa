@@ -33,4 +33,17 @@ public interface FarmService extends SkyeyeBusinessService<Farm> {
 
     List<Farm> queryFarmListByIds(List<String> farmIds);
 
+    /**
+     * 获取车间每日可用工时(分钟)，用于APS排产。
+     * 未配置时返回默认值。
+     */
+    int getDailyWorkMinutes(String farmId);
+
+    /**
+     * 根据日期获取车间当日可用工时(分钟)。
+     * @param farmId 车间ID
+     * @param dateStr 日期字符串，格式：yyyy-MM-dd，为空时使用车间默认值
+     */
+    int getDailyWorkMinutes(String farmId, String dateStr);
+
 }
