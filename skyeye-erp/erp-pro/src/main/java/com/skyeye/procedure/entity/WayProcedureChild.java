@@ -58,7 +58,7 @@ public class WayProcedureChild extends CommonInfo {
     private String price;
 
     @TableField(value = "quota_capacity")
-    @ApiModelProperty(value = "定额能力", required = "required,num")
+    @ApiModelProperty(value = "定额能力（每小时件数）", required = "required,num")
     private Integer quotaCapacity;
 
     @TableField(value = "homework_ability")

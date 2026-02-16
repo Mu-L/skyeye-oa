@@ -13,8 +13,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.github.yulichang.toolkit.JoinWrappers;
-import com.github.yulichang.wrapper.MPJLambdaWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -56,10 +54,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.math.RoundingMode;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -477,59 +472,49 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
             throw new CustomException("未获取到企业营业执照注册号，请先登录企业账户");
         }
 
-        // 使用 MPJLambdaWrapper 关联查询采购申请表和供应商表
-        MPJLambdaWrapper<PurchaseRequest> wrapper = JoinWrappers.lambda("pr", PurchaseRequest.class)
-            .leftJoin(Supplier.class, "s", Supplier::getId, PurchaseRequest::getId);
+        // 使用 QueryWrapper + EXISTS 子查询，避免先查 1000 个 supplierId 再拼 OR 条件
+        // EXISTS 在找到第一个匹配即停止，支持多租户下同一企业有多个 supplierId 的场景
+        QueryWrapper<PurchaseRequest> wrapper = new QueryWrapper<>();
 
-        // 根据营业执照注册号匹配供应商（实际关联条件）
-        wrapper.eq("s." + MybatisPlusUtil.toColumns(Supplier::getSocialCreditCode), socialCreditCode);
-        wrapper.eq("s." + MybatisPlusUtil.toColumns(Supplier::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
+        wrapper.isNotNull(MybatisPlusUtil.toColumns(PurchaseRequest::getSupplierQuoteType));
 
-        // 只查询已设置报价信息的采购申请
-        wrapper.isNotNull("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getSupplierQuoteType));
-
-        // 检查报价类型：全部供应商或指定供应商（且当前供应商ID在 supplierId JSON 数组中）
+        // 报价类型：全部供应商 或 指定供应商（EXISTS：存在该企业任一租户下的供应商ID在 supplier_id JSON 中）
+        Integer deleteFlag = DeleteFlagEnum.NOT_DELETE.getKey();
         wrapper.and(w -> w
-            .eq("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getSupplierQuoteType),
+            .eq(MybatisPlusUtil.toColumns(PurchaseRequest::getSupplierQuoteType),
                 PurchaseRequestSupplierQuoteType.ALL_SUPPLIER.getKey())
-            .or(subW -> {
-                // 指定供应商模式，需要检查 supplierId 字段（JSON 数组）中是否包含当前供应商ID
-                // supplierId 是 JSON 数组格式，例如：["id1","id2"]，使用 JSON_CONTAINS
-                subW.eq("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getSupplierQuoteType),
-                        PurchaseRequestSupplierQuoteType.SPECIFIED_SUPPLIER.getKey())
-                    .apply("JSON_CONTAINS(pr.supplier_id, s.supplier_id)");
-            })
+            .or(subW -> subW
+                .eq(MybatisPlusUtil.toColumns(PurchaseRequest::getSupplierQuoteType),
+                    PurchaseRequestSupplierQuoteType.SPECIFIED_SUPPLIER.getKey())
+                .apply("EXISTS (SELECT 1 FROM erp_supplier s WHERE s.social_credit_code = {0} AND s.delete_flag = {1} " +
+                    "AND JSON_CONTAINS(erp_purchase_request.supplier_id, JSON_QUOTE(s.id), '$'))", socialCreditCode, deleteFlag))
         );
 
-        // 检查报价时间段：如果设置了时间段，当前时间必须在时间段内（包含等于的情况）
         String currentTime = DateUtil.getYmdTimeAndToString();
         wrapper.and(w -> w
-            .isNull("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getQuoteStartTime))
-            .or(subW -> subW.le("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getQuoteStartTime), currentTime))
+            .isNull(MybatisPlusUtil.toColumns(PurchaseRequest::getQuoteStartTime))
+            .or(subW -> subW.le(MybatisPlusUtil.toColumns(PurchaseRequest::getQuoteStartTime), currentTime))
         );
         wrapper.and(w -> w
-            .isNull("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getQuoteEndTime))
-            .or(subW -> subW.ge("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getQuoteEndTime), currentTime))
+            .isNull(MybatisPlusUtil.toColumns(PurchaseRequest::getQuoteEndTime))
+            .or(subW -> subW.ge(MybatisPlusUtil.toColumns(PurchaseRequest::getQuoteEndTime), currentTime))
         );
 
-        // 关键词查询：根据 oddNumber（单据编号）进行模糊查询
         if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
-            wrapper.and(w -> w
-                .like("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getOddNumber), commonPageInfo.getKeyword())
-            );
+            wrapper.like(MybatisPlusUtil.toColumns(PurchaseRequest::getOddNumber), commonPageInfo.getKeyword());
         }
 
-        // 只查询已状态为审批通过，询价状态是待询价或者是询价中的
-        wrapper.eq("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getState), FlowableStateEnum.PASS.getKey());
-        wrapper.in("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getInquiryState), PurchaseRequestInquiryState.WAIT_INQUIRY.getKey(),
+        wrapper.eq(MybatisPlusUtil.toColumns(PurchaseRequest::getState), FlowableStateEnum.PASS.getKey());
+        wrapper.in(MybatisPlusUtil.toColumns(PurchaseRequest::getInquiryState), PurchaseRequestInquiryState.WAIT_INQUIRY.getKey(),
             PurchaseRequestInquiryState.INQUIRYING.getKey());
 
-        // 排序：按创建时间倒序
-        wrapper.orderByDesc("pr." + MybatisPlusUtil.toColumns(PurchaseRequest::getCreateTime));
+        wrapper.orderByDesc(MybatisPlusUtil.toColumns(PurchaseRequest::getCreateTime));
 
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        // 执行查询
-        List<Map<String, Object>> resultList = baseMapper.selectJoinMaps(wrapper);
+        List<PurchaseRequest> list = list(wrapper);
+        List<Map<String, Object>> resultList = CollectionUtil.isEmpty(list)
+            ? new ArrayList<>()
+            : JSONUtil.toList(JSONUtil.toJsonStr(list), null);
 
         iTenantService.setMationForMap(resultList, "tenantId", "tenantMation");
 

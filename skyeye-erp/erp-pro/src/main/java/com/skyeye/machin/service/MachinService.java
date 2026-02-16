@@ -45,6 +45,14 @@ public interface MachinService extends SkyeyeBusinessService<Machin> {
     void insertMachinToPickReturn(InputObject inputObject, OutputObject outputObject);
 
     /**
+     * 查询存在待接收/待执行车间任务的加工单列表（供APS排程下拉框使用，不分页）
+     *
+     * @param inputObject  入参
+     * @param outputObject 出参，返回 rows 和 total
+     */
+    void queryMachinListForApsSchedule(InputObject inputObject, OutputObject outputObject);
+
+    /**
      * 判断指定工序是否是指定加工单子单据的最后一条工序
      *
      * @param machin         加工单

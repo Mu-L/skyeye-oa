@@ -43,6 +43,12 @@ public class MachinController {
         machinService.queryPageList(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "erpmachinApsSchedule", value = "获取存在待接收/待执行车间任务的加工单列表(供APS排程下拉框使用)", method = "GET", allUse = "2")
+    @RequestMapping("/post/MachinController/queryMachinListForApsSchedule")
+    public void queryMachinListForApsSchedule(InputObject inputObject, OutputObject outputObject) {
+        machinService.queryMachinListForApsSchedule(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "writeMachin", value = "新增/编辑加工单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Machin.class)
     @RequestMapping("/post/MachinController/writeMachin")

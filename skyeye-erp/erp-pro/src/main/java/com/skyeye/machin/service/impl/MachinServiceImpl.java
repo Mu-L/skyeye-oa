@@ -37,6 +37,7 @@ import com.skyeye.machin.entity.Machin;
 import com.skyeye.machin.entity.MachinChild;
 import com.skyeye.machin.service.MachinChildService;
 import com.skyeye.machin.service.MachinService;
+import com.skyeye.machinprocedure.classenum.MachinProcedureFarmState;
 import com.skyeye.machinprocedure.classenum.MachinProcedureState;
 import com.skyeye.machinprocedure.entity.MachinProcedure;
 import com.skyeye.machinprocedure.entity.MachinProcedureAccept;
@@ -134,6 +135,28 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         // 生产计划单
         productionService.setOrderMationByFromId(beans, "fromId", "fromMation");
         return beans;
+    }
+
+    @Override
+    public void queryMachinListForApsSchedule(InputObject inputObject, OutputObject outputObject) {
+        // 1) 查询存在待接收/待执行车间任务的加工单ID
+        List<String> states = Arrays.asList(MachinProcedureFarmState.WAIT_RECEIVE.getKey(), MachinProcedureFarmState.WAIT_EXECUTED.getKey());
+        QueryWrapper<MachinProcedureFarm> farmQw = new QueryWrapper<>();
+        farmQw.select(MybatisPlusUtil.toColumns(MachinProcedureFarm::getMachinId));
+        farmQw.in(MybatisPlusUtil.toColumns(MachinProcedureFarm::getState), states);
+        List<MachinProcedureFarm> farmList = machinProcedureFarmService.list(farmQw);
+        List<String> machinIds = farmList.stream().map(MachinProcedureFarm::getMachinId)
+            .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(machinIds)) {
+            return;
+        }
+        // 2) 查询加工单（仅审核通过的，不分页，供下拉框展示）
+        QueryWrapper<Machin> machinQw = new QueryWrapper<>();
+        machinQw.in(CommonConstants.ID, machinIds);
+        machinQw.eq(MybatisPlusUtil.toColumns(Machin::getState), FlowableStateEnum.PASS.getKey());
+        List<Machin> machinList = list(machinQw);
+        outputObject.setBeans(machinList);
+        outputObject.settotal(machinList.size());
     }
 
     @Override

@@ -20,9 +20,9 @@ import java.util.Arrays;
 @AllArgsConstructor
 public enum FarmCalendarConfigTypeEnum implements SkyeyeEnumClass {
 
-    DATE("DATE", "按日期", true, false),
-    WEEKDAY("WEEKDAY", "按星期", true, true),
-    PERIOD("PERIOD", "按日期区间", true, false);
+    DATE("1", "按日期", true, false),
+    WEEKDAY("2", "按星期", true, true),
+    PERIOD("3", "按日期区间", true, false);
 
     private String key;
     private String value;
