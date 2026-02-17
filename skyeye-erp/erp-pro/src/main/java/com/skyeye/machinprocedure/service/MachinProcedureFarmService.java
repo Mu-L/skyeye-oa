@@ -44,6 +44,22 @@ public interface MachinProcedureFarmService extends SkyeyeBusinessService<Machin
 
     void queryPendingAcceptNumByFarmId(InputObject inputObject, OutputObject outputObject);
 
+    /**
+     * 统计各车间待接收/待执行任务数量（用于负载均衡）
+     *
+     * @param farmIds 车间id列表
+     * @return 车间id -> 任务条数
+     */
+    Map<String, Long> countPendingTaskByFarmIds(List<String> farmIds);
+
+    /**
+     * 统计各车间待接收/待执行任务的加工数量之和（用于加工数量最少策略）
+     *
+     * @param farmIds 车间id列表
+     * @return 车间id -> targetNum 之和（字符串）
+     */
+    Map<String, String> sumPendingTargetNumByFarmIds(List<String> farmIds);
+
     void setOrderMationByFromId(List<Map<String, Object>> beans, String idKey, String mationKey);
 
     /**

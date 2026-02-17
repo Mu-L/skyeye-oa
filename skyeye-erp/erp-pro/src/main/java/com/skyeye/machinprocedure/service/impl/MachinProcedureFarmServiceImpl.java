@@ -691,4 +691,63 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
         outputObject.setBean(result);
     }
 
+    @Override
+    public Map<String, Long> countPendingTaskByFarmIds(List<String> farmIds) {
+        if (CollectionUtil.isEmpty(farmIds)) {
+            return Collections.emptyMap();
+        }
+        List<String> states = Arrays.asList(
+            MachinProcedureFarmState.WAIT_RECEIVE.getKey(),
+            MachinProcedureFarmState.WAIT_EXECUTED.getKey()
+        );
+        QueryWrapper<MachinProcedureFarm> qw = new QueryWrapper<>();
+        qw.select("farm_id", "COUNT(1) as cnt");
+        qw.in(MybatisPlusUtil.toColumns(MachinProcedureFarm::getFarmId), farmIds);
+        qw.in(MybatisPlusUtil.toColumns(MachinProcedureFarm::getState), states);
+        qw.groupBy(MybatisPlusUtil.toColumns(MachinProcedureFarm::getFarmId));
+        List<Map<String, Object>> rows = baseMapper.selectMaps(qw);
+        Map<String, Long> result = new HashMap<>();
+        for (String farmId : farmIds) {
+            result.put(farmId, 0L);
+        }
+        for (Map<String, Object> row : rows) {
+            Object farmId = row.get("farm_id");
+            Object cnt = row.get("cnt");
+            if (farmId != null && cnt != null) {
+                result.put(farmId.toString(), ((Number) cnt).longValue());
+            }
+        }
+        return result;
+    }
+
+    @Override
+    public Map<String, String> sumPendingTargetNumByFarmIds(List<String> farmIds) {
+        if (CollectionUtil.isEmpty(farmIds)) {
+            return Collections.emptyMap();
+        }
+        List<String> states = Arrays.asList(
+            MachinProcedureFarmState.WAIT_RECEIVE.getKey(),
+            MachinProcedureFarmState.WAIT_EXECUTED.getKey()
+        );
+        QueryWrapper<MachinProcedureFarm> qw = new QueryWrapper<>();
+        qw.select(MybatisPlusUtil.toColumns(MachinProcedureFarm::getFarmId), MybatisPlusUtil.toColumns(MachinProcedureFarm::getTargetNum));
+        qw.in(MybatisPlusUtil.toColumns(MachinProcedureFarm::getFarmId), farmIds);
+        qw.in(MybatisPlusUtil.toColumns(MachinProcedureFarm::getState), states);
+        List<MachinProcedureFarm> list = baseMapper.selectList(qw);
+        Map<String, String> result = new HashMap<>();
+        for (String farmId : farmIds) {
+            result.put(farmId, CommonNumConstants.NUM_ZERO.toString());
+        }
+        for (MachinProcedureFarm item : list) {
+            String farmId = item.getFarmId();
+            if (StrUtil.isEmpty(farmId)) {
+                continue;
+            }
+            String targetNum = StrUtil.isEmpty(item.getTargetNum()) ? CommonNumConstants.NUM_ZERO.toString() : item.getTargetNum();
+            String sum = result.getOrDefault(farmId, CommonNumConstants.NUM_ZERO.toString());
+            result.put(farmId, CalculationUtil.add(sum, targetNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP));
+        }
+        return result;
+    }
+
 }

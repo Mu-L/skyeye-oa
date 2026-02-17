@@ -11,6 +11,7 @@ import com.skyeye.farm.entity.Farm;
 import com.skyeye.procedure.entity.WorkProcedure;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: WorkProcedureService
@@ -27,4 +28,12 @@ public interface WorkProcedureService extends SkyeyeBusinessService<WorkProcedur
     void queryExecuteFarmByWorkProcedureId(InputObject inputObject, OutputObject outputObject);
 
     List<Farm> queryExecuteFarmByWorkProcedureId(String workProcedureId);
+
+    /**
+     * 批量查询工序可执行车间：根据多个工序ID一次性查询每个工序可执行的车间列表。
+     *
+     * @param workProcedureIds 工序ID列表
+     * @return 工序ID -> 可执行车间列表 的映射，无设备配置的工序不在结果中
+     */
+    Map<String, List<Farm>> queryExecuteFarmByWorkProcedureIds(List<String> workProcedureIds);
 }

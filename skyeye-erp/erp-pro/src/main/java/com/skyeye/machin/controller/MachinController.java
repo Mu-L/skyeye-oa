@@ -12,6 +12,8 @@ import com.skyeye.common.entity.features.SubmitSkyeyeFlowable;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.machin.classenum.AutoAssignFarmSelectStrategyEnum;
+import com.skyeye.machin.classenum.AutoAssignQuantityTypeEnum;
 import com.skyeye.machin.entity.Machin;
 import com.skyeye.machin.service.MachinService;
 import com.skyeye.pick.entity.PatchMaterial;
@@ -47,6 +49,19 @@ public class MachinController {
     @RequestMapping("/post/MachinController/queryMachinListForApsSchedule")
     public void queryMachinListForApsSchedule(InputObject inputObject, OutputObject outputObject) {
         machinService.queryMachinListForApsSchedule(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "erpmachinAutoAssignFarm", value = "加工单自动安排车间任务", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "加工单id", required = "required"),
+        @ApiImplicitParam(id = "quantityType", name = "quantityType", value = "数量类型", enumClass = AutoAssignQuantityTypeEnum.class, required = "required"),
+        @ApiImplicitParam(id = "priorityFarmIds", name = "priorityFarmIds", value = "优先车间id列表，json字符串", required = "json"),
+        @ApiImplicitParam(id = "farmSelectStrategy", name = "farmSelectStrategy", value = "车间选取策略", enumClass = AutoAssignFarmSelectStrategyEnum.class, required = "required"),
+        @ApiImplicitParam(id = "maxFarmsPerProcedure", name = "maxFarmsPerProcedure", value = "每个工序最多分配给多少个车间，默认1", required = "required,num")
+    })
+    @RequestMapping("/post/MachinController/autoAssignFarmTasks")
+    public void autoAssignFarmTasks(InputObject inputObject, OutputObject outputObject) {
+        machinService.autoAssignFarmTasks(inputObject, outputObject);
     }
 
     @ApiOperation(id = "writeMachin", value = "新增/编辑加工单", method = "POST", allUse = "1")

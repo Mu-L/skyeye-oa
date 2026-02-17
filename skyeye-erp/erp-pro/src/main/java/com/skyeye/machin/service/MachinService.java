@@ -53,6 +53,25 @@ public interface MachinService extends SkyeyeBusinessService<Machin> {
     void queryMachinListForApsSchedule(InputObject inputObject, OutputObject outputObject);
 
     /**
+     * 加工单自动安排车间任务：根据加工单的工序信息，自动为每个工序分配可执行车间并创建车间任务
+     *
+     * @param inputObject  入参，需包含 id（加工单id）
+     * @param outputObject 出参
+     */
+    void autoAssignFarmTasks(InputObject inputObject, OutputObject outputObject);
+
+    /**
+     * 加工单自动安排车间任务（内部实现，供审批通过等场景调用）
+     *
+     * @param machinId              加工单id
+     * @param quantityType          数量类型，见 {@link com.skyeye.machin.classenum.AutoAssignQuantityTypeEnum}
+     * @param priorityFarmIds       优先车间id列表，按顺序优先
+     * @param farmSelectStrategy    车间选取策略，见 {@link com.skyeye.machin.classenum.AutoAssignFarmSelectStrategyEnum}
+     * @param maxFarmsPerProcedure 每个工序最多分配给多少个车间，默认1
+     */
+    void doAutoAssignFarmTasks(String machinId, String quantityType, List<String> priorityFarmIds, String farmSelectStrategy, int maxFarmsPerProcedure);
+
+    /**
      * 判断指定工序是否是指定加工单子单据的最后一条工序
      *
      * @param machin         加工单

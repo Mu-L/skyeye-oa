@@ -29,6 +29,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -186,6 +188,58 @@ public class WorkProcedureServiceImpl extends SkyeyeBusinessServiceImpl<WorkProc
         }
         List<Farm> farmList = farmService.selectByIds(farmIdList.toArray(new String[]{}));
         return farmList;
+    }
+
+    @Override
+    public Map<String, List<Farm>> queryExecuteFarmByWorkProcedureIds(List<String> workProcedureIds) {
+        if (CollectionUtil.isEmpty(workProcedureIds)) {
+            return Collections.emptyMap();
+        }
+        Map<String, List<WorkProcedureEquipment>> equipmentMap = workProcedureEquipmentService.selectByParentId(workProcedureIds);
+        if (CollectionUtil.isEmpty(equipmentMap)) {
+            return Collections.emptyMap();
+        }
+        List<String> allEquipmentIds = equipmentMap.values().stream()
+            .flatMap(List::stream)
+            .filter(bean -> StrUtil.isNotEmpty(bean.getEquipmentId()))
+            .map(WorkProcedureEquipment::getEquipmentId)
+            .distinct().collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(allEquipmentIds)) {
+            return Collections.emptyMap();
+        }
+        List<Equipment> equipmentList = equipmentService.selectByIds(allEquipmentIds.toArray(new String[]{}));
+        Map<String, Equipment> equipmentIdMap = equipmentList.stream().collect(Collectors.toMap(Equipment::getId, e -> e));
+        List<String> allFarmIds = equipmentList.stream()
+            .map(Equipment::getFarmId)
+            .filter(StrUtil::isNotEmpty)
+            .distinct().collect(Collectors.toList());
+        Map<String, Farm> farmIdMap = CollectionUtil.isEmpty(allFarmIds)
+            ? Collections.emptyMap()
+            : farmService.selectByIds(allFarmIds.toArray(new String[]{})).stream().collect(Collectors.toMap(Farm::getId, f -> f));
+
+        Map<String, List<Farm>> result = new HashMap<>();
+        for (String procedureId : workProcedureIds) {
+            List<WorkProcedureEquipment> procedureEquipmentList = equipmentMap.get(procedureId);
+            if (CollectionUtil.isEmpty(procedureEquipmentList)) {
+                continue;
+            }
+            List<Farm> farmList = procedureEquipmentList.stream()
+                .map(WorkProcedureEquipment::getEquipmentId)
+                .filter(StrUtil::isNotEmpty)
+                .map(equipmentIdMap::get)
+                .filter(ObjectUtil::isNotEmpty)
+                .map(Equipment::getFarmId)
+                .filter(StrUtil::isNotEmpty)
+                .distinct()
+                .map(farmIdMap::get)
+                .filter(ObjectUtil::isNotEmpty)
+                .distinct()
+                .collect(Collectors.toList());
+            if (CollectionUtil.isNotEmpty(farmList)) {
+                result.put(procedureId, farmList);
+            }
+        }
+        return result;
     }
 
 }

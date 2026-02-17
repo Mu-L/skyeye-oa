@@ -25,7 +25,7 @@ public class ApsScheduleParam {
     @ApiModelProperty(value = "加工单ID列表，为空则排程所有待排程加工单")
     private List<String> machinIds;
 
-    @ApiModelProperty(value = "车间ID列表，为空则使用全部启用车间")
+    @ApiModelProperty(value = "车间ID列表，为空则使用全部启用车间", required = "json")
     private List<String> farmIds;
 
     @ApiModelProperty(value = "排程开始日期，格式yyyy-MM-dd", required = "required")

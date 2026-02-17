@@ -8,6 +8,7 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.common.base.Joiner;
@@ -30,6 +31,10 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
+import com.skyeye.farm.entity.Farm;
+import com.skyeye.farm.service.FarmService;
+import com.skyeye.machin.classenum.AutoAssignFarmSelectStrategyEnum;
+import com.skyeye.machin.classenum.AutoAssignQuantityTypeEnum;
 import com.skyeye.machin.classenum.MachinFromType;
 import com.skyeye.machin.classenum.MachinPickStateEnum;
 import com.skyeye.machin.dao.MachinDao;
@@ -61,6 +66,7 @@ import com.skyeye.pick.service.ReturnMaterialService;
 import com.skyeye.procedure.entity.WayProcedure;
 import com.skyeye.procedure.entity.WayProcedureChild;
 import com.skyeye.procedure.service.WayProcedureService;
+import com.skyeye.procedure.service.WorkProcedureService;
 import com.skyeye.production.classenum.ProductionChildType;
 import com.skyeye.production.classenum.ProductionMachinOrderState;
 import com.skyeye.production.entity.Production;
@@ -70,6 +76,7 @@ import com.skyeye.service.ErpCommonService;
 import com.skyeye.util.ErpOrderUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.math.RoundingMode;
@@ -117,6 +124,12 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
     private MachinProcedureFarmService machinProcedureFarmService;
 
     @Autowired
+    private WorkProcedureService workProcedureService;
+
+    @Autowired
+    private FarmService farmService;
+
+    @Autowired
     private RequisitionMaterialService requisitionMaterialService;
 
     @Autowired
@@ -157,6 +170,301 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
         List<Machin> machinList = list(machinQw);
         outputObject.setBeans(machinList);
         outputObject.settotal(machinList.size());
+    }
+
+    /**
+     * 加工单自动安排车间任务（入口方法，解析请求参数后调用核心逻辑）
+     */
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void autoAssignFarmTasks(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String machinId = params.get("id").toString();
+        String quantityType = params.get("quantityType").toString();
+        List<String> priorityFarmIds = JSONUtil.toList(params.get("priorityFarmIds").toString(), null);
+        String farmSelectStrategy = params.get("farmSelectStrategy").toString();
+        int maxFarmsPerProcedure = Integer.parseInt(params.get("maxFarmsPerProcedure").toString());
+        doAutoAssignFarmTasks(machinId, quantityType, priorityFarmIds, farmSelectStrategy, maxFarmsPerProcedure);
+    }
+
+    /**
+     * 加工单自动安排车间任务（核心逻辑）
+     * <p>
+     * 按工序顺序遍历，为每个工序分配车间任务。支持：
+     * - 数量类型：all-全部数量 / remaining-剩余未分配数量
+     * - 优先车间：指定后仅在优先车间内分配，并按顺序/任务量/随机选取
+     * - 数量分配：capacity-按产能比例 / equal-平均分配
+     * </p>
+     *
+     * @param machinId             加工单ID
+     * @param quantityType         数量类型：all / remaining
+     * @param priorityFarmIds      优先车间ID列表（可为空）
+     * @param farmSelectStrategy   车间选取策略：order-按顺序 / minLoad-任务量最少 / random-随机
+     * @param maxFarmsPerProcedure 每个工序最多分配给多少个车间，默认1
+     */
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void doAutoAssignFarmTasks(String machinId, String quantityType, List<String> priorityFarmIds, String farmSelectStrategy, int maxFarmsPerProcedure) {
+        // 1. 参数校验及枚举解析
+        Machin machin = getDataFromDb(machinId);
+        if (machin == null) {
+            throw new CustomException("加工单不存在");
+        }
+        AutoAssignQuantityTypeEnum quantityTypeEnum = AutoAssignQuantityTypeEnum.parse(quantityType);
+        AutoAssignFarmSelectStrategyEnum farmSelectStrategyEnum = AutoAssignFarmSelectStrategyEnum.parse(farmSelectStrategy);
+        int maxFarms = Math.max(1, maxFarmsPerProcedure);
+        boolean isRemaining = quantityTypeEnum == AutoAssignQuantityTypeEnum.REMAINING;
+
+        // 2. 批量查询工序及已有车间任务（避免循环内 service 调用）
+        Map<String, MachinProcedure> procedureMap = machinProcedureService.queryMachinProcedureMapByMachinId(machinId);
+        if (procedureMap.isEmpty()) {
+            throw new CustomException("该加工单暂无工序信息，无法自动安排车间任务");
+        }
+        Map<String, List<MachinProcedureFarm>> procedureFarmMap = machinProcedureFarmService.queryMachinProcedureFarmMapByMachinId(machinId);
+
+        // 3. 构建子单据ID -> 加工数量的映射（用于车间任务的目标数量）
+        Map<String, String> childIdToOperNum = machin.getMachinChildList().stream()
+            .filter(c -> StrUtil.isNotEmpty(c.getId()) && StrUtil.isNotEmpty(c.getOperNumber()))
+            .collect(Collectors.toMap(MachinChild::getId, MachinChild::getOperNumber, (a, b) -> a));
+
+        // 4. 按工序类型（procedureId）批量查询可执行车间，构建 procedureId -> 车间列表 映射
+        List<String> distinctProcedureIds = procedureMap.values().stream()
+            .map(MachinProcedure::getProcedureId)
+            .filter(StrUtil::isNotEmpty).distinct()
+            .collect(Collectors.toList());
+        Map<String, List<Farm>> procedureIdToFarms = workProcedureService.queryExecuteFarmByWorkProcedureIds(distinctProcedureIds);
+        List<Farm> enabledFarmList = farmService.queryEnabledFarmList();
+
+        // 4.1 若为任务量最少或加工数量最少策略，预查询各车间数据
+        Map<String, Long> taskCountByFarmId = Collections.emptyMap();
+        Map<String, String> quantitySumByFarmId = Collections.emptyMap();
+        if (farmSelectStrategyEnum == AutoAssignFarmSelectStrategyEnum.MIN_LOAD || farmSelectStrategyEnum == AutoAssignFarmSelectStrategyEnum.MIN_QUANTITY) {
+            List<String> allFarmIds = procedureIdToFarms.values().stream()
+                .flatMap(List::stream)
+                .map(Farm::getId)
+                .filter(StrUtil::isNotEmpty)
+                .distinct()
+                .collect(Collectors.toList());
+            enabledFarmList.stream()
+                .map(Farm::getId)
+                .filter(StrUtil::isNotEmpty)
+                .filter(id -> !allFarmIds.contains(id))
+                .forEach(allFarmIds::add);
+            if (farmSelectStrategyEnum == AutoAssignFarmSelectStrategyEnum.MIN_LOAD) {
+                taskCountByFarmId = machinProcedureFarmService.countPendingTaskByFarmIds(allFarmIds);
+            } else {
+                quantitySumByFarmId = machinProcedureFarmService.sumPendingTargetNumByFarmIds(allFarmIds);
+            }
+        }
+
+        // 5. 按工序顺序排序，遍历工序生成待创建的车间任务
+        List<MachinProcedure> procedureList = procedureMap.values().stream()
+            .sorted(Comparator.comparing(MachinProcedure::getOrderBy, Comparator.nullsLast(Comparator.naturalOrder())))
+            .collect(Collectors.toList());
+
+        List<MachinProcedureFarm> toCreate = new ArrayList<>();
+        for (MachinProcedure procedure : procedureList) {
+            List<MachinProcedureFarm> existingFarms = procedureFarmMap.getOrDefault(procedure.getId(), Collections.emptyList());
+            // remaining：补充安排剩余数量；all：仅安排尚未有车间任务的工序
+            if (isRemaining) {
+                // 剩余数量 = 子单据 operNumber - 已有车间任务的 targetNum 之和
+                String operNumStr = childIdToOperNum.getOrDefault(procedure.getChildId(), CommonNumConstants.NUM_ONE.toString());
+                if (StrUtil.isEmpty(operNumStr)) {
+                    operNumStr = CommonNumConstants.NUM_ONE.toString();
+                }
+                String assignedSumStr = existingFarms.stream()
+                    .map(MachinProcedureFarm::getTargetNum)
+                    .filter(StrUtil::isNotEmpty)
+                    .reduce(CommonNumConstants.NUM_ZERO.toString(), (sum, targetNum) ->
+                        CalculationUtil.add(ErpConstants.NUM_AFTER_DOT, sum, targetNum));
+                String remaining = CalculationUtil.subtract(operNumStr, assignedSumStr, ErpConstants.NUM_AFTER_DOT, RoundingMode.DOWN);
+                if (CalculationUtil.compareTo(remaining, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) <= 0) {
+                    continue;
+                }
+                // 优先使用工序关联设备所在车间，若无则使用启用车间列表
+                List<Farm> farmList = procedureIdToFarms.getOrDefault(procedure.getProcedureId(), enabledFarmList);
+                if (CollectionUtil.isEmpty(farmList)) {
+                    continue;
+                }
+                List<Farm> targetFarms = resolveTargetFarms(farmList, priorityFarmIds, farmSelectStrategyEnum, taskCountByFarmId, quantitySumByFarmId, maxFarms);
+                List<String> quantities = splitQuantity(remaining, targetFarms.size());
+                for (int i = 0; i < targetFarms.size(); i++) {
+                    MachinProcedureFarm farm = new MachinProcedureFarm();
+                    farm.setMachinId(machinId);
+                    farm.setMachinProcedureId(procedure.getId());
+                    farm.setFarmId(targetFarms.get(i).getId());
+                    farm.setTargetNum(quantities.get(i));
+                    farm.setState(MachinProcedureFarmState.WAIT_RECEIVE.getKey());
+                    toCreate.add(farm);
+                }
+            } else {
+                // all：已有车间任务的工序跳过
+                if (CollectionUtil.isNotEmpty(existingFarms)) {
+                    continue;
+                }
+                List<Farm> farmList = procedureIdToFarms.getOrDefault(procedure.getProcedureId(), enabledFarmList);
+                if (CollectionUtil.isEmpty(farmList)) {
+                    continue;
+                }
+                String targetNum = childIdToOperNum.getOrDefault(procedure.getChildId(), CommonNumConstants.NUM_ONE.toString());
+                if (StrUtil.isEmpty(targetNum)) {
+                    targetNum = CommonNumConstants.NUM_ONE.toString();
+                }
+                List<Farm> targetFarms = resolveTargetFarms(farmList, priorityFarmIds, farmSelectStrategyEnum, taskCountByFarmId, quantitySumByFarmId, maxFarms);
+                List<String> quantities = splitQuantity(targetNum, targetFarms.size());
+                for (int i = 0; i < targetFarms.size(); i++) {
+                    MachinProcedureFarm farm = new MachinProcedureFarm();
+                    farm.setMachinId(machinId);
+                    farm.setMachinProcedureId(procedure.getId());
+                    farm.setFarmId(targetFarms.get(i).getId());
+                    farm.setTargetNum(quantities.get(i));
+                    farm.setState(MachinProcedureFarmState.WAIT_RECEIVE.getKey());
+                    toCreate.add(farm);
+                }
+            }
+        }
+
+        // 6. 批量创建车间任务
+        if (CollectionUtil.isNotEmpty(toCreate)) {
+            String userId = InputObject.getLogParamsStatic().get("id").toString();
+            machinProcedureFarmService.createEntity(toCreate, userId);
+        }
+    }
+
+    /**
+     * 解析目标车间列表
+     * <p>
+     * - maxFarms=1：取一个车间，按 farmSelectStrategy 选取
+     * - maxFarms>1：取最多 maxFarms 个车间，平均分配；若有优先车间则仅在优先车间内筛选
+     * </p>
+     *
+     * @param farmList            可选车间列表（已按优先车间排序）
+     * @param priorityFarmIds     优先车间ID，非空时仅在此范围内分配
+     * @param farmSelectStrategy  单车间时的选取策略
+     * @param taskCountByFarmId   各车间待办任务数（minLoad 策略用）
+     * @param quantitySumByFarmId 各车间待办加工数量之和（minQuantity 策略用）
+     * @param maxFarms            每个工序最多分配车间数
+     * @return 参与分配的目标车间列表，与 quantities 一一对应
+     */
+    private List<Farm> resolveTargetFarms(List<Farm> farmList, List<String> priorityFarmIds, AutoAssignFarmSelectStrategyEnum farmSelectStrategy,
+                                          Map<String, Long> taskCountByFarmId, Map<String, String> quantitySumByFarmId, int maxFarms) {
+        if (CollectionUtil.isEmpty(farmList)) {
+            return Collections.emptyList();
+        }
+        if (CollectionUtil.isNotEmpty(priorityFarmIds)) {
+            farmList = reorderFarmListWithPriority(farmList, priorityFarmIds);
+        }
+        if (maxFarms <= 1) {
+            Farm single = selectFarmFromList(farmList, farmSelectStrategy, taskCountByFarmId, quantitySumByFarmId);
+            return single != null ? Collections.singletonList(single) : Collections.emptyList();
+        }
+        List<Farm> candidateFarms = CollectionUtil.isNotEmpty(priorityFarmIds)
+            ? farmList.stream().filter(f -> priorityFarmIds.contains(f.getId())).collect(Collectors.toList())
+            : new ArrayList<>(farmList);
+        if (CollectionUtil.isEmpty(candidateFarms)) {
+            Farm single = selectFarmFromList(farmList, farmSelectStrategy, taskCountByFarmId, quantitySumByFarmId);
+            return single != null ? Collections.singletonList(single) : Collections.emptyList();
+        }
+        if (farmSelectStrategy == AutoAssignFarmSelectStrategyEnum.MIN_LOAD && !taskCountByFarmId.isEmpty()) {
+            candidateFarms = candidateFarms.stream()
+                .sorted(Comparator.comparingLong(f -> taskCountByFarmId.getOrDefault(f.getId(), 0L)))
+                .collect(Collectors.toList());
+        } else if (farmSelectStrategy == AutoAssignFarmSelectStrategyEnum.MIN_QUANTITY && !quantitySumByFarmId.isEmpty()) {
+            candidateFarms = candidateFarms.stream()
+                .sorted(Comparator.comparing(f -> quantitySumByFarmId.getOrDefault(f.getId(), CommonNumConstants.NUM_ZERO.toString()),
+                    (a, b) -> CalculationUtil.compareTo(a, b, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP)))
+                .collect(Collectors.toList());
+        }
+        int take = Math.min(maxFarms, candidateFarms.size());
+        return candidateFarms.subList(0, take);
+    }
+
+    /**
+     * 从车间列表中选取一个车间
+     * <p>
+     * - order：取第一个（已按优先车间排序）
+     * - minLoad：取待办任务数最少的车间
+     * - minQuantity：取待办加工数量最少的车间
+     * - random：随机选取
+     * </p>
+     *
+     * @param farmList            可选车间列表
+     * @param farmSelectStrategy  order / minLoad / minQuantity / random
+     * @param taskCountByFarmId   各车间待办任务数（minLoad 时用）
+     * @param quantitySumByFarmId 各车间待办加工数量之和（minQuantity 时用）
+     * @return 选中的车间，列表为空时返回 null
+     */
+    private Farm selectFarmFromList(List<Farm> farmList, AutoAssignFarmSelectStrategyEnum farmSelectStrategy,
+                                    Map<String, Long> taskCountByFarmId, Map<String, String> quantitySumByFarmId) {
+        if (CollectionUtil.isEmpty(farmList)) {
+            return null;
+        }
+        if (farmSelectStrategy == AutoAssignFarmSelectStrategyEnum.RANDOM) {
+            return farmList.get(new Random().nextInt(farmList.size()));
+        }
+        if (farmSelectStrategy == AutoAssignFarmSelectStrategyEnum.MIN_LOAD && !taskCountByFarmId.isEmpty()) {
+            return farmList.stream()
+                .min(Comparator.comparingLong(f -> taskCountByFarmId.getOrDefault(f.getId(), 0L)))
+                .orElse(farmList.get(0));
+        }
+        if (farmSelectStrategy == AutoAssignFarmSelectStrategyEnum.MIN_QUANTITY && !quantitySumByFarmId.isEmpty()) {
+            return farmList.stream()
+                .min(Comparator.comparing(f -> quantitySumByFarmId.getOrDefault(f.getId(), CommonNumConstants.NUM_ZERO.toString()),
+                    (a, b) -> CalculationUtil.compareTo(a, b, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP)))
+                .orElse(farmList.get(0));
+        }
+        return farmList.get(0);
+    }
+
+    /**
+     * 将数量平均分配到 n 个车间，余数分配给前几个车间
+     * <p>
+     * 例：100 分 3 份 → [34, 33, 33]
+     * </p>
+     *
+     * @param totalStr 待分配总数量（字符串）
+     * @param n        车间数量
+     * @return 各车间分配数量列表
+     */
+    private List<String> splitQuantity(String totalStr, int n) {
+        if (n <= 0) {
+            return Collections.emptyList();
+        }
+        if (n == 1) {
+            return Collections.singletonList(totalStr);
+        }
+        java.math.BigDecimal total = new java.math.BigDecimal(totalStr);
+        java.math.BigDecimal[] divRem = total.divideAndRemainder(java.math.BigDecimal.valueOf(n));
+        java.math.BigDecimal base = divRem[0];      // 每份基数
+        int remainder = divRem[1].intValue();       // 余数，前 remainder 个车间多分 1
+        List<String> result = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) {
+            java.math.BigDecimal part = base.add(i < remainder ? java.math.BigDecimal.ONE : java.math.BigDecimal.ZERO);
+            result.add(part.setScale(0, RoundingMode.DOWN).toPlainString());
+        }
+        return result;
+    }
+
+    /**
+     * 将优先车间按顺序排在列表前面
+     * <p>
+     * 优先车间中存在于 farmList 的按 priorityFarmIds 顺序排在前面，其余车间接在后面。
+     * </p>
+     *
+     * @param farmList        原始车间列表
+     * @param priorityFarmIds 优先车间ID列表（顺序即优先级）
+     * @return 重排后的车间列表
+     */
+    private List<Farm> reorderFarmListWithPriority(List<Farm> farmList, List<String> priorityFarmIds) {
+        if (CollectionUtil.isEmpty(priorityFarmIds)) {
+            return farmList;
+        }
+        List<Farm> result = new ArrayList<>(farmList.size());
+        for (String farmId : priorityFarmIds) {
+            farmList.stream().filter(f -> farmId.equals(f.getId())).findFirst().ifPresent(result::add);
+        }
+        farmList.stream().filter(f -> !priorityFarmIds.contains(f.getId())).forEach(result::add);
+        return result;
     }
 
     @Override
