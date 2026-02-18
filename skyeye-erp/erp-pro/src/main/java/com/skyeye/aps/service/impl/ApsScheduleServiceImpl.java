@@ -8,6 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.aps.entity.AllocResult;
 import com.skyeye.aps.entity.ApsScheduleParam;
 import com.skyeye.aps.entity.ApsScheduleSaveParam;
@@ -15,12 +16,17 @@ import com.skyeye.aps.entity.SchedulableTask;
 import com.skyeye.aps.service.ApsScheduleService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.constants.ApsConstants;
 import com.skyeye.exception.CustomException;
+import com.skyeye.farm.entity.Farm;
+import com.skyeye.farm.entity.FarmCalendar;
+import com.skyeye.farm.service.FarmCalendarService;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.machin.entity.Machin;
 import com.skyeye.machin.entity.MachinChild;
@@ -32,6 +38,7 @@ import com.skyeye.machinprocedure.service.MachinProcedureFarmService;
 import com.skyeye.machinprocedure.service.MachinProcedureService;
 import com.skyeye.procedure.entity.WayProcedureChild;
 import com.skyeye.procedure.service.WayProcedureChildService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -81,8 +88,15 @@ import java.util.stream.Collectors;
  * @author: skyeye云系列--卫志强
  * @date: 2026/2/14
  */
+@Slf4j
 @Service
+@SkyeyeService(name = "APS排程", groupName = "APS排程", tenant = TenantEnum.STRONG_ISOLATION)
 public class ApsScheduleServiceImpl implements ApsScheduleService {
+
+    /**
+     * 单次排程最大任务数，防止任务过多导致卡死
+     */
+    private static final int MAX_SCHEDULE_TASKS = 2000;
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern(DateUtil.YYYY_MM_DD);
     private static final DateTimeFormatter DATETIME_FMT = DateTimeFormatter.ofPattern(DateUtil.YYYY_MM_DD_HH_MM_SS);
@@ -105,6 +119,9 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
 
     @Autowired
     private WayProcedureChildService wayProcedureChildService;
+
+    @Autowired
+    private FarmCalendarService farmCalendarService;
 
     @Override
     public void schedule(InputObject inputObject, OutputObject outputObject) {
@@ -149,6 +166,10 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
         if (CollectionUtil.isEmpty(tasks)) {
             throw new CustomException("无有效排程任务(缺少标准工时等)");
         }
+        if (tasks.size() > MAX_SCHEDULE_TASKS) {
+            throw new CustomException("待排程任务过多(" + tasks.size() + ")，请缩小范围(指定加工单或车间)，单次最多" + MAX_SCHEDULE_TASKS + "个");
+        }
+        log.info("APS排程开始: 任务数={}, 车间数={}", tasks.size(), tasks.stream().map(SchedulableTask::getFarmId).distinct().count());
 
         // 5) 车间产能占用：farmId -> dateStr -> 已占用分钟数
         Map<String, Map<String, Integer>> capacityRemain = new HashMap<>();
@@ -162,13 +183,36 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
         // 5.1) 历史已排单优先：预占产能，新任务避开已排单时段
         preOccupyHistoricalCapacity(param, capacityRemain);
 
+        // 5.2) 预加载各车间日期区间内每日产能，批量查询产能日历与车间默认工时，避免循环内频繁查库
+        String scheduleStart = param.getScheduleStartDate();
+        String scheduleEnd = StrUtil.isNotEmpty(param.getScheduleEndDate()) ? param.getScheduleEndDate() : null;
+        Map<String, Map<String, Integer>> dailyCapCache = new HashMap<>();
+        List<String> farmIdList = new ArrayList<>(farmIdSet);
+        Map<String, List<FarmCalendar>> calendarMapByFarm = farmCalendarService.listByFarmIds(farmIdList);
+        Map<String, Integer> defaultMinutesByFarm = new HashMap<>();
+        for (Farm f : farmService.queryFarmListByIds(farmIdList)) {
+            int def = (f.getDailyWorkMinutes() != null && f.getDailyWorkMinutes() > 0)
+                ? f.getDailyWorkMinutes() : ApsConstants.DEFAULT_DAILY_WORK_MINUTES;
+            defaultMinutesByFarm.put(f.getId(), def);
+        }
+        for (String fid : farmIdSet) {
+            List<FarmCalendar> calList = calendarMapByFarm.getOrDefault(fid, Collections.emptyList());
+            int defMin = defaultMinutesByFarm.getOrDefault(fid, ApsConstants.DEFAULT_DAILY_WORK_MINUTES);
+            dailyCapCache.put(fid, farmService.getDailyWorkMinutesByDateRange(fid, scheduleStart, scheduleEnd, calList, defMin));
+        }
+
         // 6) 排程：逐个分配（历史已排单的保留原时间，新任务分配产能）
         Map<String, String> procedurePlanStart = new HashMap<>();
         Map<String, String> procedurePlanEnd = new HashMap<>();
         List<Map<String, Object>> items = new ArrayList<>();
         List<String> failedItems = new ArrayList<>();
 
+        int taskIdx = 0;
         for (SchedulableTask task : tasks) {
+            taskIdx++;
+            if (taskIdx % 200 == 0) {
+                log.info("APS排程进度: {}/{}", taskIdx, tasks.size());
+            }
             String procId = task.getMachinProcedureId();
             String farmId = task.getFarmId();
             // 同一工序多车间：已排过则复用计划时间，仍为每个车间输出 item
@@ -201,7 +245,7 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
                 items.add(item);
                 continue;
             }
-            int duration = task.getDurationMinutes();
+            int duration = parseDurationToMinutes(task.getDurationMinutes());
             if (duration <= 0) {
                 failedItems.add("工序" + procId + "时长为0");
                 continue;
@@ -213,7 +257,8 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             } else {
                 allocStart = param.getScheduleStartDate() + " 08:00:00";
             }
-            AllocResult alloc = allocateCapacity(farmId, allocStart, duration, capacityRemain, param.getScheduleEndDate());
+            Map<String, Integer> capByDate = dailyCapCache.getOrDefault(farmId, Collections.emptyMap());
+            AllocResult alloc = allocateCapacity(farmId, allocStart, duration, capacityRemain, param.getScheduleEndDate(), capByDate);
             if (alloc == null) {
                 failedItems.add("工序" + procId + "产能不足");
                 continue;
@@ -226,12 +271,13 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             item.put("farmId", farmId);
             item.put("planStartTime", alloc.getPlanStart());
             item.put("planEndTime", alloc.getPlanEnd());
-            item.put("durationMinutes", duration);
+            item.put("durationMinutes", task.getDurationMinutes());
             item.put("deliveryTime", task.getDeliveryTime());
             items.add(item);
         }
 
         // 7) 仅返回结果供界面展示，不保存；用户微调后调用 saveSchedule 保存
+        log.info("APS排程完成: 成功={}, 失败={}", items.size(), failedItems.size());
         Map<String, Object> result = new HashMap<>();
         result.put("items", items);
         result.put("failedItems", failedItems);
@@ -263,8 +309,7 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             .collect(Collectors.groupingBy(MachinProcedureFarm::getMachinProcedureId,
                 Collectors.mapping(MachinProcedureFarm::getFarmId, Collectors.toList())));
         LocalDate startDate = LocalDate.parse(param.getScheduleStartDate(), DATE_FMT);
-        LocalDate endDate = param.getScheduleEndDate() != null
-            ? LocalDate.parse(param.getScheduleEndDate(), DATE_FMT) : startDate.plusDays(365);
+        LocalDate endDate = StrUtil.isNotEmpty(param.getScheduleEndDate()) ? LocalDate.parse(param.getScheduleEndDate(), DATE_FMT) : startDate.plusDays(365);
         for (MachinProcedure proc : procs) {
             List<String> farmIds = procIdToFarmIds.get(proc.getId());
             if (CollectionUtil.isEmpty(farmIds)) {
@@ -378,10 +423,9 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             if (CollectionUtil.isEmpty(wayList)) continue;
             WayProcedureChild wc = wayList.stream().filter(w -> proc.getProcedureId().equals(w.getProcedureId())).findFirst().orElse(null);
             if (wc == null || StrUtil.isEmpty(wc.getStandardTimeMinutes())) continue;
-            // 4. 计算工序时长：目标数量 × 标准工时(分钟/件)，向上取整
+            // 4. 计算工序时长：目标数量 × 标准工时(分钟/件)，保留2位小数
             String targetNum = StrUtil.isEmpty(pf.getTargetNum()) ? "0" : pf.getTargetNum();
-            String durationStr = CalculationUtil.multiply(targetNum, wc.getStandardTimeMinutes(), 0, RoundingMode.UP);
-            int duration = Integer.parseInt(durationStr);
+            String durationStr = CalculationUtil.multiply(targetNum, wc.getStandardTimeMinutes(), 2, RoundingMode.UP);
             // 5. 获取交货期（用于排序）
             MachinChild child = machin.getMachinChildList().stream().filter(c -> proc.getChildId().equals(c.getId())).findFirst().orElse(null);
             String deliveryTime = child != null ? child.getDeliveryTime() : "";
@@ -403,7 +447,7 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             t.setMachinId(pf.getMachinId());
             t.setMachinProcedureId(pf.getMachinProcedureId());
             t.setFarmId(pf.getFarmId());
-            t.setDurationMinutes(duration);
+            t.setDurationMinutes(durationStr);
             t.setDeliveryTime(deliveryTime);
             t.setOrderBy(proc.getOrderBy() != null ? proc.getOrderBy() : 0);
             t.setPrevProcedureId(prevProcedureId);
@@ -438,7 +482,7 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
      * @return 分配结果(planStart / planEnd)，产能不足或超出结束日期时返回 null
      */
     private AllocResult allocateCapacity(String farmId, String allocStart, int durationMinutes,
-                                         Map<String, Map<String, Integer>> capacityRemain, String scheduleEndDate) {
+                                         Map<String, Map<String, Integer>> capacityRemain, String scheduleEndDate, Map<String, Integer> capByDate) {
         // 获取该车间每日已占用产能（dateStr -> 已占用分钟数），不存在则创建
         Map<String, Integer> remain = capacityRemain.computeIfAbsent(farmId, k -> new HashMap<>());
         // 解析起始时间：日期 + 当日起始分钟（0:00起算）
@@ -455,7 +499,7 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
         String planStart = null;
         String planEnd = null;
         LocalDate d = LocalDate.parse(dateStr, DATE_FMT);
-        LocalDate endDateLimit = scheduleEndDate != null ? LocalDate.parse(scheduleEndDate, DATE_FMT) : d.plusDays(365);
+        LocalDate endDateLimit = StrUtil.isNotEmpty(scheduleEndDate) ? LocalDate.parse(scheduleEndDate, DATE_FMT) : d.plusDays(365);
         int dayStartMin = startMin;
         // 按天遍历，在每日可用产能内分配，支持跨天
         for (int i = 0; i < 365 && remaining > 0; i++) {
@@ -463,8 +507,8 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
                 return null;
             }
             String ds = d.format(DATE_FMT);
-            // 获取该车间当日可用工时（考虑产能日历、节假日等）
-            int dailyCap = farmService.getDailyWorkMinutes(farmId, ds);
+            // 从预加载缓存获取当日可用工时，未命中则跳过（视为无产能）
+            int dailyCap = capByDate.getOrDefault(ds, 0);
             if (dailyCap <= 0) {
                 d = d.plusDays(1);
                 dayStartMin = DEFAULT_WORK_START_MIN;
@@ -500,6 +544,20 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             return r;
         }
         return null;
+    }
+
+    /**
+     * 将时长字符串解析为整数分钟（向上取整），用于产能分配
+     */
+    private int parseDurationToMinutes(String durationStr) {
+        if (StrUtil.isEmpty(durationStr)) {
+            return 0;
+        }
+        try {
+            return new java.math.BigDecimal(durationStr).setScale(0, RoundingMode.UP).intValueExact();
+        } catch (Exception e) {
+            return 0;
+        }
     }
 
 }

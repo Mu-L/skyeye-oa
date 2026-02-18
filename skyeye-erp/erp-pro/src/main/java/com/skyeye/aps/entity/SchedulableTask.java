@@ -29,8 +29,8 @@ public class SchedulableTask {
     @ApiModelProperty(value = "车间ID")
     private String farmId;
 
-    @ApiModelProperty(value = "工序时长(分钟)")
-    private int durationMinutes;
+    @ApiModelProperty(value = "工序时长(分钟)，支持小数")
+    private String durationMinutes;
 
     @ApiModelProperty(value = "交货期")
     private String deliveryTime;

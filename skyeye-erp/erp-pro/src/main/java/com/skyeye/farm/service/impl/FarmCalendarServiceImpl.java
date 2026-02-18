@@ -4,6 +4,7 @@
 
 package com.skyeye.farm.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -20,10 +21,7 @@ import com.skyeye.farm.entity.FarmCalendar;
 import com.skyeye.farm.service.FarmCalendarService;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -81,14 +79,11 @@ public class FarmCalendarServiceImpl extends SkyeyeBusinessServiceImpl<FarmCalen
     }
 
     @Override
-    public Integer getDailyWorkMinutesByDate(String farmId, String dateStr) {
-        if (StrUtil.isEmpty(farmId) || StrUtil.isEmpty(dateStr)) {
+    public Integer resolveDailyCapFromCalendar(List<FarmCalendar> allList, String dateStr) {
+        if (CollectionUtil.isEmpty(allList)) {
             return null;
         }
         int currentDay = DateUtil.getWeek(dateStr);
-        // 先按车间查询所有启用的配置，按优先级降序
-        List<FarmCalendar> allList = listByFarmId(farmId);
-        // 按优先级从高到低逐个匹配，命中即返回
         for (FarmCalendar pc : allList) {
             if (FarmCalendarConfigTypeEnum.DATE.getKey().equals(pc.getConfigType())) {
                 if (dateStr.equals(pc.getWorkDate())) {
@@ -134,10 +129,20 @@ public class FarmCalendarServiceImpl extends SkyeyeBusinessServiceImpl<FarmCalen
         if (StrUtil.isEmpty(farmId)) {
             return Collections.emptyList();
         }
+        return listByFarmIds(Collections.singletonList(farmId)).getOrDefault(farmId, Collections.emptyList());
+    }
+
+    @Override
+    public Map<String, List<FarmCalendar>> listByFarmIds(List<String> farmIds) {
+        if (CollectionUtil.isEmpty(farmIds)) {
+            return Collections.emptyMap();
+        }
         QueryWrapper<FarmCalendar> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(FarmCalendar::getFarmId), farmId);
+        queryWrapper.in(MybatisPlusUtil.toColumns(FarmCalendar::getFarmId), farmIds);
         queryWrapper.eq(MybatisPlusUtil.toColumns(FarmCalendar::getEnabled), EnableEnum.ENABLE_USING.getKey());
+        queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(FarmCalendar::getFarmId));
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(FarmCalendar::getPriority));
-        return list(queryWrapper);
+        List<FarmCalendar> allList = list(queryWrapper);
+        return allList.stream().collect(Collectors.groupingBy(FarmCalendar::getFarmId));
     }
 }

@@ -16,6 +16,9 @@ import com.skyeye.common.entity.CommonInfo;
 import com.skyeye.machinprocedure.entity.MachinProcedure;
 import lombok.Data;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
 /**
  * @ClassName: WayProcedureChild
  * @Description: 工艺路线关联的工序实体类
@@ -68,10 +71,28 @@ public class WayProcedureChild extends CommonInfo {
     /**
      * 标准工时(分钟/件)，保存时由服务层根据定额能力自动计算：60/定额能力。
      * 用于APS排产：加工时长(分钟) = 数量 * standardTimeMinutes。
+     * 旧数据可能为空，getter 会按定额能力实时计算。
      */
     @TableField(value = "standard_time_minutes")
     @ApiModelProperty(value = "标准工时(分钟/件)，用于APS排产")
     private String standardTimeMinutes;
+
+    /**
+     * 获取标准工时(分钟/件)。字段为空时根据定额能力计算：60/定额能力(件/小时)。
+     * 兼容旧数据无此字段的情况。
+     */
+    public String getStandardTimeMinutes() {
+        if (standardTimeMinutes != null && !standardTimeMinutes.trim().isEmpty()) {
+            return standardTimeMinutes;
+        }
+        Integer quota = getQuotaCapacity();
+        if (quota == null || quota <= 0) {
+            return null;
+        }
+        return BigDecimal.valueOf(60)
+            .divide(BigDecimal.valueOf(quota), 4, RoundingMode.HALF_UP)
+            .toPlainString();
+    }
 
     @TableField(exist = false)
     @Property(value = "加工单子单据关联的工序信息----加工单特有")

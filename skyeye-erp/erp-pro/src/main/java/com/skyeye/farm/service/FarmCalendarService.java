@@ -8,6 +8,7 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.farm.entity.FarmCalendar;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: FarmCalendarService
@@ -19,17 +20,18 @@ import java.util.List;
  */
 public interface FarmCalendarService extends SkyeyeBusinessService<FarmCalendar> {
 
-    /**
-     * 根据车间ID和日期获取当日可用工时(分钟)。
-     *
-     * @param farmId  车间ID
-     * @param dateStr 日期字符串，格式：yyyy-MM-dd
-     * @return 当日可用工时，未匹配到返回null
-     */
-    Integer getDailyWorkMinutesByDate(String farmId, String dateStr);
+    Integer resolveDailyCapFromCalendar(List<FarmCalendar> allList, String dateStr);
 
     /**
      * 查询车间下所有启用的产能日历配置
      */
     List<FarmCalendar> listByFarmId(String farmId);
+
+    /**
+     * 批量查询多个车间下所有启用的产能日历配置，一次查库
+     *
+     * @param farmIds 车间ID列表
+     * @return farmId -> 该车间产能日历列表（按优先级降序）
+     */
+    Map<String, List<FarmCalendar>> listByFarmIds(List<String> farmIds);
 }

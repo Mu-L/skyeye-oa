@@ -20,6 +20,7 @@ import com.skyeye.constants.ApsConstants;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.dao.FarmDao;
 import com.skyeye.farm.entity.Farm;
+import com.skyeye.farm.entity.FarmCalendar;
 import com.skyeye.farm.service.FarmCalendarService;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.organization.service.IDepmentService;
@@ -27,7 +28,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -162,26 +166,23 @@ public class FarmServiceImpl extends SkyeyeBusinessServiceImpl<FarmDao, Farm> im
     }
 
     @Override
-    public int getDailyWorkMinutes(String farmId) {
-        return getDailyWorkMinutes(farmId, null);
-    }
-
-    @Override
-    public int getDailyWorkMinutes(String farmId, String dateStr) {
-        if (farmId == null) {
-            return ApsConstants.DEFAULT_DAILY_WORK_MINUTES;
+    public Map<String, Integer> getDailyWorkMinutesByDateRange(String farmId, String startDateStr, String endDateStr,
+                                                               List<FarmCalendar> calendarList, int defaultMinutes) {
+        Map<String, Integer> result = new HashMap<>();
+        if (farmId == null || StrUtil.isEmpty(startDateStr)) {
+            return result;
         }
-        if (StrUtil.isNotEmpty(dateStr)) {
-            Integer calendarMinutes = farmCalendarService.getDailyWorkMinutesByDate(farmId, dateStr);
-            if (calendarMinutes != null) {
-                return calendarMinutes;
-            }
+        LocalDate start = LocalDate.parse(startDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
+        LocalDate end = StrUtil.isEmpty(endDateStr) ? start.plusDays(365) : LocalDate.parse(endDateStr, DateTimeFormatter.ISO_LOCAL_DATE);
+        if (calendarList == null) {
+            calendarList = Collections.emptyList();
         }
-        Farm farm = selectById(farmId);
-        if (farm == null || farm.getDailyWorkMinutes() == null || farm.getDailyWorkMinutes() <= 0) {
-            return ApsConstants.DEFAULT_DAILY_WORK_MINUTES;
+        for (LocalDate d = start; !d.isAfter(end); d = d.plusDays(1)) {
+            String ds = d.format(DateTimeFormatter.ISO_LOCAL_DATE);
+            Integer cap = farmCalendarService.resolveDailyCapFromCalendar(calendarList, ds);
+            result.put(ds, cap != null ? cap : defaultMinutes);
         }
-        return farm.getDailyWorkMinutes();
+        return result;
     }
 
 }

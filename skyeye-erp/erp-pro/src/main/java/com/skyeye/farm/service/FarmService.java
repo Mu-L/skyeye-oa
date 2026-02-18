@@ -8,8 +8,10 @@ import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.farm.entity.Farm;
+import com.skyeye.farm.entity.FarmCalendar;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: FarmService
@@ -34,16 +36,16 @@ public interface FarmService extends SkyeyeBusinessService<Farm> {
     List<Farm> queryFarmListByIds(List<String> farmIds);
 
     /**
-     * 获取车间每日可用工时(分钟)，用于APS排产。
-     * 未配置时返回默认值。
+     * 批量获取车间在日期区间内每日可用工时，使用预加载的产能日历规则，避免查库。
+     *
+     * @param farmId         车间ID
+     * @param startDateStr   开始日期 yyyy-MM-dd
+     * @param endDateStr     结束日期 yyyy-MM-dd
+     * @param calendarList   该车间产能日历列表（由 listByFarmIds 批量查询得到）
+     * @param defaultMinutes 车间默认每日工时，未配置日历时使用
+     * @return dateStr -> 当日可用工时(分钟)
      */
-    int getDailyWorkMinutes(String farmId);
-
-    /**
-     * 根据日期获取车间当日可用工时(分钟)。
-     * @param farmId 车间ID
-     * @param dateStr 日期字符串，格式：yyyy-MM-dd，为空时使用车间默认值
-     */
-    int getDailyWorkMinutes(String farmId, String dateStr);
+    Map<String, Integer> getDailyWorkMinutesByDateRange(String farmId, String startDateStr, String endDateStr,
+                                                        List<FarmCalendar> calendarList, int defaultMinutes);
 
 }
