@@ -214,6 +214,8 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
         Map<String, String> procedurePlanEnd = new HashMap<>();
         // 同一加工单、同一工艺工序(procedureId)下，多子单（子件/成品）续接：记录该 key 下已排的结束时间
         Map<String, String> lastEndByMachinAndProcedure = new HashMap<>();
+        // 不同加工单按交货期续接：记录每个加工单当前最晚结束时间，下一加工单的第一个任务从上一加工单的最晚结束时间开始
+        Map<String, String> lastEndByMachinId = new HashMap<>();
         List<Map<String, Object>> items = new ArrayList<>();
         List<String> failedItems = new ArrayList<>();
 
@@ -233,6 +235,10 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
                 procedurePlanEnd.put(procId, task.getExistingPlanEndTime());
                 if (machinProcKey != null) {
                     lastEndByMachinAndProcedure.put(machinProcKey, task.getExistingPlanEndTime());
+                }
+                String machinId = task.getMachinId();
+                if (StrUtil.isNotEmpty(machinId)) {
+                    lastEndByMachinId.put(machinId, later(lastEndByMachinId.getOrDefault(machinId, ""), task.getExistingPlanEndTime()));
                 }
                 Map<String, Object> item = new HashMap<>();
                 item.put("machinId", task.getMachinId());
@@ -258,6 +264,15 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             }
             String allocStart = param.getScheduleStartDate() + " 08:00:00";
             if (Boolean.TRUE.equals(param.getRespectProcedureOrder())) {
+                // 不同加工单按交货期续接：当前加工单的第一个任务从已排过的其他加工单的最晚结束时间开始
+                String machinId = task.getMachinId();
+                if (StrUtil.isNotEmpty(machinId) && !lastEndByMachinId.containsKey(machinId)) {
+                    for (String end : lastEndByMachinId.values()) {
+                        if (StrUtil.isNotEmpty(end)) {
+                            allocStart = later(allocStart, end);
+                        }
+                    }
+                }
                 // 同一工序多车间：从上一车间的结束时间开始排（续接）
                 if (procedurePlanEnd.containsKey(procId)) {
                     allocStart = later(allocStart, procedurePlanEnd.get(procId));
@@ -282,8 +297,12 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             if (machinProcKey != null) {
                 lastEndByMachinAndProcedure.put(machinProcKey, alloc.getPlanEnd());
             }
+            String machinId = task.getMachinId();
+            if (StrUtil.isNotEmpty(machinId)) {
+                lastEndByMachinId.put(machinId, later(lastEndByMachinId.getOrDefault(machinId, ""), alloc.getPlanEnd()));
+            }
             Map<String, Object> item = new HashMap<>();
-            item.put("machinId", task.getMachinId());
+            item.put("machinId", machinId);
             item.put("childId", task.getChildId());
             item.put("machinProcedureId", procId);
             item.put("farmId", farmId);
@@ -526,10 +545,11 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             }
             tasks.add(t);
         }
-        // 8. 排序：历史已排单优先，再按交货期、工序顺序；同一工艺工序下按子单、车间稳定顺序（子件工序先于成品工序续接）
+        // 8. 排序：历史已排单优先，再按交货期、加工单、工序顺序；同一交货期下同一加工单连续，便于不同加工单按交货期续接
         tasks.sort(Comparator
             .comparing((SchedulableTask t) -> StrUtil.isEmpty(t.getExistingPlanStartTime()) ? 1 : 0)
             .thenComparing(SchedulableTask::getDeliveryTime, Comparator.nullsLast(String::compareTo))
+            .thenComparing(SchedulableTask::getMachinId, Comparator.nullsLast(String::compareTo))
             .thenComparing(SchedulableTask::getOrderBy)
             .thenComparing(SchedulableTask::getProcedureId, Comparator.nullsLast(String::compareTo))
             .thenComparing(SchedulableTask::getChildId, Comparator.nullsLast(String::compareTo))
