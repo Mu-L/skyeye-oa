@@ -38,6 +38,7 @@ import com.skyeye.machinprocedure.service.MachinProcedureFarmService;
 import com.skyeye.machinprocedure.service.MachinProcedureService;
 import com.skyeye.procedure.entity.WayProcedureChild;
 import com.skyeye.procedure.service.WayProcedureChildService;
+import com.skyeye.procedure.service.WorkProcedureService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -123,6 +124,9 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
     @Autowired
     private FarmCalendarService farmCalendarService;
 
+    @Autowired
+    private WorkProcedureService workProcedureService;
+
     @Override
     public void schedule(InputObject inputObject, OutputObject outputObject) {
         ApsScheduleParam param = inputObject.getParams(ApsScheduleParam.class);
@@ -160,6 +164,8 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             }
         }
         Map<String, List<WayProcedureChild>> wayProcedureMap = wayProcedureChildService.queryWayProcedureByWayId(new ArrayList<>(wayIds));
+        // 填充工序名称，供排程结果展示
+        wayProcedureMap.values().forEach(list -> workProcedureService.setDataMation(list, WayProcedureChild::getProcedureId));
 
         // 4) 构建可排程任务列表(按交货期、工序顺序)
         List<SchedulableTask> tasks = buildSchedulableTasks(farmTasks, machinMap, farmMapByMachin, procedureMapByMachin, wayProcedureMap, param);
@@ -190,10 +196,12 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
         List<String> farmIdList = new ArrayList<>(farmIdSet);
         Map<String, List<FarmCalendar>> calendarMapByFarm = farmCalendarService.listByFarmIds(farmIdList);
         Map<String, Integer> defaultMinutesByFarm = new HashMap<>();
+        Map<String, String> farmIdToName = new HashMap<>();
         for (Farm f : farmService.queryFarmListByIds(farmIdList)) {
             int def = (f.getDailyWorkMinutes() != null && f.getDailyWorkMinutes() > 0)
                 ? f.getDailyWorkMinutes() : ApsConstants.DEFAULT_DAILY_WORK_MINUTES;
             defaultMinutesByFarm.put(f.getId(), def);
+            farmIdToName.put(f.getId(), f.getName() != null ? f.getName() : "");
         }
         for (String fid : farmIdSet) {
             List<FarmCalendar> calList = calendarMapByFarm.getOrDefault(fid, Collections.emptyList());
@@ -204,6 +212,8 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
         // 6) 排程：逐个分配（历史已排单的保留原时间，新任务分配产能）
         Map<String, String> procedurePlanStart = new HashMap<>();
         Map<String, String> procedurePlanEnd = new HashMap<>();
+        // 同一加工单、同一工艺工序(procedureId)下，多子单（子件/成品）续接：记录该 key 下已排的结束时间
+        Map<String, String> lastEndByMachinAndProcedure = new HashMap<>();
         List<Map<String, Object>> items = new ArrayList<>();
         List<String> failedItems = new ArrayList<>();
 
@@ -215,29 +225,25 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             }
             String procId = task.getMachinProcedureId();
             String farmId = task.getFarmId();
-            // 同一工序多车间：已排过则复用计划时间，仍为每个车间输出 item
-            if (Boolean.TRUE.equals(param.getRespectProcedureOrder()) && procedurePlanEnd.containsKey(procId)) {
-                String planStart = procedurePlanStart.get(procId);
-                String planEnd = procedurePlanEnd.get(procId);
-                Map<String, Object> item = new HashMap<>();
-                item.put("machinId", task.getMachinId());
-                item.put("machinProcedureId", procId);
-                item.put("farmId", farmId);
-                item.put("planStartTime", planStart);
-                item.put("planEndTime", planEnd);
-                item.put("durationMinutes", task.getDurationMinutes());
-                item.put("deliveryTime", task.getDeliveryTime());
-                items.add(item);
-                continue;
-            }
+            String machinProcKey = StrUtil.isNotEmpty(task.getProcedureId())
+                ? task.getMachinId() + "_" + task.getProcedureId() : null;
             // 历史已排单：保留原计划时间，不重新分配
             if (StrUtil.isNotEmpty(task.getExistingPlanStartTime()) && StrUtil.isNotEmpty(task.getExistingPlanEndTime())) {
                 procedurePlanStart.put(procId, task.getExistingPlanStartTime());
                 procedurePlanEnd.put(procId, task.getExistingPlanEndTime());
+                if (machinProcKey != null) {
+                    lastEndByMachinAndProcedure.put(machinProcKey, task.getExistingPlanEndTime());
+                }
                 Map<String, Object> item = new HashMap<>();
                 item.put("machinId", task.getMachinId());
+                item.put("childId", task.getChildId());
                 item.put("machinProcedureId", procId);
                 item.put("farmId", farmId);
+                item.put("procedureName", task.getProcedureName());
+                item.put("farmName", farmIdToName.getOrDefault(farmId, ""));
+                item.put("materialName", task.getMaterialName());
+                item.put("normsName", task.getNormsName());
+                item.put("targetNum", task.getTargetNum());
                 item.put("planStartTime", task.getExistingPlanStartTime());
                 item.put("planEndTime", task.getExistingPlanEndTime());
                 item.put("durationMinutes", task.getDurationMinutes());
@@ -250,12 +256,20 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
                 failedItems.add("工序" + procId + "时长为0");
                 continue;
             }
-            String allocStart;
-            if (Boolean.TRUE.equals(param.getRespectProcedureOrder()) && task.getPrevProcedureId() != null) {
-                String prevEnd = procedurePlanEnd.get(task.getPrevProcedureId());
-                allocStart = prevEnd != null ? prevEnd : param.getScheduleStartDate() + " 08:00:00";
-            } else {
-                allocStart = param.getScheduleStartDate() + " 08:00:00";
+            String allocStart = param.getScheduleStartDate() + " 08:00:00";
+            if (Boolean.TRUE.equals(param.getRespectProcedureOrder())) {
+                // 同一工序多车间：从上一车间的结束时间开始排（续接）
+                if (procedurePlanEnd.containsKey(procId)) {
+                    allocStart = later(allocStart, procedurePlanEnd.get(procId));
+                }
+                // 同一加工单、同一工艺工序多子单（子件→成品）：从上一子单该工序的结束时间开始排（续接）
+                if (machinProcKey != null && lastEndByMachinAndProcedure.containsKey(machinProcKey)) {
+                    allocStart = later(allocStart, lastEndByMachinAndProcedure.get(machinProcKey));
+                }
+                // 同一子单内前序工序：从前序工序结束时间开始
+                if (task.getPrevProcedureId() != null && procedurePlanEnd.get(task.getPrevProcedureId()) != null) {
+                    allocStart = later(allocStart, procedurePlanEnd.get(task.getPrevProcedureId()));
+                }
             }
             Map<String, Integer> capByDate = dailyCapCache.getOrDefault(farmId, Collections.emptyMap());
             AllocResult alloc = allocateCapacity(farmId, allocStart, duration, capacityRemain, param.getScheduleEndDate(), capByDate);
@@ -265,10 +279,19 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             }
             procedurePlanStart.put(procId, alloc.getPlanStart());
             procedurePlanEnd.put(procId, alloc.getPlanEnd());
+            if (machinProcKey != null) {
+                lastEndByMachinAndProcedure.put(machinProcKey, alloc.getPlanEnd());
+            }
             Map<String, Object> item = new HashMap<>();
             item.put("machinId", task.getMachinId());
+            item.put("childId", task.getChildId());
             item.put("machinProcedureId", procId);
             item.put("farmId", farmId);
+            item.put("procedureName", task.getProcedureName());
+            item.put("farmName", farmIdToName.getOrDefault(farmId, ""));
+            item.put("materialName", task.getMaterialName());
+            item.put("normsName", task.getNormsName());
+            item.put("targetNum", task.getTargetNum());
             item.put("planStartTime", alloc.getPlanStart());
             item.put("planEndTime", alloc.getPlanEnd());
             item.put("durationMinutes", task.getDurationMinutes());
@@ -351,16 +374,40 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
         }
     }
 
+    /**
+     * 保存排产：更新加工单工序(MachinProcedure)的计划时间。
+     * 同一工序可能对应多个车间任务，但库中仅存一条工序计划时间，故按 machinProcedureId 合并：
+     * 取该工序下所有条目的最早开始、最晚结束作为工序的计划时间，每个工序只更新一次。
+     */
     @Override
     public void saveSchedule(InputObject inputObject, OutputObject outputObject) {
         ApsScheduleSaveParam param = inputObject.getParams(ApsScheduleSaveParam.class);
         if (CollectionUtil.isEmpty(param.getItems())) {
             throw new CustomException("排程明细不能为空");
         }
+        Map<String, ApsScheduleSaveParam.ApsScheduleItem> merged = new LinkedHashMap<>();
         for (ApsScheduleSaveParam.ApsScheduleItem item : param.getItems()) {
             if (StrUtil.isEmpty(item.getMachinProcedureId()) || StrUtil.isEmpty(item.getPlanStartTime()) || StrUtil.isEmpty(item.getPlanEndTime())) {
                 continue;
             }
+            String id = item.getMachinProcedureId();
+            ApsScheduleSaveParam.ApsScheduleItem existing = merged.get(id);
+            if (existing == null) {
+                ApsScheduleSaveParam.ApsScheduleItem one = new ApsScheduleSaveParam.ApsScheduleItem();
+                one.setMachinProcedureId(item.getMachinProcedureId());
+                one.setPlanStartTime(item.getPlanStartTime());
+                one.setPlanEndTime(item.getPlanEndTime());
+                merged.put(id, one);
+            } else {
+                if (item.getPlanStartTime().compareTo(existing.getPlanStartTime()) < 0) {
+                    existing.setPlanStartTime(item.getPlanStartTime());
+                }
+                if (item.getPlanEndTime().compareTo(existing.getPlanEndTime()) > 0) {
+                    existing.setPlanEndTime(item.getPlanEndTime());
+                }
+            }
+        }
+        for (ApsScheduleSaveParam.ApsScheduleItem item : merged.values()) {
             UpdateWrapper<MachinProcedure> uw = new UpdateWrapper<>();
             uw.eq(CommonConstants.ID, item.getMachinProcedureId());
             uw.set(MybatisPlusUtil.toColumns(MachinProcedure::getPlanStartTime), item.getPlanStartTime());
@@ -423,12 +470,27 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             if (CollectionUtil.isEmpty(wayList)) continue;
             WayProcedureChild wc = wayList.stream().filter(w -> proc.getProcedureId().equals(w.getProcedureId())).findFirst().orElse(null);
             if (wc == null || StrUtil.isEmpty(wc.getStandardTimeMinutes())) continue;
+            String procedureName = null;
+            if (wc.getProcedureMation() != null && StrUtil.isNotEmpty(wc.getProcedureMation().getName())) {
+                procedureName = wc.getProcedureMation().getName();
+            }
             // 4. 计算工序时长：目标数量 × 标准工时(分钟/件)，保留2位小数
-            String targetNum = StrUtil.isEmpty(pf.getTargetNum()) ? "0" : pf.getTargetNum();
-            String durationStr = CalculationUtil.multiply(targetNum, wc.getStandardTimeMinutes(), 2, RoundingMode.UP);
-            // 5. 获取交货期（用于排序）
+            String targetNumForDuration = StrUtil.isEmpty(pf.getTargetNum()) ? "0" : pf.getTargetNum();
+            String durationStr = CalculationUtil.multiply(targetNumForDuration, wc.getStandardTimeMinutes(), 2, RoundingMode.UP);
+            // 5. 获取交货期、商品、规格、数量（用于排序及结果展示）
             MachinChild child = machin.getMachinChildList().stream().filter(c -> proc.getChildId().equals(c.getId())).findFirst().orElse(null);
             String deliveryTime = child != null ? child.getDeliveryTime() : "";
+            String materialName = null;
+            String normsName = null;
+            if (child != null) {
+                if (child.getMaterialMation() != null && StrUtil.isNotEmpty(child.getMaterialMation().getName())) {
+                    materialName = child.getMaterialMation().getName();
+                }
+                if (child.getNormsMation() != null && StrUtil.isNotEmpty(child.getNormsMation().getName())) {
+                    normsName = child.getNormsMation().getName();
+                }
+            }
+            String targetNum = StrUtil.isEmpty(pf.getTargetNum()) ? "" : pf.getTargetNum();
             // 6. 若考虑工序依赖，查找前置工序ID（用于排程时确定开始时间）
             String prevProcedureId = null;
             if (Boolean.TRUE.equals(param.getRespectProcedureOrder())) {
@@ -447,6 +509,12 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             t.setMachinId(pf.getMachinId());
             t.setMachinProcedureId(pf.getMachinProcedureId());
             t.setFarmId(pf.getFarmId());
+            t.setChildId(proc.getChildId());
+            t.setProcedureId(proc.getProcedureId());
+            t.setProcedureName(procedureName);
+            t.setMaterialName(materialName);
+            t.setNormsName(normsName);
+            t.setTargetNum(targetNum);
             t.setDurationMinutes(durationStr);
             t.setDeliveryTime(deliveryTime);
             t.setOrderBy(proc.getOrderBy() != null ? proc.getOrderBy() : 0);
@@ -458,11 +526,15 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             }
             tasks.add(t);
         }
-        // 8. 排序：历史已排单优先，再按交货期、工序顺序
+        // 8. 排序：历史已排单优先，再按交货期、工序顺序；同一工艺工序下按子单、车间稳定顺序（子件工序先于成品工序续接）
         tasks.sort(Comparator
             .comparing((SchedulableTask t) -> StrUtil.isEmpty(t.getExistingPlanStartTime()) ? 1 : 0)
             .thenComparing(SchedulableTask::getDeliveryTime, Comparator.nullsLast(String::compareTo))
-            .thenComparing(SchedulableTask::getOrderBy));
+            .thenComparing(SchedulableTask::getOrderBy)
+            .thenComparing(SchedulableTask::getProcedureId, Comparator.nullsLast(String::compareTo))
+            .thenComparing(SchedulableTask::getChildId, Comparator.nullsLast(String::compareTo))
+            .thenComparing(SchedulableTask::getMachinProcedureId, Comparator.nullsLast(String::compareTo))
+            .thenComparing(SchedulableTask::getFarmId, Comparator.nullsLast(String::compareTo)));
         return tasks;
     }
 
@@ -544,6 +616,15 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             return r;
         }
         return null;
+    }
+
+    /**
+     * 返回两个日期时间字符串中较晚的一个（格式 yyyy-MM-dd HH:mm:ss），用于续接取最晚开始
+     */
+    private String later(String a, String b) {
+        if (StrUtil.isEmpty(a)) return b;
+        if (StrUtil.isEmpty(b)) return a;
+        return a.compareTo(b) >= 0 ? a : b;
     }
 
     /**

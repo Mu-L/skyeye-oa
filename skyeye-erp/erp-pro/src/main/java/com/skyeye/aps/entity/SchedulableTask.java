@@ -29,6 +29,24 @@ public class SchedulableTask {
     @ApiModelProperty(value = "车间ID")
     private String farmId;
 
+    @ApiModelProperty(value = "加工单子单据ID")
+    private String childId;
+
+    @ApiModelProperty(value = "工艺路线工序ID，同一加工单下同工序名对应同一procedureId")
+    private String procedureId;
+
+    @ApiModelProperty(value = "工序名称")
+    private String procedureName;
+
+    @ApiModelProperty(value = "商品名称")
+    private String materialName;
+
+    @ApiModelProperty(value = "规格名称")
+    private String normsName;
+
+    @ApiModelProperty(value = "加工数量")
+    private String targetNum;
+
     @ApiModelProperty(value = "工序时长(分钟)，支持小数")
     private String durationMinutes;
 
