@@ -388,6 +388,28 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
     }
 
     @Override
+    public void editMachinProcedureFarmInfo(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        MachinProcedureFarm farm = selectById(id);
+        if (farm == null) {
+            throw new CustomException("车间任务不存在");
+        }
+        String state = farm.getState();
+        if (!MachinProcedureFarmState.WAIT_EXECUTED.getKey().equals(state)
+            && !MachinProcedureFarmState.PARTIAL_COMPLETION.getKey().equals(state)) {
+            throw new CustomException("仅待执行、部分完成的车间任务可修改信息");
+        }
+        String planStartTime = params.get("planStartTime").toString();
+        String planEndTime = params.get("planEndTime").toString();
+        UpdateWrapper<MachinProcedureFarm> uw = new UpdateWrapper<>();
+        uw.eq(CommonConstants.ID, id);
+        uw.set(MybatisPlusUtil.toColumns(MachinProcedureFarm::getPlanStartTime), planStartTime);
+        uw.set(MybatisPlusUtil.toColumns(MachinProcedureFarm::getPlanEndTime), planEndTime);
+        update(uw);
+    }
+
+    @Override
     public void editStateById(String id, String state) {
         UpdateWrapper<MachinProcedureFarm> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);

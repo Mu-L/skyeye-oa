@@ -45,6 +45,14 @@ public interface MachinProcedureFarmService extends SkyeyeBusinessService<Machin
     void queryPendingAcceptNumByFarmId(InputObject inputObject, OutputObject outputObject);
 
     /**
+     * 修改车间任务信息（计划开始时间、计划结束时间等），仅待执行、部分完成状态可操作。
+     *
+     * @param inputObject  入参：id 必填；planStartTime、planEndTime 可选，后续可扩展其他字段
+     * @param outputObject 出参
+     */
+    void editMachinProcedureFarmInfo(InputObject inputObject, OutputObject outputObject);
+
+    /**
      * 统计各车间待接收/待执行任务数量（用于负载均衡）
      *
      * @param farmIds 车间id列表

@@ -79,4 +79,14 @@ public class MachinProcedureFarmController {
         machinProcedureFarmService.queryPendingAcceptNumByFarmId(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "editMachinProcedureFarmInfo", value = "修改车间任务信息（仅待执行、部分完成可操作）", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "车间任务id", required = "required"),
+        @ApiImplicitParam(id = "planStartTime", name = "planStartTime", value = "计划开始时间，格式yyyy-MM-dd HH:mm:ss"),
+        @ApiImplicitParam(id = "planEndTime", name = "planEndTime", value = "计划结束时间，格式yyyy-MM-dd HH:mm:ss")})
+    @RequestMapping("/post/MachinProcedureFarmController/editMachinProcedureFarmInfo")
+    public void editMachinProcedureFarmInfo(InputObject inputObject, OutputObject outputObject) {
+        machinProcedureFarmService.editMachinProcedureFarmInfo(inputObject, outputObject);
+    }
+
 }

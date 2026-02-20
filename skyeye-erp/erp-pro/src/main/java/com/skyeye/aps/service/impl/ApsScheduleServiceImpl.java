@@ -433,6 +433,19 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
             uw.set(MybatisPlusUtil.toColumns(MachinProcedure::getPlanEndTime), item.getPlanEndTime());
             machinProcedureService.update(uw);
         }
+        // 顺带更新车间任务(MachinProcedureFarm)的计划时间：按每条明细的 machinProcedureId + farmId 更新
+        for (ApsScheduleSaveParam.ApsScheduleItem item : param.getItems()) {
+            if (StrUtil.isEmpty(item.getMachinProcedureId()) || StrUtil.isEmpty(item.getFarmId())
+                || StrUtil.isEmpty(item.getPlanStartTime()) || StrUtil.isEmpty(item.getPlanEndTime())) {
+                continue;
+            }
+            UpdateWrapper<MachinProcedureFarm> farmUw = new UpdateWrapper<>();
+            farmUw.eq(MybatisPlusUtil.toColumns(MachinProcedureFarm::getMachinProcedureId), item.getMachinProcedureId());
+            farmUw.eq(MybatisPlusUtil.toColumns(MachinProcedureFarm::getFarmId), item.getFarmId());
+            farmUw.set(MybatisPlusUtil.toColumns(MachinProcedureFarm::getPlanStartTime), item.getPlanStartTime());
+            farmUw.set(MybatisPlusUtil.toColumns(MachinProcedureFarm::getPlanEndTime), item.getPlanEndTime());
+            machinProcedureFarmService.update(farmUw);
+        }
         outputObject.setreturnMessage("保存成功");
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }

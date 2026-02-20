@@ -90,6 +90,14 @@ public class MachinProcedureFarm extends OperatorUserInfo {
     @Property(value = "状态", enumClass = MachinProcedureFarmState.class)
     private String state;
 
+    @TableField(value = "plan_start_time")
+    @ApiModelProperty(value = "计划开始时间")
+    private String planStartTime;
+
+    @TableField(value = "plan_end_time")
+    @ApiModelProperty(value = "计划结束时间")
+    private String planEndTime;
+
     @TableField(exist = false)
     @Property(value = "状态信息")
     private Map<String, Object> stateMation;

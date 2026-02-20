@@ -133,6 +133,17 @@ public class ProductionServiceImpl extends SkyeyeBusinessServiceImpl<ProductionD
     }
 
     @Override
+    public List<Production> getDataFromDb(List<String> idList) {
+        List<Production> productionList = super.getDataFromDb(idList);
+        List<ProductionChild> childList = productionChildService.selectByParentId(idList);
+        Map<String, List<ProductionChild>> childMap = childList.stream()
+            .collect(Collectors.groupingBy(ProductionChild::getParentId));
+        productionList.forEach(production ->
+            production.setProductionChildList(childMap.getOrDefault(production.getId(), Collections.emptyList())));
+        return productionList;
+    }
+
+    @Override
     public Production selectById(String id) {
         Production production = super.selectById(id);
         // 查询方案信息
@@ -311,8 +322,8 @@ public class ProductionServiceImpl extends SkyeyeBusinessServiceImpl<ProductionD
         Map<String, String> normsNum = machinService.calcMaterialNormsNumByFromId(id);
         production.getProductionChildList().forEach(productionChild -> {
             // 生产计划单数量 - 已经下达加工单的数量
-            String normsNumValue = normsNum.containsKey(productionChild.getNormsId()) 
-                ? normsNum.get(productionChild.getNormsId()) 
+            String normsNumValue = normsNum.containsKey(productionChild.getNormsId())
+                ? normsNum.get(productionChild.getNormsId())
                 : CommonNumConstants.NUM_ZERO.toString();
             String surplusNum = CalculationUtil.subtract(productionChild.getOperNumber(), normsNumValue, ErpConstants.NUM_AFTER_DOT);
             // 设置未下达加工单的商品数量
@@ -363,8 +374,8 @@ public class ProductionServiceImpl extends SkyeyeBusinessServiceImpl<ProductionD
         Map<String, String> normsNum = wholeOrderOutService.calcMaterialNormsNumByFromId(id);
         production.getProductionChildList().forEach(productionChild -> {
             // 生产计划单数量 - 已经下达整单委外单的数量
-            String normsNumValue = normsNum.containsKey(productionChild.getNormsId()) 
-                ? normsNum.get(productionChild.getNormsId()) 
+            String normsNumValue = normsNum.containsKey(productionChild.getNormsId())
+                ? normsNum.get(productionChild.getNormsId())
                 : CommonNumConstants.NUM_ZERO.toString();
             String surplusNum = CalculationUtil.subtract(productionChild.getOperNumber(), normsNumValue, ErpConstants.NUM_AFTER_DOT);
             // 设置未下达整单委外单的商品数量

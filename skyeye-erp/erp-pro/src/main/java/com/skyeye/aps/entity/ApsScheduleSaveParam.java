@@ -31,6 +31,9 @@ public class ApsScheduleSaveParam {
         @ApiModelProperty(value = "加工单工序ID", required = "required")
         private String machinProcedureId;
 
+        @ApiModelProperty(value = "车间ID，有则顺带更新车间任务(MachinProcedureFarm)的计划时间")
+        private String farmId;
+
         @ApiModelProperty(value = "计划开始时间，格式yyyy-MM-dd HH:mm:ss", required = "required")
         private String planStartTime;
 
