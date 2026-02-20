@@ -33,14 +33,14 @@ public class StaffTransferController {
     @Autowired
     private StaffTransferService staffTransferService;
 
-    @ApiOperation(id = "queryStaffTransferList", value = "获取我的员工调拨申请列表", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryStaffTransferList", value = "获取我的员工调拨申请列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/StaffTransferController/queryStaffTransferList")
     public void queryStaffTransferList(InputObject inputObject, OutputObject outputObject) {
         staffTransferService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "writeStaffTransfer", value = "新增/编辑员工调拨申请", method = "POST", allUse = "1")
+    @ApiOperation(id = "writeStaffTransfer", value = "新增/编辑员工调拨申请", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = StaffTransfer.class)
     @RequestMapping("/post/StaffTransferController/writeStaffTransfer")
     public void writeStaffTransfer(InputObject inputObject, OutputObject outputObject) {
@@ -55,7 +55,7 @@ public class StaffTransferController {
         staffTransferService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteStaffTransferById", value = "删除员工调拨申请", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteStaffTransferById", value = "删除员工调拨申请", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/StaffTransferController/deleteStaffTransferById")
@@ -63,14 +63,14 @@ public class StaffTransferController {
         staffTransferService.deleteById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "submitStaffTransferToApproval", value = "员工调拨申请提交审批", method = "POST", allUse = "1")
+    @ApiOperation(id = "submitStaffTransferToApproval", value = "员工调拨申请提交审批", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/StaffTransferController/submitToApproval")
     public void submitToApproval(InputObject inputObject, OutputObject outputObject) {
         staffTransferService.submitToApproval(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "revokeStaffTransfer", value = "撤销员工调拨申请", method = "PUT", allUse = "1")
+    @ApiOperation(id = "revokeStaffTransfer", value = "撤销员工调拨申请", method = "PUT", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
     @RequestMapping("/post/StaffTransferController/revoke")
