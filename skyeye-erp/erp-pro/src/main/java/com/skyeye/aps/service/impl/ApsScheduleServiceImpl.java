@@ -468,8 +468,6 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
                 machinProcedureFarmService.updateBatchById(toUpdate);
             }
         }
-        outputObject.setreturnMessage("保存成功");
-        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
     private List<MachinProcedureFarm> loadPendingFarmTasks(ApsScheduleParam param) {
