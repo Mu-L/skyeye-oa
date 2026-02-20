@@ -7,7 +7,6 @@ package com.skyeye.aps.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.aps.entity.AllocResult;
 import com.skyeye.aps.entity.ApsScheduleParam;
@@ -426,25 +425,48 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
                 }
             }
         }
-        for (ApsScheduleSaveParam.ApsScheduleItem item : merged.values()) {
-            UpdateWrapper<MachinProcedure> uw = new UpdateWrapper<>();
-            uw.eq(CommonConstants.ID, item.getMachinProcedureId());
-            uw.set(MybatisPlusUtil.toColumns(MachinProcedure::getPlanStartTime), item.getPlanStartTime());
-            uw.set(MybatisPlusUtil.toColumns(MachinProcedure::getPlanEndTime), item.getPlanEndTime());
-            machinProcedureService.update(uw);
-        }
-        // 顺带更新车间任务(MachinProcedureFarm)的计划时间：按每条明细的 machinProcedureId + farmId 更新
-        for (ApsScheduleSaveParam.ApsScheduleItem item : param.getItems()) {
-            if (StrUtil.isEmpty(item.getMachinProcedureId()) || StrUtil.isEmpty(item.getFarmId())
-                || StrUtil.isEmpty(item.getPlanStartTime()) || StrUtil.isEmpty(item.getPlanEndTime())) {
-                continue;
+        // 批量更新加工单工序(MachinProcedure)的计划时间
+        if (CollectionUtil.isNotEmpty(merged)) {
+            List<String> procedureIds = new ArrayList<>(merged.keySet());
+            QueryWrapper<MachinProcedure> procQw = new QueryWrapper<>();
+            procQw.in(CommonConstants.ID, procedureIds);
+            List<MachinProcedure> procList = machinProcedureService.list(procQw);
+            for (MachinProcedure proc : procList) {
+                ApsScheduleSaveParam.ApsScheduleItem item = merged.get(proc.getId());
+                if (item != null) {
+                    proc.setPlanStartTime(item.getPlanStartTime());
+                    proc.setPlanEndTime(item.getPlanEndTime());
+                }
             }
-            UpdateWrapper<MachinProcedureFarm> farmUw = new UpdateWrapper<>();
-            farmUw.eq(MybatisPlusUtil.toColumns(MachinProcedureFarm::getMachinProcedureId), item.getMachinProcedureId());
-            farmUw.eq(MybatisPlusUtil.toColumns(MachinProcedureFarm::getFarmId), item.getFarmId());
-            farmUw.set(MybatisPlusUtil.toColumns(MachinProcedureFarm::getPlanStartTime), item.getPlanStartTime());
-            farmUw.set(MybatisPlusUtil.toColumns(MachinProcedureFarm::getPlanEndTime), item.getPlanEndTime());
-            machinProcedureFarmService.update(farmUw);
+            if (CollectionUtil.isNotEmpty(procList)) {
+                machinProcedureService.updateBatchById(procList);
+            }
+        }
+        // 顺带批量更新车间任务(MachinProcedureFarm)的计划时间：按 machinProcedureId + farmId 匹配
+        List<ApsScheduleSaveParam.ApsScheduleItem> farmItems = param.getItems().stream()
+            .filter(item -> StrUtil.isNotEmpty(item.getMachinProcedureId()) && StrUtil.isNotEmpty(item.getFarmId())
+                && StrUtil.isNotEmpty(item.getPlanStartTime()) && StrUtil.isNotEmpty(item.getPlanEndTime()))
+            .collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(farmItems)) {
+            List<String> procedureIds = farmItems.stream()
+                .map(ApsScheduleSaveParam.ApsScheduleItem::getMachinProcedureId).distinct().collect(Collectors.toList());
+            QueryWrapper<MachinProcedureFarm> farmQw = new QueryWrapper<>();
+            farmQw.in(MybatisPlusUtil.toColumns(MachinProcedureFarm::getMachinProcedureId), procedureIds);
+            List<MachinProcedureFarm> farmList = machinProcedureFarmService.list(farmQw);
+            Map<String, ApsScheduleSaveParam.ApsScheduleItem> itemMap = farmItems.stream()
+                .collect(Collectors.toMap(i -> i.getMachinProcedureId() + "_" + i.getFarmId(), i -> i, (a, b) -> a));
+            List<MachinProcedureFarm> toUpdate = new ArrayList<>();
+            for (MachinProcedureFarm farm : farmList) {
+                ApsScheduleSaveParam.ApsScheduleItem item = itemMap.get(farm.getMachinProcedureId() + "_" + farm.getFarmId());
+                if (item != null) {
+                    farm.setPlanStartTime(item.getPlanStartTime());
+                    farm.setPlanEndTime(item.getPlanEndTime());
+                    toUpdate.add(farm);
+                }
+            }
+            if (CollectionUtil.isNotEmpty(toUpdate)) {
+                machinProcedureFarmService.updateBatchById(toUpdate);
+            }
         }
         outputObject.setreturnMessage("保存成功");
         outputObject.settotal(CommonNumConstants.NUM_ONE);
