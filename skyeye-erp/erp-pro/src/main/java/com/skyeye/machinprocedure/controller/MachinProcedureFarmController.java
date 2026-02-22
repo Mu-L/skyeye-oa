@@ -89,4 +89,14 @@ public class MachinProcedureFarmController {
         machinProcedureFarmService.editMachinProcedureFarmInfo(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryGanttListByMonth", value = "按月份查询车间任务列表（排产甘特图）", method = "POST", allUse = "1")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "yearMonth", name = "yearMonth", value = "年月，格式 yyyy-MM", required = "required"),
+        @ApiImplicitParam(id = "type", name = "type", value = "farm=指定车间 department=本部门车间 all=全部", required = "required", defaultValue = "department"),
+        @ApiImplicitParam(id = "objectId", name = "objectId", value = "当 type=farm 时为车间 id")})
+    @RequestMapping("/post/MachinProcedureFarmController/queryGanttListByMonth")
+    public void queryGanttListByMonth(InputObject inputObject, OutputObject outputObject) {
+        machinProcedureFarmService.queryGanttListByMonth(inputObject, outputObject);
+    }
+
 }

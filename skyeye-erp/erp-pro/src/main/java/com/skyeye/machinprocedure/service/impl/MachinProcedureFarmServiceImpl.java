@@ -22,6 +22,7 @@ import com.skyeye.bom.service.BomService;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.DeleteFlagEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
@@ -29,6 +30,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.exception.CustomException;
+import com.skyeye.farm.entity.Farm;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.machin.entity.Machin;
 import com.skyeye.machin.entity.MachinChild;
@@ -48,12 +50,15 @@ import com.skyeye.material.classenum.MaterialNormsStockType;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.pick.service.DepartmentStockService;
+import com.skyeye.procedure.entity.WorkProcedure;
 import com.skyeye.procedure.service.WorkProcedureService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.math.RoundingMode;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -770,6 +775,126 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
             result.put(farmId, CalculationUtil.add(sum, targetNum, ErpConstants.NUM_AFTER_DOT, RoundingMode.UP));
         }
         return result;
+    }
+
+    @Override
+    public void queryGanttListByMonth(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String yearMonth = params.get("yearMonth").toString();
+        String type = params.get("type").toString();
+        String objectId = params.get("objectId").toString();
+        YearMonth ym;
+        try {
+            ym = YearMonth.parse(yearMonth, DateTimeFormatter.ofPattern("yyyy-MM"));
+        } catch (Exception e) {
+            throw new CustomException("yearMonth格式错误，应为 yyyy-MM");
+        }
+        String monthStartStr = ym.atDay(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 00:00:00";
+        String monthEndStr = ym.atEndOfMonth().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) + " 23:59:59";
+
+        // 1. 不管有没有任务，都加载车间列表（按范围）
+        List<Farm> farmList;
+        if (StrUtil.equals(type, "farm") && StrUtil.isNotEmpty(objectId)) {
+            farmList = farmService.queryFarmListByIds(Collections.singletonList(objectId));
+        } else if (StrUtil.equals(type, "department")) {
+            String departmentId = InputObject.getLogParamsStatic().get("departmentId").toString();
+            List<String> farmIdList = farmService.queryFarmIdListByDepartmentId(departmentId);
+            farmList = CollectionUtil.isEmpty(farmIdList) ? Collections.emptyList() : farmService.queryFarmListByIds(farmIdList);
+        } else {
+            farmList = farmService.queryEnabledFarmList();
+        }
+        List<Map<String, Object>> farmsData = farmList.stream()
+            .map(f -> {
+                Map<String, Object> m = new HashMap<>();
+                m.put("id", f.getId());
+                m.put("name", f.getName());
+                return m;
+            })
+            .collect(Collectors.toList());
+
+        // 2. 按「工序可执行车间」反推：每个车间只加载该车间可执行的工序（工序-设备-车间）
+        QueryWrapper<WorkProcedure> wpQw = new QueryWrapper<>();
+        wpQw.eq(MybatisPlusUtil.toColumns(WorkProcedure::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
+        List<WorkProcedure> allProcedureList = workProcedureService.list(wpQw);
+        List<String> allProcedureIds = allProcedureList.stream().map(WorkProcedure::getId).filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+        Map<String, List<Farm>> procedureIdToFarms = CollectionUtil.isEmpty(allProcedureIds)
+            ? Collections.emptyMap()
+            : workProcedureService.queryExecuteFarmByWorkProcedureIds(allProcedureIds);
+        Map<String, List<Map<String, Object>>> proceduresPerFarm = new HashMap<>();
+        for (Farm farm : farmList) {
+            String farmId = farm.getId();
+            List<Map<String, Object>> proceduresData = allProcedureList.stream()
+                .filter(p -> {
+                    List<Farm> farms = procedureIdToFarms.get(p.getId());
+                    return farms != null && farms.stream().anyMatch(f -> farmId.equals(f.getId()));
+                })
+                .map(p -> {
+                    Map<String, Object> m = new HashMap<>();
+                    m.put("id", p.getId());
+                    m.put("name", p.getName());
+                    return m;
+                })
+                .collect(Collectors.toList());
+            proceduresPerFarm.put(farmId, proceduresData);
+        }
+
+        // 3. 按月份查询车间任务（可能为空）
+        List<MachinProcedureFarm> list;
+        if (StrUtil.equals(type, "farm") && StrUtil.isEmpty(objectId)) {
+            list = Collections.emptyList();
+        } else if (StrUtil.equals(type, "department") && CollectionUtil.isEmpty(farmList)) {
+            list = Collections.emptyList();
+        } else {
+            QueryWrapper<MachinProcedureFarm> qw = new QueryWrapper<>();
+            qw.isNotNull(MybatisPlusUtil.toColumns(MachinProcedureFarm::getPlanStartTime));
+            qw.le(MybatisPlusUtil.toColumns(MachinProcedureFarm::getPlanStartTime), monthEndStr);
+            qw.and(w -> w.isNull(MybatisPlusUtil.toColumns(MachinProcedureFarm::getPlanEndTime))
+                .or().ge(MybatisPlusUtil.toColumns(MachinProcedureFarm::getPlanEndTime), monthStartStr));
+            if (StrUtil.equals(type, "farm") && StrUtil.isNotEmpty(objectId)) {
+                qw.eq(MybatisPlusUtil.toColumns(MachinProcedureFarm::getFarmId), objectId);
+            } else if (StrUtil.equals(type, "department") && CollectionUtil.isNotEmpty(farmList)) {
+                List<String> farmIds = farmList.stream().map(Farm::getId).collect(Collectors.toList());
+                qw.in(MybatisPlusUtil.toColumns(MachinProcedureFarm::getFarmId), farmIds);
+            }
+            list = list(qw);
+        }
+        List<Map<String, Object>> rowsData = new ArrayList<>();
+        if (CollectionUtil.isNotEmpty(list)) {
+            farmService.setDataMation(list, MachinProcedureFarm::getFarmId);
+            machinProcedureService.setDataMation(list, MachinProcedureFarm::getMachinProcedureId);
+            machinService.setDataMation(list, MachinProcedureFarm::getMachinId);
+            List<MachinProcedure> procList = list.stream()
+                .map(MachinProcedureFarm::getMachinProcedureMation)
+                .filter(Objects::nonNull).distinct().collect(Collectors.toList());
+            if (CollectionUtil.isNotEmpty(procList)) {
+                workProcedureService.setDataMation(procList, MachinProcedure::getProcedureId);
+            }
+            for (MachinProcedureFarm farm : list) {
+                Map<String, Object> bean = BeanUtil.beanToMap(farm);
+                if (farm.getFarmMation() != null) {
+                    bean.put("farmMation", BeanUtil.beanToMap(farm.getFarmMation()));
+                }
+                if (farm.getMachinMation() != null) {
+                    bean.put("machinMation", BeanUtil.beanToMap(farm.getMachinMation()));
+                }
+                if (farm.getMachinProcedureMation() != null) {
+                    bean.put("machinProcedureMation", BeanUtil.beanToMap(farm.getMachinProcedureMation()));
+                    String procedureName = farm.getMachinProcedureMation().getProcedureMation() != null
+                        ? farm.getMachinProcedureMation().getProcedureMation().getName() : StrUtil.EMPTY;
+                    bean.put("procedureName", procedureName);
+                } else {
+                    bean.put("procedureName", StrUtil.EMPTY);
+                }
+                rowsData.add(bean);
+            }
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("farms", farmsData);
+        result.put("proceduresPerFarm", proceduresPerFarm);
+        result.put("rows", rowsData);
+        outputObject.setBean(result);
+        outputObject.settotal(rowsData.size());
     }
 
 }

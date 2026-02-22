@@ -82,4 +82,9 @@ public interface MachinProcedureFarmService extends SkyeyeBusinessService<Machin
      */
     void addAcceptNumsById(String id, String acceptNum, String qualifiedNum, String reworkNum, String scrapNum);
 
+    /**
+     * 按月份查询车间任务列表（用于排产甘特图），支持按 type/objectId 筛选，返回带工序名称的列表。
+     */
+    void queryGanttListByMonth(InputObject inputObject, OutputObject outputObject);
+
 }
