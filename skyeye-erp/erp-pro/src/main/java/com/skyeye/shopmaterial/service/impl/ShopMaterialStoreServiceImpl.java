@@ -380,10 +380,12 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
             }
             ShopMaterial shopMaterial = new ShopMaterial();
             BeanUtil.copyProperties(shopMaterialBean, shopMaterial);
-            shopMaterial.getMaterialMation().setMaterialNorms(null);
-            shopMaterial.getMaterialMation().setUnitGroupMation(null);
-            shopMaterial.getMaterialMation().setMaterialProcedure(null);
-            shopMaterial.getMaterialMation().setNormsSpec(null);
+            if (ObjectUtil.isNotEmpty(shopMaterial.getMaterialMation())) {
+                shopMaterial.getMaterialMation().setMaterialNorms(null);
+                shopMaterial.getMaterialMation().setUnitGroupMation(null);
+                shopMaterial.getMaterialMation().setMaterialProcedure(null);
+                shopMaterial.getMaterialMation().setNormsSpec(null);
+            }
             if (CollectionUtil.isNotEmpty(shopMaterial.getShopMaterialNormsList())) {
                 shopMaterial.getShopMaterialNormsList().forEach(shopMaterialNorms -> {
                     shopMaterialNorms.setEstimatePurchasePrice(null);
