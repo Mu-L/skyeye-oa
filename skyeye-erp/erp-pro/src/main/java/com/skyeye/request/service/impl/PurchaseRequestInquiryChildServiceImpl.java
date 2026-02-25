@@ -93,6 +93,7 @@ public class PurchaseRequestInquiryChildServiceImpl extends SkyeyeBusinessServic
     }
 
     @Override
+    @IgnoreTenant
     public List<PurchaseRequestInquiryChild> selectByParentId(String parentId) {
         QueryWrapper<PurchaseRequestInquiryChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(PurchaseRequestInquiryChild::getParentId), parentId);

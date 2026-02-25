@@ -8,6 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -50,6 +51,7 @@ public class PurchaseRequestChildServiceImpl extends SkyeyeBusinessServiceImpl<P
     }
 
     @Override
+    @IgnoreTenant
     public List<PurchaseRequestChild> selectByParentId(String parentId) {
         QueryWrapper<PurchaseRequestChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(PurchaseRequestChild::getParentId), parentId);

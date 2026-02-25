@@ -576,6 +576,7 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
         if (supplier == null) {
             return;
         }
+        // 采购申请询价明细
         List<PurchaseRequestInquiryChild> quotedList = purchaseRequestInquiryChildService.selectByParentId(parentId);
         Set<String> quotedKeys = quotedList.stream()
             .filter(c -> supplier.getId().equals(c.getSupplierId()) && InquiryQuoteSourceEnum.SUPPLIER.getKey().equals(c.getQuoteSource()))
