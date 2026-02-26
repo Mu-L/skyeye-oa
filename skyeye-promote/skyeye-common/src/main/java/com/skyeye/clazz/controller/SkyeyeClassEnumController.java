@@ -31,12 +31,6 @@ public class SkyeyeClassEnumController {
     @Autowired
     private SkyeyeClassEnumService skyeyeClassEnumService;
 
-    /**
-     * 批量新增枚举类
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeClassEnum", value = "批量新增枚举类", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = SkyeyeClassEnumApiMation.class)
     @RequestMapping("/post/SkyeyeClassEnumController/writeClassEnum")
@@ -44,12 +38,6 @@ public class SkyeyeClassEnumController {
         skyeyeClassEnumService.writeClassEnum(inputObject, outputObject);
     }
 
-    /**
-     * 根据className获取可以展示在界面上的枚举数据信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "getEnumDataByClassName", value = "根据className获取可以展示在界面上的枚举数据信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "className", name = "className", value = "className", required = "required"),
@@ -60,12 +48,6 @@ public class SkyeyeClassEnumController {
         skyeyeClassEnumService.getEnumDataByClassName(inputObject, outputObject);
     }
 
-    /**
-     * 根据className获取可以展示在界面上的枚举数据信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "getEnumDataMapByClassName", value = "根据className获取可以展示在界面上的枚举数据信息", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "classNameList", name = "classNameList", value = "className的集合", required = "required")})

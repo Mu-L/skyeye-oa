@@ -22,7 +22,6 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DataCommonUtil;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,9 +39,6 @@ import java.util.stream.Collectors;
 @Service
 @SkyeyeService(name = "枚举类管理", groupName = "系统公共模块", tenant = TenantEnum.NO_ISOLATION)
 public class SkyeyeClassEnumServiceImpl extends SkyeyeBusinessServiceImpl<SkyeyeClassEnumDao, SkyeyeClassEnumMation> implements SkyeyeClassEnumService {
-
-    @Autowired
-    private SkyeyeClassEnumDao skyeyeClassEnumDao;
 
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
@@ -91,7 +87,7 @@ public class SkyeyeClassEnumServiceImpl extends SkyeyeBusinessServiceImpl<Skyeye
     public List<Map<String, Object>> queryEnumDataList(String className, String filterKey, String filterValue) {
         QueryWrapper<SkyeyeClassEnumMation> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(SkyeyeClassEnumMation::getClassName), className);
-        SkyeyeClassEnumMation skyeyeClassEnumMation = skyeyeClassEnumDao.selectOne(queryWrapper);
+        SkyeyeClassEnumMation skyeyeClassEnumMation = getOne(queryWrapper, false);
         // 只加载可以展示的数据
         List<Map<String, Object>> skyeyeEnumDtoList = skyeyeClassEnumMation.getValueList()
             .stream().filter(bean -> filterSkyeyeEnumDto(bean, filterKey, filterValue)).collect(Collectors.toList());
@@ -118,7 +114,7 @@ public class SkyeyeClassEnumServiceImpl extends SkyeyeBusinessServiceImpl<Skyeye
 
         QueryWrapper<SkyeyeClassEnumMation> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(SkyeyeClassEnumMation::getClassName), classNameList);
-        List<SkyeyeClassEnumMation> enumMationList = skyeyeClassEnumDao.selectList(queryWrapper);
+        List<SkyeyeClassEnumMation> enumMationList = list(queryWrapper);
         // 只加载可以展示的数据
         Map<String, List<Map<String, Object>>> result = new HashMap<>();
         enumMationList.forEach(enumMation -> {
