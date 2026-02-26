@@ -54,7 +54,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -578,12 +581,20 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
         }
         // 采购申请询价明细
         List<PurchaseRequestInquiryChild> quotedList = purchaseRequestInquiryChildService.selectByParentId(parentId);
-        Set<String> quotedKeys = quotedList.stream()
+        // key: materialId_normsId, value: 报价明细id（同一规格多条时保留第一条）
+        Map<String, String> quotedIdMap = quotedList.stream()
             .filter(c -> supplier.getId().equals(c.getSupplierId()) && InquiryQuoteSourceEnum.SUPPLIER.getKey().equals(c.getQuoteSource()))
-            .map(c -> c.getMaterialId() + "_" + c.getNormsId())
-            .collect(Collectors.toSet());
+            .collect(Collectors.toMap(
+                c -> c.getMaterialId() + "_" + c.getNormsId(),
+                PurchaseRequestInquiryChild::getId,
+                (existing, replacement) -> existing
+            ));
         for (PurchaseRequestChild child : purchaseRequestChildList) {
-            child.setEnterpriseHasQuoted(quotedKeys.contains(child.getMaterialId() + "_" + child.getNormsId()));
+            String key = child.getMaterialId() + "_" + child.getNormsId();
+            String inquiryChildId = quotedIdMap.get(key);
+            child.setEnterpriseHasQuoted(StrUtil.isNotEmpty(inquiryChildId));
+
+            child.setEnterpriseQuotedInquiryChildId(inquiryChildId);
         }
     }
 

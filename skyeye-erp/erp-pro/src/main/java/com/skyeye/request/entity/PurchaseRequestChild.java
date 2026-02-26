@@ -98,4 +98,8 @@ public class PurchaseRequestChild extends CommonInfo {
     @ApiModelProperty(value = "当前企业账户是否已对该商品规格报过价")
     private Boolean enterpriseHasQuoted;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "当前企业账户针对该商品规格的报价明细id")
+    private String enterpriseQuotedInquiryChildId;
+
 }
