@@ -187,8 +187,10 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
                 // 您不具备该班次的考勤权限
                 throw new CustomException("You do not have the attendance authority for this shift.");
             }
-            bean.put("clockIn", bean.get("clockIn").toString() + ":00");
-            bean.put("clockOut", bean.get("clockOut").toString() + ":00");
+            CheckWorkTime checkWorkTime = checkWorkTimeService.selectById(timeId);
+            bean.put("clockIn", checkWorkTime.getStartTime() + ":00");
+            bean.put("clockOut", checkWorkTime.getEndTime() + ":00");
+            bean.put("checkWorkTimeWeekList", checkWorkTime.getCheckWorkTimeWeekList());
             return bean;
         } else {
             SchedulingTime schedulingTime = schedulingTimeService.selectById(timeId);
@@ -348,12 +350,6 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         outputObject.settotal(beans.size());
     }
 
-    /**
-     * 判断显示打上班卡或者下班卡
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryCheckWorkTimeToShowButton(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
@@ -441,12 +437,17 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
     private Integer getCheckState(CheckWork todayCheckWork, String nowTimeHMS, Map<String, Object> workTime, String today) {
         Integer checkState = null;
         if (Integer.parseInt(workTime.get("type").toString()) == CheckTypeFrom.CHECT_BTN_FROM_TIMEID.getKey()) {
+            // isSchedulingWorkDay为true则是排班班次
             Boolean isSchedulingWorkDay = (Boolean) workTime.getOrDefault("isSchedulingWorkDay", false);
             // 排班班次，不做节假日判断
             if (!isSchedulingWorkDay) {
+                // 固定班次逻辑
+                // 1. 判断是否是节假日
                 boolean result = iScheduleDayService.judgeISHoliday(today);
-                if (result) {
-                    // 今天不是加班日，但是是节假日，则不显示按钮
+                // 2. 判断今天是否在考勤班次关联的时间段内（工作日类型）
+                boolean isWorkDay = !isWorkDayInCheckWorkTimeWeek(workTime, today);
+                if (result || isWorkDay) {
+                    // 今天不是加班日，但是是节假日，则不显示按钮 || 不在该班次的工作日范围内，也不显示打卡按钮
                     checkState = 5;
                     return checkState;
                 }
@@ -466,6 +467,49 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
             checkState = 4;
         }
         return checkState;
+    }
+
+    /**
+     * 判断指定日期是否在固定班次的工作日范围内
+     * <p>
+     * 使用班次关联的时间段配置（checkWorkTimeWeekList）+ 周类型（单周/双周）计算。
+     * 若未配置时间段，则默认视为工作日（保持原有行为）。
+     *
+     * @param workTime 含有 checkWorkTimeWeekList 的班次信息
+     * @param today    指定日期，格式 yyyy-MM-dd
+     * @return true 表示今天是该班次的工作日，false 表示休息日
+     */
+    @SuppressWarnings("unchecked")
+    private boolean isWorkDayInCheckWorkTimeWeek(Map<String, Object> workTime, String today) {
+        Object listObj = workTime.get("checkWorkTimeWeekList");
+        if (!(listObj instanceof List)) {
+            // 未配置时间段时，保持老逻辑：认为是工作日
+            return true;
+        }
+        List<CheckWorkTimeWeek> weekList = (List<CheckWorkTimeWeek>) listObj;
+        if (CollectionUtil.isEmpty(weekList)) {
+            return true;
+        }
+        int weekDay = DateUtil.getWeek(today);
+        int weekType = DateUtil.getWeekType(today);
+        CheckWorkTimeWeek simpleDay = weekList.stream()
+            .filter(item -> item.getWeekNumber() == weekDay && !item.getType().equals(CheckWorkTimeWeekType.DOUBLE.getKey()))
+            .findFirst().orElse(null);
+        if (ObjectUtil.isEmpty(simpleDay)) {
+            // 没有为该星期几配置工作日，视为休息
+            return false;
+        }
+        // 在该班次中找到了指定日期的配置，根据周类型判断是否工作
+        if (weekType == WeekTypeEnum.ODD_WEEKS.getKey() && simpleDay.getType().equals(CheckWorkTimeWeekType.SINGLE_DAY.getKey())) {
+            // 单周并且班次配置为单周上班
+            return true;
+        } else if (weekType == WeekTypeEnum.BIWEEKLY.getKey() && simpleDay.getType().equals(CheckWorkTimeWeekType.SINGLE_DAY.getKey())) {
+            // 双周且班次配置为单周上班 → 本周休
+            return false;
+        } else {
+            // 其它情况（每周都上班等）
+            return true;
+        }
     }
 
     /**
