@@ -183,6 +183,7 @@ public class ShopStoreStaffServiceImpl extends SkyeyeBusinessServiceImpl<ShopSto
         }
         Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
         List<Map<String, Object>> beans = staffMap.values().stream().collect(Collectors.toList());
+        beans.stream().forEach(bean -> bean.put("id", bean.get("staffId")));
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }
