@@ -189,12 +189,12 @@ public class PurchaseRequestInquiryChildServiceImpl extends SkyeyeBusinessServic
         if (StrUtil.isEmpty(socialCreditCode)) {
             throw new CustomException("未获取到企业营业执照注册号，请先登录企业账户");
         }
-        Supplier supplier = supplierService.queryBySocialCreditCodeAndPointTenant(socialCreditCode, entity.getTenantId());
+        Supplier supplier = supplierService.queryBySocialCreditCodeAndPointTenant(socialCreditCode, parent.getTenantId());
         if (supplier == null) {
             throw new CustomException("该企业未关联供应商，您无法进行报价，请联系企业管理员将您添加到供应商。");
         }
         entity.setSupplierId(supplier.getId());
-        entity.setTenantId(entity.getTenantId());
+        entity.setTenantId(parent.getTenantId());
         Integer inquiryState = parent.getInquiryState();
         if (!PurchaseRequestInquiryState.WAIT_INQUIRY.getKey().equals(inquiryState)
             && !PurchaseRequestInquiryState.INQUIRYING.getKey().equals(inquiryState)) {
