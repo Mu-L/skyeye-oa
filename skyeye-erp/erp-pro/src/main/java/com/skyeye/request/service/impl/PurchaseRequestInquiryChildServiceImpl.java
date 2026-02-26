@@ -4,6 +4,7 @@
 
 package com.skyeye.request.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -37,6 +38,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: PurchaseRequestInquiryChildServiceImpl
@@ -115,7 +117,7 @@ public class PurchaseRequestInquiryChildServiceImpl extends SkyeyeBusinessServic
         // 主表：询价明细，关联采购申请、供应商
         MPJLambdaWrapper<PurchaseRequestInquiryChild> wrapper = JoinWrappers.lambda("ic", PurchaseRequestInquiryChild.class)
             .innerJoin(PurchaseRequest.class, "pr", PurchaseRequest::getId, PurchaseRequestInquiryChild::getParentId)
-            .innerJoin(Supplier.class, "s", Supplier::getId, PurchaseRequest::getId);
+            .innerJoin(Supplier.class, "s", Supplier::getId, PurchaseRequestInquiryChild::getSupplierId);
 
         // 根据营业执照注册号匹配供应商
         wrapper.eq("s." + MybatisPlusUtil.toColumns(Supplier::getSocialCreditCode), socialCreditCode);
@@ -130,12 +132,14 @@ public class PurchaseRequestInquiryChildServiceImpl extends SkyeyeBusinessServic
         }
 
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        List<Map<String, Object>> resultList = baseMapper.selectJoinMaps(wrapper);
+        List<PurchaseRequestInquiryChild> resultList = skyeyeBaseMapper.selectJoinList(PurchaseRequestInquiryChild.class, wrapper);
+        iTenantService.setDataMation(resultList, PurchaseRequestInquiryChild::getTenantId);
 
-        iTenantService.setMationForMap(resultList, "tenantId", "tenantMation");
-        purchaseRequestService.setRequestMationByFromId(resultList, "parentId", "parentMation");
+        List<Map<String, Object>> result = resultList.stream()
+            .map(crmOpportunity -> BeanUtil.beanToMap(crmOpportunity)).collect(Collectors.toList());
+        purchaseRequestService.setRequestMationByFromId(result, "parentId", "parentMation");
 
-        outputObject.setBeans(resultList);
+        outputObject.setBeans(result);
         outputObject.settotal(pages.getTotal());
     }
 

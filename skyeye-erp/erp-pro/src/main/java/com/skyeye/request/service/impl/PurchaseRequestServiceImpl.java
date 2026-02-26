@@ -395,6 +395,7 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
     }
 
     @Override
+    @IgnoreTenant
     public void setRequestMationByFromId(List<Map<String, Object>> beans, String idKey, String mationKey) {
         if (CollectionUtil.isEmpty(beans)) {
             return;

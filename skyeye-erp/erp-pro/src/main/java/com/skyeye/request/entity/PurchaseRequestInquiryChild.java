@@ -117,4 +117,8 @@ public class PurchaseRequestInquiryChild extends CommonInfo {
     @Property("租户id")
     private String tenantId;
 
+    @TableField(exist = false)
+    @Property(value = "租户信息")
+    private Map<String, Object> tenantMation;
+
 }
