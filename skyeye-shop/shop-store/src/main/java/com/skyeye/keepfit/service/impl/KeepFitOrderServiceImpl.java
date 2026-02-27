@@ -49,6 +49,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -228,7 +229,7 @@ public class KeepFitOrderServiceImpl extends SkyeyeBusinessServiceImpl<KeepFitOr
         for (KeepFitOrderConsume keepFitOrderConsume : entity.getConsumeMationList()) {
             Map<String, Object> material = materialMap.get(keepFitOrderConsume.getMaterialId());
             Map<String, Object> norms = normsMap.get(keepFitOrderConsume.getNormsId());
-            if (keepFitOrderConsume.getOperNumber() == 0) {
+            if (CalculationUtil.compareTo(keepFitOrderConsume.getOperNumber(), CommonNumConstants.NUM_ZERO.toString(), CommonNumConstants.NUM_TWO, RoundingMode.UP) <= 0) {
                 throw new CustomException(
                     String.format(Locale.ROOT, "耗材【%s】【%s】的数量不能为0，请确认", material.get("name").toString(), norms.get("name").toString()));
             }
@@ -239,7 +240,8 @@ public class KeepFitOrderServiceImpl extends SkyeyeBusinessServiceImpl<KeepFitOr
                 // 过滤掉空的，并且去重
                 List<String> normsCodeList = Arrays.asList(keepFitOrderConsume.getCodeNum().split("\n")).stream()
                     .filter(str -> StrUtil.isNotEmpty(str)).distinct().collect(Collectors.toList());
-                if (keepFitOrderConsume.getOperNumber() != normsCodeList.size()) {
+                String codeCountStr = String.valueOf(normsCodeList.size());
+                if (CalculationUtil.compareTo(keepFitOrderConsume.getOperNumber(), codeCountStr, CommonNumConstants.NUM_TWO, RoundingMode.UP) != 0) {
                     throw new CustomException(
                         String.format(Locale.ROOT, "耗材【%s】【%s】的条形码数量与明细数量不一致，请确认", material.get("name").toString(), norms.get("name").toString()));
                 }

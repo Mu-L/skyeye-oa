@@ -58,7 +58,8 @@ public class KeepFitOrderConsumeServiceImpl extends SkyeyeBusinessServiceImpl<Ke
                 }
                 String retailPrice = norms.get("retailPrice").toString();
                 bean.setUnitPrice(retailPrice);
-                String allPrice = CalculationUtil.multiply(CommonNumConstants.NUM_TWO, String.valueOf(bean.getOperNumber()), retailPrice);
+                String useNum = StrUtil.isEmpty(bean.getOperNumber()) ? CommonNumConstants.NUM_ZERO.toString() : bean.getOperNumber();
+                String allPrice = CalculationUtil.multiply(CommonNumConstants.NUM_TWO, useNum, retailPrice);
                 bean.setAllPrice(allPrice);
                 payablePrice = CalculationUtil.add(payablePrice, allPrice, CommonNumConstants.NUM_TWO);
             }
