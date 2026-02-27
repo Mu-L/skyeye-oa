@@ -478,6 +478,7 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
     @Override
     public void queryMachinProcedureFarmToInOrOutList(InputObject inputObject, OutputObject outputObject) {
         String id = inputObject.getParams().get("id").toString();
+        // 查询车间任务
         MachinProcedureFarm machinProcedureFarm = selectById(id);
         // 加工单子单据id
         String machinChildId = machinProcedureFarm.getMachinProcedureMation().getChildId();
@@ -490,10 +491,8 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
         }
         // 根据车间任务id查询已经生成加工入库单的商品数量
         Map<String, String> normsNumMap = machinPutService.calcMaterialNormsNumByFromId(id);
-        // 计算剩余数量：加工单子单据的数量 - 已经生成的加工入库单的数量
-        String operNumber = StrUtil.isEmpty(machinChild.getOperNumber())
-            ? CommonNumConstants.NUM_ZERO.toString()
-            : machinChild.getOperNumber();
+        // 计算剩余数量：车间任务安排的数量 - 已经生成的加工入库单的数量
+        String operNumber = machinProcedureFarm.getTargetNum();
         String putNum = normsNumMap.getOrDefault(machinChild.getNormsId(), CommonNumConstants.NUM_ZERO.toString());
         if (StrUtil.isEmpty(putNum)) {
             putNum = CommonNumConstants.NUM_ZERO.toString();
