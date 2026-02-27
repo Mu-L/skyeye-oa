@@ -218,23 +218,27 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
         // 定价供应商
         supplierService.setDataMation(purchaseRequest.getPurchaseRequestFixedChildList(), PurchaseRequestFixedChild::getLastSupplierId);
 
-        // 设置 主动 询价明细的产品信息
-        materialService.setDataMation(purchaseRequest.getPurchaseRequestInquiryChildList(), PurchaseRequestInquiryChild::getMaterialId);
-        purchaseRequest.getPurchaseRequestInquiryChildList().forEach(purchaseRequestInquiryChild -> {
-            MaterialNorms norms = purchaseRequestInquiryChild.getMaterialMation().getMaterialNorms()
-                .stream().filter(bean -> StrUtil.equals(purchaseRequestInquiryChild.getNormsId(), bean.getId())).findFirst().orElse(null);
-            purchaseRequestInquiryChild.setNormsMation(norms);
-        });
-        supplierService.setDataMation(purchaseRequest.getPurchaseRequestInquiryChildList(), PurchaseRequestInquiryChild::getSupplierId);
+        if (CollectionUtil.isNotEmpty(purchaseRequest.getPurchaseRequestInquiryChildList())) {
+            // 设置 主动 询价明细的产品信息
+            materialService.setDataMation(purchaseRequest.getPurchaseRequestInquiryChildList(), PurchaseRequestInquiryChild::getMaterialId);
+            purchaseRequest.getPurchaseRequestInquiryChildList().forEach(purchaseRequestInquiryChild -> {
+                MaterialNorms norms = purchaseRequestInquiryChild.getMaterialMation().getMaterialNorms()
+                    .stream().filter(bean -> StrUtil.equals(purchaseRequestInquiryChild.getNormsId(), bean.getId())).findFirst().orElse(null);
+                purchaseRequestInquiryChild.setNormsMation(norms);
+            });
+            supplierService.setDataMation(purchaseRequest.getPurchaseRequestInquiryChildList(), PurchaseRequestInquiryChild::getSupplierId);
+        }
 
-        // 设置 供应商 报价明细的产品信息
-        materialService.setDataMation(purchaseRequest.getPurchaseRequestSupplierInquiryChildList(), PurchaseRequestInquiryChild::getMaterialId);
-        purchaseRequest.getPurchaseRequestSupplierInquiryChildList().forEach(purchaseRequestSupplierInquiryChild -> {
-            MaterialNorms norms = purchaseRequestSupplierInquiryChild.getMaterialMation().getMaterialNorms()
-                .stream().filter(bean -> StrUtil.equals(purchaseRequestSupplierInquiryChild.getNormsId(), bean.getId())).findFirst().orElse(null);
-            purchaseRequestSupplierInquiryChild.setNormsMation(norms);
-        });
-        supplierService.setDataMation(purchaseRequest.getPurchaseRequestSupplierInquiryChildList(), PurchaseRequestInquiryChild::getSupplierId);
+        if (CollectionUtil.isNotEmpty(purchaseRequest.getPurchaseRequestSupplierInquiryChildList())) {
+            // 设置 供应商 报价明细的产品信息
+            materialService.setDataMation(purchaseRequest.getPurchaseRequestSupplierInquiryChildList(), PurchaseRequestInquiryChild::getMaterialId);
+            purchaseRequest.getPurchaseRequestSupplierInquiryChildList().forEach(purchaseRequestSupplierInquiryChild -> {
+                MaterialNorms norms = purchaseRequestSupplierInquiryChild.getMaterialMation().getMaterialNorms()
+                    .stream().filter(bean -> StrUtil.equals(purchaseRequestSupplierInquiryChild.getNormsId(), bean.getId())).findFirst().orElse(null);
+                purchaseRequestSupplierInquiryChild.setNormsMation(norms);
+            });
+            supplierService.setDataMation(purchaseRequest.getPurchaseRequestSupplierInquiryChildList(), PurchaseRequestInquiryChild::getSupplierId);
+        }
 
         // 设置子单据开票类型
         iSysDictDataService.setDataMation(purchaseRequest.getPurchaseRequestInquiryChildList(), PurchaseRequestInquiryChild::getTypeId);
