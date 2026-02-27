@@ -189,7 +189,7 @@ public class PurchaseRequestInquiryChildServiceImpl extends SkyeyeBusinessServic
 
     @Override
     protected void writePostpose(PurchaseRequestInquiryChild entity, String userId) {
-        purchaseRequestService.clearCache(entity.getId());
+        purchaseRequestService.editInquiryStateById(entity.getParentId(), PurchaseRequestInquiryState.INQUIRYING.getKey(), StrUtil.EMPTY);
     }
 
     @Override

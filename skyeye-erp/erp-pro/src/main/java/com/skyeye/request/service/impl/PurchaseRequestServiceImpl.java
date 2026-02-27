@@ -213,10 +213,9 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
                     .stream().filter(bean -> StrUtil.equals(purchaseRequestFixedChild.getNormsId(), bean.getId())).findFirst().orElse(null);
                 purchaseRequestFixedChild.setNormsMation(norms);
             });
+            // 定价供应商
+            supplierService.setDataMation(purchaseRequest.getPurchaseRequestFixedChildList(), PurchaseRequestFixedChild::getLastSupplierId);
         }
-
-        // 定价供应商
-        supplierService.setDataMation(purchaseRequest.getPurchaseRequestFixedChildList(), PurchaseRequestFixedChild::getLastSupplierId);
 
         if (CollectionUtil.isNotEmpty(purchaseRequest.getPurchaseRequestInquiryChildList())) {
             // 设置 主动 询价明细的产品信息
@@ -227,6 +226,8 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
                 purchaseRequestInquiryChild.setNormsMation(norms);
             });
             supplierService.setDataMation(purchaseRequest.getPurchaseRequestInquiryChildList(), PurchaseRequestInquiryChild::getSupplierId);
+            // 设置子单据开票类型
+            iSysDictDataService.setDataMation(purchaseRequest.getPurchaseRequestInquiryChildList(), PurchaseRequestInquiryChild::getTypeId);
         }
 
         if (CollectionUtil.isNotEmpty(purchaseRequest.getPurchaseRequestSupplierInquiryChildList())) {
@@ -240,8 +241,6 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
             supplierService.setDataMation(purchaseRequest.getPurchaseRequestSupplierInquiryChildList(), PurchaseRequestInquiryChild::getSupplierId);
         }
 
-        // 设置子单据开票类型
-        iSysDictDataService.setDataMation(purchaseRequest.getPurchaseRequestInquiryChildList(), PurchaseRequestInquiryChild::getTypeId);
         // 设置项目信息
         iProProjectService.setDataMation(purchaseRequest, PurchaseRequest::getProjectId);
         // 设置定价人员信息
@@ -285,7 +284,9 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
         editInquiryStateById(id, PurchaseRequestInquiryState.INQUIRYING.getKey(), null);
     }
 
-    private void editInquiryStateById(String id, Integer inquiryState, String fixedPriceUserId) {
+    @Override
+    @IgnoreTenant
+    public void editInquiryStateById(String id, Integer inquiryState, String fixedPriceUserId) {
         UpdateWrapper<PurchaseRequest> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(PurchaseRequest::getInquiryState), inquiryState);

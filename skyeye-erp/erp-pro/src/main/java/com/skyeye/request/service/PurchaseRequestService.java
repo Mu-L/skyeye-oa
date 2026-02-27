@@ -76,4 +76,5 @@ public interface PurchaseRequestService extends SkyeyeBusinessService<PurchaseRe
 
     PurchaseRequest queryByIdAndNoIsolation(String id);
 
+    void editInquiryStateById(String id, Integer inquiryState, String fixedPriceUserId);
 }
