@@ -46,7 +46,7 @@ public class SealFaultUseMaterial extends SkyeyeLinkData {
 
     @TableField("oper_number")
     @ApiModelProperty(value = "使用数量", required = "required,num")
-    private Integer operNumber;
+    private String operNumber;
 
     @TableField("unit_price")
     @ApiModelProperty(value = "单价", required = "double", defaultValue = "0")

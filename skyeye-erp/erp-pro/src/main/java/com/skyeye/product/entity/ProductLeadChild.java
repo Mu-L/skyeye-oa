@@ -37,7 +37,7 @@ public class ProductLeadChild extends SkyeyeLinkData {
 
     @TableField("oper_number")
     @ApiModelProperty(value = "数量", required = "required,num")
-    private Integer operNumber;
+    private String operNumber;
 
     @TableField(exist = false)
     @Property(value = "规格信息")

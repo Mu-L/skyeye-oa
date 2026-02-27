@@ -46,7 +46,7 @@ public class ApplyLink extends SkyeyeLinkData {
 
     @TableField("oper_number")
     @ApiModelProperty(value = "申领数量", required = "required,num")
-    private Integer operNumber;
+    private String operNumber;
 
     @TableField("unit_price")
     @ApiModelProperty(value = "单价", required = "double", defaultValue = "0")

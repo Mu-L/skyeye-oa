@@ -19,6 +19,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.erp.service.IMaterialService;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -79,7 +81,7 @@ public class ServiceUserStockServiceImpl extends SkyeyeBusinessServiceImpl<Servi
      * @param type       参考#UserStockPutOutType枚举类
      */
     @Override
-    public void editMaterialNormsUserStock(String userId, String materialId, String normsId, Integer operNumber, int type) {
+    public void editMaterialNormsUserStock(String userId, String materialId, String normsId, String operNumber, int type) {
         String lockKey = String.format("userStock_%s_%s", userId, normsId);
         RedisLock lock = new RedisLock(lockKey);
         try {
@@ -92,15 +94,15 @@ public class ServiceUserStockServiceImpl extends SkyeyeBusinessServiceImpl<Servi
             ServiceUserStock serviceUserStock = queryUserStock(userId, normsId);
             // 如果该规格在指定仓库中已经有存储数据，则直接做修改
             if (ObjectUtil.isNotEmpty(serviceUserStock)) {
-                int stockNum = serviceUserStock.getStock();
-                LOGGER.info("update user stock normsId【{}】 Stock. type is {}, old stockNum is {}, change stockNum is {}", normsId, type, stockNum, operNumber);
-                stockNum = getNewStockNum(type, operNumber, stockNum);
-                updateStock(userId, normsId, stockNum);
+                String stockNumStr = String.valueOf(serviceUserStock.getStock());
+                LOGGER.info("update user stock normsId【{}】 Stock. type is {}, old stockNum is {}, change stockNum is {}", normsId, type, stockNumStr, operNumber);
+                stockNumStr = getNewStockNum(type, operNumber, stockNumStr);
+                updateStock(userId, normsId, stockNumStr);
             } else {
-                int stockNum = 0;
+                String stockNumStr = CommonNumConstants.NUM_ZERO.toString();
                 LOGGER.info("insert user stock normsId【{}】 Stock. type is {}, change stockNum is {}", normsId, type, operNumber);
-                stockNum = getNewStockNum(type, operNumber, stockNum);
-                saveStock(userId, materialId, normsId, stockNum);
+                stockNumStr = getNewStockNum(type, operNumber, stockNumStr);
+                saveStock(userId, materialId, normsId, stockNumStr);
             }
             LOGGER.info("editMaterialNormsUserStock is success.");
         } catch (Exception ee) {
@@ -114,17 +116,17 @@ public class ServiceUserStockServiceImpl extends SkyeyeBusinessServiceImpl<Servi
         }
     }
 
-    private int getNewStockNum(int type, int changeNumber, int stockNum) {
+    private String getNewStockNum(int type, String changeNumber, String stockNum) {
         if (type == UserStockPutOutType.PUT.getKey()) {
             // 入库
-            stockNum = stockNum + changeNumber;
+            stockNum = CalculationUtil.add(stockNum, changeNumber, CommonNumConstants.NUM_TWO);
         } else if (type == UserStockPutOutType.OUT.getKey()) {
             // 出库
-            stockNum = stockNum - changeNumber;
+            stockNum = CalculationUtil.subtract(stockNum, changeNumber, CommonNumConstants.NUM_TWO);
         } else {
             throw new CustomException("状态错误");
         }
-        if (stockNum < 0) {
+        if (CalculationUtil.compareTo(stockNum, CommonNumConstants.NUM_ZERO.toString(), 0, RoundingMode.UP) < 0) {
             throw new CustomException("库存不足，无法操作.");
         }
         return stockNum;
@@ -167,7 +169,7 @@ public class ServiceUserStockServiceImpl extends SkyeyeBusinessServiceImpl<Servi
     }
 
     @Override
-    public void updateStock(String userId, String normsId, Integer stock) {
+    public void updateStock(String userId, String normsId, String stock) {
         UpdateWrapper<ServiceUserStock> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(ServiceUserStock::getUserId), userId);
         updateWrapper.eq(MybatisPlusUtil.toColumns(ServiceUserStock::getNormsId), normsId);
@@ -175,7 +177,7 @@ public class ServiceUserStockServiceImpl extends SkyeyeBusinessServiceImpl<Servi
         update(updateWrapper);
     }
 
-    private void saveStock(String userId, String materialId, String normsId, Integer stock) {
+    private void saveStock(String userId, String materialId, String normsId, String stock) {
         ServiceUserStock serviceUserStock = new ServiceUserStock();
         serviceUserStock.setUserId(userId);
         serviceUserStock.setMaterialId(materialId);

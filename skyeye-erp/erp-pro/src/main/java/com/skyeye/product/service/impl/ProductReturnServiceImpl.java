@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.CorrespondentEnterEnum;
 import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.object.InputObject;
@@ -106,7 +107,7 @@ public class ProductReturnServiceImpl extends SkyeyeBusinessServiceImpl<ProductR
         List<ProductReturnChild> erpOrderItemList = entity.getErpOrderItemList();
         erpOrderItemList.forEach(
             item -> {
-                if (item.getOperNumber() <= 0) {
+                if (Double.parseDouble(item.getOperNumber()) <= CommonNumConstants.NUM_ZERO) {
                     throw new CustomException("归还数量不能小于等于0");
                 }
             }

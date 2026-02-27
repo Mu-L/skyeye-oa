@@ -31,7 +31,7 @@ public interface SealFaultUseMaterialService extends SkyeyeLinkDataService<SealF
     /**
      * 配件使用数量统计
      */
-    Long queryUseCount(String startTime, String endTime);
+    String queryUseCount(String startTime, String endTime);
 
     Map<String, Long> queryUseCountByUserId(String startTime, String endTime);
 

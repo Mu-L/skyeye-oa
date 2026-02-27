@@ -33,6 +33,8 @@ import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -69,7 +71,8 @@ public class SealFaultUseMaterialServiceImpl extends SkyeyeLinkDataServiceImpl<S
             if (ObjectUtil.isEmpty(serviceUserStock)) {
                 throw new CustomException("部分配件库存不足，请重新选择配件！");
             }
-            if (bean.getOperNumber() > serviceUserStock.getStock()) {
+            String stockStr = String.valueOf(serviceUserStock.getStock());
+            if (CalculationUtil.compareTo(bean.getOperNumber(), stockStr, CommonNumConstants.NUM_TWO, RoundingMode.UP) > 0) {
                 throw new CustomException("部分配件库存不足，请重新选择配件！");
             }
             bean.setCreateId(userId);
@@ -91,7 +94,7 @@ public class SealFaultUseMaterialServiceImpl extends SkyeyeLinkDataServiceImpl<S
             Map<String, Object> norms = normsMap.get(sealFaultUseMaterial.getNormsId());
             sealFaultUseMaterial.setUnitPrice(norms.get("retailPrice").toString());
             sealFaultUseMaterial.setAllPrice(
-                CalculationUtil.multiply(CommonNumConstants.NUM_TWO, String.valueOf(sealFaultUseMaterial.getOperNumber()), sealFaultUseMaterial.getUnitPrice()));
+                CalculationUtil.multiply(CommonNumConstants.NUM_TWO, sealFaultUseMaterial.getOperNumber(), sealFaultUseMaterial.getUnitPrice()));
             // 计算主单总价
             allPrice = CalculationUtil.add(CommonNumConstants.NUM_TWO, sealFaultUseMaterial.getAllPrice(), allPrice);
         }
@@ -100,7 +103,7 @@ public class SealFaultUseMaterialServiceImpl extends SkyeyeLinkDataServiceImpl<S
 
     @Override
     @IgnoreTenant
-    public Long queryUseCount(String startTime, String endTime) {
+    public String queryUseCount(String startTime, String endTime) {
         // 查询已完成的售后工单，并统计关联的故障配件使用数量
         MPJLambdaWrapper<SealFaultUseMaterial> wrapper = JoinWrappers.lambda("sfum", SealFaultUseMaterial.class)
             .innerJoin(SealFault.class, "sf", SealFault::getId, SealFaultUseMaterial::getParentId)
@@ -117,10 +120,15 @@ public class SealFaultUseMaterialServiceImpl extends SkyeyeLinkDataServiceImpl<S
             wrapper.eq("asl." + CommonConstants.TENANT_ID_FIELD, tenantId);
         }
         List<SealFaultUseMaterial> sealFaultUseMaterials = this.baseMapper.selectJoinList(SealFaultUseMaterial.class, wrapper);
-        if (CollectionUtil.isNotEmpty(sealFaultUseMaterials)) {
-            return sealFaultUseMaterials.stream().mapToLong(SealFaultUseMaterial::getOperNumber).sum();
+        String total = CommonNumConstants.NUM_ZERO.toString();
+        if (CollectionUtil.isEmpty(sealFaultUseMaterials)) {
+            return total;
         }
-        return 0L;
+        // 使用字符串累加数量，参考质检模块的用法，最后再统一转成 Long
+        for (SealFaultUseMaterial item : sealFaultUseMaterials) {
+            total = CalculationUtil.add(CommonNumConstants.NUM_TWO, total, item.getOperNumber());
+        }
+        return total;
     }
 
     @Override
@@ -142,11 +150,20 @@ public class SealFaultUseMaterialServiceImpl extends SkyeyeLinkDataServiceImpl<S
             wrapper.eq("asl." + CommonConstants.TENANT_ID_FIELD, tenantId);
         }
         List<SealFaultUseMaterial> sealFaultUseMaterials = this.baseMapper.selectJoinList(SealFaultUseMaterial.class, wrapper);
-        if (CollectionUtil.isNotEmpty(sealFaultUseMaterials)) {
-            return sealFaultUseMaterials.stream().collect(Collectors.groupingBy(SealFaultUseMaterial::getCreateId,
-                Collectors.summingLong(SealFaultUseMaterial::getOperNumber)));
+        if (CollectionUtil.isEmpty(sealFaultUseMaterials)) {
+            return new HashMap<>();
         }
-        return new HashMap<>();
+        // 先用字符串方式为每个用户累加数量，再在结果映射中统一转为 Long
+        Map<String, String> userNumStrMap = new HashMap<>();
+        sealFaultUseMaterials.forEach(item -> {
+            String userId = item.getCreateId();
+            String oldTotal = userNumStrMap.getOrDefault(userId, CommonNumConstants.NUM_ZERO.toString());
+            String newTotal = CalculationUtil.add(CommonNumConstants.NUM_TWO, oldTotal, item.getOperNumber());
+            userNumStrMap.put(userId, newTotal);
+        });
+        Map<String, Long> result = new HashMap<>();
+        userNumStrMap.forEach((userId, numStr) -> result.put(userId, new BigDecimal(numStr).longValue()));
+        return result;
     }
 
 }

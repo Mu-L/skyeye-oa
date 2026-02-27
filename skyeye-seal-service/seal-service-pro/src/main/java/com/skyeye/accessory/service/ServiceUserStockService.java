@@ -31,7 +31,7 @@ public interface ServiceUserStockService extends SkyeyeBusinessService<ServiceUs
      * @param operNumber 变化数量
      * @param type       参考#UserStockPutOutType枚举类
      */
-    void editMaterialNormsUserStock(String userId, String materialId, String normsId, Integer operNumber, int type);
+    void editMaterialNormsUserStock(String userId, String materialId, String normsId, String operNumber, int type);
 
     void queryMyPartsNumByNormsId(InputObject inputObject, OutputObject outputObject);
 
@@ -39,6 +39,6 @@ public interface ServiceUserStockService extends SkyeyeBusinessService<ServiceUs
 
     Map<String, ServiceUserStock> queryUserStock(String userId, List<String> normsIds);
 
-    void updateStock(String userId, String normsId, Integer stock);
+    void updateStock(String userId, String normsId, String stock);
 
 }

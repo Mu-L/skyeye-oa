@@ -67,7 +67,7 @@ public class PurchaseRequestInquiryChild extends CommonInfo {
 
     @TableField("oper_number")
     @ApiModelProperty(value = "数量", required = "required,num")
-    private Integer operNumber;
+    private String operNumber;
 
     @TableField(value = "unit_price")
     @ApiModelProperty(value = "单价", required = "double", defaultValue = "0")

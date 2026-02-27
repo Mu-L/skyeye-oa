@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/dromara/skyeye
+ ******************************************************************************/
+
 package com.skyeye.product.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
@@ -17,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@SkyeyeService(name = "归还入库申请-子单据", groupName = "归还入库申请", flowable = false)
+@SkyeyeService(name = "归还入库申请-子单据", groupName = "归还入库申请")
 public class ProductReturnChildServiceImpl extends SkyeyeBusinessServiceImpl<ProductReturnChildDao, ProductReturnChild> implements ProductReturnChildService {
 
     @Override
