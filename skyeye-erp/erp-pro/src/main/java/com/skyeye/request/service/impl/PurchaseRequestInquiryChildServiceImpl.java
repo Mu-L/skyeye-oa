@@ -23,6 +23,8 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.ITenantService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.material.entity.MaterialNorms;
+import com.skyeye.material.service.MaterialService;
 import com.skyeye.request.classenum.InquiryQuoteSourceEnum;
 import com.skyeye.request.classenum.PurchaseRequestInquiryState;
 import com.skyeye.request.dao.PurchaseRequestInquiryChildDao;
@@ -60,6 +62,9 @@ public class PurchaseRequestInquiryChildServiceImpl extends SkyeyeBusinessServic
 
     @Autowired
     private SupplierService supplierService;
+
+    @Autowired
+    private MaterialService materialService;
 
     @Override
     public void saveList(String parentId, List<PurchaseRequestInquiryChild> beans) {
@@ -134,6 +139,13 @@ public class PurchaseRequestInquiryChildServiceImpl extends SkyeyeBusinessServic
         Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
         List<PurchaseRequestInquiryChild> resultList = skyeyeBaseMapper.selectJoinList(PurchaseRequestInquiryChild.class, wrapper);
         iTenantService.setDataMation(resultList, PurchaseRequestInquiryChild::getTenantId);
+        // 设置产品信息
+        materialService.setDataMation(resultList, PurchaseRequestInquiryChild::getMaterialId);
+        resultList.forEach(purchaseRequestInquiryChild -> {
+            MaterialNorms norms = purchaseRequestInquiryChild.getMaterialMation().getMaterialNorms()
+                .stream().filter(bean -> StrUtil.equals(purchaseRequestInquiryChild.getNormsId(), bean.getId())).findFirst().orElse(null);
+            purchaseRequestInquiryChild.setNormsMation(norms);
+        });
 
         List<Map<String, Object>> result = resultList.stream()
             .map(crmOpportunity -> BeanUtil.beanToMap(crmOpportunity)).collect(Collectors.toList());
