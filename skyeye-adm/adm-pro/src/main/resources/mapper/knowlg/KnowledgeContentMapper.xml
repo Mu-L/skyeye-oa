@@ -39,6 +39,10 @@
 					#{state}
 				</foreach>
 			</if>
+			<if test="startTime != '' and startTime != null and endTime != '' and endTime != null">
+				AND DATE_FORMAT(a.create_time, '%Y-%m-%d') >= #{startTime}
+				AND #{endTime} >= DATE_FORMAT(a.create_time, '%Y-%m-%d')
+			</if>
 			<if test="tenantId != null and tenantId != ''">
 				AND a.tenant_id = #{tenantId}
 			</if>

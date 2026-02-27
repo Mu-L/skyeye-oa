@@ -173,12 +173,6 @@ public class KnowledgeContentServiceImpl extends SkyeyeBusinessServiceImpl<Knowl
         }
     }
 
-    /**
-     * 获取企业知识库列表(已审核通过)
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     @IgnoreTenant
     public void queryAllPassKnowledgeContentList(InputObject inputObject, OutputObject outputObject) {
@@ -195,12 +189,6 @@ public class KnowledgeContentServiceImpl extends SkyeyeBusinessServiceImpl<Knowl
         outputObject.settotal(pages.getTotal());
     }
 
-    /**
-     * 获取近期八条已审核的知识库
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryEightPassKnowlgList(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<KnowledgeContent> queryWrapper = new QueryWrapper<>();
