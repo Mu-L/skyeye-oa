@@ -639,6 +639,7 @@ public class MachinProcedureAcceptServiceImpl extends SkyeyeBusinessServiceImpl<
         }
         QueryWrapper<MachinProcedureAccept> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(MachinProcedureAccept::getMachinProcedureId), machinProcedureIdList);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Machin::getState), FlowableStateEnum.PASS.getKey());
         List<MachinProcedureAccept> machinList = list(queryWrapper);
         return machinList;
     }

@@ -26,7 +26,7 @@ public class MachinPutCost {
     private String normalConsumablePrice;
 
     @ApiModelProperty(value = "目标生产数量")
-    private Integer allNum;
+    private String allNum;
 
     @ApiModelProperty(value = "工资金额")
     private String wage;
@@ -35,5 +35,5 @@ public class MachinPutCost {
     private String totalPrice;
 
     @ApiModelProperty(value = "当前生产数量")
-    private Integer nowNum;
+    private String nowNum;
 }
