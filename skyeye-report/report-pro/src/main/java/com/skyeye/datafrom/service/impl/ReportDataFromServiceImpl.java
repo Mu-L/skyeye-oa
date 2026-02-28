@@ -5,11 +5,13 @@
 package com.skyeye.datafrom.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.json.JSONUtil;
 import com.alibaba.fastjson.JSON;
 import com.jayway.jsonpath.JsonPath;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.enumeration.HttpMethodEnum;
 import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -23,14 +25,20 @@ import com.skyeye.datafrom.entity.ReportDataFromRest;
 import com.skyeye.datafrom.service.*;
 import com.skyeye.eve.entity.ReportDataSource;
 import com.skyeye.eve.entity.ReportMetaDataRow;
+import com.skyeye.exception.CustomException;
 import com.skyeye.sql.query.factory.QueryerFactory;
 import com.skyeye.util.XmlExercise;
 import net.sf.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cloud.client.ServiceInstance;
+import org.springframework.cloud.client.discovery.DiscoveryClient;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.net.URI;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -60,8 +68,22 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
     @Autowired
     private ReportDataBaseService reportDataBaseService;
 
+    @Value("${spring.profiles.active}")
+    private String env;
+
     @Value("${skyeye.tenant.enable}")
     private boolean tenantEnable;
+
+    @Autowired
+    private DiscoveryClient discoveryClient;
+
+    @Value("${spring.application.promote}")
+    private String springApplicationPromoteName;
+
+    /**
+     * 配置本地缓存：永久有效，重启后失效。使用 computeIfAbsent 保证高并发下仅加载一次
+     */
+    private final Map<String, Map<String, Object>> configCache = new ConcurrentHashMap<>();
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -171,7 +193,10 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
                 // 合并 restEntity.getRequestBody() 和 inputParams
                 String mergedRequestBody = mergeRequestBody(restEntity.getRequestBody(), inputParams);
 
-                String responseData = HttpRequestUtil.getDataByRequest(restEntity.getRestUrl(), restEntity.getMethod(), requestHeaderKey2Value, mergedRequestBody);
+                // 解析请求地址：相对路径时从配置中心获取 baseUrl 并拼接
+                String fullUrl = resolveRestUrl(restEntity);
+
+                String responseData = HttpRequestUtil.getDataByRequest(fullUrl, restEntity.getMethod(), requestHeaderKey2Value, mergedRequestBody);
                 return responseData;
             } else if (reportDataFrom.getType() == ReportDataFromType.SQL.getKey()) {
                 // 1.获取数据源信息
@@ -183,6 +208,59 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
             }
         }
         return "{}";
+    }
+
+    /**
+     * 解析 REST 请求地址：绝对路径直接使用，相对路径则从配置中心获取 baseUrl 并拼接
+     *
+     * @param restEntity REST 数据来源实体
+     * @return 完整请求地址
+     */
+    private String resolveRestUrl(ReportDataFromRest restEntity) {
+        String restUrl = restEntity.getRestUrl();
+        if (restUrl == null || restUrl.isEmpty()) {
+            return restUrl;
+        }
+        if (restUrl.startsWith("http://") || restUrl.startsWith("https://")) {
+            return restUrl;
+        }
+        String serviceStr = restEntity.getServiceStr();
+        if (serviceStr == null || serviceStr.isEmpty()) {
+            return restUrl;
+        }
+        String configKey = serviceStr.contains(".") ? serviceStr.substring(serviceStr.indexOf(".") + 1) : serviceStr;
+        Map<String, Object> config = getConfigWithCache(env);
+        if (config == null || !config.containsKey(configKey)) {
+            return restUrl;
+        }
+        String baseUrl = config.get(configKey).toString();
+        if (baseUrl == null || baseUrl.isEmpty()) {
+            return restUrl;
+        }
+        baseUrl = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+        restUrl = restUrl.startsWith("/") ? restUrl : "/" + restUrl;
+        return baseUrl + restUrl;
+    }
+
+    /**
+     * 带本地缓存的配置获取，永久缓存，重启失效。
+     * computeIfAbsent 保证高并发下同一 env 仅由单线程加载，其余线程阻塞等待，避免缓存击穿。
+     */
+    private Map<String, Object> getConfigWithCache(String env) {
+        return configCache.computeIfAbsent(env, k -> {
+            URI uri = getUri(springApplicationPromoteName);
+            String responseData = HttpRequestUtil.getDataByRequest(uri.toString() + "/configRation.json?env=", HttpMethodEnum.GET_REQUEST.getKey(), null, null);
+            return JSONUtil.toBean(responseData, null);
+        });
+    }
+
+    private URI getUri(String springApplicationName) {
+        // 根据服务名获取服务实例
+        List<ServiceInstance> allInstances = discoveryClient.getInstances(springApplicationName);
+        if (CollectionUtils.isEmpty(allInstances)) {
+            throw new CustomException(String.format(Locale.ROOT, "this service[%s] has no instance.", springApplicationName));
+        }
+        return RandomUtil.randomEle(allInstances).getUri();
     }
 
     /**

@@ -4,6 +4,7 @@ server:
 spring:
   application:
     name: skyeye-report-${spring.profiles.active} # 服务名
+    promote: skyeye-pro-${spring.profiles.active} # 基础服务的服务名
   main:
     allow-circular-references: true # 允许循环依赖，因为项目是三层架构，无法避免这个情况。
     allow-bean-definition-overriding: true # 允许 Bean 覆盖，例如说 Feign 等会存在重复定义的服务
