@@ -43,6 +43,11 @@ public class AfterSealStatisticsServiceImpl implements AfterSealStatisticsServic
     private IProProjectService iProProjectService;
 
     /**
+     * 空值归类显示名称
+     */
+    private static final String OTHER_LABEL = "其他";
+
+    /**
      * 柱状图固定顺序：与 AfterSealState 枚举顺序一致
      */
     private static final AfterSealState[] STATE_ORDER = {
@@ -114,14 +119,16 @@ public class AfterSealStatisticsServiceImpl implements AfterSealStatisticsServic
 
         List<AfterSeal> list = afterSealDao.selectList(queryWrapper);
         long total = list.size();
+        // 有省份的按省份分组，空的归为「其他」
         Map<String, Long> provinceStats = list.stream()
-            .filter(o -> StrUtil.isNotEmpty(o.getProvinceId()))
-            .collect(Collectors.groupingBy(AfterSeal::getProvinceId, Collectors.counting()));
+            .collect(Collectors.groupingBy(
+                o -> StrUtil.isNotEmpty(o.getProvinceId()) ? o.getProvinceId() : OTHER_LABEL,
+                Collectors.counting()));
 
         List<String> xAxisData = new ArrayList<>();
         List<Long> seriesData = new ArrayList<>();
         for (Map.Entry<String, Long> entry : provinceStats.entrySet()) {
-            xAxisData.add(entry.getKey());
+            xAxisData.add(OTHER_LABEL.equals(entry.getKey()) ? OTHER_LABEL : entry.getKey());
             seriesData.add(entry.getValue());
         }
 
@@ -144,12 +151,15 @@ public class AfterSealStatisticsServiceImpl implements AfterSealStatisticsServic
         // 填充紧急程度字典名称（urgencyMation.dictName）
         iSysDictDataService.setDataMation(list, AfterSeal::getUrgencyId);
 
+        // 有紧急程度的按 id 分组，空的归为「其他」
         Map<String, Long> urgencyStats = list.stream()
-            .filter(o -> StrUtil.isNotEmpty(o.getUrgencyId()))
-            .collect(Collectors.groupingBy(AfterSeal::getUrgencyId, Collectors.counting()));
+            .collect(Collectors.groupingBy(
+                o -> StrUtil.isNotEmpty(o.getUrgencyId()) ? o.getUrgencyId() : OTHER_LABEL,
+                Collectors.counting()));
 
-        // urgencyId -> 显示名称（字典 dictName，无则用 id）
+        // urgencyId -> 显示名称（字典 dictName，无则用 id）；「其他」单独映射
         Map<String, String> urgencyIdToName = new HashMap<>();
+        urgencyIdToName.put(OTHER_LABEL, OTHER_LABEL);
         for (AfterSeal bean : list) {
             if (StrUtil.isEmpty(bean.getUrgencyId())) continue;
             if (urgencyIdToName.containsKey(bean.getUrgencyId())) continue;
@@ -185,12 +195,15 @@ public class AfterSealStatisticsServiceImpl implements AfterSealStatisticsServic
         iProProjectService.setDataMation(list, AfterSeal::getProjectId);
 
         long total = list.size();
+        // 有项目的按 projectId 分组，空的归为「其他」
         Map<String, Long> projectStats = list.stream()
-            .filter(o -> StrUtil.isNotEmpty(o.getProjectId()))
-            .collect(Collectors.groupingBy(AfterSeal::getProjectId, Collectors.counting()));
+            .collect(Collectors.groupingBy(
+                o -> StrUtil.isNotEmpty(o.getProjectId()) ? o.getProjectId() : OTHER_LABEL,
+                Collectors.counting()));
 
-        // projectId -> 显示名称（优先项目名称，无则 projectId）
+        // projectId -> 显示名称（优先项目名称，无则 projectId）；「其他」单独映射
         Map<String, String> projectIdToName = new HashMap<>();
+        projectIdToName.put(OTHER_LABEL, OTHER_LABEL);
         for (AfterSeal bean : list) {
             if (StrUtil.isEmpty(bean.getProjectId())) {
                 continue;
