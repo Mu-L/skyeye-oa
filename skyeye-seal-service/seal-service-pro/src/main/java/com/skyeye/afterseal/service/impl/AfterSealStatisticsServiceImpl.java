@@ -34,6 +34,19 @@ public class AfterSealStatisticsServiceImpl implements AfterSealStatisticsServic
     @Autowired
     private AfterSealDao afterSealDao;
 
+    /**
+     * 柱状图固定顺序：与 AfterSealState 枚举顺序一致
+     */
+    private static final AfterSealState[] STATE_ORDER = {
+        AfterSealState.BE_DISPATCHED,
+        AfterSealState.PENDING_ORDERS,
+        AfterSealState.BE_SIGNED,
+        AfterSealState.BE_COMPLETED,
+        AfterSealState.BE_EVALUATED,
+        AfterSealState.AUDIT,
+        AfterSealState.COMPLATE
+    };
+
     @Override
     public void queryOrderStateStats(InputObject inputObject, OutputObject outputObject) {
         TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
@@ -45,15 +58,18 @@ public class AfterSealStatisticsServiceImpl implements AfterSealStatisticsServic
             .filter(o -> StrUtil.isNotEmpty(o.getState()))
             .collect(Collectors.groupingBy(AfterSeal::getState, Collectors.counting()));
 
+        // 柱状图格式：横轴类目 + 纵轴数值，与 ECharts 等可直接使用
+        List<String> xAxisData = new ArrayList<>();
+        List<Long> seriesData = new ArrayList<>();
+        for (AfterSealState state : STATE_ORDER) {
+            xAxisData.add(state.getValue());
+            seriesData.add(stateCountMap.getOrDefault(state.getKey(), 0L));
+        }
+
         Map<String, Object> result = new HashMap<>();
         result.put("total", total);
-        result.put("beDispatched", stateCountMap.getOrDefault(AfterSealState.BE_DISPATCHED.getKey(), 0L));
-        result.put("pendingOrders", stateCountMap.getOrDefault(AfterSealState.PENDING_ORDERS.getKey(), 0L));
-        result.put("beSigned", stateCountMap.getOrDefault(AfterSealState.BE_SIGNED.getKey(), 0L));
-        result.put("beCompleted", stateCountMap.getOrDefault(AfterSealState.BE_COMPLETED.getKey(), 0L));
-        result.put("beEvaluated", stateCountMap.getOrDefault(AfterSealState.BE_EVALUATED.getKey(), 0L));
-        result.put("audit", stateCountMap.getOrDefault(AfterSealState.AUDIT.getKey(), 0L));
-        result.put("complate", stateCountMap.getOrDefault(AfterSealState.COMPLATE.getKey(), 0L));
+        result.put("xAxisData", xAxisData);
+        result.put("seriesData", seriesData);
 
         outputObject.setBean(result);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
