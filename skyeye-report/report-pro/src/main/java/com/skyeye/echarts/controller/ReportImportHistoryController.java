@@ -31,12 +31,6 @@ public class ReportImportHistoryController {
     @Autowired
     private ReportImportHistoryService reportImportHistoryService;
 
-    /**
-     * 获取模型上传导入历史列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryReportImportHistoryList", value = "获取模型上传导入历史列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ReportImportHistoryController/queryReportImportHistoryList")
@@ -44,12 +38,6 @@ public class ReportImportHistoryController {
         reportImportHistoryService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 模型上传导入
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "importReportImportModel", value = "模型上传导入", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "modelId", name = "modelId", value = "主键id", required = "required")})
@@ -58,12 +46,6 @@ public class ReportImportHistoryController {
         reportImportHistoryService.importReportImportModel(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有版本最大的echarts模型信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAllMaxVersionReportModel", value = "获取所有版本最大的echarts模型信息", method = "GET", allUse = "2")
     @RequestMapping("/post/ReportImportHistoryController/queryAllMaxVersionReportModel")
     public void queryAllMaxVersionReportModel(InputObject inputObject, OutputObject outputObject) {

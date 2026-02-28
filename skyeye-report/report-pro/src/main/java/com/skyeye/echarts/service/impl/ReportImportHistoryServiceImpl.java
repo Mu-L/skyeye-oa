@@ -192,12 +192,6 @@ public class ReportImportHistoryServiceImpl extends SkyeyeBusinessServiceImpl<Re
         reportModelAttrService.createEntity(reportModelAttrList, StrUtil.EMPTY);
     }
 
-    /**
-     * 获取所有版本最大的echarts模型信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryAllMaxVersionReportModel(InputObject inputObject, OutputObject outputObject) {
         List<ReportModel> reportModelList = reportModelService.queryAllMaxVersionReportModel();
