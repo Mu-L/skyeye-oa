@@ -42,6 +42,10 @@ public class CalculateCostController {
         calculateCostService.calculateMachinPutCost(inputObject, outputObject);
     }
 
+    /**
+     * 部门加工单核算：根据加工单 id 汇总该单下各子件（商品）的工序成本，返回耗材、工资、总价及工序/验收/员工报工明细。
+     * 无验收时仍返回完整商品与工序结构，数量与金额为 0，供统计报表展示。
+     */
     @ApiOperation(id = "calculateMachinCost", value = "部门加工单核算", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "machinId", name = "machinId", value = "加工单id", required = "required")})

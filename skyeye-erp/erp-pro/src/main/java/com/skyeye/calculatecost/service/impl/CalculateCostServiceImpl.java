@@ -294,6 +294,13 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
+    /**
+     * 部门加工单核算：按加工单维度汇总各子件（商品）的工序成本，包含耗材、工资、总价及工序验收/报工明细。
+     * 无验收时仍返回完整商品+工序结构，数量与金额为 0，供统计报表展示。
+     *
+     * @param inputObject  入参需包含 machinId（加工单id）
+     * @param outputObject 出参 bean 为 MachinCost，其中 putCostList 为各子件成本列表，每项含 machinProcedureCostList 工序成本
+     */
     @Override
     public void calculateMachinCost(InputObject inputObject, OutputObject outputObject) {
         String machinId = inputObject.getParams().get("machinId").toString();
@@ -305,51 +312,69 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         materialService.setDataMation(machinProcedureList, MachinProcedure::getMaterialId);
         // 工序验收单信息
         List<MachinProcedureAccept> acceptList = machinProcedureAcceptService.queryListByMachinProcedureIdList(MPIdList);
-        if (CollectionUtil.isEmpty(acceptList)) {
-            MachinCost machinCost = setMachinCost(new ArrayList<>());
-            outputObject.setBean(machinCost);
-            outputObject.settotal(CommonNumConstants.NUM_ONE);
-            return;
+        List<String> farmIdList = new ArrayList<>();
+        List<String> acceptIdList = new ArrayList<>();
+        Map<String, List<MachinProcedureAccept>> MPIdAcceptMap = new HashMap<>();
+        Map<String, List<MachinProcedureAcceptChild>> acceptChildMap = new HashMap<>();
+        Map<String, List<MachinProcedureAcceptProductNum>> acceptNumMap = new HashMap<>();
+        List<String> staffIdList = new ArrayList<>();
+        Map<String, Map<String, Object>> staffMap = new HashMap<>();
+        Map<String, Map<String, String>> dateWorkHoursMap = new HashMap<>();
+        Map<String, Map<String, String>> farmStaffMap = new HashMap<>();
+
+        if (CollectionUtil.isNotEmpty(acceptList)) {
+            farmIdList = acceptList.stream().map(MachinProcedureAccept::getFarmId).distinct().collect(Collectors.toList());
+            acceptIdList = acceptList.stream().map(MachinProcedureAccept::getId).collect(Collectors.toList());
+            MPIdAcceptMap = acceptList.stream().collect(Collectors.groupingBy(MachinProcedureAccept::getMachinProcedureId));
+
+            // 耗材信息
+            List<MachinProcedureAcceptChild> acceptChildList = machinProcedureAcceptChildService.queryListByParentId(acceptIdList);
+            materialService.setDataMation(acceptChildList, MachinProcedureAcceptChild::getMaterialId);
+            materialNormsService.setDataMation(acceptChildList, MachinProcedureAcceptChild::getNormsId);
+            acceptChildMap = acceptChildList.stream().collect(Collectors.groupingBy(MachinProcedureAcceptChild::getParentId));
+
+            // 生产数量信息
+            List<MachinProcedureAcceptProductNum> productNumList = machinProcedureAcceptProductNumService.queryListByParentIds(acceptIdList);
+            staffIdList = productNumList.stream().map(MachinProcedureAcceptProductNum::getStaffId).collect(Collectors.toList());
+            acceptNumMap = productNumList.stream()
+                .collect(Collectors.groupingBy(MachinProcedureAcceptProductNum::getParentId));
+
+            // 员工信息
+            staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIdList);
+
+            // 所有工序包含的日期YYYY-MM-dd
+            List<String> betweenDates = getBetweenDates(machinProcedureList);
+            // 考勤信息
+            List<Map<String, Object>> checkWorkMap = iCheckWorkService.queryInfoByStaffIdsAndDates(
+                Joiner.on(CommonCharConstants.COMMA_MARK).join(staffIdList), Joiner.on(CommonCharConstants.COMMA_MARK).join(betweenDates));
+            dateWorkHoursMap = checkWorkMap.stream().collect(Collectors.groupingBy(m -> m.get("checkDate").toString()
+                , Collectors.toMap(m -> m.get("createId").toString(), m -> m.get("workHours").toString())));
+
+            // 计件工价格信息
+            List<FarmStaff> farmStaffList = farmStaffService.queryListByFarmIdsAndStaffIds(farmIdList, staffIdList);
+            farmStaffMap = farmStaffList.stream().collect(Collectors.groupingBy(FarmStaff::getFarmId,
+                Collectors.toMap(FarmStaff::getStaffId, f -> StrUtil.isEmpty(f.getPieceWorkPrice()) ? "0" : f.getPieceWorkPrice())));
         }
-        List<String> farmIdList = acceptList.stream().map(MachinProcedureAccept::getFarmId).distinct().collect(Collectors.toList());
-        List<String> acceptIdList = acceptList.stream().map(MachinProcedureAccept::getId).collect(Collectors.toList());
-        Map<String, List<MachinProcedureAccept>> MPIdAcceptMap = acceptList.stream().collect(Collectors.groupingBy(MachinProcedureAccept::getMachinProcedureId));
-
-        // 耗材信息
-        List<MachinProcedureAcceptChild> acceptChildList = machinProcedureAcceptChildService.queryListByParentId(acceptIdList);
-        // 获取商品信息和规格信息
-        materialService.setDataMation(acceptChildList, MachinProcedureAcceptChild::getMaterialId);
-        materialNormsService.setDataMation(acceptChildList, MachinProcedureAcceptChild::getNormsId);
-        Map<String, List<MachinProcedureAcceptChild>> acceptChildMap = acceptChildList.stream().collect(Collectors.groupingBy(MachinProcedureAcceptChild::getParentId));
-
-        // 生产数量信息
-        List<MachinProcedureAcceptProductNum> productNumList = machinProcedureAcceptProductNumService.queryListByParentIds(acceptIdList);
-        List<String> staffIdList = productNumList.stream().map(MachinProcedureAcceptProductNum::getStaffId).collect(Collectors.toList());
-        Map<String, List<MachinProcedureAcceptProductNum>> acceptNumMap = productNumList.stream()
-            .collect(Collectors.groupingBy(MachinProcedureAcceptProductNum::getParentId));
-
-        // 员工信息
-        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIdList);
-
-        // 所有工序包含的日期YYYY-MM-dd
-        List<String> betweenDates = getBetweenDates(machinProcedureList);
-        // 考勤信息
-        List<Map<String, Object>> checkWorkMap = iCheckWorkService.queryInfoByStaffIdsAndDates(
-            Joiner.on(CommonCharConstants.COMMA_MARK).join(staffIdList), Joiner.on(CommonCharConstants.COMMA_MARK).join(betweenDates));
-        // <'YYYY-MM-dd',<'staffId','workHours'>>
-        Map<String, Map<String, String>> dateWorkHoursMap = checkWorkMap.stream().collect(Collectors.groupingBy(m -> m.get("checkDate").toString()
-            , Collectors.toMap(m -> m.get("createId").toString(), m -> m.get("workHours").toString())));
-
-        // 计件工价格信息
-        List<FarmStaff> farmStaffList = farmStaffService.queryListByFarmIdsAndStaffIds(farmIdList, staffIdList);
-        Map<String, Map<String, String>> farmStaffMap = farmStaffList.stream().collect(Collectors.groupingBy(FarmStaff::getFarmId,
-            Collectors.toMap(FarmStaff::getStaffId, f -> StrUtil.isEmpty(f.getPieceWorkPrice()) ? "0" : f.getPieceWorkPrice())));
+        // 无验收时也返回完整商品/工序结构，数量为 0
         List<MachinPutCost> machinPutCosts = calculateMachinCost(machin.getMachinChildList(), childIdMPMap, MPIdAcceptMap, acceptNumMap, acceptChildMap, staffMap, dateWorkHoursMap, farmStaffMap);
         MachinCost machinCost = setMachinCost(machinPutCosts);
         outputObject.setBean(machinCost);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
+    /**
+     * 按加工单子件循环，计算每个子件下所有工序的成本并组装为 MachinPutCost 列表（部门加工单核算用）。
+     *
+     * @param machinChildList  加工单子件列表（每个子件对应一个商品/规格）
+     * @param childIdMPMap     子件id -> 该子件下的工序列表
+     * @param acceptMap        工序id -> 该工序的验收单列表
+     * @param acceptNumMap     验收单id -> 员工生产数量列表
+     * @param acceptChildMap   验收单id -> 耗材明细列表
+     * @param staffMap         员工id -> 员工信息
+     * @param dateWorkHoursMap 日期 -> (员工id -> 工时)
+     * @param farmStaffMap     农场id -> (员工id -> 计件单价)
+     * @return 各子件的成本汇总列表，每项包含工序成本列表 machinProcedureCostList
+     */
     private List<MachinPutCost> calculateMachinCost(List<MachinChild> machinChildList, Map<String, List<MachinProcedure>> childIdMPMap
         , Map<String, List<MachinProcedureAccept>> acceptMap, Map<String, List<MachinProcedureAcceptProductNum>> acceptNumMap
         , Map<String, List<MachinProcedureAcceptChild>> acceptChildMap, Map<String, Map<String, Object>> staffMap
@@ -366,6 +391,12 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         return machinPutCostList;
     }
 
+    /**
+     * 汇总各子件成本为部门加工单总成本：耗材、工资、总价逐项相加，并设置 putCostList（部门加工单核算用）。
+     *
+     * @param machinPutCosts 各子件的成本列表
+     * @return MachinCost，含总耗材/工资/总价及 putCostList
+     */
     private MachinCost setMachinCost(List<MachinPutCost> machinPutCosts) {
         MachinCost machinCost = new MachinCost();
         machinCost.setNormalConsumablePrice("0");
@@ -384,6 +415,18 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         return machinCost;
     }
 
+    /**
+     * 计算一批工序的成本：按工序维度循环，汇总每道工序下的验收单成本（含员工报工、耗材、工资），返回工序成本列表。
+     *
+     * @param machinProcedureList 工序列表
+     * @param acceptMap           工序id -> 验收单列表
+     * @param productNumMap       验收单id -> 员工生产数量列表
+     * @param staffMap            员工id -> 员工信息
+     * @param workHourListMap     日期 -> (员工id -> 工时)，用于计算工序范围内工时
+     * @param acceptChildMap      验收单id -> 耗材明细
+     * @param farmStaffMap        农场id -> (员工id -> 计件单价)
+     * @return 每道工序的 MachinProcedureCost 列表，含 acceptCostList、allNum、工资、总价等
+     */
     private List<MachinProcedureCost> calculateMachinPutCost(List<MachinProcedure> machinProcedureList
         , Map<String, List<MachinProcedureAccept>> acceptMap, Map<String, List<MachinProcedureAcceptProductNum>> productNumMap
         , Map<String, Map<String, Object>> staffMap, Map<String, Map<String, String>> workHourListMap
@@ -391,7 +434,7 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         List<MachinProcedureCost> machinProcedureCostList = new ArrayList<>();
         for (MachinProcedure machinProcedure : machinProcedureList) {
             String machinProcedureId = machinProcedure.getId();
-            // 计算该工序的所有员工工时信息
+            // 计算该工序计划日期范围内的员工工时
             Map<String, String> workHourMap = calculateHours(machinProcedure, workHourListMap);
             List<MachinProcedureAcceptCost> acceptCostList = calculateMachinProcedureCost(machinProcedure, acceptMap.getOrDefault(machinProcedureId, new ArrayList<>()),
                 productNumMap, staffMap, workHourMap, acceptChildMap, farmStaffMap);
@@ -402,6 +445,10 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         return machinProcedureCostList;
     }
 
+    /**
+     * 根据加工入库单、工序成本列表及子件信息，组装单个加工入库单成本（加工入库单核算用）。
+     * 会按入库数量占子件生产数量比例分摊耗材、工资、总价。
+     */
     private MachinPutCost setMachinPutDate(MachinPut machinPut, List<MachinProcedureCost> MPCostList, MachinChild machinChild) {
         String numZero = CommonNumConstants.NUM_ZERO.toString();
         String currentOperNumber = StrUtil.isEmpty(machinPut.getErpOrderItemList().get(CommonNumConstants.NUM_ZERO).getOperNumber())
@@ -447,6 +494,14 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         return machinPutCost;
     }
 
+    /**
+     * 根据加工单子件及该子件下工序成本列表，组装单个子件的成本项 MachinPutCost（部门加工单核算用）。
+     * 汇总各工序的耗材、工资、总价及当前已生产数量 nowNum，不按比例分摊。
+     *
+     * @param machinChild 加工单子件（商品+规格维度）
+     * @param MPCostList  该子件下所有工序的成本列表
+     * @return 子件维度的成本，含 materialName、machinProcedureCostList、耗材/工资/总价、allNum、nowNum
+     */
     private MachinPutCost setMachinPutDate(MachinChild machinChild, List<MachinProcedureCost> MPCostList) {
         Material materialMation = machinChild.getMaterialMation();
         String materialName = StrUtil.isEmpty(materialMation.getId()) ? null : materialMation.getName();
@@ -485,16 +540,16 @@ public class CalculateCostServiceImpl implements CalculateCostService {
     }
 
     /**
-     * 计算一个工序的所有员工成本
+     * 计算一道工序下所有验收单的成本：按验收单循环，汇总每单的耗材、员工报工工资及数量，得到工序维度的验收成本列表。
      *
-     * @param machinProcedure 工序信息
-     * @param acceptList      工序内所有的验收单信息
-     * @param productNumMap   工序内所有的员工生产数量信息
-     * @param staffMap        员工信息
-     * @param workHoursMap    工时信息
-     * @param acceptChildMap  工序内所有的耗耗材信息
-     * @param farmStaffMap    计件工单价信息
-     * @return 工序内所有员工成本信息
+     * @param machinProcedure 工序信息（含计划时间、工序基础信息）
+     * @param acceptList      该工序下的验收单列表
+     * @param productNumMap   验收单id -> 员工生产数量列表
+     * @param staffMap        员工id -> 员工信息
+     * @param workHoursMap    员工id -> 工时（小时），用于计时/计件成本
+     * @param acceptChildMap  验收单id -> 耗材明细列表
+     * @param farmStaffMap    农场id -> (员工id -> 计件单价)
+     * @return 该工序下每个验收单对应的 MachinProcedureAcceptCost 列表（含验收数量、合格/返工/报废、工资、耗材、总价、员工明细）
      */
     private List<MachinProcedureAcceptCost> calculateMachinProcedureCost(
         MachinProcedure machinProcedure, List<MachinProcedureAccept> acceptList,
@@ -516,8 +571,15 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         return acceptCostList;
     }
 
+    /**
+     * 按工序计划开始/结束日期过滤考勤数据，并汇总每个员工在该工序日期范围内的总工时（小时）。
+     *
+     * @param machinProcedure 工序（含 planStartTime、planEndTime）
+     * @param workHourListMap 日期 -> (员工id -> 当日工时字符串 HH:MM:SS)
+     * @return 员工id -> 总工时（小时数字符串）
+     */
     private Map<String, String> calculateHours(MachinProcedure machinProcedure, Map<String, Map<String, String>> workHourListMap) {
-        // 获取工序包含的所有日期
+        // 获取工序计划日期范围内的所有日期
         List<String> betweenDates = getBetweenDates(machinProcedure.getPlanStartTime(), machinProcedure.getPlanEndTime());
         // 过滤出工序内的日期，然后计算出每一个员工的总工时
         List<Map<String, String>> workHourList = workHourListMap.entrySet().stream()
@@ -536,17 +598,21 @@ public class CalculateCostServiceImpl implements CalculateCostService {
     }
 
     /**
-     * 计算工序下所有验收单的成本信息
+     * 根据工序与验收成本列表组装工序成本对象：汇总各验收单的耗材、工资、总价及验收数量（总数量、合格/返工/报废），并回填工序名称、编号、商品信息。
+     * 无验收时 acceptCostList 为空，数量与金额均为 0，仍会设置工序名称与编号便于前端展示。
      *
-     * @param acceptCostList 验收单成本信息
-     * @return 工序成本信息
+     * @param acceptCostList  该工序下各验收单的成本列表（可为空）
+     * @param machinProcedure 工序主数据（商品、规格、工序名称/编号等）
+     * @return 工序维度的 MachinProcedureCost，含 acceptCostList、allNum、qualifiedNum、reworkNum、scrapNum、耗材/工资/总价
      */
     private MachinProcedureCost setMachinProcedureDate(List<MachinProcedureAcceptCost> acceptCostList, MachinProcedure machinProcedure) {
         Material materialMation = machinProcedure.getMaterialMation();
         MachinProcedureCost bean = new MachinProcedureCost();
         bean.setMaterialId(StrUtil.isEmpty(machinProcedure.getMaterialId()) ? "" : machinProcedure.getMaterialId());
         bean.setNormsId(StrUtil.isEmpty(machinProcedure.getNormsId()) ? "" : machinProcedure.getNormsId());
-        bean.setMaterialName(StrUtil.isEmpty(materialMation.getId()) ? "" : materialMation.getName());
+        bean.setMaterialName(materialMation == null || StrUtil.isEmpty(materialMation.getId()) ? "" : materialMation.getName());
+        bean.setProcedureName(machinProcedure.getProcedureMation() == null ? "" : StrUtil.nullToEmpty(machinProcedure.getProcedureMation().getName()));
+        bean.setProcedureNumber(machinProcedure.getProcedureMation() == null ? "" : StrUtil.nullToEmpty(machinProcedure.getProcedureMation().getNumber()));
         bean.setConsumablePrice("0");
         bean.setNormalConsumablePrice("0");
         bean.setScrapConsumablePrice("0");
@@ -580,10 +646,10 @@ public class CalculateCostServiceImpl implements CalculateCostService {
     }
 
     /**
-     * 计算所有员工的工时
+     * 将每个员工的多段工时（HH:MM:SS 字符串列表）转换为总小时数（字符串）。
      *
-     * @param workHoursMap <'staffId',['10:22:11','05:32:19']>
-     * @return <'staffId',工时>
+     * @param workHoursMap 员工id -> 该员工多段工时列表（如 ['10:22:11','05:32:19']）
+     * @return 员工id -> 总工时（小时数，字符串）
      */
     private Map<String, String> calculateHours(Map<String, List<String>> workHoursMap) {
         Map<String, String> hoursMap = new HashMap<>();
@@ -599,10 +665,10 @@ public class CalculateCostServiceImpl implements CalculateCostService {
     }
 
     /**
-     * HH:MM:SS的日期转换为毫秒
+     * 将单段工时字符串 HH:MM:SS 转换为毫秒数，用于后续汇总。
      *
-     * @param time1 时间1 HH:MM:SS
-     * @return 两个时间之和 HH
+     * @param time1 单段工时，格式 HH:MM:SS
+     * @return 对应的毫秒数
      */
     private Long calculateHours(String time1) {
         // 将两个HH:MM:SS转换成毫秒
@@ -649,6 +715,12 @@ public class CalculateCostServiceImpl implements CalculateCostService {
         return dates;
     }
 
+    /**
+     * 计算一批耗材明细的总成本：每个耗材为 数量×预估采购价，再求和。
+     *
+     * @param childList 工序验收耗材明细列表（含数量、规格及预估采购价）
+     * @return 耗材总成本字符串
+     */
     private String calculateChildCost(List<MachinProcedureAcceptChild> childList) {
         String result = "0";
         if (CollectionUtil.isEmpty(childList)) {
