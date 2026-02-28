@@ -16,6 +16,8 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.service.ISysDictDataService;
+import com.skyeye.rest.project.service.IProProjectService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -33,6 +35,12 @@ public class AfterSealStatisticsServiceImpl implements AfterSealStatisticsServic
 
     @Autowired
     private AfterSealDao afterSealDao;
+
+    @Autowired
+    private ISysDictDataService iSysDictDataService;
+
+    @Autowired
+    private IProProjectService iProProjectService;
 
     /**
      * 柱状图固定顺序：与 AfterSealState 枚举顺序一致
@@ -105,22 +113,25 @@ public class AfterSealStatisticsServiceImpl implements AfterSealStatisticsServic
         QueryWrapper<AfterSeal> queryWrapper = buildTimeRangeWrapper(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
 
         List<AfterSeal> list = afterSealDao.selectList(queryWrapper);
-        // 按省统计
+        long total = list.size();
         Map<String, Long> provinceStats = list.stream()
             .filter(o -> StrUtil.isNotEmpty(o.getProvinceId()))
             .collect(Collectors.groupingBy(AfterSeal::getProvinceId, Collectors.counting()));
 
-        List<Map<String, Object>> result = new ArrayList<>();
+        List<String> xAxisData = new ArrayList<>();
+        List<Long> seriesData = new ArrayList<>();
         for (Map.Entry<String, Long> entry : provinceStats.entrySet()) {
-            Map<String, Object> item = new HashMap<>();
-            item.put("provinceId", entry.getKey());
-            item.put("level", "province");
-            item.put("orderCount", entry.getValue());
-            result.add(item);
+            xAxisData.add(entry.getKey());
+            seriesData.add(entry.getValue());
         }
 
-        outputObject.setBeans(result);
-        outputObject.settotal(result.size());
+        Map<String, Object> result = new HashMap<>();
+        result.put("total", total);
+        result.put("xAxisData", xAxisData);
+        result.put("seriesData", seriesData);
+
+        outputObject.setBean(result);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
     @Override
@@ -129,20 +140,40 @@ public class AfterSealStatisticsServiceImpl implements AfterSealStatisticsServic
         QueryWrapper<AfterSeal> queryWrapper = buildTimeRangeWrapper(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
 
         List<AfterSeal> list = afterSealDao.selectList(queryWrapper);
+        long total = list.size();
+        // 填充紧急程度字典名称（urgencyMation.dictName）
+        iSysDictDataService.setDataMation(list, AfterSeal::getUrgencyId);
+
         Map<String, Long> urgencyStats = list.stream()
             .filter(o -> StrUtil.isNotEmpty(o.getUrgencyId()))
             .collect(Collectors.groupingBy(AfterSeal::getUrgencyId, Collectors.counting()));
 
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (Map.Entry<String, Long> entry : urgencyStats.entrySet()) {
-            Map<String, Object> item = new HashMap<>();
-            item.put("urgencyId", entry.getKey());
-            item.put("orderCount", entry.getValue());
-            result.add(item);
+        // urgencyId -> 显示名称（字典 dictName，无则用 id）
+        Map<String, String> urgencyIdToName = new HashMap<>();
+        for (AfterSeal bean : list) {
+            if (StrUtil.isEmpty(bean.getUrgencyId())) continue;
+            if (urgencyIdToName.containsKey(bean.getUrgencyId())) continue;
+            String name = null;
+            if (bean.getUrgencyMation() != null && bean.getUrgencyMation().get("dictName") != null) {
+                name = bean.getUrgencyMation().get("dictName").toString();
+            }
+            urgencyIdToName.put(bean.getUrgencyId(), StrUtil.isNotBlank(name) ? name : bean.getUrgencyId());
         }
 
-        outputObject.setBeans(result);
-        outputObject.settotal(result.size());
+        List<String> xAxisData = new ArrayList<>();
+        List<Long> seriesData = new ArrayList<>();
+        for (Map.Entry<String, Long> entry : urgencyStats.entrySet()) {
+            xAxisData.add(urgencyIdToName.getOrDefault(entry.getKey(), entry.getKey()));
+            seriesData.add(entry.getValue());
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("total", total);
+        result.put("xAxisData", xAxisData);
+        result.put("seriesData", seriesData);
+
+        outputObject.setBean(result);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
     @Override
@@ -151,20 +182,42 @@ public class AfterSealStatisticsServiceImpl implements AfterSealStatisticsServic
         QueryWrapper<AfterSeal> queryWrapper = buildTimeRangeWrapper(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
 
         List<AfterSeal> list = afterSealDao.selectList(queryWrapper);
+        iProProjectService.setDataMation(list, AfterSeal::getProjectId);
+
+        long total = list.size();
         Map<String, Long> projectStats = list.stream()
             .filter(o -> StrUtil.isNotEmpty(o.getProjectId()))
             .collect(Collectors.groupingBy(AfterSeal::getProjectId, Collectors.counting()));
 
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (Map.Entry<String, Long> entry : projectStats.entrySet()) {
-            Map<String, Object> item = new HashMap<>();
-            item.put("projectId", entry.getKey());
-            item.put("orderCount", entry.getValue());
-            result.add(item);
+        // projectId -> 显示名称（优先项目名称，无则 projectId）
+        Map<String, String> projectIdToName = new HashMap<>();
+        for (AfterSeal bean : list) {
+            if (StrUtil.isEmpty(bean.getProjectId())) {
+                continue;
+            }
+            if (projectIdToName.containsKey(bean.getProjectId())) {
+                continue;
+            }
+            String name = bean.getProjectMation() != null && bean.getProjectMation().get("name") != null
+                ? bean.getProjectMation().get("name").toString()
+                : bean.getProjectId();
+            projectIdToName.put(bean.getProjectId(), name);
         }
 
-        outputObject.setBeans(result);
-        outputObject.settotal(result.size());
+        List<String> xAxisData = new ArrayList<>();
+        List<Long> seriesData = new ArrayList<>();
+        for (Map.Entry<String, Long> entry : projectStats.entrySet()) {
+            xAxisData.add(projectIdToName.getOrDefault(entry.getKey(), entry.getKey()));
+            seriesData.add(entry.getValue());
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("total", total);
+        result.put("xAxisData", xAxisData);
+        result.put("seriesData", seriesData);
+
+        outputObject.setBean(result);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
     private QueryWrapper<AfterSeal> buildTimeRangeWrapper(String startTime, String endTime) {

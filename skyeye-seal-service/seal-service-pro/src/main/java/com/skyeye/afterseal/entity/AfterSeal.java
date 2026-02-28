@@ -69,6 +69,10 @@ public class AfterSeal extends OperatorUserInfo implements EnclosureFace {
     @ApiModelProperty(value = "项目ID")
     private String projectId;
 
+    @TableField(exist = false)
+    @Property(value = "项目信息")
+    private Map<String, Object> projectMation;
+
     @TableField(value = "order_type_id")
     @ApiModelProperty(value = "工单类型ID", required = "required")
     private String orderTypeId;
@@ -132,6 +136,10 @@ public class AfterSeal extends OperatorUserInfo implements EnclosureFace {
     @TableField(value = "urgency_id")
     @ApiModelProperty(value = "紧急程度，参考数据字典", required = "required")
     private String urgencyId;
+
+    @TableField(exist = false)
+    @Property(value = "紧急程度字典信息")
+    private Map<String, Object> urgencyMation;
 
     @TableField(value = "assign_type")
     @ApiModelProperty(value = "服务人员指派方式", enumClass = ServiceAssignType.class)

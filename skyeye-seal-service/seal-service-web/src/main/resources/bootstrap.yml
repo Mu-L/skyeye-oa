@@ -40,6 +40,8 @@ webroot:
   skyeye-erp: skyeye-erp-${spring.profiles.active}
   # 门店相关的服务
   skyeye-shop: skyeye-shop-${spring.profiles.active}
+  # 项目相关的服务
+  skyeye-project: skyeye-project-${spring.profiles.active}
 
 topic:
   # 派工通知的topic
