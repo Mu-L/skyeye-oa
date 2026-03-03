@@ -8,7 +8,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 
 /**
- * 租户统计分析服务接口：租户、用户、订单、邀请、应用等维度统计（共9个接口，便于报表布局）
+ * 租户统计分析服务接口：全平台所有租户维度的统计（非当前租户），租户、用户、订单、邀请、应用等（共9个接口，便于报表布局）
  */
 public interface TenantStatisticsService {
 

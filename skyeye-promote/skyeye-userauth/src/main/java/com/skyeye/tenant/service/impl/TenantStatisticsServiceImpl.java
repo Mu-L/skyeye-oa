@@ -6,6 +6,7 @@ package com.skyeye.tenant.service.impl;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.enumeration.IsUsedEnum;
@@ -26,7 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * 租户统计分析服务实现：9 个统计接口，便于报表 3x3 等布局
+ * 租户统计分析服务实现：9 个统计接口，统计全平台所有租户数据（忽略当前租户隔离）
  */
 @Service
 public class TenantStatisticsServiceImpl implements TenantStatisticsService {
@@ -49,6 +50,7 @@ public class TenantStatisticsServiceImpl implements TenantStatisticsService {
     private TenantAppDao tenantAppDao;
 
     @Override
+    @IgnoreTenant
     public void queryTenantTotal(InputObject inputObject, OutputObject outputObject) {
         long total = tenantDao.selectCount(null);
         Map<String, Object> result = new HashMap<>();
@@ -58,6 +60,7 @@ public class TenantStatisticsServiceImpl implements TenantStatisticsService {
     }
 
     @Override
+    @IgnoreTenant
     public void queryTenantUserTotal(InputObject inputObject, OutputObject outputObject) {
         TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
         QueryWrapper<TenantUser> qw = buildTimeRangeWrapper(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
@@ -69,6 +72,7 @@ public class TenantStatisticsServiceImpl implements TenantStatisticsService {
     }
 
     @Override
+    @IgnoreTenant
     public void queryTenantOrderTotal(InputObject inputObject, OutputObject outputObject) {
         TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
         QueryWrapper<TenantAppBuyOrder> qw = new QueryWrapper<>();
@@ -86,6 +90,7 @@ public class TenantStatisticsServiceImpl implements TenantStatisticsService {
     }
 
     @Override
+    @IgnoreTenant
     public void queryTenantInviteTotal(InputObject inputObject, OutputObject outputObject) {
         TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
         QueryWrapper<TenantUserInvite> qw = buildTimeRangeWrapper(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
@@ -97,6 +102,7 @@ public class TenantStatisticsServiceImpl implements TenantStatisticsService {
     }
 
     @Override
+    @IgnoreTenant
     public void queryTenantAppTotal(InputObject inputObject, OutputObject outputObject) {
         long total = tenantAppDao.selectCount(null);
         Map<String, Object> result = new HashMap<>();
@@ -106,6 +112,7 @@ public class TenantStatisticsServiceImpl implements TenantStatisticsService {
     }
 
     @Override
+    @IgnoreTenant
     public void queryTenantStatsByCreateTime(InputObject inputObject, OutputObject outputObject) {
         TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
         QueryWrapper<Tenant> qw = buildTimeRangeWrapper(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
@@ -132,6 +139,7 @@ public class TenantStatisticsServiceImpl implements TenantStatisticsService {
     }
 
     @Override
+    @IgnoreTenant
     public void queryTenantUserStatsByState(InputObject inputObject, OutputObject outputObject) {
         TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
         QueryWrapper<TenantUser> qw = buildTimeRangeWrapper(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
@@ -162,6 +170,7 @@ public class TenantStatisticsServiceImpl implements TenantStatisticsService {
     }
 
     @Override
+    @IgnoreTenant
     public void queryTenantOrderStatsByTenant(InputObject inputObject, OutputObject outputObject) {
         TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
         QueryWrapper<TenantAppBuyOrder> qw = new QueryWrapper<>();
@@ -192,6 +201,7 @@ public class TenantStatisticsServiceImpl implements TenantStatisticsService {
     }
 
     @Override
+    @IgnoreTenant
     public void queryTenantInviteStatsByUsed(InputObject inputObject, OutputObject outputObject) {
         TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
         QueryWrapper<TenantUserInvite> qw = buildTimeRangeWrapper(tableSelectInfo.getStartTime(), tableSelectInfo.getEndTime());
