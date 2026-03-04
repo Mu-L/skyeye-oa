@@ -10,6 +10,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -119,6 +120,12 @@ public class UserEnterpriseServiceImpl extends SkyeyeBusinessServiceImpl<UserEnt
         if (SysUserAuthConstants.exitUserLoginRedisCache(entity.getId() + SysUserAuthConstants.APP_IDENTIFYING)) {
             SysUserAuthConstants.setUserLoginRedisCache(entity.getId() + SysUserAuthConstants.APP_IDENTIFYING, BeanUtil.beanToMap(entity));
         }
+    }
+
+    @Override
+    @IgnoreTenant
+    public UserEnterprise selectById(String id) {
+        return super.selectById(id);
     }
 
     @Override
