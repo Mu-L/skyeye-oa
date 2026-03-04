@@ -78,19 +78,19 @@ public class PatrolPlan extends BaseGeneralInfo {
 
     @TableField(exist = false)
     @ApiModelProperty(value = "关联的巡检点位ID列表")
-    private List<String> pointIds;
+    private List<String> pointId;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "关联的巡检点位信息列表")
-    private List<PatrolPoint> pointMationList;
+    private List<PatrolPoint> pointMation;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "关联的巡检项目ID列表")
-    private List<String> itemIds;
+    private List<String> itemId;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "关联的巡检项目信息列表")
-    private List<PatrolItem> itemMationList;
+    private List<PatrolItem> itemMation;
 
 }
 

@@ -74,9 +74,9 @@ public class PatrolPlanServiceImpl extends SkyeyeBusinessServiceImpl<PatrolPlanD
     @Override
     public void writePostpose(PatrolPlan entity, String userId) {
         // 保存关联的点位
-        patrolPlanPointService.saveList(entity.getId(), entity.getPointIds());
+        patrolPlanPointService.saveList(entity.getId(), entity.getPointId());
         // 保存关联的项目
-        patrolPlanItemService.saveList(entity.getId(), entity.getItemIds());
+        patrolPlanItemService.saveList(entity.getId(), entity.getItemId());
         super.writePostpose(entity, userId);
     }
 
@@ -92,9 +92,9 @@ public class PatrolPlanServiceImpl extends SkyeyeBusinessServiceImpl<PatrolPlanD
     public PatrolPlan getDataFromDb(String id) {
         PatrolPlan patrolPlan = super.getDataFromDb(id);
         // 查询关联的点位ID列表
-        patrolPlan.setPointIds(patrolPlanPointService.selectByParentId(id));
+        patrolPlan.setPointId(patrolPlanPointService.selectByParentId(id));
         // 查询关联的项目ID列表
-        patrolPlan.setItemIds(patrolPlanItemService.selectByParentId(id));
+        patrolPlan.setItemId(patrolPlanItemService.selectByParentId(id));
         return patrolPlan;
     }
 
@@ -111,8 +111,8 @@ public class PatrolPlanServiceImpl extends SkyeyeBusinessServiceImpl<PatrolPlanD
         Map<String, List<String>> itemIdMap = patrolPlanItemService.selectMapByParentId(planIdList);
         // 设置关联的点位ID和项目ID
         planList.forEach(plan -> {
-            plan.setPointIds(pointIdMap.get(plan.getId()));
-            plan.setItemIds(itemIdMap.get(plan.getId()));
+            plan.setPointId(pointIdMap.get(plan.getId()));
+            plan.setItemId(itemIdMap.get(plan.getId()));
         });
         return planList;
     }
@@ -126,14 +126,14 @@ public class PatrolPlanServiceImpl extends SkyeyeBusinessServiceImpl<PatrolPlanD
         // 设置班组信息
         patrolTeamService.setDataMation(patrolPlan, PatrolPlan::getTeamId);
         // 设置关联的点位信息
-        if (CollectionUtil.isNotEmpty(patrolPlan.getPointIds())) {
-            List<PatrolPoint> points = patrolPointService.selectByIds(patrolPlan.getPointIds().toArray(new String[]{}));
-            patrolPlan.setPointMationList(points);
+        if (CollectionUtil.isNotEmpty(patrolPlan.getPointId())) {
+            List<PatrolPoint> points = patrolPointService.selectByIds(patrolPlan.getPointId().toArray(new String[]{}));
+            patrolPlan.setPointMation(points);
         }
         // 设置关联的项目信息
-        if (CollectionUtil.isNotEmpty(patrolPlan.getItemIds())) {
-            List<PatrolItem> items = patrolItemService.selectByIds(patrolPlan.getItemIds().toArray(new String[]{}));
-            patrolPlan.setItemMationList(items);
+        if (CollectionUtil.isNotEmpty(patrolPlan.getItemId())) {
+            List<PatrolItem> items = patrolItemService.selectByIds(patrolPlan.getItemId().toArray(new String[]{}));
+            patrolPlan.setItemMation(items);
         }
         return patrolPlan;
     }
