@@ -12,6 +12,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.ordertype.entity.SealOrderType;
 import com.skyeye.ordertype.service.SealOrderTypeService;
@@ -97,6 +98,19 @@ public class PatrolItemServiceImpl extends SkyeyeBusinessServiceImpl<PatrolItemD
         }
         // 设置门店信息（门店在 shop-member 模块，暂时不处理，后续可通过 Feign 调用）
         return patrolItem;
+    }
+
+    @Override
+    public void queryAllPatrolItemList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String enabled = params.get("enabled").toString();
+        QueryWrapper<PatrolItem> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotBlank(enabled)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(PatrolItem::getEnabled), enabled);
+        }
+        List<PatrolItem> patrolItemList = list(queryWrapper);
+        outputObject.setBeans(patrolItemList);
+        outputObject.settotal(patrolItemList.size());
     }
 }
 
