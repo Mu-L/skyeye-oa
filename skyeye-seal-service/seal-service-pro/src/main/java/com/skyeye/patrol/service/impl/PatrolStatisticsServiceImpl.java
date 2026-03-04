@@ -21,6 +21,7 @@ import com.skyeye.patrol.dao.PatrolRecordDao;
 import com.skyeye.patrol.dao.PatrolTaskDao;
 import com.skyeye.patrol.entity.PatrolRecord;
 import com.skyeye.patrol.entity.PatrolTask;
+import com.skyeye.patrol.service.PatrolItemService;
 import com.skyeye.patrol.service.PatrolPlanService;
 import com.skyeye.patrol.service.PatrolStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,11 @@ import java.util.stream.Collectors;
 @Service
 public class PatrolStatisticsServiceImpl implements PatrolStatisticsService {
 
+    /**
+     * 空值或缺失数据归类显示名称
+     */
+    private static final String OTHER_LABEL = "其他";
+
     @Autowired
     private PatrolTaskDao patrolTaskDao;
 
@@ -48,6 +54,9 @@ public class PatrolStatisticsServiceImpl implements PatrolStatisticsService {
 
     @Autowired
     private PatrolPlanService patrolPlanService;
+
+    @Autowired
+    private PatrolItemService patrolItemService;
 
     @Override
     public void queryTaskCompletionStats(InputObject inputObject, OutputObject outputObject) {
@@ -235,20 +244,53 @@ public class PatrolStatisticsServiceImpl implements PatrolStatisticsService {
         }
 
         List<PatrolRecord> recordList = patrolRecordDao.selectList(queryWrapper);
-        Map<String, Long> itemStats = recordList.stream()
-            .filter(record -> StrUtil.isNotEmpty(record.getItemId()))
-            .collect(Collectors.groupingBy(PatrolRecord::getItemId, Collectors.counting()));
+        // 填充项目信息（itemMation）以便获取名称
+        patrolItemService.setDataMation(recordList, PatrolRecord::getItemId);
 
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (Map.Entry<String, Long> entry : itemStats.entrySet()) {
-            Map<String, Object> item = new HashMap<>();
-            item.put("itemId", entry.getKey());
-            item.put("recordCount", entry.getValue());
-            result.add(item);
+        long total = recordList.size();
+        // 有有效项目的按 itemId 分组，找不到项目或 itemId 为空的归为「其他」
+        Map<String, Long> itemStats = recordList.stream()
+            .collect(Collectors.groupingBy(record -> {
+                if (StrUtil.isEmpty(record.getItemId())
+                    || record.getItemMation() == null
+                    || StrUtil.isEmpty(record.getItemMation().getName())) {
+                    return OTHER_LABEL;
+                }
+                return record.getItemId();
+            }, Collectors.counting()));
+
+        // itemId -> 项目名称（优先使用 itemMation.name）
+        Map<String, String> itemIdToName = new HashMap<>();
+        itemIdToName.put(OTHER_LABEL, OTHER_LABEL);
+        for (PatrolRecord record : recordList) {
+            if (StrUtil.isEmpty(record.getItemId())
+                || record.getItemMation() == null
+                || StrUtil.isEmpty(record.getItemMation().getName())) {
+                continue;
+            }
+            if (itemIdToName.containsKey(record.getItemId())) {
+                continue;
+            }
+            String name = record.getItemMation() != null && StrUtil.isNotEmpty(record.getItemMation().getName())
+                ? record.getItemMation().getName()
+                : record.getItemId();
+            itemIdToName.put(record.getItemId(), name);
         }
 
-        outputObject.setBeans(result);
-        outputObject.settotal(result.size());
+        List<String> xAxisData = new ArrayList<>();
+        List<Long> seriesData = new ArrayList<>();
+        for (Map.Entry<String, Long> entry : itemStats.entrySet()) {
+            xAxisData.add(itemIdToName.getOrDefault(entry.getKey(), entry.getKey()));
+            seriesData.add(entry.getValue());
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("total", total);
+        result.put("xAxisData", xAxisData);
+        result.put("seriesData", seriesData);
+
+        outputObject.setBean(result);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
     @Override
