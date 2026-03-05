@@ -72,7 +72,7 @@ public class PatrolStatisticsController {
         patrolStatisticsService.queryStatsByExecutor(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryTimeTrendStats", value = "时间维度统计（趋势）", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryTimeTrendStats", value = "时间维度统计总任务数，已完成任务数（趋势）", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/PatrolStatisticsController/queryTimeTrendStats")
     public void queryTimeTrendStats(InputObject inputObject, OutputObject outputObject) {
