@@ -197,6 +197,21 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
                 String fullUrl = resolveRestUrl(restEntity);
 
                 String responseData = HttpRequestUtil.getDataByRequest(fullUrl, restEntity.getMethod(), requestHeaderKey2Value, mergedRequestBody);
+                // 如果返回的是标准接口格式，则优先校验 returnCode
+                Map<String, Object> responseMap = JSONUtil.toBean(responseData, Map.class);
+                if (responseMap != null && responseMap.containsKey("returnCode")) {
+                    Object codeObj = responseMap.get("returnCode");
+                    int returnCode;
+                    if (codeObj instanceof Number) {
+                        returnCode = ((Number) codeObj).intValue();
+                    } else {
+                        returnCode = Integer.parseInt(String.valueOf(codeObj));
+                    }
+                    if (returnCode != 0) {
+                        String message = String.valueOf(responseMap.getOrDefault("returnMessage", "外部服务调用异常"));
+                        throw new CustomException("外部服务调用异常：" + message);
+                    }
+                }
                 return responseData;
             } else if (reportDataFrom.getType() == ReportDataFromType.SQL.getKey()) {
                 // 1.获取数据源信息

@@ -58,7 +58,7 @@ public class PatrolStatisticsController {
         patrolStatisticsService.queryStatsByPoint(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryStatsByItem", value = "按项目统计", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryStatsByItem", value = "按项目统计巡检记录", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/PatrolStatisticsController/queryStatsByItem")
     public void queryStatsByItem(InputObject inputObject, OutputObject outputObject) {
