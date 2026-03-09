@@ -14,7 +14,9 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.pay.core.PayClientConfig;
+import com.skyeye.pay.enums.PayType;
 import lombok.Data;
 
 import java.util.Map;
@@ -39,7 +41,7 @@ public class PayChannel extends OperatorUserInfo {
     private String id;
 
     @TableField("code_num")
-    @ApiModelProperty(value = "渠道编码，参考#PayType", required = "required")
+    @ApiModelProperty(value = "渠道编码", enumClass = PayType.class, required = "required")
     private String codeNum;
 
     @TableField(exist = false)
@@ -47,12 +49,12 @@ public class PayChannel extends OperatorUserInfo {
     private Map<String, Object> codeNumMation;
 
     @TableField("enabled")
-    @ApiModelProperty(value = "启用状态", required = "required")
+    @ApiModelProperty(value = "启用状态", enumClass = EnableEnum.class, required = "required")
     private Integer enabled;
 
     @TableField("feeRate")
-    @ApiModelProperty(value = "渠道费率，单位：百分比", required = "required")
-    private Long feeRate;
+    @ApiModelProperty(value = "渠道费率，比如：0.001", required = "required")
+    private String feeRate;
 
     @TableField("app_id")
     @ApiModelProperty(value = "应用id", required = "required")

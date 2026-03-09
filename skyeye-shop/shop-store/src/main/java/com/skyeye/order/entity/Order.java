@@ -212,8 +212,8 @@ public class Order extends AreaInfo {
     private List<OrderItem> orderItemList;
 
     @TableField("channel_fee_rate")
-    @Property(value = "渠道手续费，单位：百分比")
-    private Double channelFeeRate;
+    @Property(value = "渠道手续费比例，比如：0.001")
+    private String channelFeeRate;
 
     @TableField("channel_fee_price")
     @Property(value = "渠道手续金额，单位：分")
