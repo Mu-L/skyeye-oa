@@ -60,6 +60,18 @@ public class PatrolTaskServiceImpl extends SkyeyeBusinessServiceImpl<PatrolTaskD
     }
 
     @Override
+    protected QueryWrapper<PatrolTask> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<PatrolTask> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(PatrolTask::getState), commonPageInfo.getState());
+        }
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(PatrolTask::getPlanId), commonPageInfo.getObjectId());
+        }
+        return queryWrapper;
+    }
+
+    @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         // 设置计划信息
@@ -192,16 +204,5 @@ public class PatrolTaskServiceImpl extends SkyeyeBusinessServiceImpl<PatrolTaskD
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
-    @Override
-    protected QueryWrapper<PatrolTask> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<PatrolTask> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        if (commonPageInfo.getState() != null) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(PatrolTask::getState), commonPageInfo.getState());
-        }
-        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(PatrolTask::getPlanId), commonPageInfo.getObjectId());
-        }
-        return queryWrapper;
-    }
 }
 
