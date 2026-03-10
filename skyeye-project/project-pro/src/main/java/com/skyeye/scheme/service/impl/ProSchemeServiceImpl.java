@@ -11,6 +11,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -162,6 +163,7 @@ public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao
         // 已经发布的最新版本
         queryWrapper.eq(MybatisPlusUtil.toColumns(ProScheme::getWhetherLast), WhetherEnum.ENABLE_USING.getKey());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ProScheme::getWhetherPublish), WhetherEnum.ENABLE_USING.getKey());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ProScheme::getState), FlowableStateEnum.PASS.getKey());
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ProScheme::getCreateTime));
         List<ProScheme> schemeList = list(queryWrapper);
         outputObject.setBeans(schemeList);
