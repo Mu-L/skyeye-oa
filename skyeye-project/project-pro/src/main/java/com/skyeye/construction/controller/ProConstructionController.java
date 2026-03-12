@@ -82,4 +82,12 @@ public class ProConstructionController {
         proConstructionService.queryConstructionListByVersionNo(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "publishProConstructionVersionById", value = "根据id发布施工方案版本", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "施工方案id", required = "required")})
+    @RequestMapping("/post/ProConstructionController/publishProConstructionVersionById")
+    public void publishSchemeVersionById(InputObject inputObject, OutputObject outputObject) {
+        proConstructionService.publishVersionById(inputObject, outputObject);
+    }
+
 }
