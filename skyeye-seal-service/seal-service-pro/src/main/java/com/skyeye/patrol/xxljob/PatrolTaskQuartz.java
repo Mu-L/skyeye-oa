@@ -7,6 +7,7 @@ package com.skyeye.patrol.xxljob;
 import cn.hutool.core.collection.CollectionUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -94,7 +95,7 @@ public class PatrolTaskQuartz {
         // 批量更新为已超时状态
         List<String> taskIds = timeoutTasks.stream().map(PatrolTask::getId).collect(java.util.stream.Collectors.toList());
         UpdateWrapper<PatrolTask> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.in(MybatisPlusUtil.toColumns(PatrolTask::getId), taskIds);
+        updateWrapper.in(CommonConstants.ID, taskIds);
         updateWrapper.set(MybatisPlusUtil.toColumns(PatrolTask::getState), PatrolTaskState.TIMEOUT.getKey());
         patrolTaskDao.update(null, updateWrapper);
 

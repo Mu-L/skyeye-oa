@@ -124,6 +124,7 @@ public class ProConstructionServiceImpl extends SkyeyeBusinessServiceImpl<ProCon
         queryWrapper.eq(MybatisPlusUtil.toColumns(ProConstruction::getVersionNo), versionNo);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ProConstruction::getLargeVersion));
         List<ProConstruction> constructionList = list(queryWrapper);
+        iAuthUserService.setName(constructionList, "createId", "createName");
         outputObject.setBeans(constructionList);
         outputObject.settotal(constructionList.size());
     }

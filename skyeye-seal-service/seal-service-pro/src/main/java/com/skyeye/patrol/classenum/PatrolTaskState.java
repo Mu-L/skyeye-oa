@@ -22,15 +22,17 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum PatrolTaskState implements SkyeyeEnumClass {
 
-    PENDING(1, "待执行", true, true),
-    IN_PROGRESS(2, "执行中", true, false),
-    COMPLETED(3, "已完成", true, false),
-    CANCELLED(4, "已取消", true, false),
-    TIMEOUT(5, "已超时", true, false);
+    PENDING(1, "待执行", "#1890ff", true, true),
+    IN_PROGRESS(2, "执行中", "#faad14", true, false),
+    COMPLETED(3, "已完成", "#52c41a", true, false),
+    CANCELLED(4, "已取消", "#faad14", true, false),
+    TIMEOUT(5, "已超时", "#faad14", true, false);
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 
