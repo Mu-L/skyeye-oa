@@ -13,8 +13,8 @@ import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.ITenantService;
 import com.skyeye.patrol.classenum.PatrolTaskState;
-import com.skyeye.patrol.dao.PatrolTaskDao;
 import com.skyeye.patrol.entity.PatrolTask;
+import com.skyeye.patrol.service.PatrolTaskService;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +37,7 @@ import java.util.Map;
 public class PatrolTaskQuartz {
 
     @Autowired
-    private PatrolTaskDao patrolTaskDao;
+    private PatrolTaskService patrolTaskService;
 
     @Autowired
     private ITenantService iTenantService;
@@ -82,8 +82,9 @@ public class PatrolTaskQuartz {
         // 查询所有待执行状态且计划开始执行时间已过的任务
         QueryWrapper<PatrolTask> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(PatrolTask::getState), PatrolTaskState.PENDING.getKey());
+        // 小于当前时间
         queryWrapper.lt(MybatisPlusUtil.toColumns(PatrolTask::getPlannedStartTime), currentTime);
-        List<PatrolTask> timeoutTasks = patrolTaskDao.selectList(queryWrapper);
+        List<PatrolTask> timeoutTasks = patrolTaskService.list(queryWrapper);
 
         if (CollectionUtil.isEmpty(timeoutTasks)) {
             log.info("当前租户没有超时的待执行任务");
@@ -97,7 +98,8 @@ public class PatrolTaskQuartz {
         UpdateWrapper<PatrolTask> updateWrapper = new UpdateWrapper<>();
         updateWrapper.in(CommonConstants.ID, taskIds);
         updateWrapper.set(MybatisPlusUtil.toColumns(PatrolTask::getState), PatrolTaskState.TIMEOUT.getKey());
-        patrolTaskDao.update(null, updateWrapper);
+        patrolTaskService.update(updateWrapper);
+        patrolTaskService.clearCache(taskIds);
 
         log.info("成功将 {} 个任务标记为已超时", timeoutTasks.size());
     }
