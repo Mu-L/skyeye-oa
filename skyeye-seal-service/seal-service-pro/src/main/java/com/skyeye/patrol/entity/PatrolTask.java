@@ -77,7 +77,7 @@ public class PatrolTask extends OperatorUserInfo {
     private String actualEndTime;
 
     @TableField(value = "state")
-    @ApiModelProperty(value = "任务状态", enumClass = PatrolTaskState.class, required = "required,num")
+    @Property(value = "任务状态", enumClass = PatrolTaskState.class)
     private Integer state;
 
     @TableField(value = "remark")
