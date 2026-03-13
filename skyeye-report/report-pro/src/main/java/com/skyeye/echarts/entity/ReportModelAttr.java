@@ -70,7 +70,7 @@ public class ReportModelAttr extends CommonInfo {
     @Property(value = "编辑器")
     @Excel(name = "编辑器", width = 10, isImportField = "true_st", replace = {"单选框_1", "输入框_2", "颜色选择器_3",
         "数字输入框_4", "多行颜色选择器_5", "下拉框_6", "多选框_7", "滑块_8", "动态数据_9",
-        "只读的输入框_98", "数据源选择_99"}, orderNum = "7")
+        "只读的输入框_98", "数据源选择_99", "折线系列配置编辑器_105"}, orderNum = "7")
     private String editorType;
 
     @TableField("optional_value")
