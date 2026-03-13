@@ -30,28 +30,28 @@ public class PatrolStatisticsController {
     @Autowired
     private PatrolStatisticsService patrolStatisticsService;
 
-    @ApiOperation(id = "queryTaskCompletionStats", value = "任务完成情况统计", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryTaskCompletionStats", value = "根据任务的状态去统计每个状态下的任务数量", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/PatrolStatisticsController/queryTaskCompletionStats")
     public void queryTaskCompletionStats(InputObject inputObject, OutputObject outputObject) {
         patrolStatisticsService.queryTaskCompletionStats(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryAbnormalStats", value = "异常情况统计", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryAbnormalStats", value = "根据异常情况去统计每个情况下的巡检记录", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/PatrolStatisticsController/queryAbnormalStats")
     public void queryAbnormalStats(InputObject inputObject, OutputObject outputObject) {
         patrolStatisticsService.queryAbnormalStats(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryStatsByTeam", value = "按班组统计", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryStatsByTeam", value = "按班组统计每个班组已经执行过任务的巡检计划", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/PatrolStatisticsController/queryStatsByTeam")
     public void queryStatsByTeam(InputObject inputObject, OutputObject outputObject) {
         patrolStatisticsService.queryStatsByTeam(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryStatsByPoint", value = "按点位统计", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryStatsByPoint", value = "按点位统计每个点位已经发起过的任务数量", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/PatrolStatisticsController/queryStatsByPoint")
     public void queryStatsByPoint(InputObject inputObject, OutputObject outputObject) {
@@ -65,7 +65,7 @@ public class PatrolStatisticsController {
         patrolStatisticsService.queryStatsByItem(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryStatsByExecutor", value = "按执行人统计", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryStatsByExecutor", value = "按执行人统计每个人总的巡检任务数以及已完成的巡检任务数", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/PatrolStatisticsController/queryStatsByExecutor")
     public void queryStatsByExecutor(InputObject inputObject, OutputObject outputObject) {

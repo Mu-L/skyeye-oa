@@ -15,15 +15,16 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.patrol.classenum.PatrolItemSummaryType;
 import com.skyeye.patrol.classenum.PatrolTaskState;
 import com.skyeye.patrol.dao.PatrolRecordDao;
 import com.skyeye.patrol.dao.PatrolTaskDao;
+import com.skyeye.patrol.entity.PatrolPlan;
+import com.skyeye.patrol.entity.PatrolPoint;
 import com.skyeye.patrol.entity.PatrolRecord;
 import com.skyeye.patrol.entity.PatrolTask;
-import com.skyeye.patrol.service.PatrolItemService;
-import com.skyeye.patrol.service.PatrolPlanService;
-import com.skyeye.patrol.service.PatrolStatisticsService;
+import com.skyeye.patrol.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -58,6 +59,15 @@ public class PatrolStatisticsServiceImpl implements PatrolStatisticsService {
     @Autowired
     private PatrolItemService patrolItemService;
 
+    @Autowired
+    private PatrolTeamService patrolTeamService;
+
+    @Autowired
+    private PatrolPointService patrolPointService;
+
+    @Autowired
+    private IAuthUserService iAuthUserService;
+
     @Override
     public void queryTaskCompletionStats(InputObject inputObject, OutputObject outputObject) {
         TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
@@ -75,7 +85,7 @@ public class PatrolStatisticsServiceImpl implements PatrolStatisticsService {
         // 总数
         long total = patrolTaskDao.selectCount(queryWrapper);
 
-        // 按状态统计
+        // 按状态统计，state 为空归「其他」
         Map<Integer, Long> stateCountMap = new HashMap<>();
         List<PatrolTask> taskList = patrolTaskDao.selectList(queryWrapper);
         for (PatrolTask task : taskList) {
@@ -83,13 +93,27 @@ public class PatrolStatisticsServiceImpl implements PatrolStatisticsService {
             stateCountMap.put(state, stateCountMap.getOrDefault(state, 0L) + 1);
         }
 
+        PatrolTaskState[] stateOrder = PatrolTaskState.values();
+        List<String> xAxisData = new ArrayList<>();
+        List<Long> seriesData = new ArrayList<>();
+        for (PatrolTaskState state : stateOrder) {
+            xAxisData.add(state.getValue());
+            seriesData.add(stateCountMap.getOrDefault(state.getKey(), 0L));
+        }
+        Set<Integer> knownKeys = Arrays.stream(stateOrder).map(PatrolTaskState::getKey).collect(Collectors.toSet());
+        long otherCount = stateCountMap.entrySet().stream()
+            .filter(e -> e.getKey() == null || !knownKeys.contains(e.getKey()))
+            .mapToLong(Map.Entry::getValue)
+            .sum();
+        if (otherCount > 0) {
+            xAxisData.add(OTHER_LABEL);
+            seriesData.add(otherCount);
+        }
+
         Map<String, Object> result = new HashMap<>();
         result.put("total", total);
-        result.put("pending", stateCountMap.getOrDefault(PatrolTaskState.PENDING.getKey(), 0L));
-        result.put("inProgress", stateCountMap.getOrDefault(PatrolTaskState.IN_PROGRESS.getKey(), 0L));
-        result.put("completed", stateCountMap.getOrDefault(PatrolTaskState.COMPLETED.getKey(), 0L));
-        result.put("cancelled", stateCountMap.getOrDefault(PatrolTaskState.CANCELLED.getKey(), 0L));
-        result.put("timeout", stateCountMap.getOrDefault(PatrolTaskState.TIMEOUT.getKey(), 0L));
+        result.put("xAxisData", xAxisData);
+        result.put("seriesData", seriesData);
 
         outputObject.setBean(result);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
@@ -113,28 +137,35 @@ public class PatrolStatisticsServiceImpl implements PatrolStatisticsService {
 
         List<PatrolRecord> recordList = patrolRecordDao.selectList(queryWrapper);
         long total = recordList.size();
-        long normalCount = 0;
-        long abnormalCount = 0;
 
+        // 按检查结果统计，checkResult 为空或未知归「其他」
+        Map<Integer, Long> resultCountMap = new HashMap<>();
         for (PatrolRecord record : recordList) {
-            if (PatrolItemSummaryType.NORMAL.getKey().equals(record.getCheckResult())) {
-                normalCount++;
-            } else if (PatrolItemSummaryType.ABNORMAL.getKey().equals(record.getCheckResult())) {
-                abnormalCount++;
-            }
+            Integer checkResult = record.getCheckResult();
+            resultCountMap.put(checkResult, resultCountMap.getOrDefault(checkResult, 0L) + 1);
+        }
+
+        PatrolItemSummaryType[] typeOrder = PatrolItemSummaryType.values();
+        List<String> xAxisData = new ArrayList<>();
+        List<Long> seriesData = new ArrayList<>();
+        for (PatrolItemSummaryType type : typeOrder) {
+            xAxisData.add(type.getValue());
+            seriesData.add(resultCountMap.getOrDefault(type.getKey(), 0L));
+        }
+        Set<Integer> knownKeys = Arrays.stream(typeOrder).map(PatrolItemSummaryType::getKey).collect(Collectors.toSet());
+        long otherCount = resultCountMap.entrySet().stream()
+            .filter(e -> e.getKey() == null || !knownKeys.contains(e.getKey()))
+            .mapToLong(Map.Entry::getValue)
+            .sum();
+        if (otherCount > 0) {
+            xAxisData.add(OTHER_LABEL);
+            seriesData.add(otherCount);
         }
 
         Map<String, Object> result = new HashMap<>();
         result.put("total", total);
-        result.put("normalCount", normalCount);
-        result.put("abnormalCount", abnormalCount);
-        if (total > 0) {
-            result.put("normalRate", CalculationUtil.divide(String.valueOf(normalCount), String.valueOf(total), CommonNumConstants.NUM_TWO));
-            result.put("abnormalRate", CalculationUtil.divide(String.valueOf(abnormalCount), String.valueOf(total), CommonNumConstants.NUM_TWO));
-        } else {
-            result.put("normalRate", CommonNumConstants.NUM_ZERO);
-            result.put("abnormalRate", CommonNumConstants.NUM_ZERO);
-        }
+        result.put("xAxisData", xAxisData);
+        result.put("seriesData", seriesData);
 
         outputObject.setBean(result);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
@@ -155,46 +186,70 @@ public class PatrolStatisticsServiceImpl implements PatrolStatisticsService {
         }
 
         List<PatrolTask> taskList = patrolTaskDao.selectList(queryWrapper);
-        // 获取所有唯一的 planId
+        long total = taskList.size();
+
         Set<String> planIds = taskList.stream()
             .filter(task -> StrUtil.isNotEmpty(task.getPlanId()))
             .map(PatrolTask::getPlanId)
             .collect(Collectors.toSet());
 
         if (CollectionUtil.isEmpty(planIds)) {
-            outputObject.setBeans(new ArrayList<>());
-            outputObject.settotal(CommonNumConstants.NUM_ZERO);
+            Map<String, Object> result = new HashMap<>();
+            result.put("total", total);
+            result.put("xAxisData", new ArrayList<>());
+            result.put("seriesData", new ArrayList<>());
+            outputObject.setBean(result);
+            outputObject.settotal(CommonNumConstants.NUM_ONE);
             return;
         }
 
-        // 批量查询计划信息获取 teamId
+        List<PatrolPlan> planList = patrolPlanService.selectByIds(planIds.toArray(new String[]{}));
+        patrolTeamService.setDataMation(planList, PatrolPlan::getTeamId);
+
+        // planId -> teamId，teamId 为空归「其他」
         Map<String, String> planTeamMap = new HashMap<>();
-        List<com.skyeye.patrol.entity.PatrolPlan> planList = patrolPlanService.selectByIds(planIds.toArray(new String[]{}));
-        for (com.skyeye.patrol.entity.PatrolPlan plan : planList) {
-            if (plan != null && StrUtil.isNotEmpty(plan.getTeamId())) {
-                planTeamMap.put(plan.getId(), plan.getTeamId());
-            }
+        for (PatrolPlan plan : planList) {
+            if (plan == null) continue;
+            String tid = StrUtil.isNotEmpty(plan.getTeamId()) ? plan.getTeamId() : OTHER_LABEL;
+            planTeamMap.put(plan.getId(), tid);
         }
 
-        // 按 teamId 分组统计
+        // 按 teamId 分组统计（空归其他）
         Map<String, Long> teamStats = new HashMap<>();
         for (PatrolTask task : taskList) {
             String teamId = planTeamMap.get(task.getPlanId());
-            if (StrUtil.isNotEmpty(teamId)) {
-                teamStats.put(teamId, teamStats.getOrDefault(teamId, 0L) + 1);
+            if (StrUtil.isEmpty(teamId)) {
+                teamId = OTHER_LABEL;
             }
+            teamStats.put(teamId, teamStats.getOrDefault(teamId, 0L) + 1);
         }
 
-        List<Map<String, Object>> result = new ArrayList<>();
+        // teamId -> 班组名称（优先 teamMation.name）
+        Map<String, String> teamIdToName = new HashMap<>();
+        teamIdToName.put(OTHER_LABEL, OTHER_LABEL);
+        for (PatrolPlan plan : planList) {
+            if (plan == null || StrUtil.isEmpty(plan.getTeamId()) || OTHER_LABEL.equals(plan.getTeamId())) continue;
+            if (teamIdToName.containsKey(plan.getTeamId())) continue;
+            String name = plan.getTeamMation() != null && StrUtil.isNotEmpty(plan.getTeamMation().getName())
+                ? plan.getTeamMation().getName()
+                : plan.getTeamId();
+            teamIdToName.put(plan.getTeamId(), name);
+        }
+
+        List<String> xAxisData = new ArrayList<>();
+        List<Long> seriesData = new ArrayList<>();
         for (Map.Entry<String, Long> entry : teamStats.entrySet()) {
-            Map<String, Object> item = new HashMap<>();
-            item.put("teamId", entry.getKey());
-            item.put("taskCount", entry.getValue());
-            result.add(item);
+            xAxisData.add(teamIdToName.getOrDefault(entry.getKey(), entry.getKey()));
+            seriesData.add(entry.getValue());
         }
 
-        outputObject.setBeans(result);
-        outputObject.settotal(result.size());
+        Map<String, Object> result = new HashMap<>();
+        result.put("total", total);
+        result.put("xAxisData", xAxisData);
+        result.put("seriesData", seriesData);
+
+        outputObject.setBean(result);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
     @Override
@@ -212,20 +267,56 @@ public class PatrolStatisticsServiceImpl implements PatrolStatisticsService {
         }
 
         List<PatrolTask> taskList = patrolTaskDao.selectList(queryWrapper);
-        Map<String, Long> pointStats = taskList.stream()
-            .filter(task -> StrUtil.isNotEmpty(task.getPointId()))
-            .collect(Collectors.groupingBy(PatrolTask::getPointId, Collectors.counting()));
+        long total = taskList.size();
 
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (Map.Entry<String, Long> entry : pointStats.entrySet()) {
-            Map<String, Object> item = new HashMap<>();
-            item.put("pointId", entry.getKey());
-            item.put("taskCount", entry.getValue());
-            result.add(item);
+        // 填充点位信息以获取点位名称
+        patrolPointService.setDataMation(taskList, PatrolTask::getPointId);
+
+        // 有有效点位的按 pointId 分组，pointId 为空或查不到点位的归为「其他」
+        Map<String, Long> pointStats = taskList.stream()
+            .collect(Collectors.groupingBy(task -> {
+                if (StrUtil.isEmpty(task.getPointId())
+                    || task.getPointMation() == null
+                    || StrUtil.isEmpty(task.getPointMation().getName())) {
+                    return OTHER_LABEL;
+                }
+                return task.getPointId();
+            }, Collectors.counting()));
+
+        // pointId -> 点位名称（优先使用 pointMation.name）
+        Map<String, String> pointIdToName = new HashMap<>();
+        pointIdToName.put(OTHER_LABEL, OTHER_LABEL);
+        for (PatrolTask task : taskList) {
+            if (StrUtil.isEmpty(task.getPointId())
+                || task.getPointMation() == null
+                || StrUtil.isEmpty(task.getPointMation().getName())
+            ) {
+                continue;
+            }
+            if (pointIdToName.containsKey(task.getPointId())) {
+                continue;
+            }
+            PatrolPoint point = task.getPointMation();
+            String name = point != null && StrUtil.isNotEmpty(point.getName())
+                ? point.getName()
+                : (point != null && StrUtil.isNotEmpty(point.getPointCode()) ? point.getPointCode() : task.getPointId());
+            pointIdToName.put(task.getPointId(), name);
         }
 
-        outputObject.setBeans(result);
-        outputObject.settotal(result.size());
+        List<String> xAxisData = new ArrayList<>();
+        List<Long> seriesData = new ArrayList<>();
+        for (Map.Entry<String, Long> entry : pointStats.entrySet()) {
+            xAxisData.add(pointIdToName.getOrDefault(entry.getKey(), entry.getKey()));
+            seriesData.add(entry.getValue());
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("total", total);
+        result.put("xAxisData", xAxisData);
+        result.put("seriesData", seriesData);
+
+        outputObject.setBean(result);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
     @Override
@@ -308,26 +399,46 @@ public class PatrolStatisticsServiceImpl implements PatrolStatisticsService {
         }
 
         List<PatrolTask> taskList = patrolTaskDao.selectList(queryWrapper);
-        Map<String, Long> executorStats = taskList.stream()
-            .filter(task -> StrUtil.isNotEmpty(task.getExecutorId()))
-            .collect(Collectors.groupingBy(PatrolTask::getExecutorId, Collectors.counting()));
+        long total = taskList.size();
 
-        List<Map<String, Object>> result = new ArrayList<>();
-        for (Map.Entry<String, Long> entry : executorStats.entrySet()) {
-            Map<String, Object> item = new HashMap<>();
-            item.put("executorId", entry.getKey());
-            item.put("taskCount", entry.getValue());
-            // 统计已完成任务数
-            long completedCount = taskList.stream()
-                .filter(task -> entry.getKey().equals(task.getExecutorId())
-                    && PatrolTaskState.COMPLETED.getKey().equals(task.getState()))
-                .count();
-            item.put("completedCount", completedCount);
-            result.add(item);
+        // 收集执行人ID并获取执行人名称
+        List<String> executorIds = taskList.stream()
+            .map(PatrolTask::getExecutorId)
+            .filter(StrUtil::isNotEmpty)
+            .distinct()
+            .collect(Collectors.toList());
+        Map<String, String> executorIdToName = new HashMap<>();
+        executorIdToName.put(OTHER_LABEL, OTHER_LABEL);
+        if (CollectionUtil.isNotEmpty(executorIds)) {
+            Map<String, Map<String, Object>> executorMap = iAuthUserService.queryUserMationListByStaffIds(executorIds);
+            executorMap.forEach((id, mation) -> {
+                executorIdToName.put(id, mation.get("name").toString());
+            });
         }
 
-        outputObject.setBeans(result);
-        outputObject.settotal(result.size());
+        // 有有效执行人的按 executorId 分组，executorId 为空或查不到执行人的归为「其他」
+        Map<String, Long> executorStats = taskList.stream()
+            .collect(Collectors.groupingBy(task -> {
+                if (StrUtil.isEmpty(task.getExecutorId())) {
+                    return OTHER_LABEL;
+                }
+                return executorIdToName.containsKey(task.getExecutorId()) ? task.getExecutorId() : OTHER_LABEL;
+            }, Collectors.counting()));
+
+        List<String> xAxisData = new ArrayList<>();
+        List<Long> seriesData = new ArrayList<>();
+        for (Map.Entry<String, Long> entry : executorStats.entrySet()) {
+            xAxisData.add(executorIdToName.getOrDefault(entry.getKey(), entry.getKey()));
+            seriesData.add(entry.getValue());
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("total", total);
+        result.put("xAxisData", xAxisData);
+        result.put("seriesData", seriesData);
+
+        outputObject.setBean(result);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
     @Override
