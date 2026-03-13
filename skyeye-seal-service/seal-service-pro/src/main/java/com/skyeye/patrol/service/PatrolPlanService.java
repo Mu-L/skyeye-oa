@@ -5,6 +5,8 @@
 package com.skyeye.patrol.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.patrol.entity.PatrolPlan;
 
 /**
@@ -17,5 +19,6 @@ import com.skyeye.patrol.entity.PatrolPlan;
  */
 public interface PatrolPlanService extends SkyeyeBusinessService<PatrolPlan> {
 
+    void queryAllPatrolPlanList(InputObject inputObject, OutputObject outputObject);
 }
 

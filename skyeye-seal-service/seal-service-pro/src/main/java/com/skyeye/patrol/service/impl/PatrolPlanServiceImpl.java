@@ -12,6 +12,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.patrol.dao.PatrolPlanDao;
 import com.skyeye.patrol.entity.PatrolItem;
@@ -146,5 +147,17 @@ public class PatrolPlanServiceImpl extends SkyeyeBusinessServiceImpl<PatrolPlanD
         patrolPlanItemService.deleteByParentId(entity.getId());
     }
 
+    @Override
+    public void queryAllPatrolPlanList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String enabled = params.get("enabled").toString();
+        QueryWrapper<PatrolPlan> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotBlank(enabled)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(PatrolPlan::getEnabled), enabled);
+        }
+        List<PatrolPlan> patrolPlanList = list(queryWrapper);
+        outputObject.setBeans(patrolPlanList);
+        outputObject.settotal(patrolPlanList.size());
+    }
 }
 

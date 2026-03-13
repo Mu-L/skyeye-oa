@@ -5,11 +5,14 @@
 package com.skyeye.patrol.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.TableSelectInfo;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.patrol.dao.PatrolTeamDao;
@@ -19,6 +22,9 @@ import com.skyeye.patrol.service.PatrolTeamService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: PatrolTeamServiceImpl
@@ -64,6 +70,19 @@ public class PatrolTeamServiceImpl extends SkyeyeBusinessServiceImpl<PatrolTeamD
     protected void deletePostpose(PatrolTeam entity) {
         // 删除班组下得人员
         patrolTeamMemberService.deleteMemberListByTeamId(entity.getId());
+    }
+
+    @Override
+    public void queryAllPatrolTeamList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String enabled = params.get("enabled").toString();
+        QueryWrapper<PatrolTeam> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotBlank(enabled)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(PatrolTeam::getEnabled), enabled);
+        }
+        List<PatrolTeam> patrolTeamList = list(queryWrapper);
+        outputObject.setBeans(patrolTeamList);
+        outputObject.settotal(patrolTeamList.size());
     }
 }
 

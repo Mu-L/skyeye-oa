@@ -9,6 +9,7 @@ import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.patrol.entity.PatrolPlan;
@@ -60,6 +61,14 @@ public class PatrolPlanController {
     @RequestMapping("/post/PatrolPlanController/deletePatrolPlanById")
     public void deletePatrolPlanById(InputObject inputObject, OutputObject outputObject) {
         patrolPlanService.deleteById(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryAllPatrolPlanList", value = "获取所有巡检计划列表", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "enabled", name = "enabled", value = "启用状态", enumClass = EnableEnum.class)})
+    @RequestMapping("/post/PatrolPlanController/queryAllPatrolPlanList")
+    public void queryAllPatrolPlanList(InputObject inputObject, OutputObject outputObject) {
+        patrolPlanService.queryAllPatrolPlanList(inputObject, outputObject);
     }
 }
 
