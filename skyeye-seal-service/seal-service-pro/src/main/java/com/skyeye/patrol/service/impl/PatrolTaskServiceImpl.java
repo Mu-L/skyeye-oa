@@ -60,6 +60,14 @@ public class PatrolTaskServiceImpl extends SkyeyeBusinessServiceImpl<PatrolTaskD
     }
 
     @Override
+    protected void updatePrepose(PatrolTask entity) {
+        if (PatrolTaskState.CANCELLED.getKey() == entity.getState()) {
+            // 编辑时，已取消状态的修改为待执行
+            entity.setState(PatrolTaskState.PENDING.getKey());
+        }
+    }
+
+    @Override
     protected QueryWrapper<PatrolTask> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<PatrolTask> queryWrapper = super.getQueryWrapper(commonPageInfo);
         if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
