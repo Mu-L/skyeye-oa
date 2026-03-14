@@ -14,6 +14,7 @@ import com.skyeye.scheme.entity.ProScheme;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @ClassName: ProConstruction
@@ -92,6 +93,10 @@ public class ProConstruction extends VersionFlowable {
     @TableField(value = "responsible_person")
     @ApiModelProperty(value = "负责人")
     private String responsiblePerson;
+
+    @TableField(exist = false)
+    @Property(value = "负责人信息")
+    private Map<String, Object> responsiblePersonMation;
 
     @TableField(value = "contact_phone")
     @ApiModelProperty(value = "联系电话")

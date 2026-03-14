@@ -21,6 +21,7 @@ import com.skyeye.construction.service.ProConstructionService;
 import com.skyeye.construction.service.ProConstructionStepService;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.erp.service.IMaterialService;
+import com.skyeye.followup.entity.ProFollowup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -104,6 +105,9 @@ public class ProConstructionServiceImpl extends SkyeyeBusinessServiceImpl<ProCon
 
         // 设置ERP商品规格信息
         iMaterialNormsService.setDataMation(proConstruction.getConstructionMaterialList(), ProConstructionMaterial::getMaterialNormsId);
+        // 负责人信息
+        iAuthUserService.setDataMation(proConstruction, ProConstruction::getResponsiblePerson);
+
         return proConstruction;
     }
 

@@ -53,6 +53,13 @@ public class ProFollowupServiceImpl extends SkyeyeBusinessServiceImpl<ProFollowu
     }
 
     @Override
+    public ProFollowup selectById(String id) {
+        ProFollowup proFollowup = super.selectById(id);
+        iAuthUserService.setDataMation(proFollowup, ProFollowup::getFollowupPersonId);
+        return proFollowup;
+    }
+
+    @Override
     public void validatorEntity(ProFollowup entity) {
         // 验证跟进标题唯一性（同一个项目内）
         QueryWrapper<ProFollowup> queryWrapper = new QueryWrapper<>();
