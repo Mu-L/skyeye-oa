@@ -61,7 +61,8 @@ public class PatrolTaskServiceImpl extends SkyeyeBusinessServiceImpl<PatrolTaskD
 
     @Override
     protected void updatePrepose(PatrolTask entity) {
-        if (PatrolTaskState.CANCELLED.getKey() == entity.getState()) {
+        PatrolTask oldPatrolTask = selectById(entity.getId());
+        if (PatrolTaskState.CANCELLED.getKey().equals(oldPatrolTask.getState())) {
             // 编辑时，已取消状态的修改为待执行
             entity.setState(PatrolTaskState.PENDING.getKey());
         }
