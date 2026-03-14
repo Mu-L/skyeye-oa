@@ -132,6 +132,20 @@ public class ApsScheduleServiceImpl implements ApsScheduleService {
         if (StrUtil.isEmpty(param.getScheduleStartDate())) {
             throw new CustomException("排程开始日期不能为空");
         }
+        if (StrUtil.isNotEmpty(param.getScheduleEndDate())) {
+            try {
+                LocalDate start = LocalDate.parse(param.getScheduleStartDate());
+                LocalDate end = LocalDate.parse(param.getScheduleEndDate());
+                if (end.isBefore(start)) {
+                    throw new CustomException("排程结束日期不能早于开始日期");
+                }
+            } catch (Exception e) {
+                if (e instanceof CustomException) {
+                    throw e;
+                }
+                throw new CustomException("排程日期格式错误，应为yyyy-MM-dd");
+            }
+        }
 
         // 1) 加载待排程车间任务
         List<MachinProcedureFarm> farmTasks = loadPendingFarmTasks(param);
