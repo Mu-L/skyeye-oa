@@ -606,14 +606,19 @@ public class BomServiceImpl extends SkyeyeBusinessServiceImpl<BomDao, Bom> imple
             .map(bean -> bean.get("bomId").toString()).collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(bomIds)) {
             Map<String, Bom> bomMap = selectMapByIds(bomIds);
+            wayProcedureService.setDataMation(new ArrayList<>(bomMap.values()), Bom::getWayProcedureId);
             List<BomChild> tempList = new ArrayList<>();
             beans.forEach(bean -> {
-                String bomId = bean.get("bomId").toString();
-                if (StrUtil.isNotEmpty(bomId)) {
-                    if (!bomMap.containsKey(bomId)) {
-                        return;
+                String bomId = MapUtil.checkKeyIsNull(bean, "bomId") ? null : bean.get("bomId") != null ? bean.get("bomId").toString() : null;
+                if (StrUtil.isNotEmpty(bomId) && bomMap.containsKey(bomId)) {
+                    Bom bom = bomMap.get(bomId);
+                    if (StrUtil.isNotEmpty(bom.getWayProcedureId())) {
+                        bean.put("wayProcedureId", bom.getWayProcedureId());
+                        if (bom.getWayProcedureMation() != null) {
+                            bean.put("wayProcedureMation", bom.getWayProcedureMation());
+                        }
                     }
-                    tempList.addAll(bomMap.get(bomId).getBomChildList());
+                    tempList.addAll(bom.getBomChildList());
                 }
             });
             if (CollectionUtil.isNotEmpty(tempList)) {
