@@ -260,11 +260,21 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
 
     @Override
     public void receiveMachinProcedureFarm(InputObject inputObject, OutputObject outputObject) {
-        String id = inputObject.getParams().get("id").toString();
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        String planStartTime = params.get("planStartTime").toString();
+        String planEndTime = params.get("planEndTime").toString();
         MachinProcedureFarm machinProcedureFarm = selectById(id);
         if (StrUtil.equals(machinProcedureFarm.getState(), MachinProcedureFarmState.WAIT_RECEIVE.getKey())) {
             // 待接收的车间任务可以进行接收
             editStateById(id, MachinProcedureFarmState.WAIT_EXECUTED.getKey());
+            // 修改计划时间
+            UpdateWrapper<MachinProcedureFarm> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq(CommonConstants.ID, id);
+            updateWrapper.set(MybatisPlusUtil.toColumns(MachinProcedureFarm::getPlanStartTime), planStartTime);
+            updateWrapper.set(MybatisPlusUtil.toColumns(MachinProcedureFarm::getPlanEndTime), planEndTime);
+            update(updateWrapper);
+
             // 计算所执行工序的耗材数量信息
             Map<String, BomChild> needConsumables = calculateProcedureConsumables(machinProcedureFarm);
             // 增加已分配库存，记录关联的加工单ID（使用加工单的部门ID）
@@ -382,6 +392,13 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
                 throw new CustomException("该车间任务已有工序验收单，不能进行反接收");
             }
             editStateById(id, MachinProcedureFarmState.WAIT_RECEIVE.getKey());
+            // 修改计划时间
+            UpdateWrapper<MachinProcedureFarm> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.eq(CommonConstants.ID, id);
+            updateWrapper.set(MybatisPlusUtil.toColumns(MachinProcedureFarm::getPlanStartTime), StrUtil.EMPTY);
+            updateWrapper.set(MybatisPlusUtil.toColumns(MachinProcedureFarm::getPlanEndTime), StrUtil.EMPTY);
+            update(updateWrapper);
+
             // 计算所执行工序的耗材数量信息
             Map<String, BomChild> needConsumables = calculateProcedureConsumables(machinProcedureFarm);
             // 减少已分配库存，需要指定objectId以匹配对应的已分配库存（使用加工单的部门ID）

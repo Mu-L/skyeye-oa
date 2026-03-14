@@ -40,7 +40,9 @@ public class MachinProcedureFarmController {
 
     @ApiOperation(id = "receiveMachinProcedureFarm", value = "车间任务接收", method = "POST", allUse = "1")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "planStartTime", name = "planStartTime", required = "required", value = "计划开始时间，格式yyyy-MM-dd HH:mm:ss"),
+        @ApiImplicitParam(id = "planEndTime", name = "planEndTime", required = "required", value = "计划结束时间，格式yyyy-MM-dd HH:mm:ss")})
     @RequestMapping("/post/MachinProcedureFarmController/receiveMachinProcedureFarm")
     public void receiveMachinProcedureFarm(InputObject inputObject, OutputObject outputObject) {
         machinProcedureFarmService.receiveMachinProcedureFarm(inputObject, outputObject);
