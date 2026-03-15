@@ -599,12 +599,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     public void querySchedulingByStaffIdAndOneDay(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String staffId = map.get("staffId").toString();
-        // 格式为 "yyyy-MM-dd"
-        String day = map.get("day").toString();
         QueryWrapper<Scheduling> schedulingWrapper = new QueryWrapper<>();
-        schedulingWrapper
-            .le(MybatisPlusUtil.toColumns(Scheduling::getStartTime), day)
-            .ge(MybatisPlusUtil.toColumns(Scheduling::getEndTime), day);
         List<Scheduling> schedulingList = list(schedulingWrapper);
         List<String> schedulingIds = schedulingList.stream().map(Scheduling::getId).collect(Collectors.toList());
         List<SchedulingTimeWorkPeople> timeWorkPeople = schedulingTimeWorkPeopleService.querySchedulingByschedulingIdsAndStaffId(schedulingIds, staffId);

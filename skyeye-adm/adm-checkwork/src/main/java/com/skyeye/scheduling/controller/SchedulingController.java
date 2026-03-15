@@ -76,8 +76,7 @@ public class SchedulingController {
 
     @ApiOperation(id = "querySchedulingByStaffIdAndOneDay", value = "根据用户Id和天份查询用户的排班记录", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "staffId", name = "staffId", value = "用户Id", required = "required"),
-        @ApiImplicitParam(id = "day", name = "day", value = "具体某天(年月日)", required = "required")})
+        @ApiImplicitParam(id = "staffId", name = "staffId", value = "用户Id", required = "required")})
     @RequestMapping("/post/SchedulingController/querySchedulingByStaffIdAndOneDay")
     public void querySchedulingByStaffIdAndOneDay(InputObject inputObject, OutputObject outputObject) {
         schedulingService.querySchedulingByStaffIdAndOneDay(inputObject, outputObject);

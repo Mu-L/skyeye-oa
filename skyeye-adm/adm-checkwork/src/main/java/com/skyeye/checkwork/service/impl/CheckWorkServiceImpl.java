@@ -608,7 +608,7 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
             // 固定班次
             calcWorkTime(beans, months, timeId);
         }
-        if (StrUtil.isNotBlank(staffId)) {
+        if (StrUtil.isNotBlank(staffId) && StrUtil.equals(shiftType, CheckWorkShiftType.SCHEDULE.getKey())) {
             // 计算排版班次信息
             calcScheduleShiftType(beans, months, staffId);
         }
