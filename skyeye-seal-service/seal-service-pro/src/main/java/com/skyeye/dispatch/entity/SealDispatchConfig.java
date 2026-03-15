@@ -10,7 +10,6 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
@@ -60,7 +59,7 @@ public class SealDispatchConfig extends OperatorUserInfo {
     private Integer poolCountSuspended;
 
     @TableField(value = "system_rules", typeHandler = JacksonTypeHandler.class)
-    @Property(value = "系统派单规则列表，JSON格式")
+    @ApiModelProperty(value = "系统派单规则列表，JSON格式", required = "required,json")
     private List<Map<String, Object>> systemRules;
 
 }
