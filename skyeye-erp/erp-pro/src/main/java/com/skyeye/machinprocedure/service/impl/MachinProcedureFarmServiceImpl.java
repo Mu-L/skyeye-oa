@@ -140,7 +140,9 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
         List<String> machinIds = beans.stream().map(bean -> MapUtil.getStr(bean, "machinId"))
             .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
         Map<String, Machin> machinMap = machinService.selectMapByIds(machinIds);
-        // 判断是否是最后一条工序
+        // 批量查询各加工单的工序，构建 (machinId, childId, bomChildId, wayProcedureId, orderBy) -> state，用于批量判断前序是否完工
+        Map<String, Integer> procedureStateByKey = buildProcedureStateKeyMap(machinIds);
+        // 判断是否是最后一条工序；判断前序工序是否已完工（当前工序是否可执行）
         beans.forEach(bean -> {
             String machinId = MapUtil.getStr(bean, "machinId");
             bean.put("machinMation", machinMap.get(machinId));
@@ -155,11 +157,93 @@ public class MachinProcedureFarmServiceImpl extends SkyeyeBusinessServiceImpl<Ma
                 Boolean isLastProcedure = machinService.checkIsLastProcedure(machinMap.get(machinId), childId, bomChildId, wayProcedureId,
                     materialId, normsId, procedureId);
                 bean.put("isLastProcedure", isLastProcedure);
+                // 前序工序是否已完工：根据批量查出的工序状态在内存中判断，不再循环内查库
+                boolean canExecute = resolveCanExecute(procedureStateByKey, machinId, machinProcedureMation);
+                bean.put("canExecute", canExecute);
             } else {
                 bean.put("isLastProcedure", false);
+                bean.put("canExecute", false);
             }
         });
         return beans;
+    }
+
+    /**
+     * 批量查询加工单工序，构建 (machinId, childId, bomChildId, wayProcedureId, orderBy) -> state 映射
+     */
+    private Map<String, Integer> buildProcedureStateKeyMap(List<String> machinIds) {
+        if (CollectionUtil.isEmpty(machinIds)) {
+            return Collections.emptyMap();
+        }
+        Map<String, Map<String, MachinProcedure>> procedureMapByMachinId = machinProcedureService.queryMachinProcedureMapByMachinIds(machinIds);
+        Map<String, Integer> stateByKey = new HashMap<>();
+        for (Map.Entry<String, Map<String, MachinProcedure>> entry : procedureMapByMachinId.entrySet()) {
+            String machinId = entry.getKey();
+            for (MachinProcedure proc : entry.getValue().values()) {
+                String key = procedureStateKey(machinId, proc.getChildId(), proc.getBomChildId(), proc.getWayProcedureId(), proc.getOrderBy());
+                stateByKey.put(key, proc.getState());
+            }
+        }
+        return stateByKey;
+    }
+
+    private static String procedureStateKey(String machinId, String childId, String bomChildId, String wayProcedureId, Integer orderBy) {
+        return (machinId != null ? machinId : "") + "|" + (childId != null ? childId : "") + "|"
+            + (bomChildId != null ? bomChildId : "") + "|" + (wayProcedureId != null ? wayProcedureId : "") + "|" + (orderBy != null ? orderBy : "");
+    }
+
+    /**
+     * 根据 MachinProcedure 及其顺序（orderBy）判断当前工序是否可执行。
+     * 同一路线内：首道可执行；否则仅当上一道（orderBy-1）已部分/全部完工时可执行。
+     * 产品路线（bomChildId 为空）：须在同子单下所有 BOM 子件工序全部完工后，产品工序才可执行（避免“只有一道产品工序”时子件未做也可执行）。
+     */
+    private boolean resolveCanExecute(Map<String, Integer> procedureStateByKey, String machinId, Map<String, Object> machinProcedureMation) {
+        Object orderByObj = machinProcedureMation.get("orderBy");
+        Integer orderBy = orderByObj instanceof Number ? ((Number) orderByObj).intValue() : null;
+        String childId = MapUtil.getStr(machinProcedureMation, "childId");
+        String bomChildId = MapUtil.getStr(machinProcedureMation, "bomChildId");
+        String wayProcedureId = MapUtil.getStr(machinProcedureMation, "wayProcedureId");
+        boolean isProductProcedure = StrUtil.isEmpty(bomChildId);
+
+        if (orderBy == null || orderBy <= 0) {
+            return true;
+        }
+        if (orderBy == 1) {
+            if (isProductProcedure) {
+                return isAllBomChildProceduresCompletedInMap(procedureStateByKey, machinId, childId);
+            }
+            return true;
+        }
+        int prevOrderBy = orderBy - 1;
+        String prevKey = procedureStateKey(machinId, childId, bomChildId, wayProcedureId, prevOrderBy);
+        Integer prevState = procedureStateByKey.get(prevKey);
+        if (prevState == null) {
+            return false;
+        }
+        return ObjectUtil.equal(prevState, MachinProcedureState.PARTIAL_COMPLETION.getKey())
+            || ObjectUtil.equal(prevState, MachinProcedureState.ALL_COMPLETED.getKey());
+    }
+
+    /**
+     * 判断同一子单下所有 BOM 子件工序（bomChildId 非空）是否均已全部完工。
+     * key 格式：machinId|childId|bomChildId|wayProcedureId|orderBy，子件工序即第三段非空。
+     */
+    private boolean isAllBomChildProceduresCompletedInMap(Map<String, Integer> procedureStateByKey, String machinId, String childId) {
+        String prefix = (machinId != null ? machinId : "") + "|" + (childId != null ? childId : "") + "|";
+        Integer completed = MachinProcedureState.ALL_COMPLETED.getKey();
+        for (Map.Entry<String, Integer> entry : procedureStateByKey.entrySet()) {
+            String key = entry.getKey();
+            if (!key.startsWith(prefix) || key.length() <= prefix.length()) {
+                continue;
+            }
+            if (key.charAt(prefix.length()) == '|') {
+                continue;
+            }
+            if (!ObjectUtil.equal(entry.getValue(), completed)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
