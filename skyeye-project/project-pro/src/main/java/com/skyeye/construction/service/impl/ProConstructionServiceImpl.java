@@ -21,7 +21,7 @@ import com.skyeye.construction.service.ProConstructionService;
 import com.skyeye.construction.service.ProConstructionStepService;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.erp.service.IMaterialService;
-import com.skyeye.followup.entity.ProFollowup;
+import com.skyeye.scheme.service.ProSchemeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -51,6 +51,9 @@ public class ProConstructionServiceImpl extends SkyeyeBusinessServiceImpl<ProCon
 
     @Autowired
     private IMaterialNormsService iMaterialNormsService;
+
+    @Autowired
+    private ProSchemeService proSchemeService;
 
     @Override
     protected QueryWrapper<ProConstruction> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -107,6 +110,9 @@ public class ProConstructionServiceImpl extends SkyeyeBusinessServiceImpl<ProCon
         iMaterialNormsService.setDataMation(proConstruction.getConstructionMaterialList(), ProConstructionMaterial::getMaterialNormsId);
         // 负责人信息
         iAuthUserService.setDataMation(proConstruction, ProConstruction::getResponsiblePerson);
+
+        // 项目方案制定
+        proSchemeService.setDataMation(proConstruction, ProConstruction::getSchemeId);
 
         return proConstruction;
     }
