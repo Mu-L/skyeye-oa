@@ -685,6 +685,9 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     }
 
     private LocalDateTime parseDateTime(String dateTimeStr) {
+        if (dateTimeStr != null) {
+            dateTimeStr = dateTimeStr.trim();
+        }
         try {
             return LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         } catch (DateTimeParseException e) {
