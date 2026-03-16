@@ -27,6 +27,8 @@ import com.skyeye.customer.entity.CustomerQueryDo;
 import com.skyeye.customer.service.CustomerService;
 import com.skyeye.eve.service.ISystemFoundationSettingsService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.label.entity.CrmLabel;
+import com.skyeye.label.service.CrmLabelService;
 import com.skyeye.opportunity.entity.CrmOpportunity;
 import com.skyeye.opportunity.service.CrmOpportunityService;
 import com.skyeye.sdk.catalog.service.CatalogSdkService;
@@ -61,6 +63,9 @@ public class CustomerServiceImpl extends SkyeyeBusinessServiceImpl<CustomerDao, 
 
     @Autowired
     private CrmContractService crmContractService;
+
+    @Autowired
+    private CrmLabelService crmLabelService;
 
     @Override
     public void queryCustomerList(InputObject inputObject, OutputObject outputObject) {
@@ -143,6 +148,16 @@ public class CustomerServiceImpl extends SkyeyeBusinessServiceImpl<CustomerDao, 
     @Override
     public void deletePostpose(String id) {
         iTeamBusinessService.deleteTeamBusiness(id, getServiceClassName());
+    }
+
+    @Override
+    public CustomerMation selectById(String id) {
+        CustomerMation customerMation = super.selectById(id);
+        if (CollectionUtil.isNotEmpty(customerMation.getLabelId())) {
+            List<CrmLabel> crmLabelList = crmLabelService.selectByIds(customerMation.getLabelId().toArray(new String[]{}));
+            customerMation.setLabelMation(crmLabelList);
+        }
+        return customerMation;
     }
 
     /**

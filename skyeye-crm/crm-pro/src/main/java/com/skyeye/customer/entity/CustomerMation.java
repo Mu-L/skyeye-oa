@@ -7,13 +7,18 @@ package com.skyeye.customer.entity;
 import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.AreaGeneralInfo;
+import com.skyeye.label.entity.CrmLabel;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * @ClassName: CustomerMation
@@ -112,5 +117,13 @@ public class CustomerMation extends AreaGeneralInfo {
 
     @TableField(value = "delete_flag")
     private Integer deleteFlag;
+
+    @TableField(value = "label_id", typeHandler = JacksonTypeHandler.class)
+    @ApiModelProperty(value = "客户标签id", required = "json")
+    private List<String> labelId;
+
+    @TableField(exist = false)
+    @Property("客户标签信息")
+    private List<CrmLabel> labelMation;
 
 }
