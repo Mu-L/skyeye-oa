@@ -70,7 +70,7 @@ public class ServiceAbnormalMarkingController {
         serviceAbnormalMarkingService.deleteById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryEnabledAbnormalMarkingList", value = "获取所有启用的售后服务异常标记列表", method = "GET", allUse = "0")
+    @ApiOperation(id = "queryEnabledAbnormalMarkingList", value = "获取所有启用的售后服务异常标记列表", method = "GET", allUse = "2")
     @RequestMapping("/post/ServiceAbnormalMarkingController/queryEnabledAbnormalMarkingList")
     public void queryEnabledAbnormalMarkingList(InputObject inputObject, OutputObject outputObject) {
         serviceAbnormalMarkingService.queryEnabledAbnormalMarkingList(inputObject, outputObject);

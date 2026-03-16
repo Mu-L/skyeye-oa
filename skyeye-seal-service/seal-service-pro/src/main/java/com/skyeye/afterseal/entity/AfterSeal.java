@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
+import com.skyeye.abnormalmarking.entity.ServiceAbnormalMarking;
 import com.skyeye.afterseal.classenum.AfterSealState;
 import com.skyeye.afterseal.classenum.ProductWarrantyType;
 import com.skyeye.afterseal.classenum.SealOrderType;
@@ -228,5 +229,13 @@ public class AfterSeal extends OperatorUserInfo implements EnclosureFace {
     @TableField(value = "latitude")
     @ApiModelProperty(value = "纬度")
     private String latitude;
+
+    @TableField(value = "service_abnormal_marking_id")
+    @ApiModelProperty(value = "异常标记id")
+    private String serviceAbnormalMarkingId;
+
+    @TableField(exist = false)
+    @Property(value = "异常标记信息")
+    private ServiceAbnormalMarking serviceAbnormalMarkingMation;
 
 }

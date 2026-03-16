@@ -11,6 +11,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.google.common.base.Joiner;
+import com.skyeye.abnormalmarking.service.ServiceAbnormalMarkingService;
 import com.skyeye.afterseal.classenum.AfterSealState;
 import com.skyeye.afterseal.dao.AfterSealDao;
 import com.skyeye.afterseal.entity.AfterSeal;
@@ -30,12 +31,12 @@ import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.crm.service.ICustomerService;
+import com.skyeye.dispatch.entity.SealDispatchConfig;
+import com.skyeye.dispatch.service.SealDispatchConfigService;
 import com.skyeye.erp.service.IMaterialService;
 import com.skyeye.eve.rest.mq.JobMateMation;
 import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.exception.CustomException;
-import com.skyeye.dispatch.entity.SealDispatchConfig;
-import com.skyeye.dispatch.service.SealDispatchConfigService;
 import com.skyeye.ordertype.service.SealOrderTypeService;
 import com.skyeye.worker.service.SealWorkerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +81,9 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
 
     @Autowired
     private SealDispatchConfigService sealDispatchConfigService;
+
+    @Autowired
+    private ServiceAbnormalMarkingService serviceAbnormalMarkingService;
 
     @Override
     public QueryWrapper<AfterSeal> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -142,6 +146,9 @@ public class AfterSealServiceImpl extends SkyeyeBusinessServiceImpl<AfterSealDao
         iCustomerService.setDataMation(afterSeal, AfterSeal::getHolderId);
 
         sealOrderTypeService.setDataMation(afterSeal, AfterSeal::getOrderTypeId);
+
+        // 异常标记
+        serviceAbnormalMarkingService.setDataMation(afterSeal, AfterSeal::getServiceAbnormalMarkingId);
         return afterSeal;
     }
 
