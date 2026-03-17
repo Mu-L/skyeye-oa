@@ -35,6 +35,16 @@ public interface MealOrderChildService extends SkyeyeBusinessService<MealOrderCh
 
     void updateStateISNotUseById(String id);
 
+    /**
+     * 退款成功后，设置为“已退款，不可再用”
+     */
+    void updateStateRefundById(String id);
+
+    /**
+     * 批量将按年限计算且已过期的套餐子订单置为已用完
+     */
+    void expireYearLimitMealOrders();
+
     void queryMealMationByMaterial(InputObject inputObject, OutputObject outputObject);
 
     List<MealOrderChild> queryListByCodeNum(String codeNum);

@@ -157,8 +157,8 @@ public class MealRefundOrderServiceImpl extends SkyeyeBusinessServiceImpl<MealRe
 
     @Override
     public void approvalEndIsSuccess(MealRefundOrder entity) {
-        // 设置套餐订单子单据状态为不可使用
-        mealOrderChildService.updateStateISNotUseById(entity.getMealOrderChildId());
+        // 设置套餐订单子单据状态为“已退款，不可再用”
+        mealOrderChildService.updateStateRefundById(entity.getMealOrderChildId());
     }
 
 }

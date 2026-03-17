@@ -15,6 +15,7 @@ import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.meal.classenum.ShopMealType;
+import com.skyeye.meal.classenum.ShopMealUseType;
 import lombok.Data;
 
 import java.util.List;
@@ -60,6 +61,10 @@ public class ShopMeal extends OperatorUserInfo {
     @TableField(value = "type")
     @ApiModelProperty(value = "套餐分类", enumClass = ShopMealType.class, required = "required,num")
     private Integer type;
+
+    @TableField(value = "use_type")
+    @ApiModelProperty(value = "套餐使用方式", enumClass = ShopMealUseType.class, required = "required,num")
+    private Integer useType;
 
     @TableField(value = "enabled")
     @ApiModelProperty(value = "状态", enumClass = EnableEnum.class, required = "required,num")

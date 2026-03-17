@@ -14,7 +14,9 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.meal.classenum.ShopMealOrderState;
+import com.skyeye.meal.classenum.ShopMealOrderType;
 import com.skyeye.store.entity.ShopStore;
 import lombok.Data;
 
@@ -72,7 +74,7 @@ public class MealOrder extends OperatorUserInfo {
     private Integer state;
 
     @TableField("type")
-    @ApiModelProperty(value = "订单来源，参考#ShopMealOrderType", required = "required,num")
+    @ApiModelProperty(value = "订单来源", enumClass = ShopMealOrderType.class, required = "required,num")
     private Integer type;
 
     @TableField("store_id")
@@ -88,7 +90,7 @@ public class MealOrder extends OperatorUserInfo {
     private String remark;
 
     @TableField("whether_give")
-    @ApiModelProperty(value = "是否赠送，参考#WhetherEnum", required = "required,num")
+    @ApiModelProperty(value = "是否赠送", enumClass = WhetherEnum.class, required = "required,num")
     private Integer whetherGive;
 
     @TableField("nature_id")

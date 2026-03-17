@@ -12,6 +12,8 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.meal.classenum.ShopMealOrderChildState;
 import lombok.Data;
 
 import java.util.Map;
@@ -98,11 +100,11 @@ public class MealOrderChild extends CommonInfo {
     private String endTime;
 
     @TableField(value = "state")
-    @Property(value = "是否可用，参考#WhetherEnum")
+    @ApiModelProperty(value = "子订单状态", enumClass = ShopMealOrderChildState.class)
     private Integer state;
 
     @TableField(exist = false)
-    @Property(value = "是否下达退款单，参考#WhetherEnum")
+    @Property(value = "是否下达退款单", enumClass = WhetherEnum.class)
     private Boolean isRefund;
 
     @TableField(exist = false)

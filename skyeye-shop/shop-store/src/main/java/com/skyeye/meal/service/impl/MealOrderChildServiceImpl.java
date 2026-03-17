@@ -16,14 +16,16 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.erp.service.IMaterialNormsService;
 import com.skyeye.erp.service.IMaterialService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.meal.classenum.ShopMealOrderChildState;
+import com.skyeye.meal.classenum.ShopMealUseType;
 import com.skyeye.meal.dao.MealOrderChildDao;
 import com.skyeye.meal.entity.MealOrderChild;
 import com.skyeye.meal.entity.ShopMeal;
@@ -104,7 +106,8 @@ public class MealOrderChildServiceImpl extends SkyeyeBusinessServiceImpl<MealOrd
         if (CollectionUtil.isNotEmpty(mealOrderChildList)) {
             for (MealOrderChild mealOrderChild : mealOrderChildList) {
                 mealOrderChild.setOrderId(orderId);
-                mealOrderChild.setState(WhetherEnum.DISABLE_USING.getKey());
+                // 子订单初始为待支付
+                mealOrderChild.setState(ShopMealOrderChildState.WAIT_PAY.getKey());
             }
             createEntity(mealOrderChildList, StrUtil.EMPTY);
         }
@@ -134,7 +137,8 @@ public class MealOrderChildServiceImpl extends SkyeyeBusinessServiceImpl<MealOrd
     public void updateStateISUseByOrderId(String orderId) {
         UpdateWrapper<MealOrderChild> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(MybatisPlusUtil.toColumns(MealOrderChild::getOrderId), orderId);
-        updateWrapper.set(MybatisPlusUtil.toColumns(MealOrderChild::getState), WhetherEnum.ENABLE_USING.getKey());
+        // 支付完成后，子订单改为“已支付，可使用”
+        updateWrapper.set(MybatisPlusUtil.toColumns(MealOrderChild::getState), ShopMealOrderChildState.CAN_USE.getKey());
         update(updateWrapper);
     }
 
@@ -142,7 +146,8 @@ public class MealOrderChildServiceImpl extends SkyeyeBusinessServiceImpl<MealOrd
     public void updateStateISNotUseById(String id) {
         UpdateWrapper<MealOrderChild> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
-        updateWrapper.set(MybatisPlusUtil.toColumns(MealOrderChild::getState), WhetherEnum.DISABLE_USING.getKey());
+        // 使用完当前子订单
+        updateWrapper.set(MybatisPlusUtil.toColumns(MealOrderChild::getState), ShopMealOrderChildState.USED_UP.getKey());
         update(updateWrapper);
         // 刷新缓存
         MealOrderChild mealOrderChild = selectById(id);
@@ -164,7 +169,8 @@ public class MealOrderChildServiceImpl extends SkyeyeBusinessServiceImpl<MealOrd
         if (StrUtil.isNotEmpty(codeNum)) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(MealOrderChild::getCodeNum), codeNum);
         }
-        queryWrapper.eq(MybatisPlusUtil.toColumns(MealOrderChild::getState), WhetherEnum.ENABLE_USING.getKey());
+        // 只查询“已支付，可使用”的子订单
+        queryWrapper.eq(MybatisPlusUtil.toColumns(MealOrderChild::getState), ShopMealOrderChildState.CAN_USE.getKey());
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(MealOrderChild::getStartTime));
         List<MealOrderChild> mealOrderChildList = list(queryWrapper);
         shopMealService.setDataMation(mealOrderChildList, MealOrderChild::getMealId);
@@ -172,14 +178,75 @@ public class MealOrderChildServiceImpl extends SkyeyeBusinessServiceImpl<MealOrd
         iMaterialService.setDataMation(mealOrderChildList, MealOrderChild::getMaterialId);
         // 规格信息
         iMaterialNormsService.setDataMation(mealOrderChildList, MealOrderChild::getNormsId);
-        outputObject.setBeans(mealOrderChildList);
-        outputObject.settotal(mealOrderChildList.size());
+
+        // 按套餐使用方式（次数 / 年限）过滤可用记录
+        List<MealOrderChild> result = mealOrderChildList.stream().filter(bean -> {
+            ShopMeal meal = bean.getMealMation();
+            if (ObjectUtil.isEmpty(meal) || meal.getUseType() == null) {
+                return true;
+            }
+            if (ObjectUtil.equal(meal.getUseType(), ShopMealUseType.BY_YEAR.getKey())) {
+                // 按年限：开始/结束时间以“yyyy-MM-dd”存储，按日期比较
+                String today = DateUtil.getYmdTimeAndToString();
+                String start = bean.getStartTime();
+                String end = bean.getEndTime();
+                if (StrUtil.isNotEmpty(start) && today.compareTo(start) < 0) {
+                    return false;
+                }
+                if (StrUtil.isNotEmpty(end) && today.compareTo(end) > 0) {
+                    return false;
+                }
+            }
+            // 按次数（BY_NUM）暂时只依赖 state=ENABLE_USING，由前端在实际核销时调用 updateStateISNotUseById 控制
+            return true;
+        }).collect(Collectors.toList());
+
+        outputObject.setBeans(result);
+        outputObject.settotal(result.size());
+    }
+
+    @Override
+    public void updateStateRefundById(String id) {
+        UpdateWrapper<MealOrderChild> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(MealOrderChild::getState), ShopMealOrderChildState.REFUNDED.getKey());
+        update(updateWrapper);
+        // 刷新缓存
+        MealOrderChild mealOrderChild = selectById(id);
+        mealOrderService.refreshCache(mealOrderChild.getOrderId());
+    }
+
+    /**
+     * 批量将已过期的“按年限计算”的套餐子订单置为已过期（不可再用）
+     */
+    @Override
+    public void expireYearLimitMealOrders() {
+        // 只处理按年限的套餐子订单
+        QueryWrapper<ShopMeal> mealQw = new QueryWrapper<>();
+        mealQw.eq(MybatisPlusUtil.toColumns(ShopMeal::getUseType), ShopMealUseType.BY_YEAR.getKey());
+        List<ShopMeal> yearMeals = shopMealService.list(mealQw);
+        if (CollectionUtil.isEmpty(yearMeals)) {
+            return;
+        }
+        List<String> mealIds = yearMeals.stream().map(ShopMeal::getId).collect(Collectors.toList());
+        // 当前日期（yyyy-MM-dd），和 start_time / end_time 格式一致
+        String today = DateUtil.getYmdTimeAndToString();
+
+        UpdateWrapper<MealOrderChild> uw = new UpdateWrapper<>();
+        uw.in(MybatisPlusUtil.toColumns(MealOrderChild::getMealId), mealIds);
+        uw.eq(MybatisPlusUtil.toColumns(MealOrderChild::getState), ShopMealOrderChildState.CAN_USE.getKey());
+        uw.isNotNull(MybatisPlusUtil.toColumns(MealOrderChild::getEndTime));
+        // 结束日期小于今天的认为已过期（end < today）
+        uw.lt(MybatisPlusUtil.toColumns(MealOrderChild::getEndTime), today);
+        // 状态改为已过期
+        uw.set(MybatisPlusUtil.toColumns(MealOrderChild::getState), ShopMealOrderChildState.EXPIRED.getKey());
+        update(uw);
     }
 
     @Override
     public List<MealOrderChild> queryListByCodeNum(String codeNum) {
         List<MealOrderChild> mealOrderChildList = new ArrayList<>();
-        if (StrUtil.isNotEmpty(codeNum)){
+        if (StrUtil.isNotEmpty(codeNum)) {
             QueryWrapper<MealOrderChild> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(MealOrderChild::getCodeNum), codeNum);
             mealOrderChildList = list(queryWrapper);

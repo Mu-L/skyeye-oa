@@ -224,7 +224,7 @@ public class MealOrderServiceImpl extends SkyeyeBusinessServiceImpl<MealOrderDao
         shopMealService.setDataMation(mealOrderChildList, MealOrderChild::getMealId);
         List<Map<String, String>> beans = new ArrayList<>();
         for (MealOrderChild mealOrderChild : mealOrderChildList) {
-            if (ObjectUtil.isNotEmpty(mealOrderChild.getMealMation())){
+            if (ObjectUtil.isNotEmpty(mealOrderChild.getMealMation())) {
                 Map<String, String> bean = new HashMap<>();
                 bean.put("id", mealOrderChild.getId());
                 bean.put("name", mealOrderChild.getMealMation().getName());
