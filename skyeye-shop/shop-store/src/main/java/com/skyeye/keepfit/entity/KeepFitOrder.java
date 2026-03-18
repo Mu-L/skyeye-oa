@@ -15,6 +15,7 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.keepfit.classenum.KeepFitOrderState;
+import com.skyeye.keepfit.classenum.KeepFitOrderUserType;
 import com.skyeye.meal.entity.MealOrderChild;
 import com.skyeye.store.entity.ShopStore;
 import lombok.Data;
@@ -53,7 +54,7 @@ public class KeepFitOrder extends OperatorUserInfo {
     private String remark;
 
     @TableField("user_type")
-    @ApiModelProperty(value = "用户类型，参考#KeepFitOrderUserType", required = "required,num")
+    @ApiModelProperty(value = "用户类型", enumClass = KeepFitOrderUserType.class, required = "required,num")
     private Integer userType;
 
     @TableField(value = "object_id", updateStrategy = FieldStrategy.NEVER)

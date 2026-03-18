@@ -30,11 +30,11 @@ import com.skyeye.meal.dao.MealOrderChildDao;
 import com.skyeye.meal.entity.MealOrderChild;
 import com.skyeye.meal.entity.ShopMeal;
 import com.skyeye.meal.service.MealOrderChildService;
-import com.skyeye.meal.service.MealOrderService;
 import com.skyeye.meal.service.MealRefundOrderService;
 import com.skyeye.meal.service.ShopMealService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,9 +61,6 @@ public class MealOrderChildServiceImpl extends SkyeyeBusinessServiceImpl<MealOrd
 
     @Autowired
     private IMaterialNormsService iMaterialNormsService;
-
-    @Autowired
-    private MealOrderService mealOrderService;
 
     @Autowired
     private MealRefundOrderService mealRefundOrderService;
@@ -108,6 +105,7 @@ public class MealOrderChildServiceImpl extends SkyeyeBusinessServiceImpl<MealOrd
                 mealOrderChild.setOrderId(orderId);
                 // 子订单初始为待支付
                 mealOrderChild.setState(ShopMealOrderChildState.WAIT_PAY.getKey());
+                mealOrderChild.setUseNum(0);
             }
             createEntity(mealOrderChildList, StrUtil.EMPTY);
         }
@@ -149,9 +147,6 @@ public class MealOrderChildServiceImpl extends SkyeyeBusinessServiceImpl<MealOrd
         // 使用完当前子订单
         updateWrapper.set(MybatisPlusUtil.toColumns(MealOrderChild::getState), ShopMealOrderChildState.USED_UP.getKey());
         update(updateWrapper);
-        // 刷新缓存
-        MealOrderChild mealOrderChild = selectById(id);
-        mealOrderService.refreshCache(mealOrderChild.getOrderId());
     }
 
     @Override
@@ -211,9 +206,6 @@ public class MealOrderChildServiceImpl extends SkyeyeBusinessServiceImpl<MealOrd
         updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(MealOrderChild::getState), ShopMealOrderChildState.REFUNDED.getKey());
         update(updateWrapper);
-        // 刷新缓存
-        MealOrderChild mealOrderChild = selectById(id);
-        mealOrderService.refreshCache(mealOrderChild.getOrderId());
     }
 
     /**
@@ -241,6 +233,126 @@ public class MealOrderChildServiceImpl extends SkyeyeBusinessServiceImpl<MealOrd
         // 状态改为已过期
         uw.set(MybatisPlusUtil.toColumns(MealOrderChild::getState), ShopMealOrderChildState.EXPIRED.getKey());
         update(uw);
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void consumeMealOrderChild(String id, Integer useNum) {
+        if (StrUtil.isEmpty(id)) {
+            throw new CustomException("套餐子订单id不能为空");
+        }
+        int inc = useNum == null ? 1 : useNum;
+        if (inc <= 0) {
+            throw new CustomException("使用次数必须大于0");
+        }
+        MealOrderChild child = selectById(id);
+        if (ObjectUtil.isEmpty(child) || StrUtil.isEmpty(child.getId())) {
+            throw new CustomException("套餐子订单不存在");
+        }
+        if (!ObjectUtil.equal(child.getState(), ShopMealOrderChildState.CAN_USE.getKey())) {
+            throw new CustomException("该套餐子订单状态不可用，无法核销");
+        }
+
+        ShopMeal meal = shopMealService.selectById(child.getMealId());
+        if (ObjectUtil.isEmpty(meal) || StrUtil.isEmpty(meal.getId())) {
+            throw new CustomException("套餐不存在");
+        }
+        // 按年限：校验未过期（日期 yyyy-MM-dd）
+        if (ObjectUtil.equal(meal.getUseType(), ShopMealUseType.BY_YEAR.getKey())) {
+            String today = DateUtil.getYmdTimeAndToString();
+            if (StrUtil.isNotEmpty(child.getStartTime()) && today.compareTo(child.getStartTime()) < 0) {
+                throw new CustomException("套餐尚未到开始日期，无法核销");
+            }
+            if (StrUtil.isNotEmpty(child.getEndTime()) && today.compareTo(child.getEndTime()) > 0) {
+                throw new CustomException("套餐已过期，无法核销");
+            }
+            // 年限套餐也记录使用次数（可选）
+        }
+
+        Integer currentUse = child.getUseNum() == null ? 0 : child.getUseNum();
+        int nextUse = currentUse + inc;
+
+        // 按次数：不能超过套餐可用次数
+        if (ObjectUtil.equal(meal.getUseType(), ShopMealUseType.BY_NUM.getKey())) {
+            Integer limit = meal.getMealNum() == null ? 0 : meal.getMealNum();
+            if (limit <= 0) {
+                throw new CustomException("套餐可用次数配置错误");
+            }
+            if (nextUse > limit) {
+                throw new CustomException("套餐可用次数不足，无法核销");
+            }
+        }
+
+        UpdateWrapper<MealOrderChild> uw = new UpdateWrapper<>();
+        uw.eq(CommonConstants.ID, id);
+        uw.set(MybatisPlusUtil.toColumns(MealOrderChild::getUseNum), nextUse);
+
+        // 按次数：用完则置为已用完
+        if (ObjectUtil.equal(meal.getUseType(), ShopMealUseType.BY_NUM.getKey())
+            && meal.getMealNum() != null
+            && nextUse >= meal.getMealNum()) {
+            uw.set(MybatisPlusUtil.toColumns(MealOrderChild::getState), ShopMealOrderChildState.USED_UP.getKey());
+        }
+        update(uw);
+    }
+
+    @Override
+    public void checkMealOrderChildCanConsume(String id, String objectId, String materialId, String normsId, String codeNum, Integer useNum) {
+        if (StrUtil.isEmpty(id)) {
+            throw new CustomException("套餐子订单id不能为空");
+        }
+        int inc = useNum == null ? 1 : useNum;
+        if (inc <= 0) {
+            throw new CustomException("使用次数必须大于0");
+        }
+        MealOrderChild child = selectById(id);
+        if (ObjectUtil.isEmpty(child) || StrUtil.isEmpty(child.getId())) {
+            throw new CustomException("套餐子订单不存在");
+        }
+        if (!ObjectUtil.equal(child.getState(), ShopMealOrderChildState.CAN_USE.getKey())) {
+            throw new CustomException("该套餐子订单状态不可用");
+        }
+        if (StrUtil.isNotEmpty(objectId) && !StrUtil.equals(objectId, child.getObjectId())) {
+            throw new CustomException("该套餐不属于当前会员");
+        }
+        if (StrUtil.isNotEmpty(materialId) && !StrUtil.equals(materialId, child.getMaterialId())) {
+            throw new CustomException("该套餐不适用于当前商品");
+        }
+        if (StrUtil.isNotEmpty(normsId) && !StrUtil.equals(normsId, child.getNormsId())) {
+            throw new CustomException("该套餐不适用于当前规格");
+        }
+        if (StrUtil.isNotEmpty(codeNum) && !StrUtil.equals(codeNum, child.getCodeNum())) {
+            throw new CustomException("该套餐不适用于当前条码");
+        }
+
+        ShopMeal meal = shopMealService.selectById(child.getMealId());
+        if (ObjectUtil.isEmpty(meal) || StrUtil.isEmpty(meal.getId())) {
+            throw new CustomException("套餐不存在");
+        }
+
+        // 按年限：校验未过期（日期 yyyy-MM-dd）
+        if (ObjectUtil.equal(meal.getUseType(), ShopMealUseType.BY_YEAR.getKey())) {
+            String today = DateUtil.getYmdTimeAndToString();
+            if (StrUtil.isNotEmpty(child.getStartTime()) && today.compareTo(child.getStartTime()) < 0) {
+                throw new CustomException("套餐尚未到开始日期");
+            }
+            if (StrUtil.isNotEmpty(child.getEndTime()) && today.compareTo(child.getEndTime()) > 0) {
+                throw new CustomException("套餐已过期");
+            }
+            return;
+        }
+
+        // 按次数：校验剩余次数
+        if (ObjectUtil.equal(meal.getUseType(), ShopMealUseType.BY_NUM.getKey())) {
+            Integer limit = meal.getMealNum() == null ? 0 : meal.getMealNum();
+            if (limit <= 0) {
+                throw new CustomException("套餐可用次数配置错误");
+            }
+            Integer currentUse = child.getUseNum() == null ? 0 : child.getUseNum();
+            if (currentUse + inc > limit) {
+                throw new CustomException("套餐可用次数不足");
+            }
+        }
     }
 
     @Override

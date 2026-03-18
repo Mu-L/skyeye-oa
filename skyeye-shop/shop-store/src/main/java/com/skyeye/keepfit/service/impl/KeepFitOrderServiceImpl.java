@@ -151,6 +151,18 @@ public class KeepFitOrderServiceImpl extends SkyeyeBusinessServiceImpl<KeepFitOr
                 throw new CustomException("该商品正在保养中/未完成核销，请勿重复下单");
             }
         }
+
+        // 下单阶段：如果选择了套餐，则先校验套餐是否可用（不扣减次数）
+        if (StrUtil.isNotEmpty(entity.getMealOrderChildId())) {
+            mealOrderChildService.checkMealOrderChildCanConsume(
+                entity.getMealOrderChildId(),
+                entity.getObjectId(),
+                entity.getMaterialId(),
+                entity.getNormsId(),
+                entity.getCodeNum(),
+                1
+            );
+        }
         checkNormsCodeAndOutbound(entity, true);
         entity.setState(KeepFitOrderState.NO_PAYING.getKey());
         Map<String, Object> business = BeanUtil.beanToMap(entity);
@@ -374,6 +386,10 @@ public class KeepFitOrderServiceImpl extends SkyeyeBusinessServiceImpl<KeepFitOr
         String id = params.get("id").toString();
         KeepFitOrder keepFitOrder = selectById(id);
         if (keepFitOrder.getState() == KeepFitOrderState.FIT_COMPLATE.getKey()) {
+            // 若使用套餐支付，则在核销时扣减套餐次数/校验有效期
+            if (StrUtil.isNotEmpty(keepFitOrder.getMealOrderChildId())) {
+                mealOrderChildService.consumeMealOrderChild(keepFitOrder.getMealOrderChildId(), 1);
+            }
             String userId = inputObject.getLogParams().get("id").toString();
             UpdateWrapper<KeepFitOrder> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(CommonConstants.ID, keepFitOrder.getId());

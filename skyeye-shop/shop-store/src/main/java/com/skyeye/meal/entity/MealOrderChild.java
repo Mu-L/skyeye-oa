@@ -99,6 +99,10 @@ public class MealOrderChild extends CommonInfo {
     @ApiModelProperty(value = "套餐结束时间")
     private String endTime;
 
+    @TableField(value = "use_num")
+    @ApiModelProperty(value = "已使用次数", required = "num", defaultValue = "0")
+    private Integer useNum;
+
     @TableField(value = "state")
     @ApiModelProperty(value = "子订单状态", enumClass = ShopMealOrderChildState.class)
     private Integer state;

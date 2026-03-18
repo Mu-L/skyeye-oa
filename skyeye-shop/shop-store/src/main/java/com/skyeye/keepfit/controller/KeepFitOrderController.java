@@ -32,12 +32,6 @@ public class KeepFitOrderController {
     @Autowired
     private KeepFitOrderService keepFitOrderService;
 
-    /**
-     * 获取保养订单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryKeepFitOrderList", value = "获取保养订单信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/KeepFitOrderController/queryKeepFitOrderList")
@@ -45,12 +39,6 @@ public class KeepFitOrderController {
         keepFitOrderService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 添加订单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertKeepFitOrder", value = "添加订单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = KeepFitOrder.class)
     @RequestMapping("/post/KeepFitOrderController/insertKeepFitOrder")
@@ -58,12 +46,6 @@ public class KeepFitOrderController {
         keepFitOrderService.createEntity(inputObject, outputObject);
     }
 
-    /**
-     * 支付订单完成后的回调
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "keepFitOrderNotify", value = "支付订单完成后的回调", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "out_trade_no", name = "outTradeNo", value = "商户订单号", required = "required"),
@@ -73,12 +55,6 @@ public class KeepFitOrderController {
         keepFitOrderService.keepFitOrderNotify(inputObject, outputObject);
     }
 
-    /**
-     * 保养订单购买详情
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryKeepFitOrderById", value = "保养订单购买详情", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "保养订单id", required = "required")})
@@ -87,12 +63,6 @@ public class KeepFitOrderController {
         keepFitOrderService.selectById(inputObject, outputObject);
     }
 
-    /**
-     * 单据核销
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "verificationKeepFitOrder", value = "单据核销", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "保养订单id", required = "required")})
@@ -101,12 +71,6 @@ public class KeepFitOrderController {
         keepFitOrderService.verificationOrder(inputObject, outputObject);
     }
 
-    /**
-     * 删除保养订单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteKeepFitOrderById", value = "删除保养订单", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -115,12 +79,6 @@ public class KeepFitOrderController {
         keepFitOrderService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 完成保养
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "complateKeepFitOrder", value = "完成保养", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "订单id", required = "required"),
@@ -132,17 +90,11 @@ public class KeepFitOrderController {
         keepFitOrderService.complateKeepFitOrder(inputObject, outputObject);
     }
 
-    /**
-     * 根据套餐门店id、保养订单门店id和日期查询保养订单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryListByStoreIdsAndDate", value = "根据套餐门店id、保养订单门店id和日期查询保养订单列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
-            @ApiImplicitParam(id = "mealStoreId", name = "mealStoreId", value = "套餐订单门店id", required = "required"),
-            @ApiImplicitParam(id = "keepFitStoreId", name = "keepFitStoreId", value = "保养订单门店id", required = "required"),
-            @ApiImplicitParam(id = "date", name = "date", value = "日期", required = "required")})
+        @ApiImplicitParam(id = "mealStoreId", name = "mealStoreId", value = "套餐订单门店id", required = "required"),
+        @ApiImplicitParam(id = "keepFitStoreId", name = "keepFitStoreId", value = "保养订单门店id", required = "required"),
+        @ApiImplicitParam(id = "date", name = "date", value = "日期", required = "required")})
     @RequestMapping("/post/KeepFitOrderController/queryListByStoreIdsAndDate")
     public void queryListByStoreIdsAndDate(InputObject inputObject, OutputObject outputObject) {
         keepFitOrderService.queryListByStoreIdsAndDate(inputObject, outputObject);

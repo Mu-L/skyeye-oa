@@ -116,15 +116,11 @@ public class MealOrderServiceImpl extends SkyeyeBusinessServiceImpl<MealOrderDao
     }
 
     @Override
-    public MealOrder getDataFromDb(String id) {
-        MealOrder mealOrder = super.getDataFromDb(id);
-        mealOrder.setMealList(mealOrderChildService.selectByOrderId(id));
-        return mealOrder;
-    }
-
-    @Override
     public MealOrder selectById(String id) {
         MealOrder mealOrder = super.selectById(id);
+        // 查询所购买的套餐信息列表，不放在getDataFromDb里面
+        mealOrder.setMealList(mealOrderChildService.selectByOrderId(id));
+
         iSysDictDataService.setDataMation(mealOrder, MealOrder::getNatureId);
         iAuthUserService.setDataMation(mealOrder, MealOrder::getCreateId);
         mealOrder.getMealList().forEach(mealOrderChild -> {
