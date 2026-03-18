@@ -56,7 +56,7 @@ public class PatrolRecordServiceImpl extends SkyeyeBusinessServiceImpl<PatrolRec
         // 设置任务信息
         patrolTaskService.setMationForMap(beans, "taskId", "taskMation");
         // 设置项目信息
-        patrolTaskService.setMationForMap(beans, "itemId", "itemMation");
+        patrolItemService.setMationForMap(beans, "itemId", "itemMation");
         return beans;
     }
 
