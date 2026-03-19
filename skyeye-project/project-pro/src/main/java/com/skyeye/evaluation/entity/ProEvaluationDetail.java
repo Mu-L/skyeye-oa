@@ -30,7 +30,7 @@ public class ProEvaluationDetail extends OperatorUserInfo {
     private String id;
 
     @TableField(value = "evaluation_id")
-    @ApiModelProperty(value = "评估id", required = "required")
+    @ApiModelProperty(value = "评估id")
     private String evaluationId;
 
     @TableField(exist = false)

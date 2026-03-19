@@ -33,6 +33,9 @@ public class ProEvaluationDetailServiceImpl extends SkyeyeBusinessServiceImpl<Pr
         deleteEvaluationDetail(evaluation.getId());
 
         if (CollectionUtil.isNotEmpty(evaluation.getEvaluationDetailList())) {
+            evaluation.getEvaluationDetailList().forEach(evaluationDetail -> {
+                evaluationDetail.setEvaluationId(evaluation.getId());
+            });
             // 计算加权得分
             calculateWeightedScores(evaluation.getEvaluationDetailList());
 
