@@ -141,6 +141,9 @@ public class RoleMenuServiceImpl implements RoleMenuService {
 
     @Override
     public List<Map<String, Object>> queryMenuListByMenuIds(List<String> menuIds, String userIdAndType) {
+        if (CollectionUtil.isEmpty(menuIds)) {
+            return new ArrayList<>();
+        }
         List<Map<String, Object>> menuList;
         if (userIdAndType.lastIndexOf(SysUserAuthConstants.APP_IDENTIFYING) < 0) {
             // PC端--包含菜单
