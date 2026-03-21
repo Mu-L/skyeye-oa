@@ -1,3 +1,7 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/dromara/skyeye
+ ******************************************************************************/
+
 package com.skyeye.product.service.impl;
 
 import cn.hutool.core.util.StrUtil;
@@ -21,7 +25,6 @@ import com.skyeye.product.dao.ProductReturnDao;
 import com.skyeye.product.entity.ProductReturn;
 import com.skyeye.product.entity.ProductReturnChild;
 import com.skyeye.product.entity.ProductReturnInStock;
-import com.skyeye.product.service.ProductLeadOutStockService;
 import com.skyeye.product.service.ProductReturnChildService;
 import com.skyeye.product.service.ProductReturnInStockService;
 import com.skyeye.product.service.ProductReturnService;
@@ -42,9 +45,6 @@ public class ProductReturnServiceImpl extends SkyeyeBusinessServiceImpl<ProductR
 
     @Autowired
     private ProductReturnChildService productReturnChildService;
-
-    @Autowired
-    private ProductLeadOutStockService productLeadOutStockService;
 
     @Autowired
     private ProductReturnInStockService productReturnInStockService;
