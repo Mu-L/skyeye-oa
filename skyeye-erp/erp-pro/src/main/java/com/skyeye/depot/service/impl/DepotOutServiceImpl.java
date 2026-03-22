@@ -340,7 +340,6 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
         List<MaterialNormsCode> materialNormsCodeList = materialNormsCodeService.queryMaterialNormsCodeByCodeNum(StrUtil.EMPTY, normsCodeList);
         Map<String, List<MaterialNormsCode>> listMap = materialNormsCodeList.stream()
             .collect(Collectors.groupingBy(MaterialNormsCode::getNormsId));
-        Map<String, Object> outNumMap = new HashMap<>();
         List<Map<String, Object>> applyLinkList = new ArrayList<>();
         for (ErpOrderItem erpOrderItem : entity.getErpOrderItemList()) {
             String normsId = erpOrderItem.getNormsId();
@@ -350,6 +349,8 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
             applyLink.put("normsCodeList", list);
             applyLinkList.add(applyLink);
         }
+
+        Map<String, Object> outNumMap = new HashMap<>();
         outNumMap.put("id", entity.getFromId());
         outNumMap.put("createId", entity.getCreateId());
         outNumMap.put("applyLinkList", applyLinkList);

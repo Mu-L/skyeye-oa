@@ -5,6 +5,7 @@
 package com.skyeye.accessory.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
@@ -200,17 +201,20 @@ public class SealApplyServiceImpl extends SkyeyeBusinessServiceImpl<SealApplyDao
     public void editSealApplyOutNum(InputObject inputObject, OutputObject outputObject) {
         SealApplyChangeStock sealApplyChangeStock = inputObject.getParams(SealApplyChangeStock.class);
         List<SealApplyCode> sealApplyCodeList = new ArrayList<>();
-        // 修改我的库存数量
         sealApplyChangeStock.getApplyLinkList().forEach(applyLink -> {
+            // 修改我的库存数量
             sealSeServiceMyPartsService.editMaterialNormsUserStock(sealApplyChangeStock.getCreateId(), applyLink.getMaterialId(), applyLink.getNormsId(),
                 applyLink.getOperNumber(), UserStockPutOutType.PUT.getKey());
-            applyLink.getNormsCodeList().forEach(normsCode -> {
-                SealApplyCode sealApplyCode = new SealApplyCode();
-                sealApplyCode.setNormsCode(normsCode);
-                sealApplyCode.setMaterialId(applyLink.getMaterialId());
-                sealApplyCode.setNormsId(applyLink.getNormsId());
-                sealApplyCodeList.add(sealApplyCode);
-            });
+            // 构建条形码信息
+            if (CollectionUtil.isNotEmpty(applyLink.getNormsCodeList())) {
+                applyLink.getNormsCodeList().forEach(normsCode -> {
+                    SealApplyCode sealApplyCode = new SealApplyCode();
+                    sealApplyCode.setNormsCode(normsCode);
+                    sealApplyCode.setMaterialId(applyLink.getMaterialId());
+                    sealApplyCode.setNormsId(applyLink.getNormsId());
+                    sealApplyCodeList.add(sealApplyCode);
+                });
+            }
         });
         // 保存配件码信息
         sealApplyCodeService.saveList(sealApplyChangeStock.getId(), sealApplyCodeList);

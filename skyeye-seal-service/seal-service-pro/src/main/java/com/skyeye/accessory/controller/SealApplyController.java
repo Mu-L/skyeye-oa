@@ -34,12 +34,6 @@ public class SealApplyController {
     @Autowired
     private SealApplyService sealApplyService;
 
-    /**
-     * 查询我的配件申领单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "sealseservice023", value = "查询我的配件申领单列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SealApplyController/querySealApplyList")
@@ -47,12 +41,6 @@ public class SealApplyController {
         sealApplyService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑配件申领单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSealApply", value = "新增/编辑配件申领单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SealApply.class)
     @RequestMapping("/post/SealApplyController/writeSealApply")
@@ -60,12 +48,6 @@ public class SealApplyController {
         sealApplyService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除配件申领单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteSealApplyById", value = "删除配件申领单", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -74,12 +56,6 @@ public class SealApplyController {
         sealApplyService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 配件申领单申请提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "submitSealApplyToApproval", value = "配件申领单申请提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/SealApplyController/submitToApproval")
@@ -87,12 +63,6 @@ public class SealApplyController {
         sealApplyService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 撤销配件申领单申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokeSealApply", value = "撤销配件申领单申请", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})
@@ -101,12 +71,6 @@ public class SealApplyController {
         sealApplyService.revoke(inputObject, outputObject);
     }
 
-    /**
-     * 修改配件申领单出库状态
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "editSealApplyOtherState", value = "修改配件申领单出库状态", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
@@ -116,12 +80,6 @@ public class SealApplyController {
         sealApplyService.editSealApplyOtherState(inputObject, outputObject);
     }
 
-    /**
-     * 修改配件申领单已出库的数量
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "editSealApplyOutNum", value = "修改配件申领单已出库的数量", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = SealApplyChangeStock.class)
     @RequestMapping("/post/SealApplyController/editSealApplyOutNum")

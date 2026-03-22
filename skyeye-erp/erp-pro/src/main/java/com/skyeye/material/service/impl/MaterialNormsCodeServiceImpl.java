@@ -219,6 +219,9 @@ public class MaterialNormsCodeServiceImpl extends SkyeyeBusinessServiceImpl<Mate
 
     @Override
     public List<MaterialNormsCode> queryMaterialNormsCodeByCodeNum(String depotId, List<String> codeNumList, Integer... indepot) {
+        if (CollectionUtil.isEmpty(codeNumList)) {
+            return new ArrayList<>();
+        }
         List<String> codeNumTmpList = codeNumList.stream().distinct().collect(Collectors.toList());
         QueryWrapper<MaterialNormsCode> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(MaterialNormsCode::getCodeNum), codeNumTmpList);
