@@ -344,8 +344,8 @@ public class DepotOutServiceImpl extends SkyeyeErpOrderServiceImpl<DepotOutDao, 
         for (ErpOrderItem erpOrderItem : entity.getErpOrderItemList()) {
             String normsId = erpOrderItem.getNormsId();
             Map<String, Object> applyLink = BeanUtil.beanToMap(erpOrderItem);
-            List<String> list = listMap.get(normsId).stream()
-                .map(MaterialNormsCode::getCodeNum).collect(Collectors.toList());
+            List<String> list = listMap.containsKey(normsId) ? listMap.get(normsId).stream()
+                .map(MaterialNormsCode::getCodeNum).collect(Collectors.toList()) : new ArrayList<>();
             applyLink.put("normsCodeList", list);
             applyLinkList.add(applyLink);
         }
