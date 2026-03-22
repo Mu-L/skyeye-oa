@@ -22,13 +22,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum MaterialItemCode implements SkyeyeEnumClass {
 
-    DISABLE(0, "禁用", true, true),
-    ONE_ITEM_CODE(1, "一物一码", true, false),
-    BY_BATCH(2, "按批次", false, false);
+    DISABLE(0, "禁用", "red", true, true),
+    ONE_ITEM_CODE(1, "一物一码", "blue", true, false),
+    BY_BATCH(2, "按批次", "green", false, false);
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 

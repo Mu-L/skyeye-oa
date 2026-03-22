@@ -22,12 +22,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum MaterialFromType implements SkyeyeEnumClass {
 
-    SELF_PRODUCED(1, "自产", true, true),
-    OUTSOURCING(2, "外购", true, false);
+    SELF_PRODUCED(1, "自产", "blue", true, true),
+    OUTSOURCING(2, "外购", "green", true, false);
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 

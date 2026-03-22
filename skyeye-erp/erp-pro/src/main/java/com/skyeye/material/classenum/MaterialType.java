@@ -22,13 +22,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum MaterialType implements SkyeyeEnumClass {
 
-    FINISHED_PRODUCT(1, "成品", true, true),
-    PARTIALLY_PREPARED_PRODUCTS(2, "半成品", true, false),
-    MATTER(3, "物料", true, false);
+    FINISHED_PRODUCT(1, "成品", "blue", true, true),
+    PARTIALLY_PREPARED_PRODUCTS(2, "半成品", "green", true, false),
+    MATTER(3, "物料", "yellow", true, false);
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 
