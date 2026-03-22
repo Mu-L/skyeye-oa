@@ -22,12 +22,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum UserLoginLogDeviceType implements SkyeyeEnumClass {
 
-    PC(1, "PC", true, true),
-    MOBILE(2, "移动端", true, false);
+    PC(1, "PC端", "blue", true, true),
+    MOBILE(2, "移动端", "green", true, false);
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 

@@ -22,12 +22,14 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum DocMemberLoginLogStatus implements SkyeyeEnumClass {
 
-    SUCCESS(1, "成功", true, true),
-    FAIL(0, "失败", true, false);
+    SUCCESS(1, "成功", "green", true, true),
+    FAIL(0, "失败", "red", true, false);
 
     private Integer key;
 
     private String value;
+
+    private String color;
 
     private Boolean show;
 
