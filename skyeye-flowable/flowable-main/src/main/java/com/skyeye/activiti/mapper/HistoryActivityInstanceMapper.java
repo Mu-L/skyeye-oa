@@ -1,5 +1,6 @@
 package com.skyeye.activiti.mapper;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import org.apache.ibatis.annotations.Param;
 
 /**
@@ -12,6 +13,7 @@ import org.apache.ibatis.annotations.Param;
  */
 public interface HistoryActivityInstanceMapper {
 
+    @IgnoreTenant
     int delete(@Param("id") String id);
 
 }
