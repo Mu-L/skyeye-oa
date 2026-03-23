@@ -9,7 +9,9 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.scheme.dao.ProSchemeBudgetDetailDao;
 import com.skyeye.scheme.entity.ProSchemeBudgetDetail;
@@ -40,6 +42,11 @@ public class ProSchemeBudgetDetailServiceImpl extends SkyeyeBusinessServiceImpl<
             for (ProSchemeBudgetDetail proSchemeBudgetDetail : beans) {
                 proSchemeBudgetDetail.setSchemeId(schemeId);
                 proSchemeBudgetDetail.setOrderBy(orderBy);
+                String quantity = StrUtil.isEmpty(proSchemeBudgetDetail.getQuantity()) ? "0" : proSchemeBudgetDetail.getQuantity();
+                String unitPrice = StrUtil.isEmpty(proSchemeBudgetDetail.getUnitPrice()) ? "0" : proSchemeBudgetDetail.getUnitPrice();
+                // 计算小计：数量 * 单价
+                String subtotal = CalculationUtil.multiply(quantity, unitPrice, CommonNumConstants.NUM_TWO);
+                proSchemeBudgetDetail.setSubtotal(subtotal);
                 orderBy++;
             }
             String userId = InputObject.getLogParamsStatic().get("id").toString();

@@ -14,6 +14,8 @@ import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.scheme.enums.BydgetType;
 import lombok.Data;
 
+import java.util.Map;
+
 /**
  * @ClassName: ProSchemeBudgetDetail
  * @Description: 项目方案预算明细实体类
@@ -38,6 +40,10 @@ public class ProSchemeBudgetDetail extends OperatorUserInfo {
     @TableField(value = "budget_type")
     @ApiModelProperty(value = "预算类型", enumClass = BydgetType.class, required = "required")
     private String budgetType;
+
+    @TableField(exist = false)
+    @Property(value = "预算类型信息")
+    private Map<String, Object> budgetTypeMation;
 
     @TableField(value = "specification")
     @ApiModelProperty(value = "规格说明")

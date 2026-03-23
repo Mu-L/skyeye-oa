@@ -20,6 +20,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.scheme.dao.ProSchemeDao;
 import com.skyeye.scheme.entity.ProScheme;
 import com.skyeye.scheme.entity.ProSchemeBudgetDetail;
+import com.skyeye.scheme.enums.BydgetType;
 import com.skyeye.scheme.service.ProSchemeBudgetDetailService;
 import com.skyeye.scheme.service.ProSchemeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -110,7 +111,6 @@ public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao
             String unitPrice = StrUtil.isEmpty(detail.getUnitPrice()) ? "0" : detail.getUnitPrice();
             // 计算小计：数量 * 单价
             String subtotal = CalculationUtil.multiply(quantity, unitPrice, CommonNumConstants.NUM_TWO);
-            detail.setSubtotal(subtotal);
             // 累加总预算
             totalBudget = CalculationUtil.add(totalBudget, subtotal, CommonNumConstants.NUM_TWO);
         }
@@ -138,6 +138,17 @@ public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao
             scheme.setBudgetDetailList(budgetDetailMap.get(id));
         });
         return schemeList;
+    }
+
+    @Override
+    public ProScheme selectById(String id) {
+        ProScheme proScheme = super.selectById(id);
+        if (CollectionUtil.isNotEmpty(proScheme.getBudgetDetailList())) {
+            proScheme.getBudgetDetailList().forEach(budgetDetail -> {
+                budgetDetail.setBudgetTypeMation(BydgetType.getMation(budgetDetail.getBudgetType()));
+            });
+        }
+        return proScheme;
     }
 
     @Override
