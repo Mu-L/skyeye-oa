@@ -6,6 +6,7 @@ import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.features.SubmitSkyeyeFlowable;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.construction.entity.ProConstruction;
@@ -30,10 +31,10 @@ public class ProConstructionController {
     private ProConstructionService proConstructionService;
 
     @ApiOperation(id = "queryProConstructionList", value = "获取施工方案信息", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/ProConstructionController/queryProConstructionList")
     public void queryProConstructionList(InputObject inputObject, OutputObject outputObject) {
-        proConstructionService.queryPageList(inputObject, outputObject);
+        proConstructionService.queryList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "writeProConstruction", value = "新增/编辑施工方案信息", method = "POST", allUse = "2")

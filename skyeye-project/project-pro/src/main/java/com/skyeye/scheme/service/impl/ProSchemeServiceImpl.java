@@ -10,7 +10,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
@@ -43,21 +43,21 @@ import java.util.stream.Collectors;
 public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao, ProScheme> implements ProSchemeService {
 
     @Autowired
-    private ProSchemeBudgetDetailService budgetDetailService;
+    private ProSchemeBudgetDetailService proSchemeBudgetDetailService;
 
     @Override
-    public QueryWrapper<ProScheme> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<ProScheme> queryWrapper = super.getQueryWrapper(commonPageInfo);
+    public QueryWrapper<ProScheme> getQueryWrapper(TableSelectInfo tableSelectInfo) {
+        QueryWrapper<ProScheme> queryWrapper = super.getQueryWrapper(tableSelectInfo);
         // 最新版本
         queryWrapper.eq(MybatisPlusUtil.toColumns(ProScheme::getWhetherLast), WhetherEnum.ENABLE_USING.getKey());
-        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ProScheme::getObjectId), commonPageInfo.getObjectId());
+        if (StrUtil.isNotEmpty(tableSelectInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ProScheme::getObjectId), tableSelectInfo.getObjectId());
         }
-        if (StrUtil.isNotEmpty(commonPageInfo.getFromId())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ProScheme::getFromId), commonPageInfo.getFromId());
+        if (StrUtil.isNotEmpty(tableSelectInfo.getFromId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ProScheme::getFromId), tableSelectInfo.getFromId());
         }
-        if (StrUtil.isNotEmpty(commonPageInfo.getCustomParamsMapStr("projectId"))) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ProScheme::getProjectId), commonPageInfo.getCustomParamsMapStr("projectId"));
+        if (StrUtil.isNotEmpty(tableSelectInfo.getCustomParamsMapStr("projectId"))) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ProScheme::getProjectId), tableSelectInfo.getCustomParamsMapStr("projectId"));
         }
         return queryWrapper;
     }
@@ -90,7 +90,7 @@ public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao
         super.writePostpose(entity, userId);
 
         // 保存预算明细
-        budgetDetailService.saveList(entity.getId(), entity.getBudgetDetailList());
+        proSchemeBudgetDetailService.saveList(entity.getId(), entity.getBudgetDetailList());
     }
 
     /**
@@ -123,7 +123,7 @@ public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao
     public ProScheme getDataFromDb(String id) {
         ProScheme scheme = super.getDataFromDb(id);
         // 设置预算明细信息
-        scheme.setBudgetDetailList(budgetDetailService.queryBudgetDetailBySchemeId(scheme.getId()));
+        scheme.setBudgetDetailList(proSchemeBudgetDetailService.queryBudgetDetailBySchemeId(scheme.getId()));
         return scheme;
     }
 
@@ -132,7 +132,7 @@ public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao
         List<ProScheme> schemeList = super.getDataFromDb(idList);
         List<String> ids = schemeList.stream().map(ProScheme::getId).collect(Collectors.toList());
         // 设置预算明细信息
-        Map<String, List<ProSchemeBudgetDetail>> budgetDetailMap = budgetDetailService.queryBudgetDetailBySchemeIds(ids);
+        Map<String, List<ProSchemeBudgetDetail>> budgetDetailMap = proSchemeBudgetDetailService.queryBudgetDetailBySchemeIds(ids);
         schemeList.forEach(scheme -> {
             String id = scheme.getId();
             scheme.setBudgetDetailList(budgetDetailMap.get(id));
@@ -153,7 +153,7 @@ public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao
 
     @Override
     public void deletePostpose(String id) {
-        budgetDetailService.deleteBudgetDetailBySchemeId(id);
+        proSchemeBudgetDetailService.deleteBudgetDetailBySchemeId(id);
     }
 
     /**

@@ -9,7 +9,7 @@ import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.features.SubmitSkyeyeFlowable;
-import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.scheme.entity.ProScheme;
@@ -34,10 +34,10 @@ public class ProSchemeController {
     private ProSchemeService proSchemeService;
 
     @ApiOperation(id = "queryProSchemeList", value = "查询项目方案列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/ProSchemeController/queryProSchemeList")
     public void queryProSchemeList(InputObject inputObject, OutputObject outputObject) {
-        proSchemeService.queryPageList(inputObject, outputObject);
+        proSchemeService.queryList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "writeProScheme", value = "新增/编辑项目方案", method = "POST", allUse = "2")

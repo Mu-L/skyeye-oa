@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -56,11 +57,11 @@ public class ProConstructionServiceImpl extends SkyeyeBusinessServiceImpl<ProCon
     private ProSchemeService proSchemeService;
 
     @Override
-    protected QueryWrapper<ProConstruction> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<ProConstruction> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        if (StrUtil.isNotEmpty(commonPageInfo.getCustomParamsMapStr("projectId"))) {
+    protected QueryWrapper<ProConstruction> getQueryWrapper(TableSelectInfo tableSelectInfo) {
+        QueryWrapper<ProConstruction> queryWrapper = super.getQueryWrapper(tableSelectInfo);
+        if (StrUtil.isNotEmpty(tableSelectInfo.getCustomParamsMapStr("projectId"))) {
             // 根据项目ID过滤
-            queryWrapper.eq(MybatisPlusUtil.toColumns(ProConstruction::getProjectId), commonPageInfo.getCustomParamsMapStr("projectId"));
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ProConstruction::getProjectId), tableSelectInfo.getCustomParamsMapStr("projectId"));
         }
         // 只查询最新版本
         queryWrapper.eq(MybatisPlusUtil.toColumns(ProConstruction::getWhetherLast), WhetherEnum.ENABLE_USING.getKey());
