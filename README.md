@@ -200,4 +200,4 @@
 
 |  赞助商  |  赞助商  |  赞助商  |  赞助商  |
 |--------|-------|-------|-------|
-| [![输入图片说明](images/show/sponsor/maxkey_banner.jpg)](https://gitee.com/dromara/MaxKey) | [![输入图片说明](https://minio.tianai.cloud/public/captcha/logo/logo-519x100.png)](https://gitee.com/dromara/tianai-captcha/) |||
+| [![输入图片说明](images/show/sponsor/maxkey_banner.jpg)](https://gitee.com/dromara/MaxKey) | [![输入图片说明](https://minio.tianai.cloud/public/captcha/logo/logo-519x100.png)](https://gitee.com/dromara/tianai-captcha/) | [![输入图片说明](https://infinilabs.cn/img/download/media-assets/infinilabs-slogan.png)](https://easysearch.cn/) ||
