@@ -145,7 +145,7 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
             inTransitStockMap = inTransitStockList.stream()
                 .collect(Collectors.toMap(DepartmentStock::getNormsId, stock -> stock, (v1, v2) -> v1));
 
-            // 查询 ALLOCATED_STOCK
+            // 查询 ALLOCATED_STOCK（已分配量：部门/车间侧多为加工单车间任务预留；与 ORDER_STOCK、IN_TRANSIT_STOCK 并列）
             QueryWrapper<DepartmentStock> allocatedWrapper = new QueryWrapper<>();
             allocatedWrapper.in(MybatisPlusUtil.toColumns(DepartmentStock::getNormsId), normsIds)
                 .eq(MybatisPlusUtil.toColumns(DepartmentStock::getType), MaterialNormsStockType.ALLOCATED_STOCK.getKey());
@@ -160,6 +160,7 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
                 allocatedWrapper.eq(CommonConstants.TENANT_ID_FIELD, tenantId);
             }
             List<DepartmentStock> allocatedStockList = list(allocatedWrapper);
+            // 同一 normsId 若存在多条已分配（如不同 object_id 分账），此处仅保留第一条；列表「已分配」列可能小于分账明细之和
             allocatedStockMap = allocatedStockList.stream()
                 .collect(Collectors.toMap(DepartmentStock::getNormsId, stock -> stock, (v1, v2) -> v1));
         }
@@ -193,7 +194,7 @@ public class DepartmentStockServiceImpl extends SkyeyeBusinessServiceImpl<Depart
                 resultMap.put("inTransitStock", CommonNumConstants.NUM_ZERO.toString());
             }
 
-            // 已分配库存
+            // 已分配库存：前端 erpDepartStock 列表「已分配库存」列；枚举见 MaterialNormsStockType.ALLOCATED_STOCK
             DepartmentStock allocatedStock = normsId != null ? allocatedStockMap.get(normsId) : null;
             if (allocatedStock != null) {
                 resultMap.put("allocatedStock", allocatedStock.getStock());
