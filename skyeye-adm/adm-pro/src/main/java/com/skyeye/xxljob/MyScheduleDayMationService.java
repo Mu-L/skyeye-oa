@@ -22,6 +22,7 @@ import com.skyeye.eve.service.IQuartzService;
 import com.skyeye.eve.service.IUserNoticeService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -38,6 +39,7 @@ import java.util.Map;
  * @Copyright: 2022 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
+@Slf4j
 @Component
 public class MyScheduleDayMationService {
 
@@ -69,32 +71,36 @@ public class MyScheduleDayMationService {
         if (tenantEnable) {
             TenantContext.setTenantId(tenantId);
         }
-        Map<String, Object> userMation = iAuthUserService.queryDataMationById(userId);
-        // 获取日程信息
-        ScheduleDay scheduleDay = scheduleDayService.selectById(scheduleId);
-        //发送消息
-        String content = NoticeUserMessageTypeEnum.getScheduleMessageContent(userMation.get("userName").toString(), scheduleDay.getName(),
-            scheduleDay.getStartTime(), scheduleDay.getEndTime(), scheduleDay.getRemark());
+        try {
+            Map<String, Object> userMation = iAuthUserService.queryDataMationById(userId);
+            // 获取日程信息
+            ScheduleDay scheduleDay = scheduleDayService.selectById(scheduleId);
+            //发送消息
+            String content = NoticeUserMessageTypeEnum.getScheduleMessageContent(userMation.get("userName").toString(), scheduleDay.getName(),
+                scheduleDay.getStartTime(), scheduleDay.getEndTime(), scheduleDay.getRemark());
 
-        // 调用消息系统添加通知
-        insertUserNotice(userId, content);
+            // 调用消息系统添加通知
+            insertUserNotice(userId, content);
 
-        // 发送邮件
-        if (!MapUtil.checkKeyIsNull(userMation, "email")) {
-            Map<String, Object> emailNotice = new HashMap<>();
-            emailNotice.put("title", NoticeUserMessageTypeEnum.SCHEDULE_MESSAGE.getValue());
-            emailNotice.put("content", content);
-            emailNotice.put("email", userMation.get("email").toString());
-            emailNotice.put("type", MqConstants.JobMateMationJobType.ORDINARY_MAIL_DELIVERY.getJobType());
-            JobMateMation jobMateMation = new JobMateMation();
-            jobMateMation.setJsonStr(JSONUtil.toJsonStr(emailNotice));
-            jobMateMation.setUserId(userId);
-            iJobMateMationService.sendMQProducer(jobMateMation);
+            // 发送邮件
+            if (!MapUtil.checkKeyIsNull(userMation, "email")) {
+                Map<String, Object> emailNotice = new HashMap<>();
+                emailNotice.put("title", NoticeUserMessageTypeEnum.SCHEDULE_MESSAGE.getValue());
+                emailNotice.put("content", content);
+                emailNotice.put("email", userMation.get("email").toString());
+                emailNotice.put("type", MqConstants.JobMateMationJobType.ORDINARY_MAIL_DELIVERY.getJobType());
+                JobMateMation jobMateMation = new JobMateMation();
+                jobMateMation.setJsonStr(JSONUtil.toJsonStr(emailNotice));
+                jobMateMation.setUserId(userId);
+                iJobMateMationService.sendMQProducer(jobMateMation);
+            }
+        } catch (Exception e) {
+            log.error("日程提醒失败", e);
+        } finally {
+            // 修改日程状态
+            scheduleDayService.editScheduleStateById(scheduleId, ScheduleState.REMINDED_SCHEDULE.getKey());
+            iQuartzService.stopAndDeleteTaskQuartz(scheduleId);
         }
-
-        // 修改日程状态
-        scheduleDayService.editScheduleStateById(scheduleId, ScheduleState.REMINDED_SCHEDULE.getKey());
-        iQuartzService.stopAndDeleteTaskQuartz(scheduleId);
     }
 
     private void insertUserNotice(String userId, String content) {

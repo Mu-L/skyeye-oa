@@ -39,7 +39,7 @@ public class LoanBorrowAnalysisXxlJob {
     /**
      * 定时任务
      * 每月一次：还款单分析记录
-     * */
+     */
 
 
     @XxlJob("writeLoanBorrowAnalysisRecord")
@@ -56,11 +56,11 @@ public class LoanBorrowAnalysisXxlJob {
                     TenantContext.setTenantId(tenantId);
                     loanBorrowAnalysisService.writeLoanBorrowAnalysisRecord();
                 });
-            }else {
+            } else {
                 loanBorrowAnalysisService.writeLoanBorrowAnalysisRecord();
             }
-        }catch (Exception e){
-            LOGGER.warn("xxljob writeLoanBorrowAnalysisRecord error:{0}",e);
+        } catch (Exception e) {
+            LOGGER.warn("xxljob writeLoanBorrowAnalysisRecord error:{0}", e);
         }
     }
 
