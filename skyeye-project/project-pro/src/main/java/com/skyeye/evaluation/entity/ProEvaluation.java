@@ -9,6 +9,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
+import com.skyeye.project.entity.Project;
 import com.skyeye.scheme.entity.ProScheme;
 import lombok.Data;
 
@@ -38,7 +39,7 @@ public class ProEvaluation extends SkyeyeFlowable {
 
     @TableField(exist = false)
     @Property(value = "项目信息")
-    private Object projectMation;
+    private Project projectMation;
 
     @TableField(value = "scheme_id", updateStrategy = FieldStrategy.NEVER)
     @ApiModelProperty(value = "方案id", required = "required")
