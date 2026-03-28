@@ -14,6 +14,7 @@ import com.skyeye.eve.service.ITenantService;
 import com.skyeye.order.service.OrderService;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +31,7 @@ import java.util.Map;
  * @Copyright: 2023 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
+@Slf4j
 @Component
 public class ShopXxlJob {
 
@@ -47,8 +49,6 @@ public class ShopXxlJob {
 
     @Value("${skyeye.tenant.enable}")
     private boolean tenantEnable;
-
-    private static Logger log = LoggerFactory.getLogger(ShopXxlJob.class);
 
     @XxlJob("setShopCouponStateService")
     public void setShopCouponStateService() {
