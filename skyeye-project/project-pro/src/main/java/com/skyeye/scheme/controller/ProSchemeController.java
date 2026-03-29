@@ -73,7 +73,7 @@ public class ProSchemeController {
 
     @ApiOperation(id = "querySchemeListByProjectId", value = "根据项目id查询方案列表", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "projectId", name = "projectId", value = "项目id")})
+        @ApiImplicitParam(id = "objectId", name = "objectId", value = "项目id")})
     @RequestMapping("/post/ProSchemeController/querySchemeListByProjectId")
     public void querySchemeListByProjectId(InputObject inputObject, OutputObject outputObject) {
         proSchemeService.querySchemeListByProjectId(inputObject, outputObject);

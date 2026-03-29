@@ -165,7 +165,7 @@ public class ProSchemeServiceImpl extends SkyeyeBusinessServiceImpl<ProSchemeDao
     @Override
     public void querySchemeListByProjectId(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        String projectId = map.get("projectId").toString();
+        String projectId = map.get("objectId").toString();
         if (StrUtil.isEmpty(projectId)) {
             return;
         }
