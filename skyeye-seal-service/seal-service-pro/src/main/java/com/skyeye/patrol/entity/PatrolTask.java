@@ -56,6 +56,14 @@ public class PatrolTask extends OperatorUserInfo {
     @Property(value = "点位信息")
     private PatrolPoint pointMation;
 
+    @TableField(value = "item_id")
+    @ApiModelProperty(value = "巡检项目ID（计划未配置项目时可为空）")
+    private String itemId;
+
+    @TableField(exist = false)
+    @Property(value = "项目信息")
+    private PatrolItem itemMation;
+
     @TableField(value = "executor_id")
     @ApiModelProperty(value = "执行人ID（员工ID）")
     private String executorId;

@@ -49,14 +49,6 @@ public class PatrolRecord extends SkyeyeFlowable {
     @Property(value = "任务信息")
     private PatrolTask taskMation;
 
-    @TableField(value = "item_id")
-    @ApiModelProperty(value = "巡检项目ID", required = "required")
-    private String itemId;
-
-    @TableField(exist = false)
-    @Property(value = "项目信息")
-    private PatrolItem itemMation;
-
     @TableField(value = "check_result")
     @ApiModelProperty(value = "检查结果", enumClass = PatrolItemSummaryType.class, required = "required,num")
     private Integer checkResult;

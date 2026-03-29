@@ -20,6 +20,7 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.patrol.classenum.PatrolTaskState;
 import com.skyeye.patrol.dao.PatrolTaskDao;
 import com.skyeye.patrol.entity.PatrolTask;
+import com.skyeye.patrol.service.PatrolItemService;
 import com.skyeye.patrol.service.PatrolPlanService;
 import com.skyeye.patrol.service.PatrolPointService;
 import com.skyeye.patrol.service.PatrolTaskService;
@@ -47,6 +48,9 @@ public class PatrolTaskServiceImpl extends SkyeyeBusinessServiceImpl<PatrolTaskD
 
     @Autowired
     private PatrolPointService patrolPointService;
+
+    @Autowired
+    private PatrolItemService patrolItemService;
 
     @Override
     public void createPrepose(PatrolTask entity) {
@@ -100,6 +104,8 @@ public class PatrolTaskServiceImpl extends SkyeyeBusinessServiceImpl<PatrolTaskD
         patrolPlanService.setMationForMap(beans, "planId", "planMation");
         // 设置点位信息
         patrolPointService.setMationForMap(beans, "pointId", "pointMation");
+        // 设置项目信息
+        patrolItemService.setMationForMap(beans, "itemId", "itemMation");
         // 设置执行人信息
         List<String> executorIds = beans.stream()
             .filter(bean -> bean.get("executorId") != null)
@@ -129,6 +135,8 @@ public class PatrolTaskServiceImpl extends SkyeyeBusinessServiceImpl<PatrolTaskD
         patrolPlanService.setDataMation(patrolTask, PatrolTask::getPlanId);
         // 设置点位信息
         patrolPointService.setDataMation(patrolTask, PatrolTask::getPointId);
+        // 设置项目信息
+        patrolItemService.setDataMation(patrolTask, PatrolTask::getItemId);
         // 设置执行人信息
         if (StrUtil.isNotEmpty(patrolTask.getExecutorId())) {
             Map<String, Map<String, Object>> executorMap = iAuthUserService.queryUserMationListByStaffIds(

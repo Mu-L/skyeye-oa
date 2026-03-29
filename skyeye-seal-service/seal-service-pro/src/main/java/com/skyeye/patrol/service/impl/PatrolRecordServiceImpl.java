@@ -5,6 +5,7 @@
 package com.skyeye.patrol.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @ClassName: PatrolRecordServiceImpl
@@ -76,10 +78,8 @@ public class PatrolRecordServiceImpl extends SkyeyeBusinessServiceImpl<PatrolRec
         if (patrolRecord == null) {
             return null;
         }
-        // 设置任务信息
+        // 设置任务信息（任务内已含巡检项目 itemMation）
         patrolTaskService.setDataMation(patrolRecord, PatrolRecord::getTaskId);
-        // 设置项目信息
-        patrolItemService.setDataMation(patrolRecord, PatrolRecord::getItemId);
         return patrolRecord;
     }
 

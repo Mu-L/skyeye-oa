@@ -51,6 +51,9 @@ public class PatrolStatisticsServiceImpl implements PatrolStatisticsService {
     private PatrolTaskDao patrolTaskDao;
 
     @Autowired
+    private PatrolTaskService patrolTaskService;
+
+    @Autowired
     private PatrolRecordDao patrolRecordDao;
 
     @Autowired
@@ -335,37 +338,44 @@ public class PatrolStatisticsServiceImpl implements PatrolStatisticsService {
         }
 
         List<PatrolRecord> recordList = patrolRecordDao.selectList(queryWrapper);
-        // 填充项目信息（itemMation）以便获取名称
-        patrolItemService.setDataMation(recordList, PatrolRecord::getItemId);
+        List<String> taskIds = recordList.stream()
+            .map(PatrolRecord::getTaskId)
+            .filter(StrUtil::isNotEmpty)
+            .distinct()
+            .collect(Collectors.toList());
+        List<PatrolTask> tasks = patrolTaskService.selectByIds(taskIds.toArray(new String[0]));
+        patrolItemService.setDataMation(tasks, PatrolTask::getItemId);
+        Map<String, PatrolTask> taskMap = tasks.stream()
+            .collect(Collectors.toMap(PatrolTask::getId, t -> t, (a, b) -> a));
 
         long total = recordList.size();
-        // 有有效项目的按 itemId 分组，找不到项目或 itemId 为空的归为「其他」
+        // 按关联任务上的巡检项目分组
         Map<String, Long> itemStats = recordList.stream()
             .collect(Collectors.groupingBy(record -> {
-                if (StrUtil.isEmpty(record.getItemId())
-                    || record.getItemMation() == null
-                    || StrUtil.isEmpty(record.getItemMation().getName())) {
+                PatrolTask task = taskMap.get(record.getTaskId());
+                if (task == null || StrUtil.isEmpty(task.getItemId())
+                    || task.getItemMation() == null
+                    || StrUtil.isEmpty(task.getItemMation().getName())) {
                     return OTHER_LABEL;
                 }
-                return record.getItemId();
+                return task.getItemId();
             }, Collectors.counting()));
 
-        // itemId -> 项目名称（优先使用 itemMation.name）
         Map<String, String> itemIdToName = new HashMap<>();
         itemIdToName.put(OTHER_LABEL, OTHER_LABEL);
-        for (PatrolRecord record : recordList) {
-            if (StrUtil.isEmpty(record.getItemId())
-                || record.getItemMation() == null
-                || StrUtil.isEmpty(record.getItemMation().getName())) {
+        for (PatrolTask task : tasks) {
+            if (StrUtil.isEmpty(task.getItemId())
+                || task.getItemMation() == null
+                || StrUtil.isEmpty(task.getItemMation().getName())) {
                 continue;
             }
-            if (itemIdToName.containsKey(record.getItemId())) {
+            if (itemIdToName.containsKey(task.getItemId())) {
                 continue;
             }
-            String name = record.getItemMation() != null && StrUtil.isNotEmpty(record.getItemMation().getName())
-                ? record.getItemMation().getName()
-                : record.getItemId();
-            itemIdToName.put(record.getItemId(), name);
+            String name = StrUtil.isNotEmpty(task.getItemMation().getName())
+                ? task.getItemMation().getName()
+                : task.getItemId();
+            itemIdToName.put(task.getItemId(), name);
         }
 
         List<String> xAxisData = new ArrayList<>();
