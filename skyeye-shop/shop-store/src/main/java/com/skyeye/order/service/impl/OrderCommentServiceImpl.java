@@ -228,6 +228,9 @@ public class OrderCommentServiceImpl extends SkyeyeBusinessServiceImpl<OrderComm
 
     @Override
     public List<OrderComment> queryListByOrderItemIdAndType(List<String> orderItemIds, Integer type) {
+        if (CollectionUtil.isEmpty(orderItemIds)) {
+            return new ArrayList<>();
+        }
         QueryWrapper<OrderComment> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(OrderComment::getOrderItemId), orderItemIds)
             .eq(MybatisPlusUtil.toColumns(OrderComment::getType), type);
