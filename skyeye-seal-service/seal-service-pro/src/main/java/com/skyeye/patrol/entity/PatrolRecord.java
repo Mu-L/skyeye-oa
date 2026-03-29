@@ -33,6 +33,14 @@ public class PatrolRecord extends SkyeyeFlowable {
     @Property(value = "记录编号", fuzzyLike = true)
     private String oddNumber;
 
+    @TableField(value = "plan_id")
+    @ApiModelProperty(value = "巡检计划ID", required = "required")
+    private String planId;
+
+    @TableField(exist = false)
+    @Property(value = "计划信息")
+    private PatrolPlan planMation;
+
     @TableField(value = "task_id")
     @ApiModelProperty(value = "巡检任务ID", required = "required")
     private String taskId;

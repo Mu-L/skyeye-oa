@@ -47,6 +47,9 @@ public class PatrolRecordServiceImpl extends SkyeyeBusinessServiceImpl<PatrolRec
         if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(PatrolRecord::getTaskId), commonPageInfo.getObjectId());
         }
+        if (StrUtil.isNotEmpty(commonPageInfo.getCustomParamsMapStr("planId"))) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(PatrolRecord::getPlanId), commonPageInfo.getCustomParamsMapStr("planId"));
+        }
         return queryWrapper;
     }
 
