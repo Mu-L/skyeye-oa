@@ -67,11 +67,11 @@ public class SysQuartzServiceImpl implements SysQuartzService {
         LOGGER.info("start quartz, title is {}, userId is {}", sysQuartz.getTitle(), userId);
         String groupId = ExecuteFeignClient.get(() -> xxlJobService.getGroupId(sysQuartz.getAppName())).getBean().get("id").toString();
         LOGGER.info("xxl-job groupId is {}", groupId);
-        XxlJobInfo xxlJobInfo = this.getXxlJobInfo(sysQuartz.getName(), groupId, sysQuartz.getDelayedTime(), sysQuartz.getTitle(), sysQuartz.getGroupId(), userId);
+        XxlJobInfo xxlJobInfo = this.getXxlJobInfo(sysQuartz.getName(), groupId, sysQuartz.getDelayedTime(), sysQuartz.getTitle(), sysQuartz.getGroupId(), userId, sysQuartz.getScheduleConf());
         ExecuteFeignClient.get(() -> xxlJobService.addAndStart(xxlJobInfo));
     }
 
-    private XxlJobInfo getXxlJobInfo(String objectId, String groupId, String delayedTime, String jobDesc, String taskType, String userId) {
+    private XxlJobInfo getXxlJobInfo(String objectId, String groupId, String delayedTime, String jobDesc, String taskType, String userId, String scheduleConf) {
         XxlJobInfo xxlJobInfo = new XxlJobInfo();
         Map<String, Object> user = iAuthUserService.queryDataMationById(userId);
         String author = "商城用户";
@@ -82,7 +82,9 @@ public class SysQuartzServiceImpl implements SysQuartzService {
         xxlJobInfo.setJobGroup(Integer.parseInt(groupId));
         xxlJobInfo.setJobDesc(QuartzConstants.QuartzMateMationJobType.getRemarkPrefixByTaskType(taskType, jobDesc));
         xxlJobInfo.setScheduleType("CRON");
-        String cron = ToolUtil.getCrons1(delayedTime);
+        String cron = StrUtil.isNotBlank(scheduleConf)
+            ? scheduleConf.trim()
+            : ToolUtil.getCrons1(delayedTime);
         xxlJobInfo.setScheduleConf(cron);
         xxlJobInfo.setGlueType("BEAN");
         xxlJobInfo.setExecutorRouteStrategy("FIRST");

@@ -60,6 +60,19 @@ public class PatrolTaskServiceImpl extends SkyeyeBusinessServiceImpl<PatrolTaskD
     }
 
     @Override
+    protected void createPrepose(List<PatrolTask> list) {
+        list.forEach(patrolTask -> {
+            Map<String, Object> business = BeanUtil.beanToMap(patrolTask);
+            String oddNumber = iCodeRuleService.getNextCodeByClassName(this.getClass().getName(), business);
+            patrolTask.setOddNumber(oddNumber);
+            // 新创建的任务默认为待执行状态
+            if (patrolTask.getState() == null) {
+                patrolTask.setState(PatrolTaskState.PENDING.getKey());
+            }
+        });
+    }
+
+    @Override
     protected void updatePrepose(PatrolTask entity) {
         PatrolTask oldPatrolTask = selectById(entity.getId());
         if (PatrolTaskState.CANCELLED.getKey().equals(oldPatrolTask.getState())) {

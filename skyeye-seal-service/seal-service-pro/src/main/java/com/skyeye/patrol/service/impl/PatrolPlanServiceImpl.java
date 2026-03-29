@@ -10,15 +10,21 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.QuartzConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.rest.quartz.SysQuartzMation;
+import com.skyeye.eve.service.IQuartzService;
+import com.skyeye.exception.CustomException;
 import com.skyeye.patrol.dao.PatrolPlanDao;
 import com.skyeye.patrol.entity.PatrolItem;
 import com.skyeye.patrol.entity.PatrolPlan;
 import com.skyeye.patrol.entity.PatrolPoint;
 import com.skyeye.patrol.service.*;
+import com.skyeye.patrol.support.PatrolPlanCronBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -53,6 +59,9 @@ public class PatrolPlanServiceImpl extends SkyeyeBusinessServiceImpl<PatrolPlanD
     @Autowired
     private PatrolPlanItemService patrolPlanItemService;
 
+    @Autowired
+    private IQuartzService iQuartzService;
+
     @Override
     protected QueryWrapper<PatrolPlan> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<PatrolPlan> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -74,11 +83,23 @@ public class PatrolPlanServiceImpl extends SkyeyeBusinessServiceImpl<PatrolPlanD
 
     @Override
     public void writePostpose(PatrolPlan entity, String userId) {
-        // 保存关联的点位
+        // 先停止并删除本计划已注册的 XXL 子任务，再保存数据，最后再注册新任务
+        iQuartzService.stopAndDeleteTaskQuartz(entity.getId());
         patrolPlanPointService.saveList(entity.getId(), entity.getPointId());
-        // 保存关联的项目
         patrolPlanItemService.saveList(entity.getId(), entity.getItemId());
         super.writePostpose(entity, userId);
+        if (EnableEnum.ENABLE_USING.getKey().equals(entity.getEnabled())) {
+            String cron = PatrolPlanCronBuilder.buildScheduleConf(entity);
+            if (StrUtil.isEmpty(cron)) {
+                throw new CustomException("定时Cron生成失败");
+            }
+            SysQuartzMation quartz = new SysQuartzMation();
+            quartz.setName(entity.getId());
+            quartz.setTitle(entity.getName());
+            quartz.setScheduleConf(cron);
+            quartz.setGroupId(QuartzConstants.QuartzMateMationJobType.PATROL_PLAN_TASK_GENERATE.getTaskType());
+            iQuartzService.startUpTaskQuartz(quartz);
+        }
     }
 
     @Override
@@ -145,6 +166,8 @@ public class PatrolPlanServiceImpl extends SkyeyeBusinessServiceImpl<PatrolPlanD
         patrolPlanPointService.deleteByParentId(entity.getId());
         // 删除关联的项目
         patrolPlanItemService.deleteByParentId(entity.getId());
+        // 删除定时任务
+        iQuartzService.stopAndDeleteTaskQuartz(entity.getId());
     }
 
     @Override
