@@ -75,7 +75,7 @@ public class PurchaseRequestController {
     @ApiOperation(id = "inquiryPurchaseRequest", value = "采购申请询价", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "purchaseRequestInquiryChildList", name = "purchaseRequestInquiryChildList", value = "采购申请询价明细信息", required = "required,json")})
+        @ApiImplicitParam(id = "purchaseRequestInquiryChildList", name = "purchaseRequestInquiryChildList", value = "采购申请询价明细信息", required = "json")})
     @RequestMapping("/post/PurchaseRequestController/inquiryPurchaseRequest")
     public void inquiryPurchaseRequest(InputObject inputObject, OutputObject outputObject) {
         purchaseRequestService.inquiryPurchaseRequest(inputObject, outputObject);

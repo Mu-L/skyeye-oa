@@ -272,7 +272,7 @@ public class PurchaseRequestServiceImpl extends SkyeyeBusinessServiceImpl<Purcha
             .map(PurchaseRequestChild::getNormsId).collect(Collectors.toList());
 
         List<PurchaseRequestInquiryChild> purchaseRequestInquiryChildList = JSONUtil.toList(
-            params.get("purchaseRequestInquiryChildList").toString(), PurchaseRequestInquiryChild.class
+            params.getOrDefault("purchaseRequestInquiryChildList", "[]").toString(), PurchaseRequestInquiryChild.class
         );
         purchaseRequestInquiryChildList.forEach(purchaseRequestInquiryChild -> {
             if (!oldNormsId.contains(purchaseRequestInquiryChild.getNormsId())) {

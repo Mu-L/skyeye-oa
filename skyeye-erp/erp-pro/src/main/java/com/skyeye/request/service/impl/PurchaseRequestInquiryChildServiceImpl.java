@@ -71,6 +71,8 @@ public class PurchaseRequestInquiryChildServiceImpl extends SkyeyeBusinessServic
         deleteByParentId(parentId, InquiryQuoteSourceEnum.BACKEND.getKey());
         if (CollectionUtil.isNotEmpty(beans)) {
             for (PurchaseRequestInquiryChild purchaseRequestInquiryChild : beans) {
+                // 防止多租户情况下直接编辑报错
+                purchaseRequestInquiryChild.setTenantId(null);
                 purchaseRequestInquiryChild.setParentId(parentId);
                 // 后端询价报价保存，统一标记为后端添加
                 purchaseRequestInquiryChild.setQuoteSource(InquiryQuoteSourceEnum.BACKEND.getKey());
