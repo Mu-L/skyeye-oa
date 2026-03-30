@@ -104,6 +104,12 @@ public class ProductionServiceImpl extends SkyeyeBusinessServiceImpl<ProductionD
         Integer machinOrderState = ProductionMachinOrderState.NOT_NEED_ISSUE.getKey();
 
         for (ProductionChild productionChild : entity.getProductionChildList()) {
+            // 计划开始时间不能晚于计划结束时间（允许相等），格式：yyyy-MM-dd
+            if (StrUtil.isNotEmpty(productionChild.getPlanStartTime())
+                && StrUtil.isNotEmpty(productionChild.getPlanEndTime())
+                && productionChild.getPlanStartTime().compareTo(productionChild.getPlanEndTime()) > 0) {
+                throw new CustomException("子单据计划开始时间不能晚于计划结束时间.");
+            }
             // 自制
             if (productionChild.getProductionType() == ProductionChildType.SELF_CONTROL.getKey()) {
                 machinOrderState = ProductionMachinOrderState.NEED_ISSUE.getKey();
