@@ -56,16 +56,15 @@ public interface MealOrderChildService extends SkyeyeBusinessService<MealOrderCh
     /**
      * 下单/预约阶段校验套餐是否可用（不扣减次数）
      *
-     * @param id      套餐子订单id
-     * @param objectId 会员id（可空）
+     * @param id         套餐子订单id
+     * @param objectId   会员id（可空）
      * @param materialId 商品id（可空）
-     * @param normsId 规格id（可空）
-     * @param codeNum 条码（可空）
-     * @param useNum 计划使用次数，默认 1
+     * @param normsId    规格id（可空）
+     * @param codeNum    条码（可空）
+     * @param useNum     计划使用次数，默认 1
      */
     void checkMealOrderChildCanConsume(String id, String objectId, String materialId, String normsId, String codeNum, Integer useNum);
 
     void queryMealMationByMaterial(InputObject inputObject, OutputObject outputObject);
 
-    List<MealOrderChild> queryListByCodeNum(String codeNum);
 }

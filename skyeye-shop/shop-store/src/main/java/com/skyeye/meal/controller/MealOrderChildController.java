@@ -31,12 +31,6 @@ public class MealOrderChildController {
     @Autowired
     private MealOrderChildService mealOrderChildService;
 
-    /**
-     * 根据会员/客户id获取已经购买的套餐信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMealMationByObjectId", value = "根据会员/客户id获取已经购买的套餐信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/MealController/queryMealMationByObjectId")
@@ -44,12 +38,6 @@ public class MealOrderChildController {
         mealOrderChildService.queryMealMationByObjectId(inputObject, outputObject);
     }
 
-    /**
-     * 根据商品规格以及条形码获取已经购买的套餐信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMealMationByMaterial", value = "根据商品规格以及条形码获取已经购买的套餐信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "会员/客户id", required = "required"),

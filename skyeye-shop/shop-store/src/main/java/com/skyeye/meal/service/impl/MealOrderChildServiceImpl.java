@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -353,17 +352,6 @@ public class MealOrderChildServiceImpl extends SkyeyeBusinessServiceImpl<MealOrd
                 throw new CustomException("套餐可用次数不足");
             }
         }
-    }
-
-    @Override
-    public List<MealOrderChild> queryListByCodeNum(String codeNum) {
-        List<MealOrderChild> mealOrderChildList = new ArrayList<>();
-        if (StrUtil.isNotEmpty(codeNum)) {
-            QueryWrapper<MealOrderChild> queryWrapper = new QueryWrapper<>();
-            queryWrapper.eq(MybatisPlusUtil.toColumns(MealOrderChild::getCodeNum), codeNum);
-            mealOrderChildList = list(queryWrapper);
-        }
-        return mealOrderChildList;
     }
 
 }

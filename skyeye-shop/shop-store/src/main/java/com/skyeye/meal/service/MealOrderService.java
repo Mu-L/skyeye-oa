@@ -25,5 +25,4 @@ public interface MealOrderService extends SkyeyeBusinessService<MealOrder> {
 
     void editOrderStateById(String id, Integer state);
 
-    void queryMealOrderListByCodeNum(InputObject inputObject, OutputObject outputObject);
 }
