@@ -61,7 +61,7 @@ public class ProFollowup extends BaseGeneralInfo {
     private Map<String, Object> followupPersonMation;
 
     @TableField(value = "state")
-    @ApiModelProperty(value = "跟进状态", enumClass = FollowupStateEnum.class, required = "required")
+    @ApiModelProperty(value = "跟进状态", enumClass = FollowupStateEnum.class)
     private String state;
 
     @TableField(value = "next_followup_time")
