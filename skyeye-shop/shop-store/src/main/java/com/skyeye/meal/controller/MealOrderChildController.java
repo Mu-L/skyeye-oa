@@ -40,9 +40,9 @@ public class MealOrderChildController {
 
     @ApiOperation(id = "queryMealMationByMaterial", value = "根据商品规格以及条形码获取已经购买的套餐信息", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "objectId", name = "objectId", value = "会员/客户id", required = "required"),
-        @ApiImplicitParam(id = "materialId", name = "materialId", value = "商品id", required = "required"),
-        @ApiImplicitParam(id = "normsId", name = "normsId", value = "规格id", required = "required"),
+        @ApiImplicitParam(id = "objectId", name = "objectId", value = "会员/客户id"),
+        @ApiImplicitParam(id = "materialId", name = "materialId", value = "商品id"),
+        @ApiImplicitParam(id = "normsId", name = "normsId", value = "规格id"),
         @ApiImplicitParam(id = "codeNum", name = "codeNum", value = "规格编号")})
     @RequestMapping("/post/MealController/queryMealMationByMaterial")
     public void queryMealMationByMaterial(InputObject inputObject, OutputObject outputObject) {

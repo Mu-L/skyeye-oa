@@ -155,6 +155,9 @@ public class MealOrderChildServiceImpl extends SkyeyeBusinessServiceImpl<MealOrd
         String materialId = params.get("materialId").toString();
         String normsId = params.get("normsId").toString();
         String codeNum = params.get("codeNum").toString();
+        if (StrUtil.isEmpty(objectId) || StrUtil.isEmpty(materialId) || StrUtil.isEmpty(normsId)) {
+            return;
+        }
 
         QueryWrapper<MealOrderChild> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(MealOrderChild::getObjectId), objectId);
