@@ -11,6 +11,7 @@ import org.flowable.common.engine.impl.interceptor.CommandContext;
 import org.flowable.engine.impl.persistence.entity.ExecutionEntity;
 import org.flowable.engine.impl.util.condition.ConditionUtil;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 
@@ -48,7 +49,17 @@ public class FindNextUserTaskNodeCmd implements Command<UserTask> {
     public UserTask execute(CommandContext commandContext) {
         // 当前流程节点信息
         FlowElement currentNode = bpmnModel.getFlowElement(execution.getActivityId());
-        execution.setVariables(vars);
+        // 仅注入临时变量用于网关条件计算，避免写入运行时变量导致乐观锁冲突
+        if (vars != null && !vars.isEmpty()) {
+            try {
+                Method setTransientVariable = execution.getClass().getMethod("setTransientVariable", String.class, Object.class);
+                for (Map.Entry<String, Object> entry : vars.entrySet()) {
+                    setTransientVariable.invoke(execution, entry.getKey(), entry.getValue());
+                }
+            } catch (Exception ignore) {
+                // 兼容分支：如果当前引擎实现不支持 transient 变量，不做变量写入，避免产生并发更新
+            }
+        }
         // 获取流程曲线走向
         List<SequenceFlow> outgoingFlows = ((FlowNode) currentNode).getOutgoingFlows();
         if (CollectionUtils.isNotEmpty(outgoingFlows)) {

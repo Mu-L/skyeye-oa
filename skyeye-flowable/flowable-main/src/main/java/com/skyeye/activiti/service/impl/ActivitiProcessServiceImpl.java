@@ -32,6 +32,7 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.userprocess.entity.ActUserProcess;
 import com.skyeye.userprocess.service.ActUserProcessService;
 import com.skyeye.util.FlowableUtil;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.flowable.bpmn.model.BpmnModel;
@@ -47,8 +48,6 @@ import org.flowable.engine.repository.ProcessDefinition;
 import org.flowable.engine.repository.ProcessDefinitionQuery;
 import org.flowable.task.api.Task;
 import org.nutz.trans.Trans;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -67,10 +66,9 @@ import java.util.stream.Collectors;
  * @Copyright: 2021 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
+@Slf4j
 @Service
 public class ActivitiProcessServiceImpl implements ActivitiProcessService {
-
-    private static Logger LOGGER = LoggerFactory.getLogger(ActivitiProcessServiceImpl.class);
 
     @Autowired
     private RuntimeService runtimeService;
@@ -176,26 +174,26 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
 
     /**
      * 获取流程下一个节点的审批人列表
-     * 
+     *
      * <p><b>功能说明：</b></p>
      * <ul>
      *   <li>根据当前任务ID和业务数据，获取下一个用户任务节点</li>
      *   <li>根据业务数据判断条件表达式，找到符合条件的下一个节点</li>
      *   <li>返回下一个用户任务节点的所有审批人列表（包括 assignee、candidateUsers、candidateGroups）</li>
      * </ul>
-     * 
+     *
      * <p><b>使用场景：</b></p>
      * <ul>
      *   <li>任务审批前，需要查看下一个节点的审批人</li>
      *   <li>根据业务数据，确定下一个审批路径</li>
      * </ul>
-     * 
+     *
      * <p><b>与 nextProcessDefaultApprover 的区别：</b></p>
      * <ul>
      *   <li>本方法不需要 flag 参数，用于审批前查询（还未确定审批结果）</li>
      *   <li>nextProcessDefaultApprover 需要 flag 参数，用于审批中查询（已确定审批结果）</li>
      * </ul>
-     * 
+     *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
@@ -218,10 +216,10 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
             if (!ToolUtil.isBlank(flag)) {
                 businessData.put("flag", flag);
             }
-            
+
             // 获取下一个用户任务节点
             NextTaskInfo nextTaskInfo = this.getNextTaskInfo(taskId, businessData);
-            
+
             if (nextTaskInfo != null && nextTaskInfo.getUserTask() != null) {
                 UserTask nextUserTask = nextTaskInfo.getUserTask();
                 // 使用批量查询方式获取审批人列表
@@ -237,30 +235,30 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
                 outputObject.setBean(nodeMation);
             } else {
                 // 如果没有下一个用户任务节点，返回空列表
-                LOGGER.warn("未找到下一个用户任务节点，taskId: {}, processInstanceId: {}", taskId, processInstanceId);
+                log.warn("未找到下一个用户任务节点，taskId: {}, processInstanceId: {}", taskId, processInstanceId);
             }
         } catch (Exception e) {
-            LOGGER.error("查询下一个节点审批人异常，taskId: {}", inputObject.getParams().get("taskId"), e);
+            log.error("查询下一个节点审批人异常，taskId: {}", inputObject.getParams().get("taskId"), e);
             throw new CustomException("查询下一个节点审批人失败: " + e.getMessage());
         }
     }
 
     /**
      * 流程运行过程中查询下一个用户节点默认审批人
-     * 
+     *
      * <p><b>功能说明：</b></p>
      * <ul>
      *   <li>根据当前任务ID和审批结果，获取下一个用户任务节点</li>
      *   <li>根据业务数据判断条件表达式，找到符合条件的下一个节点</li>
      *   <li>返回下一个用户任务节点的默认审批人</li>
      * </ul>
-     * 
+     *
      * <p><b>使用场景：</b></p>
      * <ul>
      *   <li>任务审批时，需要查看下一个节点的默认审批人</li>
      *   <li>根据审批结果（同意/拒绝）和业务数据，确定下一个审批路径</li>
      * </ul>
-     * 
+     *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
@@ -271,22 +269,22 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
             String taskId = params.get("taskId").toString();
             String processInstanceId = params.get("processInstanceId").toString();
             String flag = params.get("flag").toString();
-            
+
             // 获取业务数据
             Map<String, Object> businessData = new HashMap<>();
             String businessDataStr = params.get("businessData") != null ? params.get("businessData").toString() : null;
             if (!ToolUtil.isBlank(businessDataStr)) {
                 businessData = JSONObject.fromObject(businessDataStr);
             }
-            
+
             // 确保审批结果（flag）在业务数据中
             if (!ToolUtil.isBlank(flag)) {
                 businessData.put("flag", flag);
             }
-            
+
             // 获取下一个用户任务节点
             NextTaskInfo nextTaskInfo = this.getNextTaskInfo(taskId, businessData);
-            
+
             if (nextTaskInfo != null && nextTaskInfo.getUserTask() != null) {
                 UserTask nextUserTask = nextTaskInfo.getUserTask();
                 // 使用批量查询方式获取审批人列表
@@ -295,10 +293,10 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
                 outputObject.setBean(user);
             } else {
                 // 如果没有下一个用户任务节点，返回空
-                LOGGER.warn("未找到下一个用户任务节点，taskId: {}, processInstanceId: {}", taskId, processInstanceId);
+                log.warn("未找到下一个用户任务节点，taskId: {}, processInstanceId: {}", taskId, processInstanceId);
             }
         } catch (Exception e) {
-            LOGGER.error("查询下一个节点默认审批人异常，taskId: {}", inputObject.getParams().get("taskId"), e);
+            log.error("查询下一个节点默认审批人异常，taskId: {}", inputObject.getParams().get("taskId"), e);
             throw new CustomException("查询下一个节点默认审批人失败: " + e.getMessage());
         }
     }
@@ -313,27 +311,52 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
      */
     @Override
     public NextTaskInfo getNextTaskInfo(String taskId, Map<String, Object> map) {
+        NextTaskInfo nextTaskInfo = new NextTaskInfo();
         try {
             Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
+            if (task == null) {
+                log.warn("getNextTaskInfo return empty, task is null, taskId: {}, vars: {}", taskId, map);
+                return nextTaskInfo;
+            }
             if (StringUtils.isNotEmpty(task.getParentTaskId())) {
                 // 如果是加签节点
                 task = getRealTask(task);
+                if (task == null) {
+                    log.warn("getNextTaskInfo return empty, real task is null after getRealTask, taskId: {}, vars: {}", taskId, map);
+                    return nextTaskInfo;
+                }
             }
             String executionId = task.getExecutionId();
-            if (StringUtils.isNotEmpty(executionId)) {
-                ExecutionEntity execution = (ExecutionEntity) runtimeService.createExecutionQuery().executionId(executionId).singleResult();
-                BpmnModel bpmnModel = repositoryService.getBpmnModel(execution.getProcessDefinitionId());
-                Trans.begin();
-                NextTaskInfo nextTaskInfo = new NextTaskInfo();
-                nextTaskInfo.setUserTask(managementService.executeCommand(new FindNextUserTaskNodeCmd(execution, bpmnModel, map)));
+            if (StringUtils.isEmpty(executionId)) {
+                log.warn("getNextTaskInfo return empty, executionId is empty, taskId: {}, taskKey: {}, vars: {}",
+                    taskId, task.getTaskDefinitionKey(), map);
                 return nextTaskInfo;
             }
+            ExecutionEntity execution = (ExecutionEntity) runtimeService.createExecutionQuery().executionId(executionId).singleResult();
+            if (execution == null) {
+                log.warn("getNextTaskInfo return empty, execution is null, taskId: {}, executionId: {}, vars: {}",
+                    taskId, executionId, map);
+                return nextTaskInfo;
+            }
+            BpmnModel bpmnModel = repositoryService.getBpmnModel(execution.getProcessDefinitionId());
+            if (bpmnModel == null) {
+                log.warn("getNextTaskInfo return empty, bpmnModel is null, taskId: {}, processDefinitionId: {}, vars: {}",
+                    taskId, execution.getProcessDefinitionId(), map);
+                return nextTaskInfo;
+            }
+            Trans.begin();
+            nextTaskInfo.setUserTask(managementService.executeCommand(new FindNextUserTaskNodeCmd(execution, bpmnModel, map)));
+            return nextTaskInfo;
         } catch (Exception ee) {
-            LOGGER.warn("getNextTaskInfo error, because {}", ee);
+            log.error("getNextTaskInfo error, taskId: {}, vars: {}", taskId, map, ee);
         } finally {
-            Trans.clear(true);
+            try {
+                Trans.clear(true);
+            } catch (Exception clearEx) {
+                log.warn("Trans.clear error in getNextTaskInfo, taskId: {}, error: {}", taskId, clearEx.getMessage());
+            }
         }
-        return null;
+        return nextTaskInfo;
     }
 
     private Task getRealTask(Task task) {
@@ -416,22 +439,22 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
 
     /**
      * 根据业务数据获取第一个符合条件的用户任务节点的所有审批人列表
-     * 
+     *
      * <p><b>功能说明：</b></p>
      * <ul>
      *   <li>从流程的开始节点开始，根据 businessData 中的值判断条件表达式</li>
      *   <li>找到第一个符合条件的用户任务节点</li>
      *   <li>返回该用户任务节点的所有审批人（包括 assignee、candidateUsers、candidateGroups）</li>
      * </ul>
-     * 
+     *
      * <p><b>使用场景：</b></p>
      * <ul>
      *   <li>流程启动前，需要根据业务数据确定第一个审批人列表</li>
      *   <li>流程中有多个分支，需要根据条件选择不同的审批路径</li>
      * </ul>
-     * 
+     *
      * @param processDefinition 流程定义
-     * @param businessData 业务数据，用于判断条件表达式。key 为变量名，value 为变量值
+     * @param businessData      业务数据，用于判断条件表达式。key 为变量名，value 为变量值
      * @return 审批人列表，如果未找到则返回空列表
      */
     public List<Map<String, Object>> getFistUserTaskUserList(ProcessDefinition processDefinition, Map<String, Object> businessData) {
@@ -439,57 +462,57 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
             // 获取 BPMN 模型
             BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinition.getId());
             if (bpmnModel == null || bpmnModel.getProcesses().isEmpty()) {
-                LOGGER.warn("无法获取 BPMN 模型，流程定义ID: {}", processDefinition.getId());
+                log.warn("无法获取 BPMN 模型，流程定义ID: {}", processDefinition.getId());
                 return new ArrayList<>();
             }
 
             // 使用 ManagementService 执行 Command 来查找第一个用户任务节点
             FindFirstUserTaskByConditionCmd cmd = new FindFirstUserTaskByConditionCmd(
-                    bpmnModel, 
-                    businessData != null ? businessData : new HashMap<>(), 
-                    processDefinition.getId()
-                );
-            
+                bpmnModel,
+                businessData != null ? businessData : new HashMap<>(),
+                processDefinition.getId()
+            );
+
             UserTask firstUserTask = managementService.executeCommand(cmd);
             if (firstUserTask == null) {
                 return new ArrayList<>();
             }
-            return FlowableUtil.getNextTaskApproveBatch(firstUserTask, businessData, actGroupUserService, iAuthUserService);            
+            return FlowableUtil.getNextTaskApproveBatch(firstUserTask, businessData, actGroupUserService, iAuthUserService);
         } catch (Exception e) {
-            LOGGER.error("获取第一个用户任务节点审批人列表异常，流程定义ID: {}", processDefinition.getId(), e);
+            log.error("获取第一个用户任务节点审批人列表异常，流程定义ID: {}", processDefinition.getId(), e);
             return new ArrayList<>();
         }
     }
 
     /**
      * 根据业务数据获取第一个符合条件的用户任务节点的默认审批人
-     * 
+     *
      * <p><b>功能说明：</b></p>
      * <ul>
      *   <li>从流程的开始节点开始，根据 businessData 中的值判断条件表达式</li>
      *   <li>找到第一个符合条件的用户任务节点</li>
      *   <li>返回该用户任务节点的默认审批人</li>
      * </ul>
-     * 
+     *
      * <p><b>使用场景：</b></p>
      * <ul>
      *   <li>流程启动前，需要根据业务数据确定第一个审批人</li>
      *   <li>流程中有多个分支，需要根据条件选择不同的审批路径</li>
      * </ul>
-     * 
+     *
      * <p><b>示例：</b></p>
      * <pre>{@code
      * // businessData 示例
      * Map<String, Object> businessData = new HashMap<>();
      * businessData.put("amount", 5000);  // 金额
      * businessData.put("dept", "finance");  // 部门
-     * 
+     *
      * // 如果流程中有条件：${amount > 1000}，会根据 businessData 中的 amount 值判断
      * Map<String, Object> user = getFirstUserTaskDefaultUser(processDefinition, businessData);
      * }</pre>
-     * 
+     *
      * @param processDefinition 流程定义
-     * @param businessData 业务数据，用于判断条件表达式。key 为变量名，value 为变量值
+     * @param businessData      业务数据，用于判断条件表达式。key 为变量名，value 为变量值
      * @return 用户信息，如果未找到则返回null
      */
     public Map<String, Object> getFirstUserTaskDefaultUser(ProcessDefinition processDefinition, Map<String, Object> businessData) {
@@ -497,23 +520,23 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
             // 获取 BPMN 模型
             BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinition.getId());
             if (bpmnModel == null || bpmnModel.getProcesses().isEmpty()) {
-                LOGGER.warn("无法获取 BPMN 模型，流程定义ID: {}", processDefinition.getId());
+                log.warn("无法获取 BPMN 模型，流程定义ID: {}", processDefinition.getId());
                 return null;
             }
 
             // 使用 ManagementService 执行 Command 来查找第一个用户任务节点
             // 这样可以确保 ExecutionEntity 在正确的上下文中创建
             FindFirstUserTaskByConditionCmd cmd = new FindFirstUserTaskByConditionCmd(
-                    bpmnModel, 
-                    businessData != null ? businessData : new HashMap<>(), 
-                    processDefinition.getId()
-                );
-            
+                bpmnModel,
+                businessData != null ? businessData : new HashMap<>(),
+                processDefinition.getId()
+            );
+
             UserTask firstUserTask = managementService.executeCommand(cmd);
 
             return FlowableUtil.findDefaultApprover(firstUserTask, businessData, iAuthUserService);
         } catch (Exception e) {
-            LOGGER.error("获取第一个用户任务节点默认审批人异常，流程定义ID: {}", processDefinition.getId(), e);
+            log.error("获取第一个用户任务节点默认审批人异常，流程定义ID: {}", processDefinition.getId(), e);
             throw new CustomException("获取第一个用户任务节点默认审批人失败: " + e.getMessage());
         }
     }
@@ -535,7 +558,7 @@ public class ActivitiProcessServiceImpl implements ActivitiProcessService {
         // 根据业务数据和className获取配置的工作流key,如果actModel没有配置，则无法提交审批
         ActFlowMation actFlowMation = actFlowService.getActFlowByModelKey(flowableSubData.getModelKey());
         if (actFlowMation != null) {
-            LOGGER.info("actFlow mation is: " + JSONUtil.toJsonStr(actFlowMation));
+            log.info("actFlow mation is: " + JSONUtil.toJsonStr(actFlowMation));
             // 提交审批
             String processInstanceId = activitiModelService.startProcess(flowableSubData, actFlowMation);
             Map<String, Object> result = new HashMap<>();
