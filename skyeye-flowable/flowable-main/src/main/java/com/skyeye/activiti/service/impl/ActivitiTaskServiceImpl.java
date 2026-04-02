@@ -395,6 +395,7 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
         Map<String, Object> map = inputObject.getParams();
         String taskId = map.get("taskId").toString();
         String processInstanceId = map.get("processInstanceId").toString();
+        String flag = map.getOrDefault("flag", CommonNumConstants.NUM_ONE).toString();
         // 获取任务自定义id和名称
         Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
         map.put("taskKey", task.getTaskDefinitionKey());
@@ -409,7 +410,7 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
         if (!isMultiInstance && !delegation) {
             // 因为获取下一个节点可能会遇到网关节点，所以默认设置审批结果为true
             Map<String, Object> variable = new HashMap<>();
-            variable.put("flag", 1);
+            variable.put("flag", flag);
             NextTaskInfo nextTaskInfo = activitiProcessService.getNextTaskInfo(taskId, variable);
             if (nextTaskInfo != null && nextTaskInfo.getUserTask() != null) {
                 map.put("nextTask", true);

@@ -77,7 +77,8 @@ public class ActivitiTaskController {
     @ApiOperation(id = "activitimode016", value = "根据taskId获取表单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程id", required = "required"),
-        @ApiImplicitParam(id = "taskId", name = "taskId", value = "任务id", required = "required")})
+        @ApiImplicitParam(id = "taskId", name = "taskId", value = "任务id", required = "required"),
+        @ApiImplicitParam(id = "flag", name = "flag", value = "是否通过：1.通过2.不通过", required = "num")})
     @RequestMapping("/post/ActivitiTaskController/querySubFormMationByTaskId")
     public void querySubFormMationByTaskId(InputObject inputObject, OutputObject outputObject) {
         activitiTaskService.querySubFormMationByTaskId(inputObject, outputObject);
