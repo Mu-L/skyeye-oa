@@ -179,8 +179,14 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
 
     private List<ScheduleDay> getScheduleDayList(String userId, String timeHms) {
         QueryWrapper<ScheduleDay> queryWrapper = new QueryWrapper<>();
-        queryWrapper.apply(MybatisPlusUtil.toColumns(ScheduleDay::getStartTime) + " <= {0}", timeHms)
-            .apply(MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + " >= {0}", timeHms);
+        if (timeHms.length() == 10) {
+            // 兼容只传日期（yyyy-MM-dd）场景，避免与 yyyy-MM-dd HH:mm:ss 直接比较导致边界不命中
+            queryWrapper.apply("DATE(" + MybatisPlusUtil.toColumns(ScheduleDay::getStartTime) + ") <= {0}", timeHms)
+                .apply("DATE(" + MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + ") >= {0}", timeHms);
+        } else {
+            queryWrapper.apply(MybatisPlusUtil.toColumns(ScheduleDay::getStartTime) + " <= {0}", timeHms)
+                .apply(MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + " >= {0}", timeHms);
+        }
         queryWrapper.ne(MybatisPlusUtil.toColumns(ScheduleDay::getType), CheckDayType.DAY_IS_HOLIDAY.getKey());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScheduleDay::getCreateId), userId);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(ScheduleDay::getStartTime));
@@ -360,8 +366,8 @@ public class ScheduleDayServiceImpl extends SkyeyeBusinessServiceImpl<ScheduleDa
      */
     private boolean judgeISHoliday(String day) {
         QueryWrapper<ScheduleDay> queryWrapper = new QueryWrapper<>();
-        queryWrapper.apply(MybatisPlusUtil.toColumns(ScheduleDay::getStartTime) + " <= {0}", day)
-            .apply(MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + " >= {0}", day);
+        queryWrapper.apply("DATE(" + MybatisPlusUtil.toColumns(ScheduleDay::getStartTime) + ") <= {0}", day)
+            .apply("DATE(" + MybatisPlusUtil.toColumns(ScheduleDay::getEndTime) + ") >= {0}", day);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ScheduleDay::getType), CheckDayType.DAY_IS_HOLIDAY.getKey());
         List<ScheduleDay> scheduleDays = list(queryWrapper);
         if (CollectionUtil.isEmpty(scheduleDays)) {
