@@ -76,9 +76,9 @@ public class ActivitiConstants {
     public static final String PARALLEL_MULTILN_STANCE_EXECTTION_ISMANDATORY = "parallelMultilnStanceExecttionIsmandatory";
 
     /**
-     * 串行会签存入变量中的主持人的key
+     * 会签主持人（串行/并行通用）变量key
      */
-    public static final String SEQUENTIAL_MULTILN_STANCE_EXECTTION_HOST_ASSIGNEE = "sequentialMultilnStanceExecttionHostAssignee";
+    public static final String MULTI_INSTANCE_HOST_ASSIGNEE = "multiInstanceHostAssignee";
 
     /**
      * 工作流用户表格对象

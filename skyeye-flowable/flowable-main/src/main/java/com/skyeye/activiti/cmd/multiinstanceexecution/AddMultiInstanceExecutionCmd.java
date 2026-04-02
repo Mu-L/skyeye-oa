@@ -96,6 +96,19 @@ public class AddMultiInstanceExecutionCmd extends AbstractCountersignCmd impleme
 
     private void addParallelMultiInstance(CommandContext commandContext, UserTask userTask, ExecutionEntityImpl parentNode,
                                           int nrOfInstances, int nrOfActiveInstances, ExecutionEntityManager executionEntityManager) {
+        // 并行会签也记录主持人（当前任务审批人），便于“我主持的会签”查询
+        TaskEntityImpl currentTask = (TaskEntityImpl) taskService.createTaskQuery().taskId(taskId).singleResult();
+        if (currentTask != null) {
+            ExecutionEntityImpl currentExecution = (ExecutionEntityImpl) runtimeService.createExecutionQuery()
+                .executionId(currentTask.getExecutionId()).singleResult();
+            String hostAssignee = (String) runtimeService.getVariableLocal(currentExecution.getId(),
+                ActivitiConstants.MULTI_INSTANCE_HOST_ASSIGNEE);
+            if (StringUtils.isEmpty(hostAssignee)) {
+                runtimeService.setVariableLocal(currentExecution.getId(),
+                    ActivitiConstants.MULTI_INSTANCE_HOST_ASSIGNEE, currentTask.getAssignee());
+            }
+        }
+
         // 设置循环标志变量
         runtimeService.setVariable(parentNode.getId(), RollbackConstants.MultiInstanceConstants.NR_OF_INSTANCE, nrOfInstances + assigneeList.size());
         runtimeService.setVariable(parentNode.getId(), RollbackConstants.MultiInstanceConstants.NR_OF_ACTIVE_INSTANCES, nrOfActiveInstances + assigneeList.size());
@@ -135,10 +148,10 @@ public class AddMultiInstanceExecutionCmd extends AbstractCountersignCmd impleme
         }
 
         // 任务主持人
-        String hostAssignee = (String) runtimeService.getVariableLocal(execution.getId(), ActivitiConstants.SEQUENTIAL_MULTILN_STANCE_EXECTTION_HOST_ASSIGNEE);
+        String hostAssignee = (String) runtimeService.getVariableLocal(execution.getId(), ActivitiConstants.MULTI_INSTANCE_HOST_ASSIGNEE);
         if (StringUtils.isEmpty(hostAssignee)) {
             hostAssignee = task.getAssignee();
-            runtimeService.setVariableLocal(execution.getId(), ActivitiConstants.SEQUENTIAL_MULTILN_STANCE_EXECTTION_HOST_ASSIGNEE, hostAssignee);
+            runtimeService.setVariableLocal(execution.getId(), ActivitiConstants.MULTI_INSTANCE_HOST_ASSIGNEE, hostAssignee);
             // 修改当前任务执行人
             taskService.setAssignee(taskId, newAllUserIds.get(0));
             execution.setVariableLocal(ActivitiConstants.ASSIGNEE_USER, newAllUserIds.get(0));
