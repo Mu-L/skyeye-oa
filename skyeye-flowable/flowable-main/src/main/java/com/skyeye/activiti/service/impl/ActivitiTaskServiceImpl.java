@@ -22,6 +22,7 @@ import com.skyeye.common.constans.ActivitiConstants;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.tenant.context.TenantContext;
@@ -382,6 +383,207 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
     public void queryAllConductProcessList(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         queryAgencyTask(outputObject, pageInfo);
+    }
+
+    @Override
+    public void queryMyRunningCountersignList(InputObject inputObject, OutputObject outputObject) {
+        TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
+        String userId = inputObject.getLogParams().get("id").toString();
+        String keyword = tableSelectInfo == null ? StrUtil.EMPTY : StrUtil.nullToEmpty(tableSelectInfo.getKeyword());
+
+        // 通过 ACT_RU_EXECUTION + ACT_RU_VARIABLE(assignee) 获取当前参与的进行中流程
+        List<String> runningProcessIds = queryRunningProcessIdsByExecutionAssignee(userId, keyword);
+        if (CollectionUtil.isEmpty(runningProcessIds)) {
+            return;
+        }
+
+        Set<String> runningProcessIdSet = new LinkedHashSet<>(runningProcessIds);
+        List<ProcessInstance> runningProcesses = runtimeService.createProcessInstanceQuery()
+            .processInstanceIds(runningProcessIdSet).list();
+        if (CollectionUtil.isEmpty(runningProcesses)) {
+            return;
+        }
+
+        Map<String, ProcessInstance> processInstanceMap = runningProcesses.stream()
+            .collect(Collectors.toMap(ProcessInstance::getProcessInstanceId, bean -> bean));
+        List<String> availableProcessIds = runningProcessIds.stream()
+            .filter(processInstanceMap::containsKey).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(availableProcessIds)) {
+            return;
+        }
+
+        List<Task> activeTasks = taskService.createTaskQuery().processInstanceIdIn(availableProcessIds).list();
+        if (CollectionUtil.isEmpty(activeTasks)) {
+            return;
+        }
+
+        Map<String, List<Task>> countersignTaskMap = activeTasks.stream()
+            .filter(task -> StrUtil.isNotEmpty(task.getAssignee()))
+            .collect(Collectors.groupingBy(Task::getProcessInstanceId));
+        if (CollectionUtil.isEmpty(countersignTaskMap)) {
+            return;
+        }
+
+        Map<String, ActUserProcess> processMationMap = actUserProcessService.selectByProcessInstanceId(availableProcessIds);
+        List<Map<String, Object>> beans = new ArrayList<>();
+        for (String processInstanceId : availableProcessIds) {
+            List<Task> processTasks = countersignTaskMap.get(processInstanceId);
+            if (CollectionUtil.isEmpty(processTasks)) {
+                continue;
+            }
+            Task currentTask = processTasks.get(0);
+            Map<String, Object> bean = new HashMap<>();
+            bean.put("processInstanceId", processInstanceId);
+            bean.put("taskId", currentTask.getId());
+            bean.put("taskName", currentTask.getName());
+            bean.put("taskType", "会签");
+            bean.put("task", currentTask);
+            bean.put("processMation", processMationMap.get(processInstanceId));
+            bean.put("weatherEnd", ProcessInstanceWeatherEnd.NOT_FINISHED.getKey());
+
+            ProcessInstance processInstance = processInstanceMap.get(processInstanceId);
+            bean.put("suspended", processInstance != null && processInstance.isSuspended());
+
+            List<String> assigneeList = processTasks.stream().map(Task::getAssignee).distinct().collect(Collectors.toList());
+            List<Map<String, Object>> assigneeUser = iAuthUserService.queryDataMationByIds(
+                Joiner.on(CommonCharConstants.COMMA_MARK).join(assigneeList));
+            bean.put("assigneeList", assigneeUser);
+            beans.add(bean);
+        }
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
+    }
+
+    @Override
+    public void queryMyHostCountersignList(InputObject inputObject, OutputObject outputObject) {
+        TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
+        String userId = inputObject.getLogParams().get("id").toString();
+        String keyword = tableSelectInfo == null ? StrUtil.EMPTY : StrUtil.nullToEmpty(tableSelectInfo.getKeyword());
+
+        // 主持人口径：使用会签主持人变量
+        List<String> runningProcessIds = queryRunningProcessIdsByHostAssignee(userId, keyword);
+        if (CollectionUtil.isEmpty(runningProcessIds)) {
+            return;
+        }
+        List<Task> myActiveTasks = taskService.createTaskQuery().active().processInstanceIdIn(runningProcessIds).list();
+        if (CollectionUtil.isEmpty(myActiveTasks)) {
+            return;
+        }
+
+        LinkedHashSet<String> processIdsSet = myActiveTasks.stream()
+            .map(Task::getProcessInstanceId).collect(Collectors.toCollection(LinkedHashSet::new));
+        List<String> processIds = new ArrayList<>(processIdsSet);
+        Map<String, Task> hostTaskMap = myActiveTasks.stream()
+            .collect(Collectors.toMap(Task::getProcessInstanceId, bean -> bean, (a, b) -> a));
+
+        Map<String, ActUserProcess> processMationMap = actUserProcessService.selectByProcessInstanceId(processIds);
+        List<ProcessInstance> runningProcesses = runtimeService.createProcessInstanceQuery().processInstanceIds(processIdsSet).list();
+        Map<String, ProcessInstance> processInstanceMap = runningProcesses.stream()
+            .collect(Collectors.toMap(ProcessInstance::getProcessInstanceId, bean -> bean));
+
+        List<Task> activeTasksInProcess = taskService.createTaskQuery().processInstanceIdIn(processIds).list();
+        Map<String, List<Task>> countersignTaskMap = activeTasksInProcess.stream()
+            .filter(task -> StrUtil.isNotEmpty(task.getAssignee()))
+            .collect(Collectors.groupingBy(Task::getProcessInstanceId));
+
+        List<Map<String, Object>> beans = new ArrayList<>();
+        for (String processInstanceId : processIds) {
+            Task hostTask = hostTaskMap.get(processInstanceId);
+            if (hostTask == null) {
+                continue;
+            }
+            Map<String, Object> bean = new HashMap<>();
+            bean.put("processInstanceId", processInstanceId);
+            bean.put("taskId", hostTask.getId());
+            bean.put("taskName", hostTask.getName());
+            bean.put("taskType", "会签");
+            bean.put("task", hostTask);
+            bean.put("processMation", processMationMap.get(processInstanceId));
+            bean.put("weatherEnd", ProcessInstanceWeatherEnd.NOT_FINISHED.getKey());
+
+            // 会签统计信息
+            int participantCount = 0; // 参与人数
+            int approvedCount = 0; // 已审人数
+            int mandatoryCount = 0; // 必选评审人人数
+            boolean isSequential = false; // 是否是串行会签
+            try {
+                UserTask currentUserTask = this.getCurrentUserTaskByTaskId(hostTask.getId());
+                isSequential = currentUserTask != null
+                    && currentUserTask.getLoopCharacteristics() != null
+                    && currentUserTask.getLoopCharacteristics().isSequential();
+                List<Map<String, Object>> detailAssigneeList = managementService.executeCommand(
+                    new FindMultiInstanceExecutionUserCmd(hostTask.getId(), isSequential));
+                if (CollectionUtil.isNotEmpty(detailAssigneeList)) {
+                    List<Map<String, Object>> participantList = detailAssigneeList.stream()
+                        .filter(item -> !"1".equals(Objects.toString(item.get("type"), "0")))
+                        .collect(Collectors.toList());
+                    participantCount = participantList.size();
+                    approvedCount = (int) participantList.stream()
+                        .filter(item -> item.containsKey("isActive") && !(Boolean) item.get("isActive"))
+                        .count();
+                    mandatoryCount = (int) participantList.stream()
+                        .filter(item -> "1".equals(Objects.toString(item.get("isMandatory"), "0")))
+                        .count();
+                }
+            } catch (Exception e) {
+                LOGGER.warn("build countersign statistics failed, taskId: {}", hostTask.getId(), e);
+            }
+            bean.put("jointlySignType", isSequential ? "串行会签" : "并行会签");
+            bean.put("participantCount", participantCount);
+            bean.put("approvedCount", approvedCount);
+            bean.put("pendingCount", Math.max(participantCount - approvedCount, 0));
+            bean.put("countersignCondition", mandatoryCount > 0 ? String.format(Locale.ROOT, "含必选评审人(%d人)", mandatoryCount) : "普通会签");
+
+            ProcessInstance processInstance = processInstanceMap.get(processInstanceId);
+            bean.put("suspended", processInstance != null && processInstance.isSuspended());
+            // 可取消状态：仅在无人已审且有参与人时可取消；挂起流程不可取消
+            boolean canCancelCountersign = participantCount > 0 && approvedCount == 0 && (processInstance == null || !processInstance.isSuspended());
+            String cannotCancelReason = "";
+            if (!canCancelCountersign) {
+                if (participantCount <= 0) {
+                    cannotCancelReason = "无可取消参与人";
+                } else if (approvedCount > 0) {
+                    cannotCancelReason = "已有参与人审核";
+                } else if (processInstance != null && processInstance.isSuspended()) {
+                    cannotCancelReason = "流程已挂起";
+                } else {
+                    cannotCancelReason = "当前不可取消";
+                }
+            }
+            bean.put("canCancelCountersign", canCancelCountersign);
+            bean.put("cannotCancelReason", cannotCancelReason);
+
+            List<Task> processTasks = countersignTaskMap.get(processInstanceId);
+            if (CollectionUtil.isNotEmpty(processTasks)) {
+                List<String> assigneeList = processTasks.stream().map(Task::getAssignee).distinct().collect(Collectors.toList());
+                List<Map<String, Object>> assigneeUser = iAuthUserService.queryDataMationByIds(
+                    Joiner.on(CommonCharConstants.COMMA_MARK).join(assigneeList));
+                bean.put("assigneeList", assigneeUser);
+            } else {
+                bean.put("assigneeList", CollectionUtil.newArrayList());
+            }
+            beans.add(bean);
+        }
+        outputObject.setBeans(beans);
+        outputObject.settotal(beans.size());
+    }
+
+    private List<String> queryRunningProcessIdsByExecutionAssignee(String userId, String keyword) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<String> processIds = flowableTaskDao.queryRunningProcessIdsByExecutionAssignee(userId, keyword, tenantId);
+        if (CollectionUtil.isEmpty(processIds)) {
+            return CollectionUtil.newArrayList();
+        }
+        return processIds.stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
+    }
+
+    private List<String> queryRunningProcessIdsByHostAssignee(String userId, String keyword) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        List<String> processIds = flowableTaskDao.queryRunningProcessIdsByHostAssignee(userId, keyword, tenantId);
+        if (CollectionUtil.isEmpty(processIds)) {
+            return CollectionUtil.newArrayList();
+        }
+        return processIds.stream().filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
     }
 
     /**
@@ -769,18 +971,71 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
         // 任务id
         String taskId = map.get("taskId").toString();
         List<Map<String, Object>> addSignUser = JSONArray.fromObject(map.get("chooseUserMation").toString());
+        if (CollectionUtil.isEmpty(addSignUser)) {
+            outputObject.setreturnMessage("会签人不能为空");
+            return;
+        }
+        // 去重（按id），保序
+        LinkedHashMap<String, Map<String, Object>> uniqueUserMap = new LinkedHashMap<>();
+        for (Map<String, Object> user : addSignUser) {
+            if (user != null && user.get("id") != null) {
+                uniqueUserMap.put(user.get("id").toString(), user);
+            }
+        }
+        addSignUser = new ArrayList<>(uniqueUserMap.values());
+
+        Task currentTask = taskService.createTaskQuery().taskId(taskId).singleResult();
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        String hostAssigneeId = currentTask == null ? StrUtil.EMPTY :
+            StrUtil.nullToEmpty(flowableTaskDao.queryHostAssigneeByProcessInstanceId(currentTask.getProcessInstanceId(), tenantId));
+
+        // 获取当前会签人，兜底确保主持人不会从提交参数中丢失
+        UserTask currentTaskNode = this.getCurrentUserTaskByTaskId(taskId);
+        List<Map<String, Object>> currentAssigneeList = managementService.executeCommand(
+            new FindMultiInstanceExecutionUserCmd(taskId, currentTaskNode.getLoopCharacteristics().isSequential()));
+        Map<String, Object> hostUser = null;
+        if (StrUtil.isNotEmpty(hostAssigneeId)) {
+            hostUser = currentAssigneeList.stream()
+                .filter(bean -> hostAssigneeId.equals(Objects.toString(bean.get("id"), StrUtil.EMPTY)))
+                .findFirst().orElse(null);
+        } else {
+            hostUser = currentAssigneeList.stream()
+                .filter(bean -> "1".equals(Objects.toString(bean.get("type"), "0")))
+                .findFirst().orElse(null);
+        }
+        if (hostUser == null) {
+            // 数据兜底：先用运行时变量里的主持人ID补齐
+            if (StrUtil.isNotEmpty(hostAssigneeId)) {
+                Map<String, Object> currentHostUser = iAuthUserService.queryDataMationById(hostAssigneeId);
+                if (currentHostUser != null && !currentHostUser.isEmpty()) {
+                    currentHostUser.put("id", hostAssigneeId);
+                    currentHostUser.put("type", 1);
+                    currentHostUser.put("noDelete", true);
+                    currentHostUser.put("isActive", true);
+                    hostUser = currentHostUser;
+                    // 同步补到当前会签人列表，保证后续“删除差异计算”一致
+                    currentAssigneeList.add(currentHostUser);
+                }
+            }
+        }
+        if (hostUser != null && hostUser.get("id") != null) {
+            String hostId = hostUser.get("id").toString();
+            boolean hostExists = addSignUser.stream().anyMatch(item -> hostId.equals(Objects.toString(item.get("id"), "")));
+            if (!hostExists) {
+                addSignUser.add(hostUser);
+            }
+        }
+
         // 1.获取回显的没有修改过的数据（同时过滤掉不能删除的数据）
         List<Map<String, Object>> echoList = addSignUser.stream()
             .filter(bean -> (bean.containsKey("noDelete") && !(Boolean) bean.get("noDelete")) || !bean.containsKey("noDelete"))
-            .filter(bean -> bean.containsKey("echo") && !(Boolean) bean.get("echo")).collect(Collectors.toList());
+            .filter(bean -> bean.containsKey("echo") && Boolean.TRUE.equals(bean.get("echo"))).collect(Collectors.toList());
         List<String> echoUserIds = echoList.stream().map(p -> p.get("id").toString()).collect(Collectors.toList());
         // 2.获取新增的数据
         List<Map<String, Object>> newAddList = addSignUser.stream()
             .filter(bean -> !bean.containsKey("echo")).collect(Collectors.toList());
         // 3.获取现有的会签人
-        UserTask currentTaskNode = this.getCurrentUserTaskByTaskId(taskId);
-        List<Map<String, Object>> assigneeList = managementService.executeCommand(
-            new FindMultiInstanceExecutionUserCmd(taskId, currentTaskNode.getLoopCharacteristics().isSequential()));
+        List<Map<String, Object>> assigneeList = currentAssigneeList;
         // 3.1过滤掉不能删除的对象
         assigneeList = assigneeList.stream().filter(
                 bean -> (bean.containsKey("noDelete") && !(Boolean) bean.get("noDelete")) || !bean.containsKey("noDelete"))
@@ -820,6 +1075,71 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
         List<Map<String, Object>> leaveList = activitiModelService.getUpLeaveList(user.get("id").toString(),
             user.get("userName").toString(), opinion, true, taskInfo, ActivitiConstants.LeaveType.JOINTLY_SIGN_TASK.getType());
         runtimeService.setVariable(taskInfo.getProcessInstanceId(), ActivitiConstants.PROCESSINSTANCEID_TASK_LEAVE_OPINION_LIST_VARABLES, leaveList);
+    }
+
+    @Override
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public void jointlySignCancelTask(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String taskId = map.get("taskId").toString();
+        String userId = inputObject.getLogParams().get("id").toString();
+
+        UserTask currentTaskNode = this.getCurrentUserTaskByTaskId(taskId);
+        if (currentTaskNode == null || currentTaskNode.getLoopCharacteristics() == null) {
+            outputObject.setreturnMessage("当前节点不是会签节点，无法取消会签。");
+            return;
+        }
+        boolean isSequential = currentTaskNode.getLoopCharacteristics().isSequential();
+        List<Map<String, Object>> assigneeList = managementService.executeCommand(
+            new FindMultiInstanceExecutionUserCmd(taskId, isSequential));
+        if (CollectionUtil.isEmpty(assigneeList)) {
+            outputObject.setreturnMessage("未获取到会签人员，无法取消会签。");
+            return;
+        }
+
+        Map<String, Object> hostUser = assigneeList.stream()
+            .filter(bean -> "1".equals(Objects.toString(bean.get("type"), "0")))
+            .findFirst().orElse(null);
+        if (hostUser == null || !userId.equals(Objects.toString(hostUser.get("id"), ""))) {
+            outputObject.setreturnMessage("仅会签主持人可执行取消会签。");
+            return;
+        }
+
+        List<Map<String, Object>> participantList = assigneeList.stream()
+            .filter(bean -> !"1".equals(Objects.toString(bean.get("type"), "0")))
+            .collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(participantList)) {
+            outputObject.setreturnMessage("当前已无可取消的会签参与人。");
+            return;
+        }
+
+        long approvedCount = participantList.stream()
+            .filter(bean -> bean.containsKey("isActive") && !Boolean.TRUE.equals(bean.get("isActive")))
+            .count();
+        if (approvedCount > 0) {
+            outputObject.setreturnMessage("已有会签参与人完成评审，不能取消会签。");
+            return;
+        }
+
+        List<String> deleteUserIds = participantList.stream()
+            .map(bean -> Objects.toString(bean.get("id"), ""))
+            .filter(StrUtil::isNotEmpty)
+            .collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(deleteUserIds)) {
+            outputObject.setreturnMessage("当前已无可取消的会签参与人。");
+            return;
+        }
+
+        managementService.executeCommand(new DeleteMultiInstanceExecutionCmd(taskId, deleteUserIds));
+
+        Task taskInfo = taskService.createTaskQuery().taskId(taskId).singleResult();
+        if (taskInfo != null) {
+            String opinion = "【会签】：取消会签，移除了全部参与人，仅保留主持人。";
+            Map<String, Object> user = inputObject.getLogParams();
+            List<Map<String, Object>> leaveList = activitiModelService.getUpLeaveList(user.get("id").toString(),
+                user.get("userName").toString(), opinion, true, taskInfo, ActivitiConstants.LeaveType.JOINTLY_SIGN_TASK.getType());
+            runtimeService.setVariable(taskInfo.getProcessInstanceId(), ActivitiConstants.PROCESSINSTANCEID_TASK_LEAVE_OPINION_LIST_VARABLES, leaveList);
+        }
     }
 
     /**

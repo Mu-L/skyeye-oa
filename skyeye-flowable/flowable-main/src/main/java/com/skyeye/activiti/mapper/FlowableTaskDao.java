@@ -6,6 +6,7 @@ package com.skyeye.activiti.mapper;
 
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -28,5 +29,14 @@ public interface FlowableTaskDao {
      */
     @IgnoreTenant
     List<Map<String, Object>> getApplyingTasks(CommonPageInfo pageInfo);
+
+    @IgnoreTenant
+    List<String> queryRunningProcessIdsByExecutionAssignee(@Param("userId") String userId, @Param("keyword") String keyword, @Param("tenantId") String tenantId);
+
+    @IgnoreTenant
+    List<String> queryRunningProcessIdsByHostAssignee(@Param("userId") String userId, @Param("keyword") String keyword, @Param("tenantId") String tenantId);
+
+    @IgnoreTenant
+    String queryHostAssigneeByProcessInstanceId(@Param("processInstanceId") String processInstanceId, @Param("tenantId") String tenantId);
 
 }

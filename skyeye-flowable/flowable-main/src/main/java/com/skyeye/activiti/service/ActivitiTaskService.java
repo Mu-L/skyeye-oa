@@ -34,6 +34,10 @@ public interface ActivitiTaskService {
 
     void queryAllConductProcessList(InputObject inputObject, OutputObject outputObject);
 
+    void queryMyRunningCountersignList(InputObject inputObject, OutputObject outputObject);
+
+    void queryMyHostCountersignList(InputObject inputObject, OutputObject outputObject);
+
     void querySubFormMationByTaskId(InputObject inputObject, OutputObject outputObject);
 
     List<String> getTaskAssignee(String processInstanceId);
@@ -77,4 +81,6 @@ public interface ActivitiTaskService {
     void jointlySignTaskDetail(InputObject inputObject, OutputObject outputObject);
 
     void jointlySignAddSignTask(InputObject inputObject, OutputObject outputObject);
+
+    void jointlySignCancelTask(InputObject inputObject, OutputObject outputObject);
 }

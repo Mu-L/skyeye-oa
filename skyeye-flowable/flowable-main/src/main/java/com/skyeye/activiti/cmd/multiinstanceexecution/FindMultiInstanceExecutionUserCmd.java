@@ -138,6 +138,8 @@ public class FindMultiInstanceExecutionUserCmd extends AbstractCountersignCmd im
         TaskEntityImpl task = (TaskEntityImpl) taskService.createTaskQuery().taskId(taskId).singleResult();
         ExecutionEntityImpl execution = (ExecutionEntityImpl) runtimeService.createExecutionQuery().executionId(task.getExecutionId()).singleResult();
         ExecutionEntityImpl parentNode = execution.getParent();
+        // 主持人应来自会签主持人变量，而不是当前审批人
+        String hostAssignee = (String) runtimeService.getVariableLocal(execution.getId(), ActivitiConstants.MULTI_INSTANCE_HOST_ASSIGNEE);
         Object obj = parentNode.getVariable(ActivitiConstants.ASSIGNEE_USER_LIST);
         if (obj == null || !(obj instanceof ArrayList)) {
             LOGGER.info("not find task Executor List, task id is {}, initialization list", taskId);
@@ -146,6 +148,8 @@ public class FindMultiInstanceExecutionUserCmd extends AbstractCountersignCmd im
             obj = temp;
         }
         ArrayList<String> assigneeStrList = (ArrayList) obj;
+        // 去重并保持原有顺序，避免重复会签人导致展示和统计异常
+        assigneeStrList = new ArrayList<>(new LinkedHashSet<>(assigneeStrList));
         List<Map<String, Object>> assigneeList = new ArrayList<>();
         int index = getCurrentTaskAssigneeIndex(assigneeStrList, task.getAssignee());
         for (int i = 0; i < assigneeStrList.size(); i++) {
@@ -153,7 +157,7 @@ public class FindMultiInstanceExecutionUserCmd extends AbstractCountersignCmd im
             Map<String, Object> user = iAuthUserService.queryDataMationById(userId);
             // 参与人
             user.put("type", 0);
-            if (userId.equals(task.getAssignee())) {
+            if (userId.equals(hostAssignee)) {
                 // 主持人
                 user.put("noDelete", true);
                 user.put("type", 1);

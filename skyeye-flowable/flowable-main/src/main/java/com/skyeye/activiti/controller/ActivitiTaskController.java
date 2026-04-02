@@ -10,6 +10,7 @@ import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,20 @@ public class ActivitiTaskController {
     @RequestMapping("/post/ActivitiTaskController/queryAllConductProcessList")
     public void queryAllConductProcessList(InputObject inputObject, OutputObject outputObject) {
         activitiTaskService.queryAllConductProcessList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "activitimode028", value = "获取我参与的进行中会签任务", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = TableSelectInfo.class)
+    @RequestMapping("/post/ActivitiTaskController/queryMyRunningCountersignList")
+    public void queryMyRunningCountersignList(InputObject inputObject, OutputObject outputObject) {
+        activitiTaskService.queryMyRunningCountersignList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "activitimode029", value = "获取我主持的进行中会签任务", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = TableSelectInfo.class)
+    @RequestMapping("/post/ActivitiTaskController/queryMyHostCountersignList")
+    public void queryMyHostCountersignList(InputObject inputObject, OutputObject outputObject) {
+        activitiTaskService.queryMyHostCountersignList(inputObject, outputObject);
     }
 
     @ApiOperation(id = "activitimode016", value = "根据taskId获取表单信息", method = "GET", allUse = "2")
@@ -140,6 +155,14 @@ public class ActivitiTaskController {
     @RequestMapping("/post/ActivitiTaskController/jointlySignAddSignTask")
     public void jointlySignAddSignTask(InputObject inputObject, OutputObject outputObject) {
         activitiTaskService.jointlySignAddSignTask(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "activitiTask007", value = "取消会签", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "taskId", name = "taskId", value = "任务id", required = "required")})
+    @RequestMapping("/post/ActivitiTaskController/jointlySignCancelTask")
+    public void jointlySignCancelTask(InputObject inputObject, OutputObject outputObject) {
+        activitiTaskService.jointlySignCancelTask(inputObject, outputObject);
     }
 
 }

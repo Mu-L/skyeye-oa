@@ -33,4 +33,56 @@
         ORDER BY t1.CREATE_TIME_ DESC
     </select>
 
+    <select id="queryRunningProcessIdsByExecutionAssignee" resultType="java.lang.String">
+        SELECT DISTINCT
+            e.PROC_INST_ID_
+        FROM
+            act_ru_execution e
+            INNER JOIN act_ru_variable v ON v.EXECUTION_ID_ = e.ID_
+        WHERE
+            e.IS_ACTIVE_ = 1
+            AND e.IS_SCOPE_ = 1
+            AND v.NAME_ = 'assignee'
+            AND v.TEXT_ = #{userId}
+        <if test="keyword != null and keyword != ''">
+            AND e.PROC_INST_ID_ LIKE '%${keyword}%'
+        </if>
+        <if test="tenantId != '' and tenantId != null">
+            AND e.TENANT_ID_ = #{tenantId}
+        </if>
+    </select>
+
+    <select id="queryRunningProcessIdsByHostAssignee" resultType="java.lang.String">
+        SELECT DISTINCT
+            e.PROC_INST_ID_
+        FROM
+            act_ru_execution e
+            INNER JOIN act_ru_variable v ON v.PROC_INST_ID_ = e.PROC_INST_ID_
+        WHERE
+            e.IS_ACTIVE_ = 1
+            AND e.IS_SCOPE_ = 1
+            AND v.NAME_ = 'multiInstanceHostAssignee'
+            AND v.TEXT_ = #{userId}
+        <if test="keyword != null and keyword != ''">
+            AND e.PROC_INST_ID_ LIKE '%${keyword}%'
+        </if>
+        <if test="tenantId != '' and tenantId != null">
+            AND e.TENANT_ID_ = #{tenantId}
+        </if>
+    </select>
+
+    <select id="queryHostAssigneeByProcessInstanceId" resultType="java.lang.String">
+        SELECT
+            v.TEXT_
+        FROM
+            act_ru_variable v
+        WHERE
+            v.PROC_INST_ID_ = #{processInstanceId}
+            AND v.NAME_ = 'multiInstanceHostAssignee'
+            AND v.TEXT_ IS NOT NULL
+            AND v.TEXT_ != ''
+        ORDER BY v.ID_ DESC
+        LIMIT 1
+    </select>
+
 </mapper>
