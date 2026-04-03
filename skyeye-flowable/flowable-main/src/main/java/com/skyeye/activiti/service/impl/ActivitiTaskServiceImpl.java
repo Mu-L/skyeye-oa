@@ -431,7 +431,12 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
             if (CollectionUtil.isEmpty(processTasks)) {
                 continue;
             }
-            Task currentTask = processTasks.get(0);
+            // 并行会签等多任务场景下，必须使用当前用户自己的任务 ID 才能打开审批
+            boolean canApprove = processTasks.stream().anyMatch(t -> userId.equals(t.getAssignee()));
+            Task currentTask = processTasks.stream()
+                .filter(t -> userId.equals(t.getAssignee()))
+                .findFirst()
+                .orElse(processTasks.get(0));
             Map<String, Object> bean = new HashMap<>();
             bean.put("processInstanceId", processInstanceId);
             bean.put("taskId", currentTask.getId());
@@ -441,8 +446,72 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
             bean.put("processMation", processMationMap.get(processInstanceId));
             bean.put("weatherEnd", ProcessInstanceWeatherEnd.NOT_FINISHED.getKey());
 
+            // 会签统计信息
+            int participantCount = 0;
+            int approvedCount = 0;
+            int mandatoryCount = 0;
+            boolean isSequential = false;
+            String hostId = "";
+            try {
+                UserTask currentUserTask = this.getCurrentUserTaskByTaskId(currentTask.getId());
+                isSequential = currentUserTask != null
+                    && currentUserTask.getLoopCharacteristics() != null
+                    && currentUserTask.getLoopCharacteristics().isSequential();
+                List<Map<String, Object>> detailAssigneeList = managementService.executeCommand(
+                    new FindMultiInstanceExecutionUserCmd(currentTask.getId(), isSequential));
+                if (CollectionUtil.isNotEmpty(detailAssigneeList)) {
+                    hostId = detailAssigneeList.stream()
+                        .filter(item -> "1".equals(Objects.toString(item.get("type"), "0")))
+                        .map(item -> Objects.toString(item.get("id"), ""))
+                        .filter(StrUtil::isNotEmpty)
+                        .findFirst().orElse("");
+                    List<Map<String, Object>> participantList = detailAssigneeList.stream()
+                        .filter(item -> !"1".equals(Objects.toString(item.get("type"), "0")))
+                        .collect(Collectors.toList());
+                    participantCount = participantList.size();
+                    approvedCount = (int) participantList.stream()
+                        .filter(item -> item.containsKey("isActive") && !(Boolean) item.get("isActive"))
+                        .count();
+                    mandatoryCount = (int) participantList.stream()
+                        .filter(item -> "1".equals(Objects.toString(item.get("isMandatory"), "0")))
+                        .count();
+                }
+            } catch (Exception e) {
+                LOGGER.warn("build countersign statistics failed, taskId: {}", currentTask.getId(), e);
+            }
+            bean.put("jointlySignType", isSequential ? "串行会签" : "并行会签");
+            bean.put("participantCount", participantCount);
+            bean.put("approvedCount", approvedCount);
+            bean.put("pendingCount", Math.max(participantCount - approvedCount, 0));
+            bean.put("countersignCondition", mandatoryCount > 0 ? String.format(Locale.ROOT, "含必选评审人(%d人)", mandatoryCount) : "普通会签");
+
             ProcessInstance processInstance = processInstanceMap.get(processInstanceId);
             bean.put("suspended", processInstance != null && processInstance.isSuspended());
+            bean.put("canApprove", canApprove);
+            // 可取消状态：仅主持人且无人已审可取消
+            boolean canCancelCountersign = userId.equals(hostId)
+                && participantCount > 0
+                && approvedCount == 0
+                && (processInstance == null || !processInstance.isSuspended());
+            String cannotCancelReason = "";
+            if (!canCancelCountersign) {
+                if (!userId.equals(hostId)) {
+                    cannotCancelReason = "仅主持人可取消";
+                } else if (participantCount <= 0) {
+                    cannotCancelReason = "无可取消参与人";
+                } else if (approvedCount > 0) {
+                    cannotCancelReason = "已有参与人审核";
+                } else if (processInstance != null && processInstance.isSuspended()) {
+                    cannotCancelReason = "流程已挂起";
+                } else {
+                    cannotCancelReason = "当前不可取消";
+                }
+            }
+            bean.put("canCancelCountersign", canCancelCountersign);
+            bean.put("cannotCancelReason", cannotCancelReason);
+
+            putCountersignListPersonTimeFields(bean, processMationMap.get(processInstanceId),
+                processInstanceMap.get(processInstanceId), currentTask, hostId, processInstanceId);
 
             List<String> assigneeList = processTasks.stream().map(Task::getAssignee).distinct().collect(Collectors.toList());
             List<Map<String, Object>> assigneeUser = iAuthUserService.queryDataMationByIds(
@@ -553,6 +622,9 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
             bean.put("canCancelCountersign", canCancelCountersign);
             bean.put("cannotCancelReason", cannotCancelReason);
 
+            putCountersignListPersonTimeFields(bean, processMationMap.get(processInstanceId),
+                processInstanceMap.get(processInstanceId), hostTask, userId, processInstanceId);
+
             List<Task> processTasks = countersignTaskMap.get(processInstanceId);
             if (CollectionUtil.isNotEmpty(processTasks)) {
                 List<String> assigneeList = processTasks.stream().map(Task::getAssignee).distinct().collect(Collectors.toList());
@@ -566,6 +638,49 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
         }
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
+    }
+
+    /**
+     * 会签列表补充：流程发起人、流程启动时间、会签主持人、当前会签任务生成时间
+     */
+    private void putCountersignListPersonTimeFields(Map<String, Object> bean, ActUserProcess processMation,
+                                                    ProcessInstance processInstance, Task task, String hostUserId,
+                                                    String processInstanceId) {
+        if (processMation != null) {
+            bean.put("processStarterId", StrUtil.nullToEmpty(processMation.getCreateId()));
+            bean.put("processStarterName", StrUtil.nullToEmpty(processMation.getCreateName()));
+            bean.put("processRecordCreateTime", StrUtil.nullToEmpty(processMation.getCreateTime()));
+        } else {
+            bean.put("processStarterId", StrUtil.EMPTY);
+            bean.put("processStarterName", StrUtil.EMPTY);
+            bean.put("processRecordCreateTime", StrUtil.EMPTY);
+        }
+        if (processInstance != null && processInstance.getStartTime() != null) {
+            bean.put("flowStartTime", DateUtil.formatDate2Str(processInstance.getStartTime(), DateUtil.YYYY_MM_DD_HH_MM_SS));
+        } else {
+            bean.put("flowStartTime", StrUtil.EMPTY);
+        }
+        if (task != null && task.getCreateTime() != null) {
+            bean.put("countersignTaskCreateTime",
+                DateUtil.formatDate2Str(task.getCreateTime(), DateUtil.YYYY_MM_DD_HH_MM_SS));
+        } else {
+            bean.put("countersignTaskCreateTime", StrUtil.EMPTY);
+        }
+        String effectiveHostId = StrUtil.nullToEmpty(hostUserId);
+        if (StrUtil.isEmpty(effectiveHostId) && StrUtil.isNotEmpty(processInstanceId)) {
+            String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+            effectiveHostId = StrUtil.nullToEmpty(
+                flowableTaskDao.queryHostAssigneeByProcessInstanceId(processInstanceId, tenantId));
+        }
+        bean.put("countersignHostId", effectiveHostId);
+        String hostName = StrUtil.EMPTY;
+        if (StrUtil.isNotEmpty(effectiveHostId)) {
+            Map<String, Object> hm = iAuthUserService.queryDataMationById(effectiveHostId);
+            if (hm != null && hm.get("name") != null) {
+                hostName = Objects.toString(hm.get("name"), StrUtil.EMPTY);
+            }
+        }
+        bean.put("countersignHostName", hostName);
     }
 
     private List<String> queryRunningProcessIdsByExecutionAssignee(String userId, String keyword) {

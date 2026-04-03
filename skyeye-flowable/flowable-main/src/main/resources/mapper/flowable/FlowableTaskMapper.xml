@@ -38,12 +38,17 @@
             e.PROC_INST_ID_
         FROM
             act_ru_execution e
-            INNER JOIN act_ru_variable v ON v.EXECUTION_ID_ = e.ID_
+            INNER JOIN act_ru_variable v ON v.PROC_INST_ID_ = e.PROC_INST_ID_
         WHERE
             e.IS_ACTIVE_ = 1
-            AND e.IS_SCOPE_ = 1
             AND v.NAME_ = 'assignee'
             AND v.TEXT_ = #{userId}
+            AND EXISTS (
+                SELECT 1
+                FROM act_ru_variable mv
+                WHERE mv.PROC_INST_ID_ = e.PROC_INST_ID_
+                  AND mv.NAME_ IN ('nrOfInstances', 'assigneeList')
+            )
         <if test="keyword != null and keyword != ''">
             AND e.PROC_INST_ID_ LIKE '%${keyword}%'
         </if>

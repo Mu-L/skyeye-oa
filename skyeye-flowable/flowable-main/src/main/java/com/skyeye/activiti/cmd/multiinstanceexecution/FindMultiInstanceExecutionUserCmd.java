@@ -90,8 +90,18 @@ public class FindMultiInstanceExecutionUserCmd extends AbstractCountersignCmd im
         List<ExecutionEntity> executionEntitys = executionEntityManager.findChildExecutionsByParentExecutionId(parentNode.getId());
         List<Map<String, Object>> assigneeList = new ArrayList<>();
         executionEntitys.forEach(obj -> {
-            String assignee = String.valueOf(obj.getVariableLocal(ActivitiConstants.ASSIGNEE_USER));
+            Object assigneeVar = obj.getVariableLocal(ActivitiConstants.ASSIGNEE_USER);
+            if (assigneeVar == null) {
+                return;
+            }
+            String assignee = String.valueOf(assigneeVar).trim();
+            if (assignee.isEmpty() || "null".equalsIgnoreCase(assignee)) {
+                return;
+            }
             Map<String, Object> user = iAuthUserService.queryDataMationById(assignee);
+            if (user == null) {
+                return;
+            }
             // 参与人
             user.put("type", 0);
             if (assignee.equals(task.getAssignee())) {
@@ -154,10 +164,16 @@ public class FindMultiInstanceExecutionUserCmd extends AbstractCountersignCmd im
         int index = getCurrentTaskAssigneeIndex(assigneeStrList, task.getAssignee());
         for (int i = 0; i < assigneeStrList.size(); i++) {
             String userId = assigneeStrList.get(i);
+            if (userId == null || userId.trim().isEmpty()) {
+                continue;
+            }
             Map<String, Object> user = iAuthUserService.queryDataMationById(userId);
+            if (user == null) {
+                continue;
+            }
             // 参与人
             user.put("type", 0);
-            if (userId.equals(hostAssignee)) {
+            if (hostAssignee != null && userId.equals(hostAssignee)) {
                 // 主持人
                 user.put("noDelete", true);
                 user.put("type", 1);
@@ -178,6 +194,9 @@ public class FindMultiInstanceExecutionUserCmd extends AbstractCountersignCmd im
     }
 
     private int getCurrentTaskAssigneeIndex(ArrayList<String> assigneeStrList, String assignee) {
+        if (assignee == null) {
+            return 0;
+        }
         for (int i = 0; i < assigneeStrList.size(); i++) {
             if (assignee.equals(assigneeStrList.get(i))) {
                 return i;
