@@ -162,6 +162,7 @@ public class FindMultiInstanceExecutionUserCmd extends AbstractCountersignCmd im
         assigneeStrList = new ArrayList<>(new LinkedHashSet<>(assigneeStrList));
         List<Map<String, Object>> assigneeList = new ArrayList<>();
         int index = getCurrentTaskAssigneeIndex(assigneeStrList, task.getAssignee());
+        List<String> mandatoryAssigneeIds = readMandatoryAssigneeIds(parentNode);
         for (int i = 0; i < assigneeStrList.size(); i++) {
             String userId = assigneeStrList.get(i);
             if (userId == null || userId.trim().isEmpty()) {
@@ -173,6 +174,9 @@ public class FindMultiInstanceExecutionUserCmd extends AbstractCountersignCmd im
             }
             // 参与人
             user.put("type", 0);
+            if (mandatoryAssigneeIds != null && mandatoryAssigneeIds.contains(userId)) {
+                user.put("isMandatory", 1);
+            }
             if (hostAssignee != null && userId.equals(hostAssignee)) {
                 // 主持人
                 user.put("noDelete", true);
@@ -203,6 +207,24 @@ public class FindMultiInstanceExecutionUserCmd extends AbstractCountersignCmd im
             }
         }
         return 0;
+    }
+
+    /**
+     * 串行会签：从父 execution 读取必选评审人 id 列表
+     */
+    private List<String> readMandatoryAssigneeIds(ExecutionEntityImpl parentNode) {
+        Object raw = parentNode.getVariable(ActivitiConstants.MULTI_INSTANCE_MANDATORY_ASSIGNEE_IDS);
+        if (!(raw instanceof List)) {
+            return null;
+        }
+        List<?> list = (List<?>) raw;
+        List<String> ids = new ArrayList<>();
+        for (Object o : list) {
+            if (o != null) {
+                ids.add(o.toString());
+            }
+        }
+        return ids;
     }
 
 }

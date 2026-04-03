@@ -1073,6 +1073,55 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
+    private static Map<String, Boolean> buildAssigneeMandatoryMap(List<Map<String, Object>> list) {
+        Map<String, Boolean> m = new HashMap<>();
+        if (CollectionUtil.isEmpty(list)) {
+            return m;
+        }
+        for (Map<String, Object> u : list) {
+            if (u != null && u.get("id") != null) {
+                m.put(u.get("id").toString(), isAssigneeMandatoryFlag(u));
+            }
+        }
+        return m;
+    }
+
+    private static boolean isAssigneeMandatoryFlag(Map<String, Object> user) {
+        if (user == null) {
+            return false;
+        }
+        Object im = user.get("isMandatory");
+        return im != null && "1".equals(im.toString());
+    }
+
+    /**
+     * 必选评审人变更写入意见（与引擎同步逻辑一致：isMandatory 为 1 表示必选）
+     */
+    private static void appendMandatoryReviewerOpinion(StringBuilder opinion,
+                                                       Map<String, Boolean> mandatoryBefore,
+                                                       List<Map<String, Object>> afterList) {
+        if (CollectionUtil.isEmpty(afterList)) {
+            return;
+        }
+        for (Map<String, Object> u : afterList) {
+            if (u == null || u.get("id") == null) {
+                continue;
+            }
+            String id = u.get("id").toString();
+            boolean afterM = isAssigneeMandatoryFlag(u);
+            boolean beforeM = mandatoryBefore.getOrDefault(id, false);
+            if (beforeM == afterM) {
+                continue;
+            }
+            String name = StrUtil.blankToDefault(Objects.toString(u.get("name"), ""), id);
+            if (afterM) {
+                opinion.append(String.format(Locale.ROOT, "将【%s】设为必选评审人。<br>", name));
+            } else {
+                opinion.append(String.format(Locale.ROOT, "取消【%s】的必选评审人。<br>", name));
+            }
+        }
+    }
+
     /**
      * 会签加减签
      *
@@ -1155,20 +1204,22 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
         assigneeList = assigneeList.stream().filter(
                 bean -> (bean.containsKey("noDelete") && !(Boolean) bean.get("noDelete")) || !bean.containsKey("noDelete"))
             .collect(Collectors.toList());
+        // 保存前必选状态：必须用未过滤 noDelete 的完整列表（当前审批人/主持人等也会带 noDelete，过滤后会丢必选状态导致无法生成「取消必选」意见）
+        Map<String, Boolean> mandatoryBefore = buildAssigneeMandatoryMap(currentAssigneeList);
         // 4.获取被删掉的会签人（现有的会签人-回显的没有修改过的数据）
         List<Map<String, Object>> newDeleteList = assigneeList.stream()
             .filter(item -> !echoUserIds.contains(item.get("id").toString())).collect(Collectors.toList());
 
-        String opinion = "【会签】：<br>";
+        StringBuilder opinion = new StringBuilder("【会签】：<br>");
         // 删除会签人
         List<String> newDeleteUserIds = newDeleteList.stream().map(p -> p.get("id").toString()).collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(newDeleteUserIds)) {
             managementService.executeCommand(new DeleteMultiInstanceExecutionCmd(taskId, newDeleteUserIds));
-            opinion += "删除了";
+            opinion.append("删除了");
             for (Map<String, Object> bean : newDeleteList) {
-                opinion += String.format(Locale.ROOT, "【%s】", bean.get("name").toString());
+                opinion.append(String.format(Locale.ROOT, "【%s】", bean.get("name").toString()));
             }
-            opinion += "的会签。<br>";
+            opinion.append("的会签。<br>");
         }
 
         // 新增会签人
@@ -1176,19 +1227,23 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
         if (CollectionUtil.isNotEmpty(newAddUserIds)) {
             managementService.executeCommand(new AddMultiInstanceExecutionCmd(taskId, newAddList, addSignUser));
             managementService.executeCommand(new NewMultiInstanceExecutionSetAssignee(taskId, newAddUserIds));
-            opinion += "新增了";
+            opinion.append("新增了");
             for (Map<String, Object> bean : newAddList) {
-                opinion += String.format(Locale.ROOT, "【%s】", bean.get("name").toString());
-                ;
+                opinion.append(String.format(Locale.ROOT, "【%s】", bean.get("name").toString()));
             }
-            opinion += "的会签。";
+            opinion.append("的会签。<br>");
         }
+
+        appendMandatoryReviewerOpinion(opinion, mandatoryBefore, addSignUser);
+
+        // 同步必选评审人（含仅修改 echo 行开关、未删未增的场景）
+        managementService.executeCommand(new SyncMultiInstanceMandatoryFlagsCmd(taskId, addSignUser));
 
         // 添加加签操作历史
         Map<String, Object> user = inputObject.getLogParams();
         Task taskInfo = taskService.createTaskQuery().taskId(taskId).singleResult();
         List<Map<String, Object>> leaveList = activitiModelService.getUpLeaveList(user.get("id").toString(),
-            user.get("userName").toString(), opinion, true, taskInfo, ActivitiConstants.LeaveType.JOINTLY_SIGN_TASK.getType());
+            user.get("userName").toString(), opinion.toString(), true, taskInfo, ActivitiConstants.LeaveType.JOINTLY_SIGN_TASK.getType());
         runtimeService.setVariable(taskInfo.getProcessInstanceId(), ActivitiConstants.PROCESSINSTANCEID_TASK_LEAVE_OPINION_LIST_VARABLES, leaveList);
     }
 

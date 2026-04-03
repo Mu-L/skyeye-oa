@@ -81,6 +81,11 @@ public class ActivitiConstants {
     public static final String MULTI_INSTANCE_HOST_ASSIGNEE = "multiInstanceHostAssignee";
 
     /**
+     * 串行多实例：必选评审人用户 id 列表（并行会签使用子 execution 的 parallelMultilnStanceExecttionIsmandatory）
+     */
+    public static final String MULTI_INSTANCE_MANDATORY_ASSIGNEE_IDS = "multiInstanceMandatoryAssigneeIds";
+
+    /**
      * 工作流用户表格对象
      */
     @Getter
