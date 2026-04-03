@@ -42,6 +42,7 @@ import org.flowable.engine.history.HistoricProcessInstance;
 import org.flowable.engine.history.HistoricProcessInstanceQuery;
 import org.flowable.engine.impl.bpmn.behavior.ParallelMultiInstanceBehavior;
 import org.flowable.engine.impl.bpmn.behavior.SequentialMultiInstanceBehavior;
+import org.flowable.engine.runtime.Execution;
 import org.flowable.engine.runtime.ProcessInstance;
 import org.flowable.task.api.DelegationState;
 import org.flowable.task.api.Task;
@@ -702,6 +703,21 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
     }
 
     /**
+     * 清除流程实例下各执行上的会签主持人标记，避免取消会签后仍出现在「我主持的会签」查询中。
+     */
+    private void removeMultiInstanceHostAssigneeFromProcess(String processInstanceId) {
+        if (StrUtil.isEmpty(processInstanceId)) {
+            return;
+        }
+        List<Execution> executions = runtimeService.createExecutionQuery().processInstanceId(processInstanceId).list();
+        for (Execution ex : executions) {
+            if (runtimeService.getVariableLocal(ex.getId(), ActivitiConstants.MULTI_INSTANCE_HOST_ASSIGNEE) != null) {
+                runtimeService.removeVariableLocal(ex.getId(), ActivitiConstants.MULTI_INSTANCE_HOST_ASSIGNEE);
+            }
+        }
+    }
+
+    /**
      * 根据taskId获取表单信息
      *
      * @param inputObject  入参以及用户信息等获取对象
@@ -1300,10 +1316,20 @@ public class ActivitiTaskServiceImpl implements ActivitiTaskService {
             return;
         }
 
+        Task taskBefore = taskService.createTaskQuery().taskId(taskId).singleResult();
+        if (taskBefore == null) {
+            outputObject.setreturnMessage("没有此任务，请确认!");
+            return;
+        }
+        String processInstanceId = taskBefore.getProcessInstanceId();
+
         managementService.executeCommand(new DeleteMultiInstanceExecutionCmd(taskId, deleteUserIds));
+
+        removeMultiInstanceHostAssigneeFromProcess(processInstanceId);
 
         Task taskInfo = taskService.createTaskQuery().taskId(taskId).singleResult();
         if (taskInfo != null) {
+            taskService.setAssignee(taskId, userId);
             String opinion = "【会签】：取消会签，移除了全部参与人，仅保留主持人。";
             Map<String, Object> user = inputObject.getLogParams();
             List<Map<String, Object>> leaveList = activitiModelService.getUpLeaveList(user.get("id").toString(),
