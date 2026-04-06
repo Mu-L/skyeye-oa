@@ -96,6 +96,7 @@ public class PatrolItemServiceImpl extends SkyeyeBusinessServiceImpl<PatrolItemD
             SealOrderType orderType = sealOrderTypeService.selectById(patrolItem.getOrderTypeId());
             patrolItem.setOrderTypeMation(orderType);
         }
+        iShopStoreService.setDataMation(patrolItem, PatrolItem::getStoreId);
         // 设置门店信息（门店在 shop-member 模块，暂时不处理，后续可通过 Feign 调用）
         return patrolItem;
     }
