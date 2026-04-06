@@ -1,5 +1,6 @@
 package com.skyeye.evaluation.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -7,11 +8,13 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.evaluation.classenum.EvaluationItemTypeEnum;
 import com.skyeye.evaluation.dao.ProEvaluationDao;
 import com.skyeye.evaluation.entity.ProEvaluation;
 import com.skyeye.evaluation.service.ProEvaluationDetailService;
 import com.skyeye.evaluation.service.ProEvaluationService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.scheme.service.ProSchemeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +32,9 @@ public class ProEvaluationServiceImpl extends SkyeyeBusinessServiceImpl<ProEvalu
 
     @Autowired
     private ProEvaluationDetailService proEvaluationDetailService;
+
+    @Autowired
+    private ProSchemeService proSchemeService;
 
     @Override
     protected QueryWrapper<ProEvaluation> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -70,6 +76,18 @@ public class ProEvaluationServiceImpl extends SkyeyeBusinessServiceImpl<ProEvalu
             evaluation.setEvaluationDetailList(proEvaluationDetailService.queryDetailListByEvaluationId(id));
         }
         return evaluation;
+    }
+
+    @Override
+    public ProEvaluation selectById(String id) {
+        ProEvaluation proEvaluation = super.selectById(id);
+        proSchemeService.setDataMation(proEvaluation, ProEvaluation::getSchemeId);
+        if (CollectionUtil.isNotEmpty(proEvaluation.getEvaluationDetailList())) {
+            proEvaluation.getEvaluationDetailList().forEach(proEvaluationDetail -> {
+                proEvaluationDetail.setEvaluationTypeMation(EvaluationItemTypeEnum.getMation(proEvaluationDetail.getEvaluationType()));
+            });
+        }
+        return proEvaluation;
     }
 
     @Override

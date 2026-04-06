@@ -11,6 +11,7 @@ import com.skyeye.evaluation.classenum.EvaluationItemTypeEnum;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 /**
  * @ClassName: ProEvaluationDetail
@@ -44,6 +45,10 @@ public class ProEvaluationDetail extends OperatorUserInfo {
     @TableField(value = "evaluation_type")
     @ApiModelProperty(value = "评估项类型", enumClass = EvaluationItemTypeEnum.class, required = "required")
     private String evaluationType;
+
+    @TableField(exist = false)
+    @Property(value = "评估项类型信息")
+    private Map<String, Object> evaluationTypeMation;
 
     /**
      * 权重：表示该评估项在总体评估中的重要程度
