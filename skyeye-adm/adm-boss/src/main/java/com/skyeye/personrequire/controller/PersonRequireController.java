@@ -33,12 +33,6 @@ public class PersonRequireController {
     @Autowired
     private PersonRequireService personRequireService;
 
-    /**
-     * 获取我发起的人员需求申请列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryBossPersonRequireList", value = "获取我发起的人员需求申请列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/PersonRequireController/queryPersonRequireList")
@@ -46,12 +40,6 @@ public class PersonRequireController {
         personRequireService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑人员需求申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writePersonRequire", value = "新增/编辑人员需求申请", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = PersonRequire.class)
     @RequestMapping("/post/PersonRequireController/writePersonRequire")
@@ -59,12 +47,6 @@ public class PersonRequireController {
         personRequireService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 人员需求申请提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "submitPersonRequire", value = "人员需求申请提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/PersonRequireController/submitToApproval")
@@ -72,12 +54,6 @@ public class PersonRequireController {
         personRequireService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 作废人员需求申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "invalidPersonRequire", value = "作废人员需求申请", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "人员需求主键id", required = "required")})
@@ -86,12 +62,6 @@ public class PersonRequireController {
         personRequireService.invalid(inputObject, outputObject);
     }
 
-    /**
-     * 撤销人员需求申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokePersonRequire", value = "撤销人员需求申请", method = "PUT", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程id", required = "required")})
@@ -100,12 +70,6 @@ public class PersonRequireController {
         personRequireService.revoke(inputObject, outputObject);
     }
 
-    /**
-     * 人员需求申请责任人设置
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "setPersonLiable", value = "人员需求申请责任人设置", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "人员需求主键id", required = "required"),
@@ -115,12 +79,6 @@ public class PersonRequireController {
         personRequireService.setPersonLiable(inputObject, outputObject);
     }
 
-    /**
-     * 获取我负责的人员需求申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryMyChargePersonRequireList", value = "获取我负责的人员需求申请", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/PersonRequireController/queryMyChargePersonRequireList")
@@ -128,12 +86,6 @@ public class PersonRequireController {
         personRequireService.queryMyChargePersonRequireList(inputObject, outputObject);
     }
 
-    /**
-     * 获取所有审批通过状态之后的人员需求申请列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAllBossPersonRequireList", value = "获取所有审批通过状态之后的人员需求申请列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/PersonRequireController/queryAllPersonRequireList")

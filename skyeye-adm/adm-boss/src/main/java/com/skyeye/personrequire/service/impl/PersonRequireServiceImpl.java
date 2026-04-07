@@ -7,6 +7,7 @@ package com.skyeye.personrequire.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
@@ -56,10 +57,17 @@ public class PersonRequireServiceImpl extends SkyeyeBusinessServiceImpl<PersonRe
     private ICompanyJobService iCompanyJobService;
 
     @Override
+    protected QueryWrapper<PersonRequire> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<PersonRequire> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(PersonRequire::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        return queryWrapper;
+    }
+
+    @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = queryBySQL(pageInfo);
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        iDepmentService.setMationForMap(beans, "recruitDepartmentId", "recruitDepartmentMation");
+        iCompanyJobService.setMationForMap(beans, "recruitJobId", "recruitJobMation");
         return beans;
     }
 
