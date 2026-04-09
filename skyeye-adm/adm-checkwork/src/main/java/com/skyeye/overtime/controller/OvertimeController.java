@@ -33,12 +33,6 @@ public class OvertimeController {
     @Autowired
     private OvertimeService overtimeService;
 
-    /**
-     * 获取我的加班申请列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkworkovertime001", value = "获取我的加班申请列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/OvertimeController/queryOvertimeList")
@@ -46,12 +40,6 @@ public class OvertimeController {
         overtimeService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑加班申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeOvertime", value = "新增/编辑加班申请", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = OverTime.class)
     @RequestMapping("/post/OvertimeController/writeOvertime")
@@ -59,12 +47,6 @@ public class OvertimeController {
         overtimeService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 加班申请提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkworkovertime006", value = "加班申请提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/OvertimeController/submitToApproval")
@@ -72,12 +54,6 @@ public class OvertimeController {
         overtimeService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 作废加班申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkworkovertime007", value = "作废加班申请", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,12 +62,6 @@ public class OvertimeController {
         overtimeService.invalid(inputObject, outputObject);
     }
 
-    /**
-     * 撤销加班申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkworkovertime009", value = "撤销加班申请", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})

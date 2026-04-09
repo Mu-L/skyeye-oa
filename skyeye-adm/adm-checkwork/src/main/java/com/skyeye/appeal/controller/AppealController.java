@@ -33,12 +33,6 @@ public class AppealController {
     @Autowired
     private AppealService appealService;
 
-    /**
-     * 获取我的考勤申诉列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAppealList", value = "获取我的考勤申诉列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/AppealController/queryAppealList")
@@ -46,12 +40,6 @@ public class AppealController {
         appealService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑考勤申诉
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeAppeal", value = "新增/编辑考勤申诉", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = Appeal.class)
     @RequestMapping("/post/AppealController/writeAppeal")
@@ -59,12 +47,6 @@ public class AppealController {
         appealService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 考勤申诉提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "submitAppeal", value = "考勤申诉提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/AppealController/submitToApproval")
@@ -72,12 +54,6 @@ public class AppealController {
         appealService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 作废考勤申诉
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "invalidAppeal", value = "作废考勤申诉", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,12 +62,6 @@ public class AppealController {
         appealService.invalid(inputObject, outputObject);
     }
 
-    /**
-     * 撤销考勤申诉
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokeAppeal", value = "撤销考勤申诉", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})

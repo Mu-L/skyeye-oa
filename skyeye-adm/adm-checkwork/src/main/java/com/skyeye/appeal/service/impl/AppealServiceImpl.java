@@ -4,6 +4,7 @@
 
 package com.skyeye.appeal.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.appeal.dao.AppealDao;
 import com.skyeye.appeal.entity.Appeal;
@@ -12,11 +13,9 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.checkwork.service.CheckWorkService;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: AppealServiceImpl
@@ -34,11 +33,10 @@ public class AppealServiceImpl extends SkyeyeBusinessServiceImpl<AppealDao, Appe
     private CheckWorkService checkWorkService;
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryAppealList(pageInfo);
-        return beans;
+    protected QueryWrapper<Appeal> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<Appeal> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Appeal::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        return queryWrapper;
     }
 
     @Override

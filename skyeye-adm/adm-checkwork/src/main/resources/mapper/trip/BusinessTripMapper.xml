@@ -2,36 +2,6 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.skyeye.trip.dao.BusinessTripDao">
 
-    <select id="queryBusinessTripList" resultType="java.util.Map">
-        SELECT
-            a.id,
-            a.`name`,
-            a.odd_number oddNumber,
-            a.business_trip_address businessTripAddress,
-            a.business_trip_reason businessTripReason,
-            IFNULL(a.process_instance_id, '') processInstanceId,
-            a.state,
-            a.create_id createId,
-            CONVERT(a.create_time, char) createTime,
-            a.last_update_id lastUpdateId,
-            CONVERT(a.last_update_time, char) lastUpdateTime
-        FROM
-            check_work_business_travel a
-        <where>
-            a.create_id = #{createId}
-            <if test="sqlExtract != '' and sqlExtract != null">
-                ${sqlExtract}
-            </if>
-            <if test="keyword != null and keyword != ''">
-                AND a.`name` like '%${keyword}%'
-            </if>
-            <if test="tenantId != '' and tenantId != null">
-                AND a.tenant_id = #{tenantId}
-            </if>
-        </where>
-        ORDER BY a.create_time DESC
-    </select>
-
     <select id="queryStateIsSuccessBusinessTripDay" resultType="java.util.Map">
         SELECT
             a.id,

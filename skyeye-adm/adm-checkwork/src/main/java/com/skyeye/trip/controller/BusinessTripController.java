@@ -33,12 +33,6 @@ public class BusinessTripController {
     @Autowired
     private BusinessTripService businessTripService;
 
-    /**
-     * 获取我的出差申请列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkworkbusinesstrip001", value = "获取我的出差申请列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/BusinessTripController/queryBusinessTripList")
@@ -46,12 +40,6 @@ public class BusinessTripController {
         businessTripService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑出差申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeBusinessTrip", value = "新增/编辑出差申请", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = BusinessTrip.class)
     @RequestMapping("/post/BusinessTripController/writeBusinessTrip")
@@ -59,12 +47,6 @@ public class BusinessTripController {
         businessTripService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 出差申请提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkworkbusinesstrip006", value = "出差申请提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/BusinessTripController/submitToApproval")
@@ -72,12 +54,6 @@ public class BusinessTripController {
         businessTripService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 作废出差申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkworkbusinesstrip007", value = "作废出差申请", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -86,12 +62,6 @@ public class BusinessTripController {
         businessTripService.invalid(inputObject, outputObject);
     }
 
-    /**
-     * 撤销出差申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "checkworkbusinesstrip009", value = "撤销出差申请", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程实例id", required = "required")})

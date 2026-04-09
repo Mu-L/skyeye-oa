@@ -6,6 +6,7 @@ package com.skyeye.overtime.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
@@ -19,6 +20,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.centerrest.entity.checkwork.UserStaffHolidayRest;
 import com.skyeye.eve.centerrest.user.SysEveUserService;
 import com.skyeye.exception.CustomException;
@@ -58,14 +60,10 @@ public class OvertimeServiceImpl extends SkyeyeBusinessServiceImpl<OvertimeDao, 
     private SysEveUserService sysEveUserService;
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        if (tenantEnable) {
-            pageInfo.setTenantId(TenantContext.getTenantId());
-        }
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryOvertimeList(pageInfo);
-        return beans;
+    protected QueryWrapper<OverTime> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<OverTime> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(OverTime::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        return queryWrapper;
     }
 
     @Override

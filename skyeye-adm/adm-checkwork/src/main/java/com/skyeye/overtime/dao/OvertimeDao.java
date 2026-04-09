@@ -5,7 +5,6 @@
 package com.skyeye.overtime.dao;
 
 import com.skyeye.annotation.tenant.IgnoreTenant;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.overtime.entity.OverTime;
 import org.apache.ibatis.annotations.Param;
@@ -22,9 +21,6 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 public interface OvertimeDao extends SkyeyeBaseMapper<OverTime> {
-
-    @IgnoreTenant
-    List<Map<String, Object>> queryOvertimeList(CommonPageInfo pageInfo);
 
     /**
      * 获取指定员工在指定天是否有审批通过的数据

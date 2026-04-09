@@ -52,14 +52,10 @@ public class BusinessTripServiceImpl extends SkyeyeBusinessServiceImpl<BusinessT
     private CheckWorkTimeService checkWorkTimeService;
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        if (tenantEnable) {
-            pageInfo.setTenantId(TenantContext.getTenantId());
-        }
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryBusinessTripList(pageInfo);
-        return beans;
+    protected QueryWrapper<BusinessTrip> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<BusinessTrip> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(BusinessTrip::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        return queryWrapper;
     }
 
     @Override

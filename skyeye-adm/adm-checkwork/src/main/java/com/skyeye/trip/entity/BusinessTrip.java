@@ -30,7 +30,7 @@ import java.util.List;
 public class BusinessTrip extends SkyeyeFlowable {
 
     @TableField(value = "`name`")
-    @ApiModelProperty(value = "标题", required = "required")
+    @ApiModelProperty(value = "标题", required = "required", fuzzyLike = true)
     private String name;
 
     @TableField(value = "business_trip_address")

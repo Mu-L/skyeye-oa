@@ -5,7 +5,6 @@
 package com.skyeye.trip.dao;
 
 import com.skyeye.annotation.tenant.IgnoreTenant;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.trip.entity.BusinessTrip;
 import org.apache.ibatis.annotations.Param;
@@ -22,9 +21,6 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
  */
 public interface BusinessTripDao extends SkyeyeBaseMapper<BusinessTrip> {
-
-    @IgnoreTenant
-    List<Map<String, Object>> queryBusinessTripList(CommonPageInfo pageInfo);
 
     /**
      * 获取指定员工在指定月份和班次的所有审核通过的出差申请数据
