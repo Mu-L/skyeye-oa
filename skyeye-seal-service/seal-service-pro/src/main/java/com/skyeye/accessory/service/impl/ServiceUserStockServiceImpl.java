@@ -64,7 +64,7 @@ public class ServiceUserStockServiceImpl extends SkyeyeBusinessServiceImpl<Servi
     }
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         iMaterialService.setMationForMap(beans, "materialId", "materialMation");
         iMaterialNormsService.setMationForMap(beans, "normsId", "normsMation");

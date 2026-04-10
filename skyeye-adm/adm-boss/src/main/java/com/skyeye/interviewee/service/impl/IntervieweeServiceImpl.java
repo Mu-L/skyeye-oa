@@ -54,7 +54,7 @@ public class IntervieweeServiceImpl extends SkyeyeBusinessServiceImpl<Interviewe
     private EnclosureDetailsHandler enclosureDetailsHandler;
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         Integer type = Integer.parseInt(pageInfo.getType());
         String userId = inputObject.getLogParams().get("id").toString();

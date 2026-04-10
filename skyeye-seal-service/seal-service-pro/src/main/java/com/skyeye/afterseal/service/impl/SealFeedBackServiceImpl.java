@@ -29,7 +29,7 @@ import java.util.Map;
 public class SealFeedBackServiceImpl extends SkyeyeBusinessServiceImpl<SealFeedBackDao, SealFeedBack> implements SealFeedBackService {
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryFeedBackList(commonPageInfo);
         return beans;

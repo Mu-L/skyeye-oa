@@ -67,7 +67,7 @@ public class SealFaultServiceImpl extends SkyeyeBusinessServiceImpl<SealFaultDao
     }
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         return beans;
     }

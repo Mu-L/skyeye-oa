@@ -82,7 +82,7 @@ public class CertificationServiceImpl extends SkyeyeBusinessServiceImpl<Certific
 
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> maps = super.queryPageDataList(inputObject);
         iSchoolService.setMationForMap(maps, "campus", "campusMation");
         iFacultyService.setMationForMap(maps, "facultyId", "facultyMation");

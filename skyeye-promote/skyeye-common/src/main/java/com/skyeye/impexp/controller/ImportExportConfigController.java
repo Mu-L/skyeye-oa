@@ -1,0 +1,132 @@
+/*******************************************************************************
+ * Copyright 卫志强 QQ：598748873@qq.com Inc. All rights reserved. 开源地址：https://gitee.com/doc_wei01/skyeye
+ ******************************************************************************/
+
+package com.skyeye.impexp.controller;
+
+import com.skyeye.annotation.api.Api;
+import com.skyeye.annotation.api.ApiImplicitParam;
+import com.skyeye.annotation.api.ApiImplicitParams;
+import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
+import com.skyeye.impexp.entity.ImportExportConfig;
+import com.skyeye.impexp.service.ImportExportConfigService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * @ClassName: ImportExportConfigController
+ * @Description: 业务对象导入导出配置控制层
+ * @author: skyeye云系列--卫志强
+ * @date: 2026/4/8 22:15
+ */
+@RestController
+@Api(value = "业务对象导入导出配置", tags = "业务对象导入导出配置", modelName = "系统公共模块")
+public class ImportExportConfigController {
+
+    @Autowired
+    private ImportExportConfigService importExportConfigService;
+
+    @ApiOperation(id = "queryImportExportFieldOptions", value = "根据业务对象获取可配置导入导出字段项", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "appId", name = "appId", value = "应用的appId", required = "required"),
+        @ApiImplicitParam(id = "className", name = "className", value = "业务对象className", required = "required")})
+    @RequestMapping("/post/ImportExportConfigController/queryImportExportFieldOptions")
+    public void queryImportExportFieldOptions(InputObject inputObject, OutputObject outputObject) {
+        importExportConfigService.queryImportExportFieldOptions(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryImportExportConfigList", value = "根据业务对象获取导入导出配置列表", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "appId", name = "appId", value = "应用的appId", required = "required"),
+        @ApiImplicitParam(id = "className", name = "className", value = "业务对象className", required = "required")})
+    @RequestMapping("/post/ImportExportConfigController/queryImportExportConfigList")
+    public void queryImportExportConfigList(InputObject inputObject, OutputObject outputObject) {
+        importExportConfigService.queryImportExportConfigList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryImportExportConfigPageList", value = "根据业务对象获取导入导出配置", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/ImportExportConfigController/queryImportExportConfigPageList")
+    public void queryImportExportConfigPageList(InputObject inputObject, OutputObject outputObject) {
+        importExportConfigService.queryPageList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "writeImportExportConfig", value = "新增/编辑业务对象导入导出配置", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = ImportExportConfig.class)
+    @RequestMapping("/post/ImportExportConfigController/writeImportExportConfig")
+    public void writeImportExportConfig(InputObject inputObject, OutputObject outputObject) {
+        importExportConfigService.saveOrUpdateEntity(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryImportExportConfigById", value = "根据ID查询导入导出配置详情", method = "GET", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/ImportExportConfigController/queryImportExportConfigById")
+    public void queryImportExportConfigById(InputObject inputObject, OutputObject outputObject) {
+        importExportConfigService.selectById(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryImportExportConfigForUse", value = "导入导出场景获取配置(支持按id，未传则取默认或第一条)", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "appId", name = "appId", value = "应用的appId", required = "required"),
+        @ApiImplicitParam(id = "className", name = "className", value = "业务对象className", required = "required"),
+        @ApiImplicitParam(id = "id", name = "id", value = "配置id，可选")})
+    @RequestMapping("/post/ImportExportConfigController/queryImportExportConfigForUse")
+    public void queryImportExportConfigForUse(InputObject inputObject, OutputObject outputObject) {
+        importExportConfigService.queryImportExportConfigForUse(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryImportExportColumnsForUse", value = "导入导出场景获取最终列清单", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "appId", name = "appId", value = "应用的appId", required = "required"),
+        @ApiImplicitParam(id = "className", name = "className", value = "业务对象className", required = "required"),
+        @ApiImplicitParam(id = "id", name = "id", value = "配置id，可选")})
+    @RequestMapping("/post/ImportExportConfigController/queryImportExportColumnsForUse")
+    public void queryImportExportColumnsForUse(InputObject inputObject, OutputObject outputObject) {
+        importExportConfigService.queryImportExportColumnsForUse(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "downloadImportTemplate", value = "按配置下载导入Excel模板", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "appId", name = "appId", value = "应用的appId", required = "required"),
+        @ApiImplicitParam(id = "className", name = "className", value = "业务对象className", required = "required"),
+        @ApiImplicitParam(id = "id", name = "id", value = "配置id，可选，不传则默认配置")})
+    @RequestMapping("/post/ImportExportConfigController/downloadImportTemplate")
+    public void downloadImportTemplate(InputObject inputObject, OutputObject outputObject) {
+        importExportConfigService.downloadImportTemplate(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "downloadExportTemplate", value = "按配置下载导出表头Excel(无业务数据)", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "appId", name = "appId", value = "应用的appId", required = "required"),
+        @ApiImplicitParam(id = "className", name = "className", value = "业务对象className", required = "required"),
+        @ApiImplicitParam(id = "id", name = "id", value = "配置id，可选，不传则默认配置")})
+    @RequestMapping("/post/ImportExportConfigController/downloadExportTemplate")
+    public void downloadExportTemplate(InputObject inputObject, OutputObject outputObject) {
+        importExportConfigService.downloadExportTemplate(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "exportByConfig", value = "按配置导出数据（不接收rows，后端按filters查询）", method = "POST", allUse = "2")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "appId", name = "appId", value = "应用的appId", required = "required"),
+        @ApiImplicitParam(id = "className", name = "className", value = "业务对象className", required = "required"),
+        @ApiImplicitParam(id = "id", name = "id", value = "配置id，可选，不传则默认配置"),
+        @ApiImplicitParam(id = "filters", name = "filters", value = "筛选条件JSON，可选", required = "json")})
+    @RequestMapping("/post/ImportExportConfigController/exportByConfig")
+    public void exportByConfig(InputObject inputObject, OutputObject outputObject) {
+        importExportConfigService.exportByConfig(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "deleteImportExportConfigById", value = "根据id删除导入导出配置", method = "DELETE", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
+    @RequestMapping("/post/ImportExportConfigController/deleteImportExportConfigById")
+    public void deleteImportExportConfigById(InputObject inputObject, OutputObject outputObject) {
+        importExportConfigService.deleteById(inputObject, outputObject);
+    }
+}
+

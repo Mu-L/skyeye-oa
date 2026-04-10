@@ -9,6 +9,7 @@ import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.delivery.entity.ShopDeliveryTemplateCharge;
@@ -56,6 +57,8 @@ public class ShopDeliveryTemplateChargeController {
     }
 
     @ApiOperation(id = "queryShopDeliveryTemplateCharge", value = "获取全部快递运费模板计费配置信息", method = "POST", allUse = "0")
+    @ApiImplicitParams(classBean = TableSelectInfo.class, value = {
+        @ApiImplicitParam(id = "objectId", name = "objectId", value = "门店id")})
     @RequestMapping("/post/shopDeliveryTemplateChargeController/queryShopDeliveryTemplateCharge")
     public void queryShopDeliveryTemplateCharge(InputObject inputObject, OutputObject outputObject) {
         shopDeliveryTemplateChargeService.queryList(inputObject, outputObject);

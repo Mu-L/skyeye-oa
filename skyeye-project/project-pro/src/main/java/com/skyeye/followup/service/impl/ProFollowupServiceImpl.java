@@ -46,7 +46,7 @@ public class ProFollowupServiceImpl extends SkyeyeBusinessServiceImpl<ProFollowu
     }
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         iAuthUserService.setMationForMap(beans, "followupPersonId", "followupPersonMation");
         return beans;

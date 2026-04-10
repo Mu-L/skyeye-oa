@@ -107,10 +107,10 @@ public class WagesFieldTypeServiceImpl extends SkyeyeBusinessServiceImpl<WagesFi
     @Override
     public void updatePrepose(FieldType entity) {
         FieldType oldBean = selectById(entity.getId());
-        if (!StrUtil.equals(oldBean.getKey(), entity.getKey())) {
-            // 修改员工之前绑定的薪资字段key
-            fieldStaffLinkService.updateStaffFiledKey(oldBean.getKey(), entity.getKey());
-        }
+        // 删除旧的员工绑定的薪资字段key
+        fieldStaffLinkService.deleteStaffFiledKey(oldBean.getKey());
+        // 增加新的
+        insertWagesFieldTypeKeyToStaff(entity.getKey());
     }
 
     @Override

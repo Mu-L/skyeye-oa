@@ -38,7 +38,7 @@ public class SealEvaluateServiceImpl extends SkyeyeBusinessServiceImpl<SealEvalu
     private AfterSealService afterSealService;
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         List<Map<String, Object>> beans = skyeyeBaseMapper.querySealEvaluateList(commonPageInfo);
         return beans;

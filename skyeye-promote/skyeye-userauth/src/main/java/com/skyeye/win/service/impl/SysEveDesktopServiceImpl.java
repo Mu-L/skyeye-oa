@@ -45,7 +45,7 @@ public class SysEveDesktopServiceImpl extends SkyeyeBusinessServiceImpl<SysEveDe
     private SysEveDesktopDao sysEveDesktopDao;
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         commonPageInfo.setDeleteFlag(DeleteFlagEnum.NOT_DELETE.getKey());
         List<Map<String, Object>> beans = sysEveDesktopDao.querySysDesktopList(commonPageInfo);

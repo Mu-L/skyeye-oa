@@ -87,7 +87,7 @@ public class AppReleaseServiceImpl extends SkyeyeBusinessServiceImpl<AppReleaseD
     }
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         appVersionService.setMationForMap(beans, "versionId", "versionMation");
         appStoreService.setMationForMap(beans, "storeId", "storeMation");

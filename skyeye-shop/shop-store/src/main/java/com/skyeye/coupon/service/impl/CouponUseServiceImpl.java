@@ -211,7 +211,7 @@ public class CouponUseServiceImpl extends SkyeyeBusinessServiceImpl<CouponUseDao
     }
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> mapList = super.queryPageDataList(inputObject);
         couponService.setMationForMap(mapList, "couponId", "couponMation");
         return mapList;

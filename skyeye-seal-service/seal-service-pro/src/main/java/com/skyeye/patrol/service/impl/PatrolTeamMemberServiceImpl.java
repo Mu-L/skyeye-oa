@@ -40,7 +40,7 @@ public class PatrolTeamMemberServiceImpl extends SkyeyeBusinessServiceImpl<Patro
     }
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         // 设置员工信息
         List<String> staffIds = beans.stream().map(bean -> bean.get("staffId").toString())

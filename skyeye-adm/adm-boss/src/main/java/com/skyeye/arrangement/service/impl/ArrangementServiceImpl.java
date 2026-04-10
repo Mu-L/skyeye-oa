@@ -77,7 +77,7 @@ public class ArrangementServiceImpl extends SkyeyeBusinessServiceImpl<Arrangemen
     private TenantUserInviteService tenantUserInviteService;
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         // 我录入的
         commonPageInfo.setCreateId(inputObject.getLogParams().get("id").toString());

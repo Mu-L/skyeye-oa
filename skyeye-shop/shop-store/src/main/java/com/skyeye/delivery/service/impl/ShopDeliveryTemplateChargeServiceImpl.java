@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.delivery.dao.ShopDeliveryTemplateChargeDao;
@@ -51,7 +52,17 @@ public class ShopDeliveryTemplateChargeServiceImpl extends SkyeyeBusinessService
         return queryWrapper;
     }
 
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    @Override
+    protected QueryWrapper<ShopDeliveryTemplateCharge> getQueryWrapper(TableSelectInfo tableSelectInfo) {
+        QueryWrapper<ShopDeliveryTemplateCharge> queryWrapper = super.getQueryWrapper(tableSelectInfo);
+        String storeId = tableSelectInfo.getObjectId();
+        if (StrUtil.isNotEmpty(storeId)) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ShopDeliveryTemplateCharge::getStoreId), storeId);
+        }
+        return queryWrapper;
+    }
+
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         if (CollectionUtil.isEmpty(beans)) {
             return new ArrayList<>();
