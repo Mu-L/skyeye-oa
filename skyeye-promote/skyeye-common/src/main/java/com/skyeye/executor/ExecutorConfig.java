@@ -42,4 +42,20 @@ public class ExecutorConfig {
         executor.initialize();
         return executor;
     }
+
+    /**
+     * 租户邀请邮件异步投递 MQ（与登录日志线程池隔离）
+     */
+    @Bean(name = "tenantInviteEmailExecutor")
+    public Executor getTenantInviteEmailExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(16);
+        executor.setQueueCapacity(10000);
+        executor.setThreadNamePrefix("tenantInviteEmailExecutor-");
+        executor.setWaitForTasksToCompleteOnShutdown(true);
+        executor.setAwaitTerminationSeconds(60);
+        executor.initialize();
+        return executor;
+    }
 }

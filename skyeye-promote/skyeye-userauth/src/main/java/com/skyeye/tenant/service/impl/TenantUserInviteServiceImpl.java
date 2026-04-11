@@ -37,6 +37,7 @@ import com.skyeye.tenant.entity.TenantUserInvite;
 import com.skyeye.tenant.service.TenantService;
 import com.skyeye.tenant.service.TenantUserInviteService;
 import com.skyeye.tenant.service.TenantUserService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 /**
  * @ClassName: TenantUserInviteServiceImpl
@@ -54,6 +56,7 @@ import java.util.Map;
  * @Copyright: 2025 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
+@Slf4j
 @Service
 @SkyeyeService(name = "租户与用户邀请关系管理", groupName = "租户管理")
 public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserInviteDao, TenantUserInvite> implements TenantUserInviteService {
@@ -84,6 +87,9 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
 
     @Autowired
     private TenantService tenantService;
+
+    @Autowired
+    private Executor tenantInviteEmailExecutor;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -140,18 +146,33 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
             tenantUserInvite.setIsUsed(IsUsedEnum.NOT_USED.getKey());
             tenantUserInvite.setJoinType(TenantUserJoinType.MANUAL.getKey());
             String id = createEntity(tenantUserInvite, userId);
-            // 发送邮件
-            sendEmail(tenantUserInvite, userId, id);
+            // 发送邮件（事务提交后异步发 MQ，失败不影响邀请落库）
+            scheduleInviteEmailMq(tenantUserInvite, userId, id);
         }
     }
 
-    private void sendEmail(TenantUserInvite tenantUserInvite, String userId, String id) {
+    /**
+     * 事务提交后再异步投递 MQ，避免 MQ/任务表异常导致邀请主流程回滚。
+     */
+    private void scheduleInviteEmailMq(TenantUserInvite tenantUserInvite, String userId, String id) {
         String tenantId = TenantContext.getTenantId();
+        String email = tenantUserInvite.getEmail();
+        tenantInviteEmailExecutor.execute(() -> {
+            try {
+                TenantContext.setTenantId(tenantId);
+                sendInviteEmailMq(userId, id, email, tenantId);
+            } catch (Exception e) {
+                log.warn("租户邀请邮件 MQ 发送失败, inviteId={}", id, e);
+            }
+        });
+    }
+
+    private void sendInviteEmailMq(String userId, String id, String email, String tenantId) {
         String content = "您好，欢迎加入，请点击下面的链接完成注册：\n" + tenantInviteUrl + "?id=" + id + "&tenantId=" + tenantId;
         Map<String, Object> emailNotice = new HashMap<>();
         emailNotice.put("title", "新用户邀请");
         emailNotice.put("content", content);
-        emailNotice.put("email", tenantUserInvite.getEmail());
+        emailNotice.put("email", email);
         emailNotice.put("type", MqConstants.JobMateMationJobType.ORDINARY_MAIL_DELIVERY.getJobType());
         JobMateMation jobMateMation = new JobMateMation();
         jobMateMation.setJsonStr(JSONUtil.toJsonStr(emailNotice));
@@ -186,8 +207,8 @@ public class TenantUserInviteServiceImpl extends SkyeyeBusinessServiceImpl<Tenan
             throw new CustomException("该邀请已作废");
         }
         String userId = inputObject.getLogParams().get("id").toString();
-        // 发送邮件
-        sendEmail(tenantUserInvite, userId, id);
+        // 发送邮件（事务提交后异步发 MQ，失败不影响主流程）
+        scheduleInviteEmailMq(tenantUserInvite, userId, id);
     }
 
     @Override
