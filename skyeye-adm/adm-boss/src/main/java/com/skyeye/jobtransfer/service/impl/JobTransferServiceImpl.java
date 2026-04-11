@@ -58,10 +58,15 @@ public class JobTransferServiceImpl extends SkyeyeBusinessServiceImpl<JobTransfe
     private ICompanyJobScoreService iCompanyJobScoreService;
 
     @Override
+    protected QueryWrapper<JobTransfer> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<JobTransfer> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(JobTransfer::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        return queryWrapper;
+    }
+
+    @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryJobTransferList(pageInfo);
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         List<String> staffIds = beans.stream().map(bean -> bean.get("transferStaffId").toString()).collect(Collectors.toList());
         Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
         beans.forEach(bean -> {

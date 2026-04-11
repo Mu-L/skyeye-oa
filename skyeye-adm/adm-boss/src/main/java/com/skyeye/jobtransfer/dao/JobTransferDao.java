@@ -4,12 +4,8 @@
 
 package com.skyeye.jobtransfer.dao;
 
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.jobtransfer.entity.JobTransfer;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @ClassName: JobTransferDao
@@ -20,8 +16,6 @@ import java.util.Map;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 public interface JobTransferDao extends SkyeyeBaseMapper<JobTransfer> {
-
-    List<Map<String, Object>> queryJobTransferList(CommonPageInfo pageInfo);
 
     void updateBossInterviewJobMation(JobTransfer jobTransfer);
 }

@@ -33,12 +33,6 @@ public class JobTransferController {
     @Autowired
     private JobTransferService jobTransferService;
 
-    /**
-     * 获取我发起的岗位调动申请列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryBossInterviewJobTransferList", value = "获取我发起的岗位调动申请列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/JobTransferController/queryJobTransferList")
@@ -46,12 +40,6 @@ public class JobTransferController {
         jobTransferService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑岗位调动申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeJobTransfer", value = "新增/编辑岗位调动申请", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = JobTransfer.class)
     @RequestMapping("/post/JobTransferController/writeJobTransfer")
@@ -59,12 +47,6 @@ public class JobTransferController {
         jobTransferService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 岗位调动申请提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "submitJobTransfer", value = "岗位调动申请提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/JobTransferController/submitToApproval")
@@ -72,12 +54,6 @@ public class JobTransferController {
         jobTransferService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 作废岗位调动申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "invalidJobTransfer", value = "作废岗位调动申请", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "岗位调动申请主键id", required = "required")})
@@ -86,12 +62,6 @@ public class JobTransferController {
         jobTransferService.invalid(inputObject, outputObject);
     }
 
-    /**
-     * 撤销岗位调动申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokeJobTransfer", value = "撤销岗位调动申请", method = "PUT", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程id", required = "required")})
