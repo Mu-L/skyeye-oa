@@ -10,10 +10,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND create_time >= #{startDate}
+                    AND create_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND create_time &lt;= #{endDate}
+                    AND create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
 			</where>) as totalInterviewees, # 总面试者数量
             (SELECT COUNT(1) FROM boss_interview_arrangement <where>
@@ -22,10 +22,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND interview_time >= #{startDate}
+                    AND interview_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND interview_time &lt;= #{endDate}
+                    AND interview_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
 			</where>) as hiredCount, # 通过面试的数量
             (SELECT COUNT(1) FROM boss_interview_arrangement <where>
@@ -34,10 +34,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND interview_time >= #{startDate}
+                    AND interview_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND interview_time &lt;= #{endDate}
+                    AND interview_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
 			</where>) as pendingInterviewCount, # 待面试的数量
             (SELECT COUNT(1) FROM boss_interview <where>
@@ -46,10 +46,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND create_time >= #{startDate}
+                    AND create_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND create_time &lt;= #{endDate}
+                    AND create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
 			</where>) as interviewingCount, # 待面试者数量
             (SELECT COUNT(1) FROM boss_interview_arrangement <where>
@@ -58,10 +58,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND interview_time >= #{startDate}
+                    AND interview_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND interview_time &lt;= #{endDate}
+                    AND interview_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
 			</where>) as failedCount, # 面试失败数量
             (SELECT COUNT(1) FROM boss_interview_arrangement <where>
@@ -70,10 +70,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND interview_time >= #{startDate}
+                    AND interview_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND interview_time &lt;= #{endDate}
+                    AND interview_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
 			</where>) as rejectedCount, # 拒绝入职的数量
             (SELECT COUNT(1) FROM boss_person_require <where>
@@ -82,10 +82,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND create_time >= #{startDate}
+                    AND create_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND create_time &lt;= #{endDate}
+                    AND create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
 			</where>) as totalRequirements, # 总需求数量
             (SELECT COUNT(1) FROM boss_interview_regular_worker <where>
@@ -94,10 +94,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND regular_time >= #{startDate}
+                    AND regular_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND regular_time &lt;= #{endDate}
+                    AND regular_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
 			</where>) as regularWorkerCount, # 转正的数量
             (SELECT COUNT(1) FROM boss_interview_quit <where>
@@ -106,10 +106,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND leave_time >= #{startDate}
+                    AND leave_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND leave_time &lt;= #{endDate}
+                    AND leave_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
 			</where>) as quitCount # 离职的数量
     </select>
@@ -125,10 +125,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND create_time >= #{startDate}
+                    AND create_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND create_time &lt;= #{endDate}
+                    AND create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
             </where>), 2) as percentage
         FROM boss_interview 
@@ -137,10 +137,10 @@
                 AND tenant_id = #{tenantId}
             </if>
             <if test="startDate != null and startDate != ''">
-                AND create_time >= #{startDate}
+                AND create_time >= CONCAT(#{startDate}, ' 00:00:00')
             </if>
             <if test="endDate != null and endDate != ''">
-                AND create_time &lt;= #{endDate}
+                AND create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
             </if>
         </where>
         GROUP BY state
@@ -167,10 +167,10 @@
                 AND pr.recruit_department_id = #{departmentId}
             </if>
             <if test="startDate != null and startDate != ''">
-                AND pr.create_time >= #{startDate}
+                AND pr.create_time >= CONCAT(#{startDate}, ' 00:00:00')
             </if>
             <if test="endDate != null and endDate != ''">
-                AND pr.create_time &lt;= #{endDate}
+                AND pr.create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
             </if>
         </where>
         ORDER BY pr.create_time DESC
@@ -191,10 +191,10 @@
                 AND i.tenant_id = #{tenantId}
             </if>
             <if test="startDate != null and startDate != ''">
-                AND i.create_time >= #{startDate}
+                AND i.create_time >= CONCAT(#{startDate}, ' 00:00:00')
             </if>
             <if test="endDate != null and endDate != ''">
-                AND i.create_time &lt;= #{endDate}
+                AND i.create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
             </if>
         </where>
         GROUP BY f.id
@@ -216,10 +216,10 @@
                 AND pr.tenant_id = #{tenantId}
             </if>
             <if test="startDate != null and startDate != ''">
-                AND pr.create_time >= #{startDate}
+                AND pr.create_time >= CONCAT(#{startDate}, ' 00:00:00')
             </if>
             <if test="endDate != null and endDate != ''">
-                AND pr.create_time &lt;= #{endDate}
+                AND pr.create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
             </if>
         </where>
         GROUP BY pr.recruit_department_id
@@ -265,10 +265,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND create_time >= #{startDate}
+                    AND create_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND create_time &lt;= #{endDate}
+                    AND create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
 			</where>) as totalRegularCount, # 总转正申请数量
             (SELECT COUNT(1) FROM boss_interview_regular_worker <where>
@@ -277,10 +277,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND create_time >= #{startDate}
+                    AND create_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND create_time &lt;= #{endDate}
+                    AND create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
 			</where>) as approvedRegularCount, # 已通过转正数量
             (SELECT COUNT(1) FROM boss_interview_regular_worker <where>
@@ -289,10 +289,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND create_time >= #{startDate}
+                    AND create_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND create_time &lt;= #{endDate}
+                    AND create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
 			</where>) as pendingRegularCount, # 待审核转正数量
             (SELECT COUNT(1) FROM boss_interview_quit <where>
@@ -301,10 +301,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND create_time >= #{startDate}
+                    AND create_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND create_time &lt;= #{endDate}
+                    AND create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
 			</where>) as totalQuitCount, # 总离职申请数量
             (SELECT COUNT(1) FROM boss_interview_quit <where>
@@ -313,10 +313,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND create_time >= #{startDate}
+                    AND create_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND create_time &lt;= #{endDate}
+                    AND create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
 			</where>) as approvedQuitCount, # 已通过离职数量
             (SELECT COUNT(1) FROM boss_interview_quit <where>
@@ -325,10 +325,10 @@
                     AND tenant_id = #{tenantId}
                 </if>
                 <if test="startDate != null and startDate != ''">
-                    AND create_time >= #{startDate}
+                    AND create_time >= CONCAT(#{startDate}, ' 00:00:00')
                 </if>
                 <if test="endDate != null and endDate != ''">
-                    AND create_time &lt;= #{endDate}
+                    AND create_time &lt; DATE_ADD(#{endDate}, INTERVAL 1 DAY)
                 </if>
 			</where>) as pendingQuitCount # 待审核离职数量
     </select>

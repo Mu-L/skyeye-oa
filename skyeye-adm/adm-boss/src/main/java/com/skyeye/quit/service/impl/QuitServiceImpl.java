@@ -45,11 +45,10 @@ public class QuitServiceImpl extends SkyeyeBusinessServiceImpl<QuitDao, Quit> im
     private SysEveUserStaffService sysEveUserStaffService;
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryBossInterviewQuitList(pageInfo);
-        return beans;
+    protected QueryWrapper<Quit> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<Quit> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(Quit::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        return queryWrapper;
     }
 
     @Override

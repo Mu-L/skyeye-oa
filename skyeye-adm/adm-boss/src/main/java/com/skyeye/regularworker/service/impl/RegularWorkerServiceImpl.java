@@ -49,10 +49,15 @@ public class RegularWorkerServiceImpl extends SkyeyeBusinessServiceImpl<RegularW
     private ICompanyJobService iCompanyJobService;
 
     @Override
+    protected QueryWrapper<RegularWorker> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<RegularWorker> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(RegularWorker::getCreateId), InputObject.getLogParamsStatic().get("id").toString());
+        return queryWrapper;
+    }
+
+    @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
-        pageInfo.setCreateId(inputObject.getLogParams().get("id").toString());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryBossRegularWorkerList(pageInfo);
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         iDepmentService.setMationForMap(beans, "departmentId", "departmentMation");
         iCompanyJobService.setMationForMap(beans, "jobId", "jobMation");
         return beans;

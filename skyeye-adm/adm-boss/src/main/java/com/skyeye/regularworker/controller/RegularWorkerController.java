@@ -33,12 +33,6 @@ public class RegularWorkerController {
     @Autowired
     private RegularWorkerService regularWorkerService;
 
-    /**
-     * 获取我发起的转正申请列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryBossInterviewRegularWorkerList", value = "获取我发起的转正申请列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/RegularWorkerController/queryRegularWorkerList")
@@ -46,12 +40,6 @@ public class RegularWorkerController {
         regularWorkerService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑转正申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeRegularWorker", value = "新增/编辑转正申请", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = RegularWorker.class)
     @RequestMapping("/post/RegularWorkerController/writeRegularWorker")
@@ -59,12 +47,6 @@ public class RegularWorkerController {
         regularWorkerService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 转正申请提交审批
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "submitRegularWorker", value = "转正申请提交审批", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SubmitSkyeyeFlowable.class)
     @RequestMapping("/post/RegularWorkerController/submitToApproval")
@@ -72,12 +54,6 @@ public class RegularWorkerController {
         regularWorkerService.submitToApproval(inputObject, outputObject);
     }
 
-    /**
-     * 作废转正申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "invalidRegularWorker", value = "作废转正申请", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "转正申请主键id", required = "required")})
@@ -86,12 +62,6 @@ public class RegularWorkerController {
         regularWorkerService.invalid(inputObject, outputObject);
     }
 
-    /**
-     * 撤销转正申请
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "revokeRegularWorker", value = "撤销转正申请", method = "PUT", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "processInstanceId", name = "processInstanceId", value = "流程id", required = "required")})
