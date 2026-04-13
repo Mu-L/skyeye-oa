@@ -16,6 +16,9 @@ import com.skyeye.attr.service.AttrDefinitionCustomService;
 import com.skyeye.attr.service.AttrDefinitionService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.MqConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.entity.search.DynamicCondition;
 import com.skyeye.common.enumeration.IsDefaultEnum;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.enumeration.VerificationParamsEnum;
@@ -23,26 +26,25 @@ import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.object.PutObject;
+import com.skyeye.common.object.ResultEntity;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.ExcelUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.rest.mq.JobMateMation;
+import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.impexp.dao.ImportExportConfigDao;
 import com.skyeye.impexp.entity.ImportExportConfig;
 import com.skyeye.impexp.entity.ImportExportFieldOption;
+import com.skyeye.impexp.enums.ImportExportConfigTypeEnum;
 import com.skyeye.impexp.service.ImportExportConfigService;
-import com.skyeye.impexp.service.ImportExportDataProvider;
 import com.skyeye.impexp.support.ImportExportConfigJsonHelper;
 import com.skyeye.impexp.support.ImportExportConfigJsonHelper.ColumnSpec;
+import com.skyeye.sdk.data.service.IDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -61,11 +63,11 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
     @Autowired
     private AttrDefinitionCustomService attrDefinitionCustomService;
 
-    @Autowired(required = false)
-    private List<ImportExportDataProvider> importExportDataProviders;
+    @Autowired
+    private IDataService iDataService;
 
     @Autowired
-    private ImportExportRouteDataProvider importExportRouteDataProvider;
+    private IJobMateMationService iJobMateMationService;
 
     @Override
     protected void validatorEntity(ImportExportConfig entity) {
@@ -73,6 +75,7 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
         QueryWrapper<ImportExportConfig> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getAppId), entity.getAppId());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getClassName), entity.getClassName());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getConfigType), entity.getConfigType());
         queryWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getName), entity.getName());
         if (StrUtil.isNotBlank(entity.getId())) {
             queryWrapper.ne(CommonConstants.ID, entity.getId());
@@ -91,6 +94,7 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
             UpdateWrapper<ImportExportConfig> updateWrapper = new UpdateWrapper<>();
             updateWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getAppId), entity.getAppId());
             updateWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getClassName), entity.getClassName());
+            updateWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getConfigType), entity.getConfigType());
             updateWrapper.ne(CommonConstants.ID, entity.getId());
             updateWrapper.set(MybatisPlusUtil.toColumns(ImportExportConfig::getIsDefault), IsDefaultEnum.NOT_DEFAULT.getKey());
             update(updateWrapper);
@@ -102,10 +106,12 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
         Map<String, Object> params = inputObject.getParams();
         String appId = params.get("appId").toString();
         String className = params.get("className").toString();
+        Integer configType = Integer.parseInt(params.get("configType").toString());
         // 列表按“默认优先 -> 排序号 -> 最近更新时间”排序，方便前端直接展示与选择。
         QueryWrapper<ImportExportConfig> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getAppId), appId);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getClassName), className);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getConfigType), configType);
         List<ImportExportConfig> list = list(queryWrapper);
         List<ImportExportConfig> configList = list.stream().sorted(Comparator
                 .comparing((ImportExportConfig item) -> item.getIsDefault(), Comparator.reverseOrder())
@@ -162,49 +168,13 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
     }
 
     @Override
-    public void queryImportExportConfigForUse(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> params = inputObject.getParams();
-        ImportExportConfig config = resolveConfigForDownload(params);
-        outputObject.setBean(config);
-        outputObject.settotal(config == null ? 0 : 1);
-    }
-
-    @Override
-    public void queryImportExportColumnsForUse(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> params = inputObject.getParams();
-        ImportExportConfig config = resolveConfigForDownload(params);
-        if (config == null) {
-            throw new CustomException("未找到导入导出配置，请先保存配置。");
-        }
-        String appId = params.get("appId").toString();
-        String className = params.get("className").toString();
-        Map<String, String> titleMap = buildAttrKeyTitleMap(appId, className);
-
-        List<ColumnSpec> importSpecs = ImportExportConfigJsonHelper.parseColumnSpecs(config.getImportConfig());
-        if (CollectionUtil.isEmpty(importSpecs)) {
-            importSpecs = buildDefaultImportColumnSpecs(appId, className, titleMap);
-        }
-        List<ColumnSpec> exportSpecs = ImportExportConfigJsonHelper.parseColumnSpecs(config.getExportConfig());
-        if (CollectionUtil.isEmpty(exportSpecs)) {
-            exportSpecs = buildDefaultExportColumnSpecs(appId, className, titleMap);
-        }
-
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("config", config);
-        result.put("importColumns", convertColumnSpec(importSpecs, titleMap));
-        result.put("exportColumns", convertColumnSpec(exportSpecs, titleMap));
-        outputObject.setBean(result);
-        outputObject.settotal(1);
-    }
-
-    @Override
     public void downloadImportTemplate(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
-        ImportExportConfig config = resolveConfigForDownload(params);
+        ImportExportConfig config = resolveConfigForDownload(params, ImportExportConfigTypeEnum.IMPORT.getKey());
         if (config == null) {
             throw new CustomException("未找到导入导出配置，请先保存配置。");
         }
-        List<ColumnSpec> specs = ImportExportConfigJsonHelper.parseColumnSpecs(config.getImportConfig());
+        List<ColumnSpec> specs = ImportExportConfigJsonHelper.parseColumnSpecs(config.getConfigJson());
         String appId = params.get("appId").toString();
         String className = params.get("className").toString();
         Map<String, String> titleMap = buildAttrKeyTitleMap(appId, className);
@@ -218,51 +188,86 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
     }
 
     @Override
-    public void downloadExportTemplate(InputObject inputObject, OutputObject outputObject) {
-        Map<String, Object> params = inputObject.getParams();
-        ImportExportConfig config = resolveConfigForDownload(params);
-        if (config == null) {
-            throw new CustomException("未找到导入导出配置，请先保存配置。");
-        }
-        List<ColumnSpec> specs = ImportExportConfigJsonHelper.parseColumnSpecs(config.getExportConfig());
-        String appId = params.get("appId").toString();
-        String className = params.get("className").toString();
-        Map<String, String> titleMap = buildAttrKeyTitleMap(appId, className);
-        if (CollectionUtil.isEmpty(specs)) {
-            specs = buildDefaultExportColumnSpecs(appId, className, titleMap);
-        }
-        if (CollectionUtil.isEmpty(specs)) {
-            throw new CustomException("未配置导出列且无可用属性，无法生成模板。");
-        }
-        writeExcelTemplate(config.getName(), "导出模板", specs, titleMap);
-    }
-
-    @Override
     public void exportByConfig(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
-        ImportExportConfig config = resolveConfigForDownload(params);
+        ImportExportConfig config = resolveConfigForDownload(params, ImportExportConfigTypeEnum.EXPORT.getKey());
         if (config == null) {
             throw new CustomException("未找到导入导出配置，请先保存配置。");
         }
         String appId = params.get("appId").toString();
         String className = params.get("className").toString();
         Map<String, String> titleMap = buildAttrKeyTitleMap(appId, className);
-        List<ColumnSpec> specs = ImportExportConfigJsonHelper.parseColumnSpecs(config.getExportConfig());
+        List<ColumnSpec> specs = ImportExportConfigJsonHelper.parseColumnSpecs(config.getConfigJson());
         if (CollectionUtil.isEmpty(specs)) {
             specs = buildDefaultExportColumnSpecs(appId, className, titleMap);
         }
         if (CollectionUtil.isEmpty(specs)) {
             throw new CustomException("未配置导出列且无可用属性，无法导出。");
         }
-        Map<String, Object> filters = parseFilters(params.get("filters"));
-        List<Map<String, Object>> rows = resolveExportRows(appId, className, filters, inputObject);
+        Map<String, Object> filters = parseFilters(params.get("filters").toString());
+        int limit = Integer.parseInt(params.get("limit").toString());
+        CommonPageInfo pageInfo = buildExportCommonPageInfo(appId, className, filters, limit);
+        ResultEntity result = iDataService.queryExportAllData(appId, className, pageInfo);
+        Map<String, Object> bean = result.getBean();
+        if (bean != null && "file".equals(String.valueOf(bean.get("storageType")))) {
+            String filePath = String.valueOf(bean.get("filePath"));
+            sendImportExportJsonToExcelJob(config, specs, titleMap, filePath, inputObject);
+            outputObject.setBean(buildAsyncExportTip(bean));
+            outputObject.settotal(0);
+            return;
+        }
+        List<Map<String, Object>> rows = result.getRows();
+        if (rows == null) {
+            rows = CollectionUtil.newArrayList();
+        }
         writeExcelTemplate(config.getName(), "导出数据", specs, titleMap, rows);
+    }
+
+    private Map<String, Object> buildAsyncExportTip(Map<String, Object> exportBean) {
+        Map<String, Object> tip = new LinkedHashMap<>();
+        tip.put("async", true);
+        tip.put("message", "数据量较大，已提交后台生成 Excel，请稍后在「我的输出」查看任务进度。");
+        if (exportBean != null) {
+            tip.put("total", exportBean.get("total"));
+            tip.put("threshold", exportBean.get("threshold"));
+        }
+        return tip;
+    }
+
+    private void sendImportExportJsonToExcelJob(ImportExportConfig config, List<ColumnSpec> specs, Map<String, String> titleMap,
+                                                String filePath, InputObject inputObject) {
+        int n = specs.size();
+        String[] keys = new String[n];
+        String[] columnNames = new String[n];
+        for (int i = 0; i < n; i++) {
+            ColumnSpec spec = specs.get(i);
+            keys[i] = spec.getAttrKey();
+            String header = StrUtil.isNotBlank(spec.getColumnTitle()) ? spec.getColumnTitle() : titleMap.get(spec.getAttrKey());
+            if (StrUtil.isBlank(header)) {
+                header = spec.getAttrKey();
+            }
+            columnNames[i] = header;
+        }
+        String userId = inputObject.getLogParams().get("id").toString();
+        String safeName = StrUtil.blankToDefault(config.getName(), "导入导出");
+        Map<String, Object> json = new HashMap<>();
+        json.put("title", safeName + "导出");
+        json.put("type", MqConstants.JobMateMationJobType.IMPORT_EXPORT_JSON_TO_EXCEL.getJobType());
+        json.put("filePath", filePath);
+        json.put("keys", keys);
+        json.put("columnNames", columnNames);
+        json.put("userId", userId);
+        json.put("tenantId", tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY);
+        JobMateMation jobMateMation = new JobMateMation();
+        jobMateMation.setJsonStr(JSONUtil.toJsonStr(json));
+        jobMateMation.setUserId(userId);
+        iJobMateMationService.sendMQProducer(jobMateMation);
     }
 
     /**
      * 按 appId、className、可选 id 解析配置；未传 id 时取默认，再取排序第一条。
      */
-    private ImportExportConfig resolveConfigForDownload(Map<String, Object> params) {
+    private ImportExportConfig resolveConfigForDownload(Map<String, Object> params, Integer configType) {
         String appId = params.get("appId").toString();
         String className = params.get("className").toString();
         String id = params.get("id") == null ? null : params.get("id").toString();
@@ -272,11 +277,15 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
             if (config != null && (!StrUtil.equals(appId, config.getAppId()) || !StrUtil.equals(className, config.getClassName()))) {
                 throw new CustomException("该配置不属于当前业务对象.");
             }
+            if (config != null && !Objects.equals(configType, config.getConfigType())) {
+                throw new CustomException("该配置类型与当前操作不匹配.");
+            }
         }
         if (config == null) {
             QueryWrapper<ImportExportConfig> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getAppId), appId);
             queryWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getClassName), className);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getConfigType), configType);
             queryWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getIsDefault), IsDefaultEnum.IS_DEFAULT.getKey());
             config = getOne(queryWrapper, false);
         }
@@ -284,6 +293,7 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
             QueryWrapper<ImportExportConfig> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getAppId), appId);
             queryWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getClassName), className);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ImportExportConfig::getConfigType), configType);
             List<ImportExportConfig> list = list(queryWrapper);
             if (CollectionUtil.isEmpty(list)) {
                 return null;
@@ -313,7 +323,9 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
         return map;
     }
 
-    /** import_config 未配 items 时：默认可导入字段 */
+    /**
+     * 导入配置未配 items 时：默认可导入字段
+     */
     private List<ColumnSpec> buildDefaultImportColumnSpecs(String appId, String className, Map<String, String> titleMap) {
         List<AttrDefinition> attrDefinitionList = attrDefinitionService.queryAttrDefinitionList(appId, className);
         if (CollectionUtil.isEmpty(attrDefinitionList)) {
@@ -334,7 +346,9 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
         return list;
     }
 
-    /** export_config 未配 items 时：默认导出全部属性列 */
+    /**
+     * 导出配置未配 items 时：默认导出全部属性列
+     */
     private List<ColumnSpec> buildDefaultExportColumnSpecs(String appId, String className, Map<String, String> titleMap) {
         List<AttrDefinition> attrDefinitionList = attrDefinitionService.queryAttrDefinitionList(appId, className);
         if (CollectionUtil.isEmpty(attrDefinitionList)) {
@@ -388,16 +402,8 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
         return result;
     }
 
-    @SuppressWarnings("unchecked")
-    private Map<String, Object> parseFilters(Object filtersObj) {
-        if (filtersObj == null) {
-            return Collections.emptyMap();
-        }
-        if (filtersObj instanceof Map) {
-            return (Map<String, Object>) filtersObj;
-        }
-        String filtersStr = filtersObj.toString();
-        if (StrUtil.isBlank(filtersStr)) {
+    private Map<String, Object> parseFilters(String filtersStr) {
+        if (StrUtil.isEmpty(filtersStr)) {
             return Collections.emptyMap();
         }
         if (!JSONUtil.isTypeJSON(filtersStr)) {
@@ -406,19 +412,42 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
         return JSONUtil.parseObj(filtersStr);
     }
 
-    private List<Map<String, Object>> resolveExportRows(String appId, String className, Map<String, Object> filters, InputObject inputObject) {
-        // 先走业务模块自定义Provider，满足复杂聚合/多表场景。
-        if (CollectionUtil.isNotEmpty(importExportDataProviders)) {
-            for (ImportExportDataProvider provider : importExportDataProviders) {
-                if (provider.support(appId, className)) {
-                    List<Map<String, Object>> rows = provider.queryExportRows(appId, className, filters, inputObject);
-                    return rows == null ? CollectionUtil.newArrayList() : rows;
-                }
+    /**
+     * 组装 {@link com.skyeye.sdk.data.service.DataApiService#queryExportAllData} 所需的 CommonPageInfo；路由 URI 由 {@link IDataService#getUriByServiceClassName(String, String)} 解析。
+     *
+     * @param limit 本页/本次拉取条数；-1 表示不按条数截断（与 DataApi 一致：全部下载）
+     */
+    private CommonPageInfo buildExportCommonPageInfo(String appId, String className, Map<String, Object> filters, int limit) {
+        CommonPageInfo pageInfo = new CommonPageInfo();
+        pageInfo.setServiceAppId(appId);
+        pageInfo.setServiceClassName(className);
+        pageInfo.setPage(1);
+        pageInfo.setLimit(limit);
+        if (CollectionUtil.isEmpty(filters)) {
+            return pageInfo;
+        }
+        // 关键词
+        if (filters.containsKey("keyword")) {
+            pageInfo.setKeyword(String.valueOf(filters.get("keyword")));
+        }
+        // 高级搜索
+        Object dc = filters.get("dynamicCondition");
+        if (dc != null) {
+            String json = dc instanceof String ? (String) dc : JSONUtil.toJsonStr(dc);
+            if (StrUtil.isNotBlank(json) && json.trim().startsWith("[")) {
+                pageInfo.setDynamicCondition(JSONUtil.toList(json, DynamicCondition.class));
             }
         }
-        // 未实现Provider时，回落到统一路由查询，复用VirtualBusinessController主干链路。
-        return importExportRouteDataProvider.queryExportRowsByRoute(appId, className, filters);
-        return null;
+        // 自定义查询
+        Object cpm = filters.get("customParamsMap");
+        if (cpm instanceof Map) {
+            Map<String, Object> map = (Map<String, Object>) cpm;
+            pageInfo.setCustomParamsMap(map);
+        } else if (cpm instanceof String && StrUtil.isNotBlank((String) cpm) && JSONUtil.isTypeJSON((String) cpm)) {
+            Map<String, Object> map = JSONUtil.toBean((String) cpm, Map.class);
+            pageInfo.setCustomParamsMap(map);
+        }
+        return pageInfo;
     }
 
 }

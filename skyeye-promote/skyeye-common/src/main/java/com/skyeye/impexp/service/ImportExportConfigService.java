@@ -13,24 +13,12 @@ public interface ImportExportConfigService extends SkyeyeBusinessService<ImportE
 
     void queryImportExportConfigList(InputObject inputObject, OutputObject outputObject);
 
-    void queryImportExportConfigForUse(InputObject inputObject, OutputObject outputObject);
-
-    /**
-     * 导入导出场景获取最终列清单（已应用配置与默认回落规则）
-     */
-    void queryImportExportColumnsForUse(InputObject inputObject, OutputObject outputObject);
-
     void queryImportExportFieldOptions(InputObject inputObject, OutputObject outputObject);
 
     /**
-     * 按当前配置的 import_config 列下载导入模板（仅表头，与 ScheduleDay 下载模板方式一致）
+     * 按当前导入类型配置下载导入模板（仅表头，与 ScheduleDay 下载模板方式一致）
      */
     void downloadImportTemplate(InputObject inputObject, OutputObject outputObject);
-
-    /**
-     * 按当前配置的 export_config 列下载导出空表（仅表头，业务数据导出由各业务后续对接）
-     */
-    void downloadExportTemplate(InputObject inputObject, OutputObject outputObject);
 
     /**
      * 按配置导出数据（不接收rows，后端按filters查询数据）

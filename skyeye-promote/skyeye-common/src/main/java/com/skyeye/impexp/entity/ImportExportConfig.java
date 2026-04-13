@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.common.enumeration.IsDefaultEnum;
+import com.skyeye.impexp.enums.ImportExportConfigTypeEnum;
 import lombok.Data;
 
 /**
@@ -46,12 +47,12 @@ public class ImportExportConfig extends BaseGeneralInfo {
     @ApiModelProperty(value = "排序号")
     private Integer sortNo;
 
-    @TableField("import_config")
-    @ApiModelProperty(value = "导入配置JSON字符串，示例：{\"items\":[{\"attrKey\":\"name\",\"required\":true}]}")
-    private String importConfig;
+    @TableField("config_type")
+    @ApiModelProperty(value = "配置类型", enumClass = ImportExportConfigTypeEnum.class, required = "required,num")
+    private Integer configType;
 
-    @TableField("export_config")
-    @ApiModelProperty(value = "导出配置JSON字符串，示例：{\"items\":[{\"attrKey\":\"name\",\"checked\":true}]}")
-    private String exportConfig;
+    @TableField("config_json")
+    @ApiModelProperty(value = "配置JSON字符串，示例：{\"items\":[{\"attrKey\":\"name\",\"checked\":true}]}")
+    private String configJson;
 }
 

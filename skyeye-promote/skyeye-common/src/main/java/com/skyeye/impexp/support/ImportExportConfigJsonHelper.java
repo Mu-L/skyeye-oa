@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 解析 import_config / export_config 中的 items 列表。
+ * 解析 config_json 中的 items 列表。
  * 约定 JSON：{"items":[{"attrKey":"xxx","columnTitle":"可选列标题"}]}
  */
 public final class ImportExportConfigJsonHelper {

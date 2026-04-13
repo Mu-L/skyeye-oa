@@ -12,6 +12,7 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.impexp.entity.ImportExportConfig;
+import com.skyeye.impexp.enums.ImportExportConfigTypeEnum;
 import com.skyeye.impexp.service.ImportExportConfigService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,7 +43,8 @@ public class ImportExportConfigController {
     @ApiOperation(id = "queryImportExportConfigList", value = "根据业务对象获取导入导出配置列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "appId", name = "appId", value = "应用的appId", required = "required"),
-        @ApiImplicitParam(id = "className", name = "className", value = "业务对象className", required = "required")})
+        @ApiImplicitParam(id = "className", name = "className", value = "业务对象className", required = "required"),
+        @ApiImplicitParam(id = "configType", name = "configType", value = "配置类型", enumClass = ImportExportConfigTypeEnum.class, required = "required")})
     @RequestMapping("/post/ImportExportConfigController/queryImportExportConfigList")
     public void queryImportExportConfigList(InputObject inputObject, OutputObject outputObject) {
         importExportConfigService.queryImportExportConfigList(inputObject, outputObject);
@@ -70,26 +72,6 @@ public class ImportExportConfigController {
         importExportConfigService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryImportExportConfigForUse", value = "导入导出场景获取配置(支持按id，未传则取默认或第一条)", method = "POST", allUse = "2")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "appId", name = "appId", value = "应用的appId", required = "required"),
-        @ApiImplicitParam(id = "className", name = "className", value = "业务对象className", required = "required"),
-        @ApiImplicitParam(id = "id", name = "id", value = "配置id，可选")})
-    @RequestMapping("/post/ImportExportConfigController/queryImportExportConfigForUse")
-    public void queryImportExportConfigForUse(InputObject inputObject, OutputObject outputObject) {
-        importExportConfigService.queryImportExportConfigForUse(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "queryImportExportColumnsForUse", value = "导入导出场景获取最终列清单", method = "POST", allUse = "2")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "appId", name = "appId", value = "应用的appId", required = "required"),
-        @ApiImplicitParam(id = "className", name = "className", value = "业务对象className", required = "required"),
-        @ApiImplicitParam(id = "id", name = "id", value = "配置id，可选")})
-    @RequestMapping("/post/ImportExportConfigController/queryImportExportColumnsForUse")
-    public void queryImportExportColumnsForUse(InputObject inputObject, OutputObject outputObject) {
-        importExportConfigService.queryImportExportColumnsForUse(inputObject, outputObject);
-    }
-
     @ApiOperation(id = "downloadImportTemplate", value = "按配置下载导入Excel模板", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "appId", name = "appId", value = "应用的appId", required = "required"),
@@ -100,22 +82,13 @@ public class ImportExportConfigController {
         importExportConfigService.downloadImportTemplate(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "downloadExportTemplate", value = "按配置下载导出表头Excel(无业务数据)", method = "POST", allUse = "2")
-    @ApiImplicitParams(value = {
-        @ApiImplicitParam(id = "appId", name = "appId", value = "应用的appId", required = "required"),
-        @ApiImplicitParam(id = "className", name = "className", value = "业务对象className", required = "required"),
-        @ApiImplicitParam(id = "id", name = "id", value = "配置id，可选，不传则默认配置")})
-    @RequestMapping("/post/ImportExportConfigController/downloadExportTemplate")
-    public void downloadExportTemplate(InputObject inputObject, OutputObject outputObject) {
-        importExportConfigService.downloadExportTemplate(inputObject, outputObject);
-    }
-
     @ApiOperation(id = "exportByConfig", value = "按配置导出数据（不接收rows，后端按filters查询）", method = "POST", allUse = "2")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "appId", name = "appId", value = "应用的appId", required = "required"),
         @ApiImplicitParam(id = "className", name = "className", value = "业务对象className", required = "required"),
         @ApiImplicitParam(id = "id", name = "id", value = "配置id，可选，不传则默认配置"),
-        @ApiImplicitParam(id = "filters", name = "filters", value = "筛选条件JSON，可选", required = "json")})
+        @ApiImplicitParam(id = "filters", name = "filters", value = "筛选条件JSON字符串，可选；可与顶层 page/limit 二选一，顶层优先", required = "json"),
+        @ApiImplicitParam(id = "limit", name = "limit", value = "导出条数：-1 或省略表示全部；正整数表示最多导出条数（本页）", required = "required,num")})
     @RequestMapping("/post/ImportExportConfigController/exportByConfig")
     public void exportByConfig(InputObject inputObject, OutputObject outputObject) {
         importExportConfigService.exportByConfig(inputObject, outputObject);
