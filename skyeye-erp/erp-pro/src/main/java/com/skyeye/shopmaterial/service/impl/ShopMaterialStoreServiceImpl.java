@@ -343,10 +343,12 @@ public class ShopMaterialStoreServiceImpl extends SkyeyeBusinessServiceImpl<Shop
         shopMaterial.getMaterialMation().setUnitGroupMation(null);
         shopMaterial.getMaterialMation().setMaterialProcedure(null);
         shopMaterial.getMaterialMation().setNormsSpec(null);
-        materialNormsService.setDataMation(shopMaterial.getShopMaterialNormsList(), ShopMaterialNorms::getNormsId);
-        shopMaterial.getShopMaterialNormsList().forEach(shopMaterialNorms -> {
-            shopMaterialNorms.setEstimatePurchasePrice(null);
-        });
+        if (CollectionUtil.isNotEmpty(shopMaterial.getShopMaterialNormsList())) {
+            materialNormsService.setDataMation(shopMaterial.getShopMaterialNormsList(), ShopMaterialNorms::getNormsId);
+            shopMaterial.getShopMaterialNormsList().forEach(shopMaterialNorms -> {
+                shopMaterialNorms.setEstimatePurchasePrice(null);
+            });
+        }
         shopMaterial.setShopMaterialStore(shopMaterialStore);
         shopMaterial.setDefaultStoreId(shopMaterialStore.getStoreId());
         iShopStoreService.setDataMation(shopMaterial, ShopMaterial::getDefaultStoreId);
