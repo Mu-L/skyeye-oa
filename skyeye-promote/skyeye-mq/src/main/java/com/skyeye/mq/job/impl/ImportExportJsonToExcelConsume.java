@@ -6,6 +6,7 @@ package com.skyeye.mq.job.impl;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.FileConstants;
 import com.skyeye.common.constans.MqConstants;
@@ -98,12 +99,14 @@ public class ImportExportJsonToExcelConsume implements RocketMQListener<String> 
                 outPath = Paths.get(saveDir).resolve(excelFileName);
                 String title = map.containsKey("title") ? map.get("title").toString() : "导出数据";
                 String[] dataType = new String[0];
-                ExcelUtil.createWorkBookToFile(title, "导出数据", rows, keys, columnNames, dataType, outPath.toFile());
+                ExcelUtil.SheetExportStyle exportStyle = parseExportStyle(map.get("exportStyleJson"));
+                ExcelUtil.createWorkBookToFile(title, "导出数据", rows, keys, columnNames, dataType, outPath.toFile(), exportStyle);
             } else {
                 excelFileName = "export-excel-" + System.currentTimeMillis() + ".xlsx";
                 outPath = Paths.get(saveDir).resolve(excelFileName);
+                ExcelUtil.SheetExportStyle exportStyle = parseExportStyle(map.get("exportStyleJson"));
                 ExcelUtil.createSxssfExcelFromJsonArrayFile(jsonPath.toFile(), "导出数据", keys, columnNames,
-                    outPath.toFile(), SXSSF_ROW_ACCESS_WINDOW);
+                    outPath.toFile(), SXSSF_ROW_ACCESS_WINDOW, exportStyle);
             }
             Files.deleteIfExists(jsonPath);
 
@@ -129,6 +132,72 @@ public class ImportExportJsonToExcelConsume implements RocketMQListener<String> 
             relative = relative.substring(1);
         }
         return Paths.get(tPath.trim()).resolve(relative);
+    }
+
+    private static ExcelUtil.SheetExportStyle parseExportStyle(Object raw) {
+        if (raw == null) {
+            return null;
+        }
+        String jsonStr;
+        if (raw instanceof String) {
+            jsonStr = (String) raw;
+        } else if (raw instanceof Map) {
+            jsonStr = JSONUtil.toJsonStr(raw);
+        } else {
+            jsonStr = String.valueOf(raw);
+        }
+        if (StrUtil.isBlank(jsonStr) || "{}".equals(jsonStr.trim())) {
+            return null;
+        }
+        try {
+            JSONObject o = JSONUtil.parseObj(jsonStr);
+            ExcelUtil.SheetExportStyle s = new ExcelUtil.SheetExportStyle();
+            if (o.containsKey("headerRowHeight")) {
+                Float h = o.getFloat("headerRowHeight");
+                if (h != null && h > 0) {
+                    s.headerRowHeight = h;
+                }
+            }
+            if (o.containsKey("dataRowHeight")) {
+                Float h = o.getFloat("dataRowHeight");
+                if (h != null && h > 0) {
+                    s.dataRowHeight = h;
+                }
+            }
+            JSONArray cw = o.getJSONArray("columnWidths");
+            if (cw != null && !cw.isEmpty()) {
+                s.columnWidths = new int[cw.size()];
+                for (int i = 0; i < cw.size(); i++) {
+                    Object v = cw.get(i);
+                    if (v == null) {
+                        s.columnWidths[i] = -1;
+                    } else if (v instanceof Number) {
+                        s.columnWidths[i] = ((Number) v).intValue();
+                    } else {
+                        s.columnWidths[i] = -1;
+                    }
+                }
+            }
+            JSONArray bg = o.getJSONArray("headerBackgroundColors");
+            if (bg != null && !bg.isEmpty()) {
+                s.headerBackgroundColors = new String[bg.size()];
+                for (int i = 0; i < bg.size(); i++) {
+                    Object v = bg.get(i);
+                    s.headerBackgroundColors[i] = v == null || StrUtil.isBlank(String.valueOf(v)) ? null : String.valueOf(v);
+                }
+            }
+            JSONArray fg = o.getJSONArray("headerFontColors");
+            if (fg != null && !fg.isEmpty()) {
+                s.headerFontColors = new String[fg.size()];
+                for (int i = 0; i < fg.size(); i++) {
+                    Object v = fg.get(i);
+                    s.headerFontColors[i] = v == null || StrUtil.isBlank(String.valueOf(v)) ? null : String.valueOf(v);
+                }
+            }
+            return s;
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private static String[] toStringArray(Object o) {

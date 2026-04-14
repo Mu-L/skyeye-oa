@@ -40,6 +40,8 @@ import com.skyeye.impexp.enums.ImportExportConfigTypeEnum;
 import com.skyeye.impexp.service.ImportExportConfigService;
 import com.skyeye.impexp.support.ImportExportConfigJsonHelper;
 import com.skyeye.impexp.support.ImportExportConfigJsonHelper.ColumnSpec;
+import com.skyeye.impexp.support.ImportExportConfigJsonHelper.ParsedConfig;
+import com.skyeye.impexp.support.ImportExportConfigJsonHelper.SheetLayoutOptions;
 import com.skyeye.sdk.data.service.IDataService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -174,17 +176,20 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
         if (config == null) {
             throw new CustomException("未找到导入导出配置，请先保存配置。");
         }
-        List<ColumnSpec> specs = ImportExportConfigJsonHelper.parseColumnSpecs(config.getConfigJson());
+        ParsedConfig parsed = ImportExportConfigJsonHelper.parseConfig(config.getConfigJson());
+        List<ColumnSpec> specs = parsed.getItems();
+        SheetLayoutOptions layout = parsed.getLayout();
         String appId = params.get("appId").toString();
         String className = params.get("className").toString();
         Map<String, String> titleMap = buildAttrKeyTitleMap(appId, className);
         if (CollectionUtil.isEmpty(specs)) {
             specs = buildDefaultImportColumnSpecs(appId, className, titleMap);
+            layout = new SheetLayoutOptions();
         }
         if (CollectionUtil.isEmpty(specs)) {
             throw new CustomException("未配置导入列且无可用属性，无法生成模板。");
         }
-        writeExcelTemplate(config.getName(), "导入模板", specs, titleMap);
+        writeExcelTemplate(config.getName(), "导入模板", specs, titleMap, buildSheetExportStyle(specs, layout));
     }
 
     @Override
@@ -197,9 +202,12 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
         String appId = params.get("appId").toString();
         String className = params.get("className").toString();
         Map<String, String> titleMap = buildAttrKeyTitleMap(appId, className);
-        List<ColumnSpec> specs = ImportExportConfigJsonHelper.parseColumnSpecs(config.getConfigJson());
+        ParsedConfig parsed = ImportExportConfigJsonHelper.parseConfig(config.getConfigJson());
+        List<ColumnSpec> specs = parsed.getItems();
+        SheetLayoutOptions layout = parsed.getLayout();
         if (CollectionUtil.isEmpty(specs)) {
             specs = buildDefaultExportColumnSpecs(appId, className, titleMap);
+            layout = new SheetLayoutOptions();
         }
         if (CollectionUtil.isEmpty(specs)) {
             throw new CustomException("未配置导出列且无可用属性，无法导出。");
@@ -211,7 +219,7 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
         Map<String, Object> bean = result.getBean();
         if (bean != null && "file".equals(String.valueOf(bean.get("storageType")))) {
             String filePath = String.valueOf(bean.get("filePath"));
-            sendImportExportJsonToExcelJob(config, specs, titleMap, filePath, inputObject);
+            sendImportExportJsonToExcelJob(config, specs, layout, titleMap, filePath, inputObject);
             outputObject.setBean(buildAsyncExportTip(bean));
             outputObject.settotal(0);
             return;
@@ -220,7 +228,7 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
         if (rows == null) {
             rows = CollectionUtil.newArrayList();
         }
-        writeExcelTemplate(config.getName(), "导出数据", specs, titleMap, rows);
+        writeExcelTemplate(config.getName(), "导出数据", specs, titleMap, rows, buildSheetExportStyle(specs, layout));
     }
 
     private Map<String, Object> buildAsyncExportTip(Map<String, Object> exportBean) {
@@ -234,8 +242,8 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
         return tip;
     }
 
-    private void sendImportExportJsonToExcelJob(ImportExportConfig config, List<ColumnSpec> specs, Map<String, String> titleMap,
-                                                String filePath, InputObject inputObject) {
+    private void sendImportExportJsonToExcelJob(ImportExportConfig config, List<ColumnSpec> specs, SheetLayoutOptions layout,
+                                                Map<String, String> titleMap, String filePath, InputObject inputObject) {
         int n = specs.size();
         String[] keys = new String[n];
         String[] columnNames = new String[n];
@@ -256,12 +264,44 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
         json.put("filePath", filePath);
         json.put("keys", keys);
         json.put("columnNames", columnNames);
+        json.put("exportStyleJson", JSONUtil.toJsonStr(buildSheetExportStyle(specs, layout)));
         json.put("userId", userId);
         json.put("tenantId", tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY);
         JobMateMation jobMateMation = new JobMateMation();
         jobMateMation.setJsonStr(JSONUtil.toJsonStr(json));
         jobMateMation.setUserId(userId);
         iJobMateMationService.sendMQProducer(jobMateMation);
+    }
+
+    private ExcelUtil.SheetExportStyle buildSheetExportStyle(List<ColumnSpec> specs, SheetLayoutOptions layout) {
+        int n = specs.size();
+        ExcelUtil.SheetExportStyle s = new ExcelUtil.SheetExportStyle();
+        s.columnWidths = new int[n];
+        s.headerBackgroundColors = new String[n];
+        s.headerFontColors = new String[n];
+        for (int i = 0; i < n; i++) {
+            ColumnSpec sp = specs.get(i);
+            if (sp.getColumnWidth() != null && sp.getColumnWidth() > 0) {
+                s.columnWidths[i] = sp.getColumnWidth();
+            } else {
+                s.columnWidths[i] = -1;
+            }
+            String bg = StrUtil.firstNonBlank(sp.getHeaderBackgroundColor(),
+                layout != null ? layout.getDefaultHeaderBackgroundColor() : null);
+            s.headerBackgroundColors[i] = StrUtil.isBlank(bg) ? null : bg;
+            String fg = StrUtil.firstNonBlank(sp.getHeaderFontColor(),
+                layout != null ? layout.getDefaultHeaderFontColor() : null);
+            s.headerFontColors[i] = StrUtil.isBlank(fg) ? null : fg;
+        }
+        if (layout != null) {
+            if (layout.getHeaderRowHeight() != null && layout.getHeaderRowHeight() > 0) {
+                s.headerRowHeight = layout.getHeaderRowHeight();
+            }
+            if (layout.getDataRowHeight() != null && layout.getDataRowHeight() > 0) {
+                s.dataRowHeight = layout.getDataRowHeight();
+            }
+        }
+        return s;
     }
 
     /**
@@ -364,12 +404,13 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
         return list;
     }
 
-    private void writeExcelTemplate(String configName, String sheetName, List<ColumnSpec> specs, Map<String, String> titleMap) {
-        writeExcelTemplate(configName, sheetName, specs, titleMap, null);
+    private void writeExcelTemplate(String configName, String sheetName, List<ColumnSpec> specs, Map<String, String> titleMap,
+                                    ExcelUtil.SheetExportStyle exportStyle) {
+        writeExcelTemplate(configName, sheetName, specs, titleMap, null, exportStyle);
     }
 
     private void writeExcelTemplate(String configName, String sheetName, List<ColumnSpec> specs, Map<String, String> titleMap,
-                                    List<Map<String, Object>> rows) {
+                                    List<Map<String, Object>> rows, ExcelUtil.SheetExportStyle exportStyle) {
         int n = specs.size();
         String[] keys = new String[n];
         String[] columnNames = new String[n];
@@ -384,7 +425,7 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
         }
         String[] dataType = new String[0];
         String safeName = StrUtil.blankToDefault(configName, "导入导出");
-        ExcelUtil.createWorkBook(safeName + sheetName, sheetName, rows, keys, columnNames, dataType, PutObject.getResponse());
+        ExcelUtil.createWorkBook(safeName + sheetName, sheetName, rows, keys, columnNames, dataType, PutObject.getResponse(), exportStyle);
     }
 
     private List<Map<String, Object>> convertColumnSpec(List<ColumnSpec> specs, Map<String, String> titleMap) {
@@ -397,6 +438,15 @@ public class ImportExportConfigServiceImpl extends SkyeyeBusinessServiceImpl<Imp
                 header = spec.getAttrKey();
             }
             one.put("columnTitle", header);
+            if (spec.getColumnWidth() != null) {
+                one.put("columnWidth", spec.getColumnWidth());
+            }
+            if (StrUtil.isNotBlank(spec.getHeaderBackgroundColor())) {
+                one.put("headerBackgroundColor", spec.getHeaderBackgroundColor());
+            }
+            if (StrUtil.isNotBlank(spec.getHeaderFontColor())) {
+                one.put("headerFontColor", spec.getHeaderFontColor());
+            }
             result.add(one);
         }
         return result;

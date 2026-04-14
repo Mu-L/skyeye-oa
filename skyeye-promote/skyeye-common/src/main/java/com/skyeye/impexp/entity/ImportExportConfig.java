@@ -51,8 +51,49 @@ public class ImportExportConfig extends BaseGeneralInfo {
     @ApiModelProperty(value = "配置类型", enumClass = ImportExportConfigTypeEnum.class, required = "required,num")
     private Integer configType;
 
+    /**
+     * 导入导出配置 JSON（用于定义导出列与 Excel 样式）。
+     * <p>根级字段：</p>
+     * <ul>
+     *     <li>headerRowHeight：表头行高（单位：磅，point）</li>
+     *     <li>dataRowHeight：数据行行高（单位：磅，point）</li>
+     *     <li>defaultHeaderBackgroundColor：默认表头背景色（格式：#RRGGBB）</li>
+     *     <li>defaultHeaderFontColor：默认表头字体色（格式：#RRGGBB）</li>
+     * </ul>
+     * <p>items 数组（每一列）字段：</p>
+     * <ul>
+     *     <li>attrKey：字段属性键（必填）</li>
+     *     <li>columnTitle：列标题（可选）</li>
+     *     <li>columnWidth：列宽（POI Sheet#setColumnWidth 单位，1/256 字符宽）</li>
+     *     <li>headerBackgroundColor：该列表头背景色（优先级高于默认背景色）</li>
+     *     <li>headerFontColor：该列表头字体色（优先级高于默认字体色）</li>
+     * </ul>
+     * <p>示例：</p>
+     * <pre>
+     * {
+     *   "headerRowHeight": 22,
+     *   "dataRowHeight": 18,
+     *   "defaultHeaderBackgroundColor": "#4472C4",
+     *   "defaultHeaderFontColor": "#FFFFFF",
+     *   "items": [
+     *     {
+     *       "attrKey": "name",
+     *       "columnTitle": "名称",
+     *       "columnWidth": 5000,
+     *       "headerBackgroundColor": "#E2EFDA",
+     *       "headerFontColor": "#000000"
+     *     },
+     *     {
+     *       "attrKey": "code",
+     *       "columnTitle": "编码",
+     *       "columnWidth": 4200
+     *     }
+     *   ]
+     * }
+     * </pre>
+     */
     @TableField("config_json")
-    @ApiModelProperty(value = "配置JSON字符串，示例：{\"items\":[{\"attrKey\":\"name\",\"checked\":true}]}")
+    @ApiModelProperty(value = "导入导出配置JSON")
     private String configJson;
 }
 
