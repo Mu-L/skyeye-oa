@@ -27,6 +27,8 @@ import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 /**
@@ -46,12 +48,12 @@ public class TalkWebSocket {
     /**
      * 在线人数（独立用户数）
      */
-    public static int onlineNumber = 0;
+    private static final AtomicInteger onlineNumber = new AtomicInteger(0);
 
     /**
      * 总连接数（所有终端的连接数）
      */
-    public static int totalConnections = 0;
+    private static final AtomicInteger totalConnections = new AtomicInteger(0);
 
     /**
      * 以用户ID为key，该用户的所有WebSocket连接为值
@@ -72,7 +74,11 @@ public class TalkWebSocket {
     /**
      * 消息发送者，用于异步批量发送消息
      */
-    private static final ExecutorService messageExecutor = Executors.newFixedThreadPool(5);
+    private static final ExecutorService messageExecutor = new ThreadPoolExecutor(
+        5, 10, 60, TimeUnit.SECONDS,
+        new ArrayBlockingQueue<>(2000),
+        new ThreadPoolExecutor.CallerRunsPolicy()
+    );
 
     /**
      * 心跳超时时间（毫秒），默认60秒
@@ -83,6 +89,23 @@ public class TalkWebSocket {
      * 会话超时时间（毫秒），默认30分钟
      */
     private static final long SESSION_TIMEOUT = 30 * 60 * 1000;
+
+    /**
+     * 单用户最大连接数，防止异常客户端占用过多连接。
+     */
+    private static final int MAX_CONNECTIONS_PER_USER = 5;
+
+    /**
+     * 系统最大连接数，达到上限后拒绝新连接。
+     */
+    private static final int MAX_TOTAL_CONNECTIONS = 20000;
+
+    /**
+     * 连接/发送可观测性指标
+     */
+    private static final AtomicLong rejectedConnectionCount = new AtomicLong(0);
+    private static final AtomicLong broadcastRejectCount = new AtomicLong(0);
+    private static final AtomicLong sendFailureCount = new AtomicLong(0);
 
     /**
      * 会话
@@ -123,6 +146,15 @@ public class TalkWebSocket {
             }
         }, 10, 10, TimeUnit.MINUTES);
 
+        // 定时打印连接与发送指标，方便容量观察
+        scheduler.scheduleAtFixedRate(() -> {
+            try {
+                logRuntimeMetrics();
+            } catch (Exception e) {
+                LOGGER.error("打印WebSocket运行指标异常", e);
+            }
+        }, 1, 1, TimeUnit.MINUTES);
+
         // 应用关闭时清理资源
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
@@ -143,22 +175,34 @@ public class TalkWebSocket {
     @OnOpen
     public void onOpen(@PathParam("userId") String userId, Session session) {
         try {
-            boolean isNewUser = false;
-            // 检查用户是否已经有其他终端连接
-            if (!userSessions.containsKey(userId)) {
-                // 新用户，创建一个新的连接集合
-                userSessions.put(userId, ConcurrentHashMap.newKeySet());
-                isNewUser = true;
-                onlineNumber++;
+            if (ToolUtil.isBlank(userId)) {
+                session.close(new CloseReason(CloseReason.CloseCodes.VIOLATED_POLICY, "userId不能为空"));
+                return;
             }
 
-            totalConnections++;
-            LOGGER.info("新连接加入 - 客户端ID: {}, 用户ID: {}, 当前在线人数: {}, 总连接数: {}",
-                session.getId(), userId, onlineNumber, totalConnections);
+            if (totalConnections.get() >= MAX_TOTAL_CONNECTIONS) {
+                rejectedConnectionCount.incrementAndGet();
+                session.close(new CloseReason(CloseReason.CloseCodes.TRY_AGAIN_LATER, "连接已达上限"));
+                LOGGER.warn("拒绝连接，达到系统连接上限: {}, userId: {}", MAX_TOTAL_CONNECTIONS, userId);
+                return;
+            }
 
             this.userId = userId;
             this.session = session;
             this.sessionId = session.getId();
+
+            Set<TalkWebSocket> userSocketSet = userSessions.computeIfAbsent(userId, key -> ConcurrentHashMap.newKeySet());
+            boolean isNewUser;
+            synchronized (userSocketSet) {
+                if (userSocketSet.size() >= MAX_CONNECTIONS_PER_USER) {
+                    rejectedConnectionCount.incrementAndGet();
+                    session.close(new CloseReason(CloseReason.CloseCodes.TRY_AGAIN_LATER, "用户连接数超限"));
+                    LOGGER.warn("拒绝连接，用户 {} 超过最大连接数: {}", userId, MAX_CONNECTIONS_PER_USER);
+                    return;
+                }
+                isNewUser = userSocketSet.isEmpty();
+                userSocketSet.add(this);
+            }
 
             // 设置会话配置
             this.session.setMaxIdleTimeout(120000); // 设置会话超时时间为2分钟
@@ -167,10 +211,13 @@ public class TalkWebSocket {
             sessionIdToUserId.put(sessionId, userId);
 
             // 更新最后活跃时间
-            lastActiveTime.put(userId, System.currentTimeMillis());
-
-            // 将当前连接添加到用户的连接集合中
-            userSessions.get(userId).add(this);
+            lastActiveTime.put(sessionId, System.currentTimeMillis());
+            totalConnections.incrementAndGet();
+            if (isNewUser) {
+                onlineNumber.incrementAndGet();
+            }
+            LOGGER.info("新连接加入 - 客户端ID: {}, 用户ID: {}, 当前在线人数: {}, 总连接数: {}",
+                session.getId(), userId, onlineNumber.get(), totalConnections.get());
 
             // 如果是新用户，通知其他用户我上线了
             if (isNewUser) {
@@ -219,17 +266,18 @@ public class TalkWebSocket {
         try {
             // 更新会话ID到用户ID的映射
             sessionIdToUserId.remove(sessionId);
+            lastActiveTime.remove(sessionId);
 
             // 从用户的会话集合中移除当前会话
             Set<TalkWebSocket> userSocketSet = userSessions.get(userId);
             if (userSocketSet != null) {
                 userSocketSet.remove(this);
-                totalConnections--;
+                totalConnections.decrementAndGet();
 
                 // 如果用户的所有连接都断开了，则从用户列表中移除
                 if (userSocketSet.isEmpty()) {
                     userSessions.remove(userId);
-                    onlineNumber--;
+                    onlineNumber.decrementAndGet();
 
                     // 通知其他用户我下线了
                     Map<String, Object> map1 = new HashMap<>();
@@ -239,10 +287,10 @@ public class TalkWebSocket {
                     sendMessageToAllExcept(JSONUtil.toJsonStr(map1), userId);
 
                     LOGGER.info("用户完全离线 - 用户ID: {}, 当前在线人数: {}, 总连接数: {}",
-                        userId, onlineNumber, totalConnections);
+                        userId, onlineNumber.get(), totalConnections.get());
                 } else {
                     LOGGER.info("终端断开连接 - 用户ID: {}, 剩余终端数: {}, 当前在线人数: {}, 总连接数: {}",
-                        userId, userSocketSet.size(), onlineNumber, totalConnections);
+                        userId, userSocketSet.size(), onlineNumber.get(), totalConnections.get());
                 }
             }
         } catch (Exception e) {
@@ -262,8 +310,8 @@ public class TalkWebSocket {
             LOGGER.info("来自客户端消息: {}, 客户端的id是: {}", message, session.getId());
 
             // 更新最后活跃时间
-            if (userId != null) {
-                lastActiveTime.put(userId, System.currentTimeMillis());
+            if (sessionId != null) {
+                lastActiveTime.put(sessionId, System.currentTimeMillis());
             }
 
             JSONObject jsonObject = JSONUtil.toBean(message, null);
@@ -422,11 +470,7 @@ public class TalkWebSocket {
      */
     public void sendMessageToSession(String message, Session session) {
         if (session != null && session.isOpen()) {
-            try {
-                session.getAsyncRemote().sendText(message);
-            } catch (Exception e) {
-                LOGGER.error("发送消息给会话 {} 失败: {}", session.getId(), e.getMessage());
-            }
+            sendTextWithRetry(message, session, session.getId(), "session");
         }
     }
 
@@ -446,7 +490,7 @@ public class TalkWebSocket {
                         if (notSessionId != null && notSessionId.equals(socket.sessionId)) {
                             continue;
                         }
-                        socket.session.getAsyncRemote().sendText(message);
+                        sendTextWithRetry(message, socket.session, socket.sessionId, userId);
                     }
                 } catch (Exception e) {
                     LOGGER.error("发送消息给用户 {} 的终端 {} 失败: {}",
@@ -464,27 +508,32 @@ public class TalkWebSocket {
      */
     public void sendMessageToAllExcept(String message, String excludeUserId) {
         // 使用线程池异步发送消息
-        messageExecutor.submit(() -> {
-            for (Map.Entry<String, Set<TalkWebSocket>> entry : userSessions.entrySet()) {
-                String userId = entry.getKey();
-                // 排除指定用户
-                if (excludeUserId != null && excludeUserId.equals(userId)) {
-                    continue;
-                }
+        try {
+            messageExecutor.submit(() -> {
+                for (Map.Entry<String, Set<TalkWebSocket>> entry : userSessions.entrySet()) {
+                    String userId = entry.getKey();
+                    // 排除指定用户
+                    if (excludeUserId != null && excludeUserId.equals(userId)) {
+                        continue;
+                    }
 
-                Set<TalkWebSocket> sockets = entry.getValue();
-                for (TalkWebSocket socket : sockets) {
-                    try {
-                        if (socket.session.isOpen()) {
-                            socket.session.getAsyncRemote().sendText(message);
+                    Set<TalkWebSocket> sockets = entry.getValue();
+                    for (TalkWebSocket socket : sockets) {
+                        try {
+                            if (socket.session.isOpen()) {
+                                sendTextWithRetry(message, socket.session, socket.sessionId, userId);
+                            }
+                        } catch (Exception e) {
+                            LOGGER.error("发送全体消息给用户 {} 的终端 {} 失败: {}",
+                                userId, socket.sessionId, e.getMessage());
                         }
-                    } catch (Exception e) {
-                        LOGGER.error("发送全体消息给用户 {} 的终端 {} 失败: {}",
-                            userId, socket.sessionId, e.getMessage());
                     }
                 }
-            }
-        });
+            });
+        } catch (RejectedExecutionException ex) {
+            broadcastRejectCount.incrementAndGet();
+            LOGGER.warn("广播任务被拒绝，当前系统繁忙。excludeUserId: {}", excludeUserId);
+        }
     }
 
     /**
@@ -506,48 +555,42 @@ public class TalkWebSocket {
         for (Map.Entry<String, Set<TalkWebSocket>> entry : userSessions.entrySet()) {
             String userId = entry.getKey();
             Set<TalkWebSocket> sockets = entry.getValue();
+            Set<TalkWebSocket> timeoutSockets = new HashSet<>();
+            for (TalkWebSocket socket : sockets) {
+                Long lastActive = lastActiveTime.get(socket.sessionId);
+                if (lastActive != null && now - lastActive > HEARTBEAT_TIMEOUT) {
+                    timeoutSockets.add(socket);
+                }
+            }
+            if (timeoutSockets.isEmpty()) {
+                continue;
+            }
 
-            // 检查该用户的活跃时间是否超时
-            Long lastActive = lastActiveTime.get(userId);
-            if (lastActive != null && now - lastActive > HEARTBEAT_TIMEOUT) {
-                // 用户已超时，关闭所有连接
-                LOGGER.info("用户 {} 心跳超时，关闭所有连接", userId);
-
-                Set<TalkWebSocket> socketsToRemove = new HashSet<>();
-                for (TalkWebSocket socket : sockets) {
-                    try {
-                        if (socket.session.isOpen()) {
-                            socket.session.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "心跳超时"));
-                        }
-                        sessionIdToUserId.remove(socket.sessionId);
-                        socketsToRemove.add(socket);
-                    } catch (IOException e) {
-                        LOGGER.error("关闭超时连接失败: {}", e.getMessage());
+            LOGGER.info("用户 {} 检测到 {} 个心跳超时连接", userId, timeoutSockets.size());
+            for (TalkWebSocket socket : timeoutSockets) {
+                try {
+                    if (socket.session.isOpen()) {
+                        socket.session.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "心跳超时"));
                     }
+                } catch (IOException e) {
+                    LOGGER.error("关闭超时连接失败: {}", e.getMessage());
+                } finally {
+                    sessionIdToUserId.remove(socket.sessionId);
+                    lastActiveTime.remove(socket.sessionId);
+                    sockets.remove(socket);
+                    totalConnections.decrementAndGet();
                 }
+            }
 
-                // 从用户的连接集合中移除已关闭的连接
-                sockets.removeAll(socketsToRemove);
-                totalConnections -= socketsToRemove.size();
-
-                // 如果用户没有任何连接了，从用户列表中移除
-                if (sockets.isEmpty()) {
-                    userSessions.remove(userId);
-                    onlineNumber--;
-
-                    // 通知其他用户该用户下线了
-                    Map<String, Object> map1 = new HashMap<>();
-                    map1.put("messageType", SocketConstants.MessageType.Second.getType());
-                    map1.put("onlineUsers", userSessions.keySet());
-                    map1.put("userId", userId);
-
-                    // 创建一个临时对象用于发送消息
-                    TalkWebSocket tempSocket = new TalkWebSocket();
-                    tempSocket.sendMessageToAllExcept(JSONUtil.toJsonStr(map1), userId);
-                }
-
-                // 重新更新最后活跃时间，防止重复处理
-                lastActiveTime.put(userId, now);
+            if (sockets.isEmpty()) {
+                userSessions.remove(userId);
+                onlineNumber.decrementAndGet();
+                Map<String, Object> map1 = new HashMap<>();
+                map1.put("messageType", SocketConstants.MessageType.Second.getType());
+                map1.put("onlineUsers", userSessions.keySet());
+                map1.put("userId", userId);
+                TalkWebSocket tempSocket = new TalkWebSocket();
+                tempSocket.sendMessageToAllExcept(JSONUtil.toJsonStr(map1), userId);
             }
         }
     }
@@ -557,42 +600,55 @@ public class TalkWebSocket {
      */
     private static void checkSessionTimeout() {
         long now = System.currentTimeMillis();
-        List<String> timeoutUsers = lastActiveTime.entrySet().stream()
+        List<String> timeoutSessions = lastActiveTime.entrySet().stream()
             .filter(entry -> now - entry.getValue() > SESSION_TIMEOUT)
             .map(Map.Entry::getKey)
             .collect(Collectors.toList());
 
-        for (String userId : timeoutUsers) {
-            Set<TalkWebSocket> sockets = userSessions.remove(userId);
-            lastActiveTime.remove(userId);
+        for (String timeoutSessionId : timeoutSessions) {
+            String userId = sessionIdToUserId.remove(timeoutSessionId);
+            lastActiveTime.remove(timeoutSessionId);
+            if (ToolUtil.isBlank(userId)) {
+                continue;
+            }
+            Set<TalkWebSocket> sockets = userSessions.get(userId);
+            if (sockets == null || sockets.isEmpty()) {
+                continue;
+            }
 
-            if (sockets != null) {
-                for (TalkWebSocket socket : sockets) {
-                    try {
-                        sessionIdToUserId.remove(socket.sessionId);
-                        if (socket.session.isOpen()) {
-                            socket.session.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "会话超时"));
-                        }
-                    } catch (IOException e) {
-                        LOGGER.error("关闭超时会话失败: {}", e.getMessage());
-                    }
+            TalkWebSocket timeoutSocket = null;
+            for (TalkWebSocket socket : sockets) {
+                if (timeoutSessionId.equals(socket.sessionId)) {
+                    timeoutSocket = socket;
+                    break;
                 }
+            }
+            if (timeoutSocket == null) {
+                continue;
+            }
+            try {
+                if (timeoutSocket.session.isOpen()) {
+                    timeoutSocket.session.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "会话超时"));
+                }
+            } catch (IOException e) {
+                LOGGER.error("关闭超时会话失败: {}", e.getMessage());
+            } finally {
+                sockets.remove(timeoutSocket);
+                totalConnections.decrementAndGet();
+            }
 
-                totalConnections -= sockets.size();
-                onlineNumber--;
-
-                // 通知其他用户该用户下线了
+            if (sockets.isEmpty()) {
+                userSessions.remove(userId);
+                onlineNumber.decrementAndGet();
                 Map<String, Object> map1 = new HashMap<>();
                 map1.put("messageType", SocketConstants.MessageType.Second.getType());
                 map1.put("onlineUsers", userSessions.keySet());
                 map1.put("userId", userId);
-
-                // 创建一个临时对象用于发送消息
                 TalkWebSocket tempSocket = new TalkWebSocket();
                 tempSocket.sendMessageToAllExcept(JSONUtil.toJsonStr(map1), userId);
 
-                LOGGER.info("用户 {} 会话超时，清理资源，当前在线人数: {}, 总连接数: {}",
-                    userId, onlineNumber, totalConnections);
+                LOGGER.info("用户 {} 会话全部超时离线，当前在线人数: {}, 总连接数: {}",
+                    userId, onlineNumber.get(), totalConnections.get());
             }
         }
     }
@@ -615,8 +671,8 @@ public class TalkWebSocket {
         userSessions.clear();
         sessionIdToUserId.clear();
         lastActiveTime.clear();
-        onlineNumber = 0;
-        totalConnections = 0;
+        onlineNumber.set(0);
+        totalConnections.set(0);
     }
 
     /**
@@ -655,7 +711,7 @@ public class TalkWebSocket {
      * @return 在线人数
      */
     public static synchronized int getOnlineCount() {
-        return onlineNumber;
+        return onlineNumber.get();
     }
 
     /**
@@ -664,7 +720,7 @@ public class TalkWebSocket {
      * @return 总连接数
      */
     public static synchronized int getTotalConnections() {
-        return totalConnections;
+        return totalConnections.get();
     }
 
     /**
@@ -676,5 +732,56 @@ public class TalkWebSocket {
     public static int getUserConnectionCount(String userId) {
         Set<TalkWebSocket> sockets = userSessions.get(userId);
         return sockets != null ? sockets.size() : 0;
+    }
+
+    public static long getRejectedConnectionCount() {
+        return rejectedConnectionCount.get();
+    }
+
+    public static long getBroadcastRejectCount() {
+        return broadcastRejectCount.get();
+    }
+
+    public static long getSendFailureCount() {
+        return sendFailureCount.get();
+    }
+
+    public static int getActiveSessionRecordCount() {
+        return lastActiveTime.size();
+    }
+
+    public static Map<String, Object> getRuntimeMetrics() {
+        Map<String, Object> metrics = new HashMap<>();
+        metrics.put("onlineCount", getOnlineCount());
+        metrics.put("totalConnections", getTotalConnections());
+        metrics.put("activeSessionRecords", getActiveSessionRecordCount());
+        metrics.put("rejectedConnectionCount", getRejectedConnectionCount());
+        metrics.put("broadcastRejectCount", getBroadcastRejectCount());
+        metrics.put("sendFailureCount", getSendFailureCount());
+        metrics.put("collectTime", DateUtil.getTimeAndToString());
+        return metrics;
+    }
+
+    private static void sendTextWithRetry(String message, Session session, String sessionId, String target) {
+        try {
+            session.getAsyncRemote().sendText(message);
+        } catch (Exception e) {
+            sendFailureCount.incrementAndGet();
+            LOGGER.warn("发送消息失败，准备重试。target: {}, sessionId: {}, error: {}", target, sessionId, e.getMessage());
+            try {
+                session.getBasicRemote().sendText(message);
+            } catch (Exception retryError) {
+                sendFailureCount.incrementAndGet();
+                LOGGER.error("发送消息重试失败。target: {}, sessionId: {}, error: {}", target, sessionId, retryError.getMessage());
+            }
+        }
+    }
+
+    private static void logRuntimeMetrics() {
+        LOGGER.info(
+            "WebSocket运行指标 -> 在线用户: {}, 总连接: {}, 拒绝连接累计: {}, 广播拒绝累计: {}, 发送失败累计: {}, 活跃session记录: {}",
+            onlineNumber.get(), totalConnections.get(), rejectedConnectionCount.get(),
+            broadcastRejectCount.get(), sendFailureCount.get(), lastActiveTime.size()
+        );
     }
 }

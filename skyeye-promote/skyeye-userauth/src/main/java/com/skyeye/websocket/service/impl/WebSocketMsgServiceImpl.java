@@ -7,6 +7,7 @@ package com.skyeye.websocket.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
+import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.websocket.TalkWebSocket;
@@ -82,6 +83,12 @@ public class WebSocketMsgServiceImpl implements WebSocketMsgService {
             // 发送消息
             talkWebSocket.sendMessageTo(msgContent, userId, null);
         });
+    }
+
+    @Override
+    public void queryWebSocketRuntimeMetrics(InputObject inputObject, OutputObject outputObject) {
+        outputObject.setBean(TalkWebSocket.getRuntimeMetrics());
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
     private Map<String, Object> getMsg(String message, int messageType, String itemObject) {

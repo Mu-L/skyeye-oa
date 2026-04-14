@@ -22,4 +22,6 @@ public interface WebSocketMsgService {
     void sendWebSocketMsgToAll(InputObject inputObject, OutputObject outputObject);
 
     void sendWebSocketPointMsgToUser(InputObject inputObject, OutputObject outputObject);
+
+    void queryWebSocketRuntimeMetrics(InputObject inputObject, OutputObject outputObject);
 }

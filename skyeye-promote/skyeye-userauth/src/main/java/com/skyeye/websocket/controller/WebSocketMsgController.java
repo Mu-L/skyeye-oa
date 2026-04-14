@@ -59,4 +59,10 @@ public class WebSocketMsgController {
         webSocketMsgService.sendWebSocketPointMsgToUser(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryWebSocketRuntimeMetrics", value = "查询WebSocket运行指标", method = "POST", allUse = "2")
+    @RequestMapping("/post/WebSocketMsgController/queryWebSocketRuntimeMetrics")
+    public void queryWebSocketRuntimeMetrics(InputObject inputObject, OutputObject outputObject) {
+        webSocketMsgService.queryWebSocketRuntimeMetrics(inputObject, outputObject);
+    }
+
 }
