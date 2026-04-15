@@ -6,20 +6,16 @@ package com.skyeye.websocket;
 
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.skyeye.chat.enums.TalkChatType;
-import com.skyeye.chat.service.TalkChatHistoryService;
 import com.skyeye.common.constans.SocketConstants;
-import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.SpringUtils;
 import com.skyeye.common.util.ToolUtil;
-import com.skyeye.eve.entity.talk.group.CompanyTalkGroup;
-import com.skyeye.eve.enumclass.CompanyTalkGroupState;
-import com.skyeye.eve.service.CompanyTalkGroupService;
+import com.skyeye.jedis.JedisClientService;
+import com.skyeye.websocket.handler.client.TalkWebSocketClientMessageHandlerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.websocket.*;
 import javax.websocket.server.PathParam;
@@ -91,14 +87,46 @@ public class TalkWebSocket {
     private static final long SESSION_TIMEOUT = 30 * 60 * 1000;
 
     /**
-     * 单用户最大连接数，防止异常客户端占用过多连接。
+     * 单用户最大连接数，防止异常客户端占用过多连接（<=0表示不限制）
+     * <p>
+     * 配置优先级：JVM -D > 环境变量 > 默认值
+     * JVM参数：-Dws.max.connections.per.user=20
+     * 环境变量：WS_MAX_CONNECTIONS_PER_USER=20
      */
-    private static final int MAX_CONNECTIONS_PER_USER = 5;
+    private static final int MAX_CONNECTIONS_PER_USER = resolveIntConfig("ws.max.connections.per.user", "WS_MAX_CONNECTIONS_PER_USER", 5);
 
     /**
-     * 系统最大连接数，达到上限后拒绝新连接。
+     * 系统最大连接数（<=0表示不限制，默认不限制）
+     * <p>
+     * 配置优先级：JVM -D > 环境变量 > 默认值
+     * JVM参数：-Dws.max.total.connections=0
+     * 环境变量：WS_MAX_TOTAL_CONNECTIONS=0
      */
-    private static final int MAX_TOTAL_CONNECTIONS = 20000;
+    private static final int MAX_TOTAL_CONNECTIONS = resolveIntConfig("ws.max.total.connections", "WS_MAX_TOTAL_CONNECTIONS", 0);
+
+    /**
+     * 是否在超过max阈值时拒绝连接（false=只告警不拒绝）
+     * <p>
+     * JVM参数：-Dws.reject.on.limit=false
+     * 环境变量：WS_REJECT_ON_LIMIT=false
+     */
+    private static final boolean REJECT_ON_LIMIT = resolveBooleanConfig("ws.reject.on.limit", "WS_REJECT_ON_LIMIT", false);
+
+    /**
+     * 系统连接数告警阈值（<=0表示关闭告警）
+     * <p>
+     * JVM参数：-Dws.warn.total.connections=200000
+     * 环境变量：WS_WARN_TOTAL_CONNECTIONS=200000
+     */
+    private static final int WARN_TOTAL_CONNECTIONS = resolveIntConfig("ws.warn.total.connections", "WS_WARN_TOTAL_CONNECTIONS", 0);
+
+    /**
+     * 单用户连接数告警阈值（<=0表示关闭告警）
+     * <p>
+     * JVM参数：-Dws.warn.connections.per.user=10
+     * 环境变量：WS_WARN_CONNECTIONS_PER_USER=10
+     */
+    private static final int WARN_CONNECTIONS_PER_USER = resolveIntConfig("ws.warn.connections.per.user", "WS_WARN_CONNECTIONS_PER_USER", 0);
 
     /**
      * 连接/发送可观测性指标
@@ -106,6 +134,24 @@ public class TalkWebSocket {
     private static final AtomicLong rejectedConnectionCount = new AtomicLong(0);
     private static final AtomicLong broadcastRejectCount = new AtomicLong(0);
     private static final AtomicLong sendFailureCount = new AtomicLong(0);
+    /**
+     * 跨节点WebSocket消息分发频道
+     * <p>
+     * JVM参数：-Dws.cluster.channel=xxx
+     * 环境变量：WS_CLUSTER_CHANNEL=xxx
+     */
+    public static final String WS_CLUSTER_CHANNEL = resolveStringConfig(
+        "ws.cluster.channel", "WS_CLUSTER_CHANNEL", "skyeye:userauth:ws:talk:cluster:dispatch");
+    private static final String WS_ONLINE_USERS_KEY = "ws:talk:online:users";
+    private static final String WS_USER_CONN_PREFIX = "ws:talk:user:conn:";
+
+    /**
+     * 当前节点ID（用于避免消费自己发布的消息）
+     * <p>
+     * JVM参数：-Dws.node.id=node-a
+     * 环境变量：WS_NODE_ID=node-a
+     */
+    private static final String NODE_ID = resolveNodeId();
 
     /**
      * 会话
@@ -155,6 +201,12 @@ public class TalkWebSocket {
             }
         }, 1, 1, TimeUnit.MINUTES);
 
+        LOGGER.info(
+            "WebSocket连接阈值配置 -> rejectOnLimit: {}, maxTotal: {}, maxPerUser: {}, warnTotal: {}, warnPerUser: {}",
+            REJECT_ON_LIMIT, MAX_TOTAL_CONNECTIONS, MAX_CONNECTIONS_PER_USER, WARN_TOTAL_CONNECTIONS, WARN_CONNECTIONS_PER_USER
+        );
+        LOGGER.info("WebSocket跨节点分发频道 -> {}", WS_CLUSTER_CHANNEL);
+
         // 应用关闭时清理资源
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
@@ -180,11 +232,20 @@ public class TalkWebSocket {
                 return;
             }
 
-            if (totalConnections.get() >= MAX_TOTAL_CONNECTIONS) {
-                rejectedConnectionCount.incrementAndGet();
-                session.close(new CloseReason(CloseReason.CloseCodes.TRY_AGAIN_LATER, "连接已达上限"));
-                LOGGER.warn("拒绝连接，达到系统连接上限: {}, userId: {}", MAX_TOTAL_CONNECTIONS, userId);
-                return;
+            int currentTotal = totalConnections.get();
+            if (WARN_TOTAL_CONNECTIONS > 0 && currentTotal >= WARN_TOTAL_CONNECTIONS) {
+                LOGGER.warn("系统连接数达到告警阈值: {}, 当前: {}, userId: {}", WARN_TOTAL_CONNECTIONS, currentTotal, userId);
+            }
+            if (MAX_TOTAL_CONNECTIONS > 0 && currentTotal >= MAX_TOTAL_CONNECTIONS) {
+                if (REJECT_ON_LIMIT) {
+                    rejectedConnectionCount.incrementAndGet();
+                    session.close(new CloseReason(CloseReason.CloseCodes.TRY_AGAIN_LATER, "连接已达上限"));
+                    LOGGER.warn("拒绝连接，达到系统连接上限: {}, userId: {}", MAX_TOTAL_CONNECTIONS, userId);
+                    return;
+                } else {
+                    LOGGER.warn("系统连接数超过max阈值，但当前为告警模式未拒绝。max: {}, current: {}, userId: {}",
+                        MAX_TOTAL_CONNECTIONS, currentTotal, userId);
+                }
             }
 
             this.userId = userId;
@@ -194,11 +255,20 @@ public class TalkWebSocket {
             Set<TalkWebSocket> userSocketSet = userSessions.computeIfAbsent(userId, key -> ConcurrentHashMap.newKeySet());
             boolean isNewUser;
             synchronized (userSocketSet) {
-                if (userSocketSet.size() >= MAX_CONNECTIONS_PER_USER) {
-                    rejectedConnectionCount.incrementAndGet();
-                    session.close(new CloseReason(CloseReason.CloseCodes.TRY_AGAIN_LATER, "用户连接数超限"));
-                    LOGGER.warn("拒绝连接，用户 {} 超过最大连接数: {}", userId, MAX_CONNECTIONS_PER_USER);
-                    return;
+                int userCurrentConnections = userSocketSet.size();
+                if (WARN_CONNECTIONS_PER_USER > 0 && userCurrentConnections >= WARN_CONNECTIONS_PER_USER) {
+                    LOGGER.warn("用户连接数达到告警阈值: userId: {}, warn: {}, current: {}", userId, WARN_CONNECTIONS_PER_USER, userCurrentConnections);
+                }
+                if (MAX_CONNECTIONS_PER_USER > 0 && userCurrentConnections >= MAX_CONNECTIONS_PER_USER) {
+                    if (REJECT_ON_LIMIT) {
+                        rejectedConnectionCount.incrementAndGet();
+                        session.close(new CloseReason(CloseReason.CloseCodes.TRY_AGAIN_LATER, "用户连接数超限"));
+                        LOGGER.warn("拒绝连接，用户 {} 超过最大连接数: {}", userId, MAX_CONNECTIONS_PER_USER);
+                        return;
+                    } else {
+                        LOGGER.warn("用户连接数超过max阈值，但当前为告警模式未拒绝。userId: {}, max: {}, current: {}",
+                            userId, MAX_CONNECTIONS_PER_USER, userCurrentConnections);
+                    }
                 }
                 isNewUser = userSocketSet.isEmpty();
                 userSocketSet.add(this);
@@ -216,6 +286,7 @@ public class TalkWebSocket {
             if (isNewUser) {
                 onlineNumber.incrementAndGet();
             }
+            markUserOnline(userId);
             LOGGER.info("新连接加入 - 客户端ID: {}, 用户ID: {}, 当前在线人数: {}, 总连接数: {}",
                 session.getId(), userId, onlineNumber.get(), totalConnections.get());
 
@@ -230,7 +301,7 @@ public class TalkWebSocket {
             // 给自己的所有终端发送一条消息：告诉当前有谁在线
             Map<String, Object> map2 = new HashMap<>();
             map2.put("messageType", SocketConstants.MessageType.Third.getType());
-            map2.put("onlineUsers", userSessions.keySet());
+            map2.put("onlineUsers", getOnlineUserId());
             map2.put("terminals", userSessions.get(userId).size());  // 当前用户的终端数
             sendMessageTo(JSONUtil.toJsonStr(map2), userId, null);
         } catch (Exception e) {
@@ -278,11 +349,12 @@ public class TalkWebSocket {
                 if (userSocketSet.isEmpty()) {
                     userSessions.remove(userId);
                     onlineNumber.decrementAndGet();
+                    markUserOffline(userId);
 
                     // 通知其他用户我下线了
                     Map<String, Object> map1 = new HashMap<>();
                     map1.put("messageType", SocketConstants.MessageType.Second.getType());
-                    map1.put("onlineUsers", userSessions.keySet());
+                    map1.put("onlineUsers", getOnlineUserId());
                     map1.put("userId", userId);
                     sendMessageToAllExcept(JSONUtil.toJsonStr(map1), userId);
 
@@ -329,105 +401,9 @@ public class TalkWebSocket {
                 return;
             }
 
-            // 处理其他类型消息
+            // 处理其他类型消息（按 type 分发到策略处理器）
             int type = Integer.parseInt(typeStr);
-            Map<String, Object> map1 = new HashMap<>();
-            map1.put("messageType", type);
-
-            if (SocketConstants.MessageType.Fourth.getType() == type) {
-                // 普通消息 - 使用事务保证数据一致性
-                TransactionTemplate transactionTemplate = SpringUtils.getBean(TransactionTemplate.class);
-                transactionTemplate.execute(status -> {
-                    try {
-                        // 插入消息记录
-                        TalkChatHistoryService talkChatHistoryService = SpringUtils.getBean(TalkChatHistoryService.class);
-
-                        String toUserId = jsonObject.getStr("to");
-                        String id = talkChatHistoryService.createEntity(jsonObject, TalkChatType.PERSONAL_TO_PERSONAL.getKey(), WhetherEnum.DISABLE_USING.getKey());
-                        // 判断接收者是否在线，如果在线就发送
-                        if (isUserOnline(toUserId)) {
-                            Map<String, Object> finalMap = new HashMap<>();
-                            finalMap.put("messageType", type);
-                            finalMap.put("dataId", id);
-                            // 给接收者发送消息
-                            finalMap.putAll(SocketConstants.sendOrdinaryMsg(jsonObject));
-                            sendMessageTo(JSONUtil.toJsonStr(finalMap), toUserId, null);
-                        }
-                        // 给发送者发送消息，保证其他终端收到消息
-                        sendMessageToMe(jsonObject.getStr("message"), toUserId, type);
-                        return true;
-                    } catch (Exception e) {
-                        status.setRollbackOnly();
-                        LOGGER.error("发送个人消息失败: {}", e.getMessage(), e);
-                        throw e;
-                    }
-                });
-            } else if (SocketConstants.MessageType.Fifth.getType() == type) {
-                // 系统消息
-                LOGGER.info("收到系统消息: {}", jsonObject);
-            } else if (SocketConstants.MessageType.Sixth.getType() == type) {
-                // 全体消息
-                map1 = SocketConstants.sendAllPeopleMsg(jsonObject);
-                sendMessageToAll(JSONUtil.toJsonStr(map1)); // 给所有人发送，包括自己的其他终端
-            } else if (SocketConstants.MessageType.Seventh.getType() == type) {
-                // 群组邀请消息
-                map1.put("toId", jsonObject.getStr("to")); // 收件人id
-                sendMessageTo(JSONUtil.toJsonStr(map1), jsonObject.getStr("to"), null);
-            } else if (SocketConstants.MessageType.Eighth.getType() == type) {
-                // 隐身消息
-                map1.put("userId", jsonObject.getStr("userId"));
-                sendMessageToAll(JSONUtil.toJsonStr(map1));
-            } else if (SocketConstants.MessageType.Ninth.getType() == type) {
-                // 隐身上线消息
-                map1.put("userId", jsonObject.getStr("userId"));
-                sendMessageToAll(JSONUtil.toJsonStr(map1));
-            } else if (SocketConstants.MessageType.Tenth.getType() == type) {
-                // 搜索账号入群审核同意后通知用户加载群信息
-                map1 = SocketConstants.sendAgreeJoinGroupMsg(jsonObject);
-                sendMessageTo(JSONUtil.toJsonStr(map1), jsonObject.getStr("to"), null);
-            } else if (SocketConstants.MessageType.Eleventh.getType() == type) {
-                // 群聊 - 使用事务保证数据一致性
-                TransactionTemplate transactionTemplate = SpringUtils.getBean(TransactionTemplate.class);
-                transactionTemplate.execute(status -> {
-                    try {
-                        Map<String, Object> finalMap = new HashMap<>();
-                        finalMap.put("messageType", type);
-                        finalMap = SocketConstants.sendGroupTalkPeopleMsg(jsonObject);
-                        CompanyTalkGroupService companyTalkGroupService = SpringUtils.getBean(CompanyTalkGroupService.class);
-                        CompanyTalkGroup groupMation = companyTalkGroupService.selectById(finalMap.get("id").toString());
-                        if (CompanyTalkGroupState.NORMAL.getKey() == groupMation.getState()) {//正常
-                            //插入消息记录
-                            TalkChatHistoryService talkChatHistoryService = SpringUtils.getBean(TalkChatHistoryService.class);
-                            String id = talkChatHistoryService.createEntity(jsonObject, TalkChatType.GROUP_CHAT.getKey());
-                            finalMap.put("createTime", DateUtil.getTimeAndToString());
-                            finalMap.put("dataId", id);
-                            // 发送给所有人，包括自己的其他终端
-                            sendMessageToAll(JSONUtil.toJsonStr(finalMap));
-                        } else {
-                            finalMap.clear();
-                            finalMap.put("messageType", "1301");
-                            finalMap.put("groupId", jsonObject.getStr("to"));//收件人id，在此处为群聊id
-                            sendMessageToSession(JSONUtil.toJsonStr(finalMap), this.session);
-                        }
-                        return true;
-                    } catch (Exception e) {
-                        status.setRollbackOnly();
-                        LOGGER.error("发送群聊消息失败: {}", e.getMessage(), e);
-                        throw e;
-                    }
-                });
-            } else if (SocketConstants.MessageType.Twelfth.getType() == type) {
-                // 退出群聊--创建人接收消息
-                map1 = SocketConstants.sendOutGroupToCreaterMsg(jsonObject);
-                CompanyTalkGroupService companyTalkGroupService = SpringUtils.getBean(CompanyTalkGroupService.class);
-                CompanyTalkGroup groupMation = companyTalkGroupService.selectById(map1.get("groupId").toString());
-                map1.put("toId", groupMation.getCreateId());//收件人id
-                sendMessageTo(JSONUtil.toJsonStr(map1), groupMation.getCreateId(), null);
-            } else if (SocketConstants.MessageType.Thirteenth.getType() == type) {
-                // 解散群聊--所有人接收消息
-                map1 = SocketConstants.sendDisbandGroupToAllMsg(jsonObject);
-                sendMessageToAll(JSONUtil.toJsonStr(map1));
-            }
+            TalkWebSocketClientMessageHandlerFactory.dispatch(type, jsonObject, this);
         } catch (Exception e) {
             LOGGER.warn("处理消息时发生错误: {}", e.getMessage(), e);
             try {
@@ -473,6 +449,13 @@ public class TalkWebSocket {
     }
 
     /**
+     * 供消息处理器获取当前连接会话。
+     */
+    public Session getWsSession() {
+        return session;
+    }
+
+    /**
      * 发送消息给指定用户的所有终端
      *
      * @param message      消息内容
@@ -480,6 +463,14 @@ public class TalkWebSocket {
      * @param notSessionId 不发送的终端id
      */
     public void sendMessageTo(String message, String userId, String notSessionId) {
+        sendMessageToLocal(message, userId, notSessionId);
+        publishClusterDispatch("USER", message, userId, null, notSessionId);
+    }
+
+    /**
+     * 仅向本机指定用户终端发送（不进行跨节点转发）
+     */
+    private void sendMessageToLocal(String message, String userId, String notSessionId) {
         Set<TalkWebSocket> sockets = userSessions.get(userId);
         if (sockets != null && !sockets.isEmpty()) {
             for (TalkWebSocket socket : sockets) {
@@ -505,6 +496,14 @@ public class TalkWebSocket {
      * @param excludeUserId 排除的用户ID（不发送给该用户的所有终端）
      */
     public void sendMessageToAllExcept(String message, String excludeUserId) {
+        sendMessageToAllExceptLocal(message, excludeUserId);
+        publishClusterDispatch("ALL_EXCEPT", message, null, excludeUserId, null);
+    }
+
+    /**
+     * 仅向本机所有用户发送，排除指定用户（不进行跨节点转发）
+     */
+    private void sendMessageToAllExceptLocal(String message, String excludeUserId) {
         // 使用线程池异步发送消息
         try {
             messageExecutor.submit(() -> {
@@ -540,7 +539,8 @@ public class TalkWebSocket {
      * @param message 消息内容
      */
     public void sendMessageToAll(String message) {
-        sendMessageToAllExcept(message, null);
+        sendMessageToAllExceptLocal(message, null);
+        publishClusterDispatch("ALL", message, null, null, null);
     }
 
     /**
@@ -583,9 +583,10 @@ public class TalkWebSocket {
             if (sockets.isEmpty()) {
                 userSessions.remove(userId);
                 onlineNumber.decrementAndGet();
+                markUserOffline(userId);
                 Map<String, Object> map1 = new HashMap<>();
                 map1.put("messageType", SocketConstants.MessageType.Second.getType());
-                map1.put("onlineUsers", userSessions.keySet());
+                map1.put("onlineUsers", getOnlineUserId());
                 map1.put("userId", userId);
                 TalkWebSocket tempSocket = new TalkWebSocket();
                 tempSocket.sendMessageToAllExcept(JSONUtil.toJsonStr(map1), userId);
@@ -638,9 +639,10 @@ public class TalkWebSocket {
             if (sockets.isEmpty()) {
                 userSessions.remove(userId);
                 onlineNumber.decrementAndGet();
+                markUserOffline(userId);
                 Map<String, Object> map1 = new HashMap<>();
                 map1.put("messageType", SocketConstants.MessageType.Second.getType());
-                map1.put("onlineUsers", userSessions.keySet());
+                map1.put("onlineUsers", getOnlineUserId());
                 map1.put("userId", userId);
                 TalkWebSocket tempSocket = new TalkWebSocket();
                 tempSocket.sendMessageToAllExcept(JSONUtil.toJsonStr(map1), userId);
@@ -700,7 +702,13 @@ public class TalkWebSocket {
      * @return 在线用户ID集合
      */
     public static Set<String> getOnlineUserId() {
-        return userSessions.keySet();
+        try {
+            JedisClientService jedisClientService = SpringUtils.getBean(JedisClientService.class);
+            return jedisClientService.smembers(WS_ONLINE_USERS_KEY);
+        } catch (Exception e) {
+            LOGGER.warn("获取Redis在线用户失败，使用本机在线用户兜底: {}", e.getMessage());
+            return userSessions.keySet();
+        }
     }
 
     /**
@@ -751,6 +759,7 @@ public class TalkWebSocket {
     public static Map<String, Object> getRuntimeMetrics() {
         Map<String, Object> metrics = new HashMap<>();
         metrics.put("onlineCount", getOnlineCount());
+        metrics.put("clusterOnlineCount", getOnlineUserId().size());
         metrics.put("totalConnections", getTotalConnections());
         metrics.put("activeSessionRecords", getActiveSessionRecordCount());
         metrics.put("rejectedConnectionCount", getRejectedConnectionCount());
@@ -758,6 +767,31 @@ public class TalkWebSocket {
         metrics.put("sendFailureCount", getSendFailureCount());
         metrics.put("collectTime", DateUtil.getTimeAndToString());
         return metrics;
+    }
+
+    private static void markUserOnline(String userId) {
+        try {
+            JedisClientService jedisClientService = SpringUtils.getBean(JedisClientService.class);
+            Long count = jedisClientService.incrByData(WS_USER_CONN_PREFIX + userId, 1);
+            if (count != null && count > 0) {
+                jedisClientService.sadd(WS_ONLINE_USERS_KEY, userId);
+            }
+        } catch (Exception e) {
+            LOGGER.warn("标记用户上线失败, userId: {}, error: {}", userId, e.getMessage());
+        }
+    }
+
+    private static void markUserOffline(String userId) {
+        try {
+            JedisClientService jedisClientService = SpringUtils.getBean(JedisClientService.class);
+            Long count = jedisClientService.incrByData(WS_USER_CONN_PREFIX + userId, -1);
+            if (count == null || count <= 0) {
+                jedisClientService.del(WS_USER_CONN_PREFIX + userId);
+                jedisClientService.srem(WS_ONLINE_USERS_KEY, userId);
+            }
+        } catch (Exception e) {
+            LOGGER.warn("标记用户下线失败, userId: {}, error: {}", userId, e.getMessage());
+        }
     }
 
     private static void sendTextWithRetry(String message, Session session, String sessionId, String target) {
@@ -781,5 +815,128 @@ public class TalkWebSocket {
             onlineNumber.get(), totalConnections.get(), rejectedConnectionCount.get(),
             broadcastRejectCount.get(), sendFailureCount.get(), lastActiveTime.size()
         );
+    }
+
+    /**
+     * 发布跨节点分发消息
+     */
+    @SuppressWarnings("unchecked")
+    private static void publishClusterDispatch(String action, String message, String userId, String excludeUserId, String notSessionId) {
+        try {
+            RedisTemplate<String, String> redisTemplate = SpringUtils.getBean("redisTemplate");
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("fromNode", NODE_ID);
+            payload.put("action", action);
+            payload.put("message", message);
+            payload.put("userId", userId);
+            payload.put("excludeUserId", excludeUserId);
+            payload.put("notSessionId", notSessionId);
+            redisTemplate.convertAndSend(WS_CLUSTER_CHANNEL, JSONUtil.toJsonStr(payload));
+        } catch (Exception e) {
+            LOGGER.error("发布跨节点WebSocket消息失败. action: {}, userId: {}, error: {}", action, userId, e.getMessage());
+        }
+    }
+
+    /**
+     * 处理来自Redis频道的跨节点消息（由订阅器回调）
+     */
+    public static void handleClusterDispatch(String payload) {
+        try {
+            if (ToolUtil.isBlank(payload)) {
+                return;
+            }
+            String trimPayload = payload.trim();
+            // Redis 同频道可能存在其他业务消息，非 JSON 直接忽略，避免解析异常刷屏。
+            if (!(trimPayload.startsWith("{") && trimPayload.endsWith("}"))) {
+                LOGGER.debug("忽略非JSON跨节点消息: {}", trimPayload);
+                return;
+            }
+            JSONObject json = JSONUtil.parseObj(trimPayload);
+            String fromNode = json.getStr("fromNode");
+            if (ToolUtil.isBlank(fromNode) || NODE_ID.equals(fromNode)) {
+                return;
+            }
+            String action = json.getStr("action");
+            String message = json.getStr("message");
+            String userId = json.getStr("userId");
+            String excludeUserId = json.getStr("excludeUserId");
+            String notSessionId = json.getStr("notSessionId");
+            if (ToolUtil.isBlank(action) || ToolUtil.isBlank(message)) {
+                return;
+            }
+            TalkWebSocket dispatcher = new TalkWebSocket();
+            if ("USER".equals(action)) {
+                dispatcher.sendMessageToLocal(message, userId, notSessionId);
+            } else if ("ALL_EXCEPT".equals(action)) {
+                dispatcher.sendMessageToAllExceptLocal(message, excludeUserId);
+            } else if ("ALL".equals(action)) {
+                dispatcher.sendMessageToAllExceptLocal(message, null);
+            }
+        } catch (Exception e) {
+            LOGGER.error("处理跨节点WebSocket消息失败: {}", e.getMessage(), e);
+        }
+    }
+
+    private static String resolveNodeId() {
+        String configuredNodeId = System.getProperty("ws.node.id");
+        if (ToolUtil.isBlank(configuredNodeId)) {
+            configuredNodeId = System.getenv("WS_NODE_ID");
+        }
+        if (!ToolUtil.isBlank(configuredNodeId)) {
+            return configuredNodeId;
+        }
+        String host = "unknown-host";
+        try {
+            host = java.net.InetAddress.getLocalHost().getHostName();
+        } catch (Exception ignored) {
+            // ignore
+        }
+        String pid = java.lang.management.ManagementFactory.getRuntimeMXBean().getName();
+        return host + "-" + pid;
+    }
+
+    private static int resolveIntConfig(String systemPropertyKey, String envKey, int defaultValue) {
+        try {
+            String value = System.getProperty(systemPropertyKey);
+            if (ToolUtil.isBlank(value)) {
+                value = System.getenv(envKey);
+            }
+            if (ToolUtil.isBlank(value)) {
+                return defaultValue;
+            }
+            return Integer.parseInt(value.trim());
+        } catch (Exception e) {
+            return defaultValue;
+        }
+    }
+
+    private static String resolveStringConfig(String systemPropertyKey, String envKey, String defaultValue) {
+        try {
+            String value = System.getProperty(systemPropertyKey);
+            if (ToolUtil.isBlank(value)) {
+                value = System.getenv(envKey);
+            }
+            if (ToolUtil.isBlank(value)) {
+                return defaultValue;
+            }
+            return value.trim();
+        } catch (Exception e) {
+            return defaultValue;
+        }
+    }
+
+    private static boolean resolveBooleanConfig(String systemPropertyKey, String envKey, boolean defaultValue) {
+        try {
+            String value = System.getProperty(systemPropertyKey);
+            if (ToolUtil.isBlank(value)) {
+                value = System.getenv(envKey);
+            }
+            if (ToolUtil.isBlank(value)) {
+                return defaultValue;
+            }
+            return Boolean.parseBoolean(value.trim());
+        } catch (Exception e) {
+            return defaultValue;
+        }
     }
 }
