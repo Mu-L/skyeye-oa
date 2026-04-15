@@ -16,6 +16,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.Constants;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
@@ -94,9 +95,18 @@ public class CompanyTalkGroupInviteServiceImpl extends SkyeyeBusinessServiceImpl
 
     @Override
     public void queryGroupInvitationMation(InputObject inputObject, OutputObject outputObject) {
+        String userId = inputObject.getLogParams().get("id").toString();
+        // 当前用户「待处理且未读」邀请总数（不走分页，在 PageHelper 之前统计）
+        QueryWrapper<CompanyTalkGroupInvite> unreadQw = new QueryWrapper<>();
+        unreadQw.eq(MybatisPlusUtil.toColumns(CompanyTalkGroupInvite::getInviteUserId), userId);
+        unreadQw.eq(MybatisPlusUtil.toColumns(CompanyTalkGroupInvite::getState), CompanyTalkGroupInviteState.WAITING_CHECK.getKey());
+        unreadQw.and(w -> w.isNull(MybatisPlusUtil.toColumns(CompanyTalkGroupInvite::getWhetherRead))
+            .or()
+            .eq(MybatisPlusUtil.toColumns(CompanyTalkGroupInvite::getWhetherRead), WhetherEnum.DISABLE_USING.getKey()));
+        long unreadInviteCount = count(unreadQw);
+
         CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
-        String userId = inputObject.getLogParams().get("id").toString();
         QueryWrapper<CompanyTalkGroupInvite> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(CompanyTalkGroupInvite::getInviteUserId), userId);
 
@@ -110,6 +120,7 @@ public class CompanyTalkGroupInviteServiceImpl extends SkyeyeBusinessServiceImpl
         });
         outputObject.setBeans(list);
         outputObject.settotal(pages.getTotal());
+        outputObject.getObject().put("unreadInviteCount", unreadInviteCount);
     }
 
     @Override
@@ -130,10 +141,11 @@ public class CompanyTalkGroupInviteServiceImpl extends SkyeyeBusinessServiceImpl
             throw new CustomException("群组人数已达上限！");
         }
 
-        // 更新邀请状态
+        // 更新邀请状态与已读
         UpdateWrapper<CompanyTalkGroupInvite> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(CompanyTalkGroupInvite::getState), CompanyTalkGroupInviteState.AGREED.getKey());
+        updateWrapper.set(MybatisPlusUtil.toColumns(CompanyTalkGroupInvite::getWhetherRead), WhetherEnum.ENABLE_USING.getKey());
         update(updateWrapper);
 
         CompanyTalkGroupUser companyTalkGroupUser = new CompanyTalkGroupUser();
@@ -167,10 +179,11 @@ public class CompanyTalkGroupInviteServiceImpl extends SkyeyeBusinessServiceImpl
             outputObject.setreturnMessage("状态不正确！");
             return;
         }
-        // 更新邀请状态
+        // 更新邀请状态与已读
         UpdateWrapper<CompanyTalkGroupInvite> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
         updateWrapper.set(MybatisPlusUtil.toColumns(CompanyTalkGroupInvite::getState), CompanyTalkGroupInviteState.REJECTED.getKey());
+        updateWrapper.set(MybatisPlusUtil.toColumns(CompanyTalkGroupInvite::getWhetherRead), WhetherEnum.ENABLE_USING.getKey());
         update(updateWrapper);
     }
 
