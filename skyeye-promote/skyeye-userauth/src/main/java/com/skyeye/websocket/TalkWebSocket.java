@@ -343,17 +343,15 @@ public class TalkWebSocket {
                         TalkChatHistoryService talkChatHistoryService = SpringUtils.getBean(TalkChatHistoryService.class);
 
                         String toUserId = jsonObject.getStr("to");
+                        String id = talkChatHistoryService.createEntity(jsonObject, TalkChatType.PERSONAL_TO_PERSONAL.getKey(), WhetherEnum.DISABLE_USING.getKey());
                         // 判断接收者是否在线，如果在线就发送
                         if (isUserOnline(toUserId)) {
-                            String id = talkChatHistoryService.createEntity(jsonObject, TalkChatType.PERSONAL_TO_PERSONAL.getKey(), WhetherEnum.ENABLE_USING.getKey());
                             Map<String, Object> finalMap = new HashMap<>();
                             finalMap.put("messageType", type);
                             finalMap.put("dataId", id);
                             // 给接收者发送消息
                             finalMap.putAll(SocketConstants.sendOrdinaryMsg(jsonObject));
                             sendMessageTo(JSONUtil.toJsonStr(finalMap), toUserId, null);
-                        } else {
-                            talkChatHistoryService.createEntity(jsonObject, TalkChatType.PERSONAL_TO_PERSONAL.getKey(), WhetherEnum.DISABLE_USING.getKey());
                         }
                         // 给发送者发送消息，保证其他终端收到消息
                         sendMessageToMe(jsonObject.getStr("message"), toUserId, type);
