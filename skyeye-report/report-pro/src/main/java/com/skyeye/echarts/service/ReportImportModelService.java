@@ -5,9 +5,9 @@
 package com.skyeye.echarts.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
+import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.echarts.entity.ImportModel;
-
-import java.util.List;
 
 /**
  * @ClassName: ReportImportModelService
@@ -19,6 +19,13 @@ import java.util.List;
  */
 public interface ReportImportModelService extends SkyeyeBusinessService<ImportModel> {
 
-    List<ImportModel> queryImportModelList(List<String> modelCodes);
+    void queryAllMaxVersionReportModel(InputObject inputObject, OutputObject outputObject);
 
+    void queryReportModelVersionList(InputObject inputObject, OutputObject outputObject);
+
+    void enableReportModelVersion(InputObject inputObject, OutputObject outputObject);
+
+    void disableReportModelVersion(InputObject inputObject, OutputObject outputObject);
+
+    void queryReportModelVersionById(InputObject inputObject, OutputObject outputObject);
 }

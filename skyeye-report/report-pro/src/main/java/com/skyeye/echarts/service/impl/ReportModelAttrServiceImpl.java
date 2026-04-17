@@ -4,6 +4,8 @@
 
 package com.skyeye.echarts.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -16,6 +18,7 @@ import com.skyeye.echarts.service.ReportModelAttrService;
 import net.sf.json.JSONArray;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -33,6 +36,17 @@ import java.util.stream.Collectors;
 public class ReportModelAttrServiceImpl extends SkyeyeBusinessServiceImpl<ReportModelAttrDao, ReportModelAttr> implements ReportModelAttrService {
 
     @Override
+    public void saveList(String reportModelId, List<ReportModelAttr> beans) {
+        deleteByReportModelId(reportModelId);
+        if (CollectionUtil.isNotEmpty(beans)) {
+            for (ReportModelAttr reportModelAttr : beans) {
+                reportModelAttr.setReportModelId(reportModelId);
+            }
+            createEntity(beans, StrUtil.EMPTY);
+        }
+    }
+
+    @Override
     public Map<String, List<ReportModelAttr>> queryReportModelAttrMapByModelIds(List<String> reportModelIds) {
         QueryWrapper<ReportModelAttr> queryWrapper = new QueryWrapper<>();
         queryWrapper.in(MybatisPlusUtil.toColumns(ReportModelAttr::getReportModelId), reportModelIds);
@@ -44,6 +58,37 @@ public class ReportModelAttrServiceImpl extends SkyeyeBusinessServiceImpl<Report
             }
         });
         return reportModelAttrList.stream().collect(Collectors.groupingBy(ReportModelAttr::getReportModelId));
+    }
+
+    @Override
+    public List<ReportModelAttr> queryReportModelAttrMapByModelId(String reportModelId) {
+        QueryWrapper<ReportModelAttr> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ReportModelAttr::getReportModelId), reportModelId);
+        queryWrapper.last(String.format("ORDER BY LENGTH(%s) ASC", MybatisPlusUtil.toColumns(ReportModelAttr::getAttrCode)));
+        List<ReportModelAttr> reportModelAttrList = list(queryWrapper);
+        reportModelAttrList.forEach(reportModelAttr -> {
+            if (AnalysisDataToMapUtil.isJsonStringArray(reportModelAttr.getDefaultValue())) {
+                reportModelAttr.setDefaultValue(JSONUtil.toJsonStr(JSONArray.fromObject(reportModelAttr.getDefaultValue())));
+            }
+        });
+        return reportModelAttrList;
+    }
+
+    @Override
+    public void deleteByReportModelId(String reportModelId) {
+        QueryWrapper<ReportModelAttr> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ReportModelAttr::getReportModelId), reportModelId);
+        remove(queryWrapper);
+    }
+
+    @Override
+    public void deleteByReportModelIds(List<String> reportModelIds) {
+        if (CollectionUtil.isEmpty(reportModelIds)) {
+            return;
+        }
+        QueryWrapper<ReportModelAttr> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(ReportModelAttr::getReportModelId), reportModelIds);
+        remove(queryWrapper);
     }
 
 }

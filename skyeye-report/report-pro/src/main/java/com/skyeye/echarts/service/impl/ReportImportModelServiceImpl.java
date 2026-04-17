@@ -4,23 +4,34 @@
 
 package com.skyeye.echarts.service.impl;
 
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
+import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.echarts.dao.ReportImportModelDao;
 import com.skyeye.echarts.entity.ImportModel;
 import com.skyeye.echarts.entity.ReportModel;
+import com.skyeye.echarts.entity.ReportModelAttr;
 import com.skyeye.echarts.service.ReportImportModelService;
+import com.skyeye.echarts.service.ReportModelAttrService;
 import com.skyeye.echarts.service.ReportModelService;
 import com.skyeye.exception.CustomException;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -37,8 +48,13 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "Echarts模型管理", groupName = "Echarts模型管理")
 public class ReportImportModelServiceImpl extends SkyeyeBusinessServiceImpl<ReportImportModelDao, ImportModel> implements ReportImportModelService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReportImportModelServiceImpl.class);
+
     @Autowired
     private ReportModelService reportModelService;
+
+    @Autowired
+    private ReportModelAttrService reportModelAttrService;
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
@@ -47,9 +63,11 @@ public class ReportImportModelServiceImpl extends SkyeyeBusinessServiceImpl<Repo
 
         // 获取最新版本的报表模型
         List<ReportModel> reportModelList = reportModelService.queryAllMaxVersionReportModel();
-        Map<String, ReportModel> reportModelMap = reportModelList.stream().collect(Collectors.toMap(ReportModel::getModelCode, item -> item));
+        Map<String, ReportModel> reportModelMap = reportModelList.stream()
+            .collect(Collectors.toMap(ReportModel::getImportModelId, item -> item, (a, b) -> a));
         beans.forEach(bean -> {
-            bean.put("reportModel", reportModelMap.get(bean.get("modelCode").toString()));
+            Object id = bean.get("id");
+            bean.put("reportModel", id == null ? null : reportModelMap.get(id.toString()));
         });
         return beans;
     }
@@ -71,12 +89,93 @@ public class ReportImportModelServiceImpl extends SkyeyeBusinessServiceImpl<Repo
     }
 
     @Override
-    public List<ImportModel> queryImportModelList(List<String> modelCodes) {
-        QueryWrapper<ImportModel> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(ImportModel::getModelCode), modelCodes);
-        List<ImportModel> importModels = list(queryWrapper);
-        iSysDictDataService.setName(importModels, "typeId", "typeName");
-        return importModels;
+    protected void deletePostpose(String id) {
+        reportModelService.deleteByImportModelId(id);
+    }
+
+    @Override
+    public void queryAllMaxVersionReportModel(InputObject inputObject, OutputObject outputObject) {
+        List<ReportModel> reportModelList = reportModelService.queryAllMaxVersionReportModel();
+        if (CollectionUtil.isEmpty(reportModelList)) {
+            return;
+        }
+        Map<String, ReportModel> reportModelMap = reportModelList.stream()
+            .collect(Collectors.toMap(ReportModel::getImportModelId, item -> item, (a, b) -> a));
+        Map<String, String> reportModelIdMap = reportModelList.stream()
+            .collect(Collectors.toMap(ReportModel::getImportModelId, ReportModel::getId, (a, b) -> a));
+
+        List<String> importModelIds = new ArrayList<>(reportModelMap.keySet());
+        List<ImportModel> models = selectByIds(importModelIds.toArray(new String[0]));
+        Map<String, List<ReportModelAttr>> modelAttrsMap = reportModelAttrService.queryReportModelAttrMapByModelIds(new ArrayList<>(reportModelIdMap.values()));
+        models.forEach(model -> {
+            try {
+                model.setReportModel(reportModelMap.get(model.getId()));
+                String reportModelId = reportModelIdMap.get(model.getId());
+                List<ReportModelAttr> attrs = modelAttrsMap.get(reportModelId);
+                if (attrs == null) {
+                    return;
+                }
+                Map<String, ReportModelAttr> attrsMap = attrs.stream().collect(Collectors.toMap(ReportModelAttr::getAttrCode, item -> item));
+                model.setAttr(attrsMap);
+            } catch (Exception ee) {
+                LOGGER.warn("queryAllMaxVersionReportModel -> reportModelAttrDao.getReportModelAttrToEditorByModelId failed.", ee);
+            }
+        });
+        iSysDictDataService.setName(models, "typeId", "typeName");
+        outputObject.setBeans(models);
+        outputObject.settotal(models.size());
+    }
+
+    @Override
+    public void queryReportModelVersionList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String importModelId = params.get("importModelId").toString();
+        QueryWrapper<ReportModel> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ReportModel::getImportModelId), importModelId);
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ReportModel::getSoftwareVersion));
+        List<ReportModel> list = reportModelService.list(queryWrapper);
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
+    }
+
+    @Override
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public void enableReportModelVersion(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String reportModelId = params.get("reportModelId").toString();
+
+        ReportModel target = reportModelService.selectById(reportModelId);
+        if (target == null) {
+            throw new CustomException("版本不存在.");
+        }
+        String importModelId = target.getImportModelId();
+        UpdateWrapper<ReportModel> disableAll = new UpdateWrapper<>();
+        disableAll.eq(MybatisPlusUtil.toColumns(ReportModel::getImportModelId), importModelId);
+        disableAll.set(MybatisPlusUtil.toColumns(ReportModel::getEnabled), EnableEnum.DISABLE_USING.getKey());
+        reportModelService.update(disableAll);
+        target.setEnabled(EnableEnum.ENABLE_USING.getKey());
+        reportModelService.updateEntity(target, inputObject.getLogParams().get("id").toString());
+    }
+
+    @Override
+    public void disableReportModelVersion(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String reportModelId = params.get("reportModelId").toString();
+        ReportModel target = reportModelService.selectById(reportModelId);
+        if (target == null) {
+            throw new CustomException("版本不存在.");
+        }
+        target.setEnabled(EnableEnum.DISABLE_USING.getKey());
+        reportModelService.updateEntity(target, inputObject.getLogParams().get("id").toString());
+    }
+
+    @Override
+    public void queryReportModelVersionById(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String reportModelId = params.get("reportModelId").toString();
+        ReportModel reportModel = reportModelService.selectById(reportModelId);
+        outputObject.setBean(reportModel);
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
 
 }

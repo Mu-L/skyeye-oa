@@ -20,7 +20,9 @@ import java.util.Map;
  */
 public interface ReportModelService extends SkyeyeBusinessService<ReportModel> {
 
-    Integer queryNewMaxVersionByModelCode(String modelCode);
+    Integer queryNewMaxVersionByImportModelId(String importModelId);
+
+    void deleteByImportModelId(String importModelId);
 
     List<ReportModel> queryAllMaxVersionReportModel();
 

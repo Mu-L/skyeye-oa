@@ -9,14 +9,19 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.echarts.classenum.ReportModelState;
 import com.skyeye.echarts.dao.ReportModelDao;
 import com.skyeye.echarts.entity.ReportModel;
+import com.skyeye.echarts.service.ReportModelAttrService;
 import com.skyeye.echarts.service.ReportModelService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: ReportModelServiceImpl
@@ -30,26 +35,34 @@ import java.util.List;
 @SkyeyeService(name = "模型版本", groupName = "模型版本", manageShow = false)
 public class ReportModelServiceImpl extends SkyeyeBusinessServiceImpl<ReportModelDao, ReportModel> implements ReportModelService {
 
+    @Autowired
+    private ReportModelAttrService reportModelAttrService;
+
     @Override
-    public void createPrepose(ReportModel entity) {
-        // 将之前的修改为废弃状态
-        UpdateWrapper<ReportModel> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(MybatisPlusUtil.toColumns(ReportModel::getModelCode), entity.getModelCode());
-        updateWrapper.set(MybatisPlusUtil.toColumns(ReportModel::getState), ReportModelState.ABANDONED.getKey());
-        update(updateWrapper);
+    protected void writePostpose(ReportModel entity, String userId) {
+        super.writePostpose(entity, userId);
+        if (entity.getEnabled().equals(EnableEnum.ENABLE_USING.getKey())) {
+            // 如果将当前数据修改为启动数据，则需要修改之前的数据为禁用
+            UpdateWrapper<ReportModel> updateWrapper = new UpdateWrapper<>();
+            updateWrapper.ne(CommonConstants.ID, entity.getId());
+            updateWrapper.eq(MybatisPlusUtil.toColumns(ReportModel::getImportModelId), entity.getImportModelId());
+            updateWrapper.set(MybatisPlusUtil.toColumns(ReportModel::getEnabled), EnableEnum.DISABLE_USING.getKey());
+            update(updateWrapper);
+        }
+        reportModelAttrService.saveList(entity.getId(), entity.getReportModelAttrList());
     }
 
     /**
-     * 根据模型code获取一个最新的版本号
+     * 根据 ImportModel 主键获取下一个版本号（当前最大 softwareVersion + 1）
      *
-     * @param modelCode 模型code
-     * @return 最新的版本号
+     * @param importModelId 导入模型主档 id
+     * @return 新版本号
      */
     @Override
-    public Integer queryNewMaxVersionByModelCode(String modelCode) {
+    public Integer queryNewMaxVersionByImportModelId(String importModelId) {
         Integer version = 1;
         QueryWrapper<ReportModel> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ReportModel::getModelCode), modelCode);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ReportModel::getImportModelId), importModelId);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ReportModel::getSoftwareVersion));
         List<ReportModel> list = list(queryWrapper);
         if (CollectionUtil.isNotEmpty(list)) {
@@ -59,9 +72,35 @@ public class ReportModelServiceImpl extends SkyeyeBusinessServiceImpl<ReportMode
     }
 
     @Override
+    public ReportModel getDataFromDb(String id) {
+        ReportModel reportModel = super.getDataFromDb(id);
+        reportModel.setReportModelAttrList(reportModelAttrService.queryReportModelAttrMapByModelId(reportModel.getId()));
+        return reportModel;
+    }
+
+    @Override
+    protected void deletePostpose(String id) {
+        reportModelAttrService.deleteByReportModelId(id);
+    }
+
+    @Override
+    @Transactional(value = "transactionManager", rollbackFor = Exception.class)
+    public void deleteByImportModelId(String importModelId) {
+        QueryWrapper<ReportModel> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ReportModel::getImportModelId), importModelId);
+        List<ReportModel> reportModelList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(reportModelList)) {
+            return;
+        }
+        List<String> reportModelIds = reportModelList.stream().map(ReportModel::getId).collect(Collectors.toList());
+        reportModelAttrService.deleteByReportModelIds(reportModelIds);
+        remove(queryWrapper);
+    }
+
+    @Override
     public List<ReportModel> queryAllMaxVersionReportModel() {
         QueryWrapper<ReportModel> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(ReportModel::getState), ReportModelState.NORMAL.getKey());
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ReportModel::getEnabled), EnableEnum.ENABLE_USING.getKey());
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(ReportModel::getSoftwareVersion));
         List<ReportModel> list = list(queryWrapper);
         return list;

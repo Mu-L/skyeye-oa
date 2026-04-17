@@ -20,6 +20,13 @@ import java.util.Map;
  */
 public interface ReportModelAttrService extends SkyeyeBusinessService<ReportModelAttr> {
 
+    void saveList(String reportModelId, List<ReportModelAttr> beans);
+
     Map<String, List<ReportModelAttr>> queryReportModelAttrMapByModelIds(List<String> reportModelIds);
 
+    List<ReportModelAttr> queryReportModelAttrMapByModelId(String reportModelId);
+
+    void deleteByReportModelId(String reportModelId);
+
+    void deleteByReportModelIds(List<String> reportModelIds);
 }

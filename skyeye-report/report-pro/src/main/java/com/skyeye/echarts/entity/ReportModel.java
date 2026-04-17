@@ -4,15 +4,19 @@
 
 package com.skyeye.echarts.entity;
 
-import cn.afterturn.easypoi.excel.annotation.Excel;
 import cn.afterturn.easypoi.excel.annotation.ExcelTarget;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
+import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.CommonInfo;
+import com.skyeye.common.entity.features.OperatorUserInfo;
+import com.skyeye.common.enumeration.EnableEnum;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * @ClassName: ReportModel
@@ -26,62 +30,54 @@ import lombok.Data;
 @TableName(value = "report_model", autoResultMap = true)
 @ApiModel("Echarts模型实体类")
 @ExcelTarget("ReportModel")
-public class ReportModel extends CommonInfo {
+public class ReportModel extends OperatorUserInfo {
 
     @TableId("id")
-    @Property("主键id。为空时新增，不为空时编辑")
+    @ApiModelProperty("主键id。为空时新增，不为空时编辑")
     private String id;
 
-    @TableField("history_id")
-    @Property(value = "历史导入关联id")
-    private String historyId;
-
-    @TableField("model_code")
-    @Property(value = "模型code")
-    private String modelCode;
+    @TableField("import_model_id")
+    @ApiModelProperty(value = "ImportModel模型id", required = "required")
+    private String importModelId;
 
     @TableField("default_width")
-    @Property(value = "默认宽度")
-    @Excel(name = "默认宽度", width = 10, isImportField = "true_st", orderNum = "2")
+    @ApiModelProperty(value = "默认宽度", required = "required")
     private String defaultWidth;
 
     @TableField("default_height")
-    @Property(value = "默认高度")
-    @Excel(name = "默认高度", width = 10, isImportField = "true_st", orderNum = "3")
+    @ApiModelProperty(value = "默认高度", required = "required")
     private String defaultHeight;
 
     @TableField("min_width")
-    @Property(value = "最小宽度")
-    @Excel(name = "最小宽度", width = 10, isImportField = "true_st", orderNum = "4")
+    @ApiModelProperty(value = "最小宽度", required = "required")
     private String minWidth;
 
     @TableField("min_height")
-    @Property(value = "最小高度")
-    @Excel(name = "最小高度", width = 10, isImportField = "true_st", orderNum = "5")
+    @ApiModelProperty(value = "最小高度", required = "required")
     private String minHeight;
 
     @TableField("default_bg_color")
-    @Property(value = "默认背景色")
-    @Excel(name = "默认背景色", width = 10, isImportField = "true_st", orderNum = "6")
+    @ApiModelProperty(value = "默认背景色", required = "required")
     private String defaultBgColor;
 
     @TableField("bg_transparency")
-    @Property(value = "透明度")
-    @Excel(name = "透明度", width = 10, isImportField = "true_st", orderNum = "7")
+    @ApiModelProperty(value = "透明度", required = "required")
     private String bgTransparency;
 
     @TableField("logo_path")
-    @Property(value = "logo地址")
-    @Excel(name = "LOGO", type = 2, width = 10, isImportField = "true_st", imageType = 1)
+    @ApiModelProperty(value = "logo地址", required = "required")
     private String logoPath;
 
     @TableField("software_version")
     @Property(value = "版本")
     private Integer softwareVersion;
 
-    @TableField("state")
-    @Property(value = "状态，参考#ReportModelState")
-    private Integer state;
+    @TableField(value = "enabled")
+    @ApiModelProperty(value = "启用状态", enumClass = EnableEnum.class, required = "required,num")
+    private Integer enabled;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "属性信息", required = "required,json")
+    private List<ReportModelAttr> reportModelAttrList;
 
 }
