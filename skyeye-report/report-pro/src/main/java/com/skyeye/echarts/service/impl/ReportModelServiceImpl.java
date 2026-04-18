@@ -39,6 +39,12 @@ public class ReportModelServiceImpl extends SkyeyeBusinessServiceImpl<ReportMode
     private ReportModelAttrService reportModelAttrService;
 
     @Override
+    protected void createPrepose(ReportModel entity) {
+        Integer softwareVersion = queryNewMaxVersionByImportModelId(entity.getImportModelId());
+        entity.setSoftwareVersion(softwareVersion);
+    }
+
+    @Override
     protected void writePostpose(ReportModel entity, String userId) {
         super.writePostpose(entity, userId);
         if (entity.getEnabled().equals(EnableEnum.ENABLE_USING.getKey())) {
