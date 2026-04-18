@@ -23,6 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.concurrent.Executor;
 
 /**
@@ -37,6 +40,8 @@ import java.util.concurrent.Executor;
 @Service
 @SkyeyeService(name = "用户登录日志", groupName = "用户管理", tenant = TenantEnum.NO_ISOLATION)
 public class SysEveUserLoginLogServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserLoginLogDao, SysEveUserLoginLog> implements SysEveUserLoginLogService {
+
+    private static final DateTimeFormatter LOGIN_TIME_FORMATTER = DateTimeFormatter.ofPattern(DateUtil.YYYY_MM_DD_HH_MM_SS);
 
     @Autowired
     private Executor userLoginLogExecutor;
@@ -72,6 +77,32 @@ public class SysEveUserLoginLogServiceImpl extends SkyeyeBusinessServiceImpl<Sys
                 log.error("记录用户登录日志失败，用户ID：{}，错误信息：{}", userId, e.getMessage(), e);
             }
         });
+    }
+
+    @Override
+    @IgnoreTenant
+    public int cleanExpiredLoginLogs(int batchSize, int retainMonths) {
+        int actualBatchSize = Math.max(batchSize, 100);
+        int actualRetainMonths = Math.max(retainMonths, 1);
+        String cutoffTime = LocalDateTime.now().minusMonths(actualRetainMonths).format(LOGIN_TIME_FORMATTER);
+        String idColumn = MybatisPlusUtil.toColumns(SysEveUserLoginLog::getId);
+        String loginTimeColumn = MybatisPlusUtil.toColumns(SysEveUserLoginLog::getLoginTime);
+        QueryWrapper<SysEveUserLoginLog> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select(idColumn)
+            .lt(loginTimeColumn, cutoffTime)
+            .orderByAsc(loginTimeColumn, idColumn)
+            .last("limit " + actualBatchSize);
+        List<Object> idList = baseMapper.selectObjs(queryWrapper);
+        if (idList == null || idList.isEmpty()) {
+            return 0;
+        }
+        boolean removed = removeByIds(idList);
+        if (!removed) {
+            log.warn("清理过期登录日志未删除到数据，cutoffTime: {}", cutoffTime);
+            return 0;
+        }
+        log.info("清理过期登录日志完成，保留最近{}个月，本批删除数量：{}", actualRetainMonths, idList.size());
+        return idList.size();
     }
 
     @Override

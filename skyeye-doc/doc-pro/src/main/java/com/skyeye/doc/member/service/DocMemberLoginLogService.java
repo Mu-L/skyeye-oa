@@ -19,4 +19,13 @@ public interface DocMemberLoginLogService extends SkyeyeBusinessService<DocMembe
 
     void recordLoginLogAsync(String userId, String userCode, Integer deviceType, Integer loginStatus, String loginMessage);
 
+    /**
+     * 清理指定保留月数之前的文档会员登录日志（分批删除）
+     *
+     * @param batchSize    单批删除数量
+     * @param retainMonths 保留最近多少个月日志
+     * @return 本批清理删除数量
+     */
+    int cleanExpiredLoginLogs(int batchSize, int retainMonths);
+
 }
