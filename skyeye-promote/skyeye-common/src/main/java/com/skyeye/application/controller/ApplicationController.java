@@ -7,6 +7,7 @@ package com.skyeye.application.controller;
 import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.annotation.operationlog.IgnoreOperationLog;
 import com.skyeye.application.entity.Application;
 import com.skyeye.application.service.ApplicationService;
 import com.skyeye.common.object.InputObject;
@@ -30,6 +31,7 @@ public class ApplicationController {
     @Autowired
     private ApplicationService applicationService;
 
+    @IgnoreOperationLog
     @ApiOperation(id = "registerApplication", value = "应用注册", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = Application.class)
     @RequestMapping("/post/SkyeyeClassServiceBeanController/registerApplication")

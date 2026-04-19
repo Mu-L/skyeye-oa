@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.annotation.operationlog.IgnoreOperationLog;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -63,6 +64,7 @@ public class CodeRuleController {
         codeRuleService.deleteById(inputObject, outputObject);
     }
 
+    @IgnoreOperationLog
     @ApiOperation(id = "getNextCodes", value = "获取编码", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = CodeMation.class)
     @RequestMapping("/post/CodeRuleController/getNextCodes")

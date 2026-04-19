@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.annotation.operationlog.IgnoreOperationLog;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.clazz.entity.classenum.SkyeyeClassEnumApiMation;
@@ -31,6 +32,7 @@ public class SkyeyeClassEnumController {
     @Autowired
     private SkyeyeClassEnumService skyeyeClassEnumService;
 
+    @IgnoreOperationLog
     @ApiOperation(id = "writeClassEnum", value = "批量新增枚举类", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = SkyeyeClassEnumApiMation.class)
     @RequestMapping("/post/SkyeyeClassEnumController/writeClassEnum")

@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.annotation.operationlog.IgnoreOperationLog;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -33,6 +34,7 @@ public class ServiceBeanController {
     @Autowired
     private ServiceBeanService serviceBeanService;
 
+    @IgnoreOperationLog
     @ApiOperation(id = "writeServiceBean", value = "新增/编辑服务类", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = ServiceBean.class)
     @RequestMapping("/post/ServiceBeanController/writeServiceBean")
@@ -40,6 +42,7 @@ public class ServiceBeanController {
         serviceBeanService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
+    @IgnoreOperationLog
     @ApiOperation(id = "registerServiceBean", value = "服务类注册", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = ServiceBeanApi.class)
     @RequestMapping("/post/ServiceBeanController/registerServiceBean")
