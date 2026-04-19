@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.annotation.operationlog.IgnoreOperationLog;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -70,6 +71,7 @@ public class LifecycleTemplateController {
         lifecycleTemplateService.queryCurrentLifecycleTemplateByMasterId(inputObject, outputObject);
     }
 
+    @IgnoreOperationLog
     @ApiOperation(id = "queryCurrentLifecycleTemplateByAppIdAndClassName", value = "根据AppId和className查询当前发布得最新得生命周期模板详情", method = "GET", allUse = "0")
     @ApiImplicitParams(value = {
         @ApiImplicitParam(id = "appId", name = "appId", value = "应用得appId", required = "required"),
