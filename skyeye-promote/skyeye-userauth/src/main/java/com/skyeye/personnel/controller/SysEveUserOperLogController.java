@@ -10,6 +10,7 @@ import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.personnel.entity.SysEveUserLoginLog;
 import com.skyeye.personnel.service.SysEveUserOperLogService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,7 +24,7 @@ public class SysEveUserOperLogController {
     private SysEveUserOperLogService sysEveUserOperLogService;
 
     @ApiOperation(id = "createSysOperLog", value = "新增登录日志", method = "POST", allUse = "0")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @ApiImplicitParams(classBean = SysEveUserLoginLog.class)
     @RequestMapping("/post/SysEveUserOperLogController/createSysOperLog")
     public void createSysOperLog(InputObject inputObject, OutputObject outputObject) {
         sysEveUserOperLogService.createEntity(inputObject, outputObject);
