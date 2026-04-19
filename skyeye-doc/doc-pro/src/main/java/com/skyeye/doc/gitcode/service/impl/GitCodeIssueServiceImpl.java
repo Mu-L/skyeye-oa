@@ -57,7 +57,7 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
     private CodeVersionService codeVersionService;
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         List<String> createIds = beans.stream().map(bean -> bean.get("createId").toString()).distinct().collect(Collectors.toList());
         Map<String, DocMember> memberMap = docMemberService.selectMapByIds(createIds);

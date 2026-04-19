@@ -70,7 +70,7 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
     private GitCodeApiClient gitCodeApiClient;
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         docMemberLevelService.setMationForMap(beans, "levelId", "levelMation");
         return beans;

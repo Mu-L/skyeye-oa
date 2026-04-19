@@ -48,7 +48,7 @@ public class DownloadServiceImpl extends SkyeyeBusinessServiceImpl<DownloadDao, 
     private Executor docMemberDownloadLogExecutor;
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         codeSourceService.setMationForMap(beans, "codeSourceId", "codeSourceMation");
         docMemberService.setMationForMap(beans, "memberId", "memberMation");

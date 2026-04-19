@@ -61,7 +61,7 @@ public class GitCodeIssueCommentServiceImpl extends SkyeyeBusinessServiceImpl<Gi
     }
 
     @Override
-    protected List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         docMemberService.setNameMationForMap(beans, "createId", "memberName", StrUtil.EMPTY);
         return beans;
