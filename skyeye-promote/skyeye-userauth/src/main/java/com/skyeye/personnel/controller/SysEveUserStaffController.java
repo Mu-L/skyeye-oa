@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.annotation.operationlog.IgnoreOperationLog;
 import com.skyeye.common.enumeration.SexEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -79,6 +80,7 @@ public class SysEveUserStaffController {
         sysEveUserStaffService.querySysUserStaffLogin(inputObject, outputObject);
     }
 
+    @IgnoreOperationLog
     @ApiOperation(id = "queryUserMationList", value = "根据用户ids/员工ids获取员工信息集合", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "userIds", name = "userIds", value = "用户id，多个逗号隔离(两个参数传一个即可，默认优先以userIds查询为主)"),
