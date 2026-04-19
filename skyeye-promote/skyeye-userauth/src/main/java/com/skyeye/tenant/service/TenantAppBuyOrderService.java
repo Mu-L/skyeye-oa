@@ -20,4 +20,12 @@ import com.skyeye.tenant.entity.TenantAppBuyOrder;
 public interface TenantAppBuyOrderService extends SkyeyeBusinessService<TenantAppBuyOrder> {
 
     void queryTenantOrderStatistics(InputObject inputObject, OutputObject outputObject);
+
+    /**
+     * 统计指定租户下「非草稿、非作废」的应用购买订单数量，用于删除租户等业务校验。
+     *
+     * @param buyTenantId 购买方租户 id
+     * @return 订单条数
+     */
+    long countActiveBuyOrdersByBuyTenantId(String buyTenantId);
 }

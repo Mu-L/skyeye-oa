@@ -14,6 +14,7 @@ import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import lombok.Data;
 
 import java.util.List;
@@ -40,6 +41,14 @@ public class Tenant extends BaseGeneralInfo {
     @TableField(value = "`logo`")
     @ApiModelProperty(value = "租户logo")
     private String logo;
+
+    /**
+     * 是否曾有过「审核通过」的应用购买订单；订单终审通过时由系统置为是。需在表 tenant 增加列 whether_has_passed_buy_order（int，默认 0）。
+     */
+    @TableField("whether_has_passed_buy_order")
+    @ApiModelProperty(value = "是否存在已审批通过的应用购买订单（订单审核通过后由系统自动维护）", enumClass = WhetherEnum.class)
+    @Property(value = "是否存在已审批通过的应用购买订单")
+    private Integer whetherHasPassedBuyOrder;
 
     @TableField(exist = false)
     @ApiModelProperty("应用信息")

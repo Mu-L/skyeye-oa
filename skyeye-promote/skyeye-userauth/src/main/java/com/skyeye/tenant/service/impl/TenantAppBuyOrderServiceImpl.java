@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import cn.hutool.core.util.StrUtil;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.TenantEnum;
@@ -129,6 +130,20 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
                 tenantAppLinkService.saveTenantAppLink(tenantAppBuyOrder.getBuyTenantId(), tenantAppBuyOrderYear.getAppId(), tenantAppBuyOrderYear.getAccountYear());
             });
         }
+        if (StrUtil.isNotEmpty(tenantAppBuyOrder.getBuyTenantId())) {
+            tenantService.markHasPassedAppBuyOrder(tenantAppBuyOrder.getBuyTenantId());
+        }
+    }
+
+    @Override
+    @IgnoreTenant
+    public long countActiveBuyOrdersByBuyTenantId(String buyTenantId) {
+        QueryWrapper<TenantAppBuyOrder> orderQw = new QueryWrapper<>();
+        orderQw.eq(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getBuyTenantId), buyTenantId);
+        orderQw.notIn(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getState),
+            FlowableStateEnum.DRAFT.getKey(),
+            FlowableStateEnum.INVALID.getKey());
+        return count(orderQw);
     }
 
     @Override

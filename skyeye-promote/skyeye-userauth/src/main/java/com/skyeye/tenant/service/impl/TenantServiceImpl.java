@@ -15,6 +15,7 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.TenantEnum;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.tenant.TenantTypeEnum;
@@ -31,6 +32,7 @@ import com.skyeye.tenant.entity.TenantAppLink;
 import com.skyeye.tenant.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -66,9 +68,16 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
     @Autowired
     private IJobMateMationService iJobMateMationService;
 
+    @Lazy
+    @Autowired
+    private TenantAppBuyOrderService tenantAppBuyOrderService;
+
     @Override
     public void createPrepose(Tenant entity) {
         entity.setAccountNum(CommonNumConstants.NUM_ZERO);
+        if (entity.getWhetherHasPassedBuyOrder() == null) {
+            entity.setWhetherHasPassedBuyOrder(WhetherEnum.DISABLE_USING.getKey());
+        }
     }
 
     @Override
@@ -92,8 +101,26 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
         if (StrUtil.equals(id, TenantTypeEnum.PLATFORM.getCode())) {
             throw new CustomException("平台租户不能删除");
         }
+        assertNoActiveBuyOrders(id);
         super.deletePreExecution(id);
     }
+
+    @Override
+    protected void deletePreExecution(List<String> ids) {
+        if (CollectionUtil.isNotEmpty(ids)) {
+            ids.forEach(this::deletePreExecution);
+        }
+    }
+
+    /**
+     * 存在非草稿、非作废的应用购买订单时禁止删除租户，避免订单与租户数据不一致。
+     */
+    private void assertNoActiveBuyOrders(String tenantId) {
+        if (tenantAppBuyOrderService.countActiveBuyOrdersByBuyTenantId(tenantId) > 0) {
+            throw new CustomException("该租户存在应用购买订单，无法删除。请先处理或作废相关订单。");
+        }
+    }
+
 
     @Override
     @IgnoreTenant
@@ -121,6 +148,27 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
     @IgnoreTenant
     public List<Tenant> selectByIds(String... ids) {
         return super.selectByIds(ids);
+    }
+
+    @Override
+    @IgnoreTenant
+    public void markHasPassedAppBuyOrder(String tenantId) {
+        if (StrUtil.isEmpty(tenantId)) {
+            return;
+        }
+        QueryWrapper<Tenant> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(CommonConstants.ID, tenantId);
+        Tenant tenant = getOne(queryWrapper, false);
+        if (ObjectUtil.isEmpty(tenant) || StrUtil.isEmpty(tenant.getId())) {
+            return;
+        }
+        if (WhetherEnum.ENABLE_USING.getKey().equals(tenant.getWhetherHasPassedBuyOrder())) {
+            refreshCache(tenantId);
+            return;
+        }
+        tenant.setWhetherHasPassedBuyOrder(WhetherEnum.ENABLE_USING.getKey());
+        updateById(tenant);
+        refreshCache(tenantId);
     }
 
     @Override
