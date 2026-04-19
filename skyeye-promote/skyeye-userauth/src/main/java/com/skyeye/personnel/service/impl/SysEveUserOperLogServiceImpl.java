@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
  */
 @Slf4j
 @Service
-@SkyeyeService(name = "系统操作日志", groupName = "用户管理", tenant = TenantEnum.NO_ISOLATION)
+@SkyeyeService(name = "系统操作日志", groupName = "用户管理", tenant = TenantEnum.NO_ISOLATION, allowDynamicAttrKey = false)
 public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysEveUserOperLogDao, SysEveUserOperLog> implements SysEveUserOperLogService {
 
     @Override
