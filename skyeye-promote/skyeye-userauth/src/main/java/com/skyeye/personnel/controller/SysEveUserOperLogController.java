@@ -7,6 +7,7 @@ package com.skyeye.personnel.controller;
 import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.annotation.operationlog.IgnoreOperationLog;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -23,6 +24,7 @@ public class SysEveUserOperLogController {
     @Autowired
     private SysEveUserOperLogService sysEveUserOperLogService;
 
+    @IgnoreOperationLog
     @ApiOperation(id = "createSysOperLog", value = "新增登录日志", method = "POST", allUse = "0")
     @ApiImplicitParams(classBean = SysEveUserOperLog.class)
     @RequestMapping("/post/SysEveUserOperLogController/createSysOperLog")
@@ -30,6 +32,7 @@ public class SysEveUserOperLogController {
         sysEveUserOperLogService.createEntity(inputObject, outputObject);
     }
 
+    @IgnoreOperationLog
     @ApiOperation(id = "querySysOperLogList", value = "查询系统操作日志列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/SysEveUserOperLogController/querySysOperLogList")
