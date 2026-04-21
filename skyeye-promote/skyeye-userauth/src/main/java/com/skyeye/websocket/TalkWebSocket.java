@@ -4,14 +4,17 @@
 
 package com.skyeye.websocket;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.common.constans.SocketConstants;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.SpringUtils;
 import com.skyeye.common.util.ToolUtil;
 import com.skyeye.jedis.JedisClientService;
 import com.skyeye.websocket.handler.client.TalkWebSocketClientMessageHandlerFactory;
+import com.skyeye.websocket.service.WebSocketSendFailLogService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -34,6 +37,9 @@ import java.util.stream.Collectors;
  * @date: 2020年11月14日 下午9:36:38
  * @Copyright: 2020 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目
+ * <p>
+ * 多租户：连接地址可携带 query 参数 {@code tenantId}（与 HTTP 头一致），服务端按会话记录，
+ * 发送失败落库时写入目标终端所属租户；未传时尝试 {@link TenantContext}（WebSocket 线程通常为 null）。
  */
 @Component
 @ServerEndpoint("/talkwebsocket/{userId}")
@@ -61,6 +67,11 @@ public class TalkWebSocket {
      * 会话ID到用户ID的映射，用于快速定位会话属于哪个用户
      */
     private static final Map<String, String> sessionIdToUserId = new ConcurrentHashMap<>();
+
+    /**
+     * 会话与租户（握手 query：tenantId），用于发送失败日志等
+     */
+    private static final Map<String, String> sessionIdToTenantId = new ConcurrentHashMap<>();
 
     /**
      * 用户会话最后活跃时间，用于超时检测
@@ -169,6 +180,11 @@ public class TalkWebSocket {
     private String sessionId;
 
     /**
+     * 当前连接所属租户（握手参数 tenantId）
+     */
+    private String tenantId;
+
+    /**
      * 启动定时任务，处理超时连接
      */
     static {
@@ -232,7 +248,7 @@ public class TalkWebSocket {
                 return;
             }
 
-            int currentTotal = totalConnections.get();
+            int currentTotal = readNonNegative(totalConnections);
             if (WARN_TOTAL_CONNECTIONS > 0 && currentTotal >= WARN_TOTAL_CONNECTIONS) {
                 LOGGER.warn("系统连接数达到告警阈值: {}, 当前: {}, userId: {}", WARN_TOTAL_CONNECTIONS, currentTotal, userId);
             }
@@ -277,6 +293,10 @@ public class TalkWebSocket {
             // 设置会话配置
             this.session.setMaxIdleTimeout(120000); // 设置会话超时时间为2分钟
 
+            String resolvedTenant = resolveTenantIdForHandshake(session);
+            this.tenantId = ToolUtil.isBlank(resolvedTenant) ? null : resolvedTenant;
+            sessionIdToTenantId.put(sessionId, this.tenantId == null ? "" : this.tenantId);
+
             // 更新会话ID到用户ID的映射
             sessionIdToUserId.put(sessionId, userId);
 
@@ -287,8 +307,8 @@ public class TalkWebSocket {
                 onlineNumber.incrementAndGet();
             }
             markUserOnline(userId);
-            LOGGER.info("新连接加入 - 客户端ID: {}, 用户ID: {}, 当前在线人数: {}, 总连接数: {}",
-                session.getId(), userId, onlineNumber.get(), totalConnections.get());
+            LOGGER.info("新连接加入 - 客户端ID: {}, 用户ID: {}, 租户: {}, 当前在线人数: {}, 总连接数: {}",
+                session.getId(), userId, this.tenantId != null ? this.tenantId : "-", onlineNumber.get(), totalConnections.get());
 
             // 如果是新用户，通知其他用户我上线了
             if (isNewUser) {
@@ -337,18 +357,20 @@ public class TalkWebSocket {
         try {
             // 更新会话ID到用户ID的映射
             sessionIdToUserId.remove(sessionId);
+            sessionIdToTenantId.remove(sessionId);
             lastActiveTime.remove(sessionId);
 
             // 从用户的会话集合中移除当前会话
             Set<TalkWebSocket> userSocketSet = userSessions.get(userId);
             if (userSocketSet != null) {
-                userSocketSet.remove(this);
-                totalConnections.decrementAndGet();
+                boolean removed = userSocketSet.remove(this);
+                if (removed) {
+                    safeDecrement(totalConnections);
+                }
 
                 // 如果用户的所有连接都断开了，则从用户列表中移除
-                if (userSocketSet.isEmpty()) {
-                    userSessions.remove(userId);
-                    onlineNumber.decrementAndGet();
+                if (removed && userSocketSet.isEmpty() && userSessions.remove(userId, userSocketSet)) {
+                    safeDecrement(onlineNumber);
                     markUserOffline(userId);
 
                     // 通知其他用户我下线了
@@ -574,15 +596,16 @@ public class TalkWebSocket {
                     LOGGER.error("关闭超时连接失败: {}", e.getMessage());
                 } finally {
                     sessionIdToUserId.remove(socket.sessionId);
+                    sessionIdToTenantId.remove(socket.sessionId);
                     lastActiveTime.remove(socket.sessionId);
-                    sockets.remove(socket);
-                    totalConnections.decrementAndGet();
+                    if (sockets.remove(socket)) {
+                        safeDecrement(totalConnections);
+                    }
                 }
             }
 
-            if (sockets.isEmpty()) {
-                userSessions.remove(userId);
-                onlineNumber.decrementAndGet();
+            if (sockets.isEmpty() && userSessions.remove(userId, sockets)) {
+                safeDecrement(onlineNumber);
                 markUserOffline(userId);
                 Map<String, Object> map1 = new HashMap<>();
                 map1.put("messageType", SocketConstants.MessageType.Second.getType());
@@ -606,6 +629,7 @@ public class TalkWebSocket {
 
         for (String timeoutSessionId : timeoutSessions) {
             String userId = sessionIdToUserId.remove(timeoutSessionId);
+            sessionIdToTenantId.remove(timeoutSessionId);
             lastActiveTime.remove(timeoutSessionId);
             if (ToolUtil.isBlank(userId)) {
                 continue;
@@ -632,13 +656,13 @@ public class TalkWebSocket {
             } catch (IOException e) {
                 LOGGER.error("关闭超时会话失败: {}", e.getMessage());
             } finally {
-                sockets.remove(timeoutSocket);
-                totalConnections.decrementAndGet();
+                if (sockets.remove(timeoutSocket)) {
+                    safeDecrement(totalConnections);
+                }
             }
 
-            if (sockets.isEmpty()) {
-                userSessions.remove(userId);
-                onlineNumber.decrementAndGet();
+            if (sockets.isEmpty() && userSessions.remove(userId, sockets)) {
+                safeDecrement(onlineNumber);
                 markUserOffline(userId);
                 Map<String, Object> map1 = new HashMap<>();
                 map1.put("messageType", SocketConstants.MessageType.Second.getType());
@@ -670,6 +694,7 @@ public class TalkWebSocket {
         }
         userSessions.clear();
         sessionIdToUserId.clear();
+        sessionIdToTenantId.clear();
         lastActiveTime.clear();
         onlineNumber.set(0);
         totalConnections.set(0);
@@ -717,7 +742,7 @@ public class TalkWebSocket {
      * @return 在线人数
      */
     public static synchronized int getOnlineCount() {
-        return onlineNumber.get();
+        return readNonNegative(onlineNumber);
     }
 
     /**
@@ -726,7 +751,7 @@ public class TalkWebSocket {
      * @return 总连接数
      */
     public static synchronized int getTotalConnections() {
-        return totalConnections.get();
+        return readNonNegative(totalConnections);
     }
 
     /**
@@ -769,6 +794,30 @@ public class TalkWebSocket {
         return metrics;
     }
 
+    /**
+     * 从握手 query（tenantId）或当前线程租户上下文解析租户
+     */
+    private static String resolveTenantIdForHandshake(Session wsSession) {
+        try {
+            if (wsSession != null) {
+                Map<String, List<String>> pm = wsSession.getRequestParameterMap();
+                if (pm != null) {
+                    List<String> list = pm.get("tenantId");
+                    if (list != null && !list.isEmpty()) {
+                        String v = list.get(0);
+                        if (StrUtil.isNotEmpty(v)) {
+                            return v.trim();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.debug("解析WebSocket租户参数失败: {}", e.getMessage());
+        }
+        String ctx = TenantContext.getTenantId();
+        return ToolUtil.isBlank(ctx) ? null : ctx.trim();
+    }
+
     private static void markUserOnline(String userId) {
         try {
             JedisClientService jedisClientService = SpringUtils.getBean(JedisClientService.class);
@@ -798,13 +847,14 @@ public class TalkWebSocket {
         try {
             session.getAsyncRemote().sendText(message);
         } catch (Exception e) {
-            sendFailureCount.incrementAndGet();
             LOGGER.warn("发送消息失败，准备重试。target: {}, sessionId: {}, error: {}", target, sessionId, e.getMessage());
             try {
                 session.getBasicRemote().sendText(message);
             } catch (Exception retryError) {
                 sendFailureCount.incrementAndGet();
                 LOGGER.error("发送消息重试失败。target: {}, sessionId: {}, error: {}", target, sessionId, retryError.getMessage());
+                String failTenant = sessionIdToTenantId.getOrDefault(sessionId, "");
+                recordSendFailure(target, sessionId, "basic", message, retryError.getMessage(), failTenant);
             }
         }
     }
@@ -812,9 +862,41 @@ public class TalkWebSocket {
     private static void logRuntimeMetrics() {
         LOGGER.info(
             "WebSocket运行指标 -> 在线用户: {}, 总连接: {}, 拒绝连接累计: {}, 广播拒绝累计: {}, 发送失败累计: {}, 活跃session记录: {}",
-            onlineNumber.get(), totalConnections.get(), rejectedConnectionCount.get(),
+            getOnlineCount(), getTotalConnections(), rejectedConnectionCount.get(),
             broadcastRejectCount.get(), sendFailureCount.get(), lastActiveTime.size()
         );
+    }
+
+    private static int readNonNegative(AtomicInteger counter) {
+        return Math.max(counter.get(), 0);
+    }
+
+    private static void safeDecrement(AtomicInteger counter) {
+        counter.updateAndGet(value -> Math.max(value - 1, 0));
+    }
+
+    private static void recordSendFailure(String targetUserId, String sessionId, String sendStage, String message, String errorMessage, String tenantId) {
+        try {
+            WebSocketSendFailLogService failLogService = SpringUtils.getBean(WebSocketSendFailLogService.class);
+            failLogService.saveSendFailLog(
+                targetUserId,
+                sessionId,
+                sendStage,
+                truncate(message, 2000),
+                truncate(errorMessage, 1000),
+                NODE_ID,
+                tenantId
+            );
+        } catch (Exception e) {
+            LOGGER.warn("记录WebSocket发送失败日志异常: {}", e.getMessage());
+        }
+    }
+
+    private static String truncate(String text, int maxLength) {
+        if (text == null || text.length() <= maxLength) {
+            return text;
+        }
+        return text.substring(0, maxLength);
     }
 
     /**
