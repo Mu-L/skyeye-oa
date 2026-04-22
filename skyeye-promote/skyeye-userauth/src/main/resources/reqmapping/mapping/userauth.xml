@@ -5,8 +5,6 @@
 	 -->
 	
 	<!-- 聊天开始 -->
-	<url id="companychat001" path="/post/CompanyChatController/getList" val="获取好友列表，群聊信息，个人信息" allUse="2" method="GET" groupName="聊天模块">
-	</url>
 	<url id="companychat002" path="/post/CompanyChatController/editUserSignByUserId" val="编辑签名" allUse="2" groupName="聊天模块">
 		<property id="userSign" name="userSign" ref="" var="签名"/>
 	</url>

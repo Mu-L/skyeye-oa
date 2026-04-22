@@ -79,6 +79,7 @@
 				#{notInUserId}
 			</foreach>
 		</if>
+		ORDER BY convert(a.user_name using gbk) ASC
 	</select>
 	
 	<update id="editUserSignByUserId" parameterType="java.util.Map">

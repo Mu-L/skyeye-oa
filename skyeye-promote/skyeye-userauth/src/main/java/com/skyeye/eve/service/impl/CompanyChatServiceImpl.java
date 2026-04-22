@@ -22,10 +22,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -83,41 +80,50 @@ public class CompanyChatServiceImpl implements CompanyChatService {
         // 获取聊天组
         List<Map<String, Object>> group = companyChatDao.queryUserGroupByUserId(map);
 
-        // 获取公司部门
+        // 获取通讯录用户（改为平铺列表，不再按部门分组）
+        List<String> departIds = null;
         List<Map<String, Object>> companyDepartment = companyDepartmentService.queryAllDataForMap();
         if (CollectionUtil.isNotEmpty(companyDepartment)) {
-            List<String> departIds = companyDepartment.stream().map(m -> m.get("id").toString()).collect(Collectors.toList());
-            List<String> notInUserIds = Arrays.asList(CommonConstants.ADMIN_USER_ID, userId);
-            List<Map<String, Object>> userList = companyChatDao.queryDepartmentUserByDepartId(departIds, notInUserIds, tenantId);
-            if (tenantEnable) {
-                // 多租户模式下，获取当前租户下的用户信息
-                userList = tenantUserService.setThisTenantUserToDefault(userList, "staffId");
-            }
-            companyMationService.setNameMationForMap(userList, "companyId", "companyName", StrUtil.EMPTY);
-            companyDepartmentService.setNameMationForMap(userList, "departmentId", "departmentName", StrUtil.EMPTY);
-            companyJobService.setNameMationForMap(userList, "jobId", "jobName", StrUtil.EMPTY);
-            if (CollectionUtil.isNotEmpty(userList)) {
-                Set<String> uId = TalkWebSocket.getOnlineUserId();
-                for (Map<String, Object> u : userList) {
-                    if (uId.contains(u.get("id").toString())) {
-                        u.put("status", "online");
-                    } else {
-                        u.put("status", "offline");
-                    }
-                }
+            departIds = companyDepartment.stream().map(m -> m.get("id").toString()).collect(Collectors.toList());
+        }
+        List<String> notInUserIds = Arrays.asList(CommonConstants.ADMIN_USER_ID, userId);
+        List<Map<String, Object>> userList = companyChatDao.queryDepartmentUserByDepartId(departIds, notInUserIds, tenantId);
+        if (CollectionUtil.isNotEmpty(userList)) {
+            // 通讯录按用户id去重（保留首次出现顺序）
+            userList = userList.stream()
+                .filter(item -> item.get("id") != null)
+                .collect(Collectors.collectingAndThen(
+                    Collectors.toMap(
+                        item -> String.valueOf(item.get("id")),
+                        item -> item,
+                        (first, second) -> first,
+                        LinkedHashMap::new
+                    ),
+                    mapById -> mapById.values().stream().filter(Objects::nonNull).collect(Collectors.toList())
+                ));
+        }
+        if (tenantEnable) {
+            // 多租户模式下，获取当前租户下的用户信息
+            userList = tenantUserService.setThisTenantUserToDefault(userList, "staffId");
+        }
 
-                Map<String, List<Map<String, Object>>> userMap = userList.stream().collect(Collectors.groupingBy(u -> u.get("departmentId").toString()));
-                // 循环获取分组的人列表
-                for (Map<String, Object> depart : companyDepartment) {
-                    String departId = depart.get("id").toString();
-                    depart.put("list", userMap.get(departId));
+        companyMationService.setNameMationForMap(userList, "companyId", "companyName", StrUtil.EMPTY);
+        companyDepartmentService.setNameMationForMap(userList, "departmentId", "departmentName", StrUtil.EMPTY);
+        companyJobService.setNameMationForMap(userList, "jobId", "jobName", StrUtil.EMPTY);
+        if (CollectionUtil.isNotEmpty(userList)) {
+            Set<String> uId = TalkWebSocket.getOnlineUserId();
+            for (Map<String, Object> u : userList) {
+                if (uId.contains(u.get("id").toString())) {
+                    u.put("status", "online");
+                } else {
+                    u.put("status", "offline");
                 }
             }
         }
 
 
         map.clear();
-        map.put("friend", companyDepartment);
+        map.put("friend", userList);
         map.put("group", group);
         map.put("mine", mine);
         outputObject.setBean(map);
