@@ -261,6 +261,7 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
     @IgnoreTenant
     public void queryOperLogTopPathStat(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
+        // startTime/endTime: 统计时间范围（不传则默认最近7天）
         // topN: 返回前N条路径，默认10，范围[1, 100]
         int topN = parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
         String[] range = resolveStatTimeRange(params);
@@ -304,11 +305,17 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
             }
         }
         Map<String, Object> result = new HashMap<>();
+        // total: Top列表中的调用总量（非全量日志总量）
         result.put("total", total);
+        // xAxisData: Top请求路径列表
         result.put("xAxisData", xAxisData);
+        // seriesData: Top请求路径总调用量序列
         result.put("seriesData", seriesData);
+        // successSeriesData: Top请求路径成功调用量序列
         result.put("successSeriesData", successSeriesData);
+        // failSeriesData: Top请求路径失败调用量序列
         result.put("failSeriesData", failSeriesData);
+        // detailList: 明细聚合结果（requestPath/totalCount/successCount/failCount）
         result.put("detailList", rows);
         outputObject.setBean(result);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
@@ -323,6 +330,7 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
     @IgnoreTenant
     public void queryOperLogTopUserStat(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
+        // startTime/endTime: 统计时间范围（不传则默认最近7天）
         // topN: 返回前N个访问人，默认10，范围[1, 100]
         int topN = parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
         String[] range = resolveStatTimeRange(params);
@@ -372,11 +380,17 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
             }
         }
         Map<String, Object> result = new HashMap<>();
+        // total: Top列表中的调用总量（非全量日志总量）
         result.put("total", total);
+        // xAxisData: Top访问人名称列表（优先姓名，次选账号）
         result.put("xAxisData", xAxisData);
+        // seriesData: Top访问人总调用量序列
         result.put("seriesData", seriesData);
+        // successSeriesData: Top访问人成功调用量序列
         result.put("successSeriesData", successSeriesData);
+        // failSeriesData: Top访问人失败调用量序列
         result.put("failSeriesData", failSeriesData);
+        // detailList: 明细聚合结果（operUserId/operUserName/operUserCode/totalCount/successCount/failCount）
         result.put("detailList", rows);
         outputObject.setBean(result);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
@@ -391,6 +405,7 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
     @IgnoreTenant
     public void queryOperLogTopSourceServiceStat(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
+        // startTime/endTime: 统计时间范围（不传则默认最近7天）
         // topN: 返回前N个来源服务，默认10，范围[1, 100]
         int topN = parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
         String[] range = resolveStatTimeRange(params);
@@ -433,11 +448,17 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
             }
         }
         Map<String, Object> result = new HashMap<>();
+        // total: Top列表中的调用总量（非全量日志总量）
         result.put("total", total);
+        // xAxisData: Top来源服务名称列表
         result.put("xAxisData", xAxisData);
+        // seriesData: Top来源服务总调用量序列
         result.put("seriesData", seriesData);
+        // successSeriesData: Top来源服务成功调用量序列
         result.put("successSeriesData", successSeriesData);
+        // failSeriesData: Top来源服务失败调用量序列
         result.put("failSeriesData", failSeriesData);
+        // detailList: 明细聚合结果（sourceService/totalCount/successCount/failCount）
         result.put("detailList", rows);
         outputObject.setBean(result);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
@@ -452,6 +473,7 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
     @IgnoreTenant
     public void queryOperLogTopFailApiStat(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
+        // startTime/endTime: 统计时间范围（不传则默认最近7天）
         int topN = parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
         String[] range = resolveStatTimeRange(params);
         String fromTime = range[0];
@@ -489,9 +511,13 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
             }
         }
         Map<String, Object> result = new HashMap<>();
+        // total: Top列表中的失败调用总量（非全量日志失败总量）
         result.put("total", total);
+        // xAxisData: 失败最多接口名称列表（接口名为空时回退apiId）
         result.put("xAxisData", xAxisData);
+        // seriesData: 失败调用量序列
         result.put("seriesData", seriesData);
+        // detailList: 明细聚合结果（apiId/apiName/totalCount/failCount）
         result.put("detailList", rows);
         outputObject.setBean(result);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
@@ -506,6 +532,7 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
     @IgnoreTenant
     public void queryOperLogTopSlowApiStat(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
+        // startTime/endTime: 统计时间范围（不传则默认最近7天）
         int topN = parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
         String[] range = resolveStatTimeRange(params);
         String fromTime = range[0];
@@ -544,9 +571,13 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
             }
         }
         Map<String, Object> result = new HashMap<>();
+        // total: Top列表中平均耗时之和（用于页面总览）
         result.put("total", total);
+        // xAxisData: 慢接口名称列表（接口名为空时回退apiId）
         result.put("xAxisData", xAxisData);
+        // seriesData: 平均耗时序列（单位ms，已四舍五入为long）
         result.put("seriesData", seriesData);
+        // detailList: 明细聚合结果（apiId/apiName/totalCount/avgCostMs/maxCostMs）
         result.put("detailList", rows);
         outputObject.setBean(result);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
