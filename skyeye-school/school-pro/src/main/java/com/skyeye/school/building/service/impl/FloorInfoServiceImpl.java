@@ -179,12 +179,9 @@ public class FloorInfoServiceImpl extends SkyeyeBusinessServiceImpl<FloorInfoDao
         }
         String keyword = commonPageInfo.getKeyword();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<FloorInfo> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<FloorInfo> queryWrapper = getQueryWrapper(commonPageInfo);
         queryWrapper.eq(MybatisPlusUtil.toColumns(FloorInfo::getLocationId), locationId);
         queryWrapper.orderByAsc(MybatisPlusUtil.toColumns(FloorInfo::getSortOrder));
-        if (StrUtil.isNotEmpty(keyword)) {
-            queryWrapper.like(MybatisPlusUtil.toColumns(FloorInfo::getName), keyword);
-        }
         List<FloorInfo> list = list(queryWrapper);
         iAuthUserService.setName(list, "createId", "createName");
         iAuthUserService.setName(list, "lastUpdateId", "lastUpdateName");

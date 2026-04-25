@@ -39,8 +39,7 @@ public class FloorInfoController {
 
     @ApiOperation(id = "deleteFloorInfoById", value = "根据id删除楼层、教室、服务", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
-    })
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/FloorInfoController/deleteFloorInfoById")
     public void deleteFloorInfoById(InputObject inputObject, OutputObject outputObject) {
         floorInfoService.deleteById(inputObject, outputObject);
@@ -55,8 +54,7 @@ public class FloorInfoController {
 
     @ApiOperation(id = "queryFloorInfoById", value = "根据id查询楼层、教室、服务", method = "GET", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")
-    })
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/FloorInfoController/queryFloorInfoById")
     public void queryFloorInfoById(InputObject inputObject, OutputObject outputObject) {
         floorInfoService.selectById(inputObject, outputObject);

@@ -32,7 +32,7 @@ public class FloorInfo extends OperatorUserInfo {
     private String locationId;
 
     @TableField("name")
-    @ApiModelProperty(value = "名称",required = "required")
+    @ApiModelProperty(value = "名称",required = "required", fuzzyLike = true)
     private String name;
 
     @TableField("node_type")
