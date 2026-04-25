@@ -24,10 +24,8 @@ import com.skyeye.exception.CustomException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @SkyeyeService(name = "问卷回答信息表管理", groupName = "问卷回答信息表管理")
@@ -129,21 +127,23 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
     @Override
     public void queryFilterApprovedSurveys(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Integer page = commonPageInfo.getPage();
-        Integer limit = commonPageInfo.getLimit();
-        QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<DwSurveyAnswer> queryWrapper = super.getQueryWrapper(commonPageInfo);
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getState), CommonNumConstants.NUM_TWO);
-        extracted(outputObject, queryWrapper, commonPageInfo, page, limit);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        List<DwSurveyAnswer> beans = list(queryWrapper);
+        outputObject.setBeans(beans);
+        outputObject.settotal(page.getTotal());
     }
 
     @Override
     public void queryFilterToBeReviewedSurveys(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
-        Integer page = commonPageInfo.getPage();
-        Integer limit = commonPageInfo.getLimit();
-        QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<DwSurveyAnswer> queryWrapper = super.getQueryWrapper(commonPageInfo);
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getState), CommonNumConstants.NUM_ONE);
-        extracted(outputObject, queryWrapper, commonPageInfo, page, limit);
+        Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        List<DwSurveyAnswer> beans = list(queryWrapper);
+        outputObject.setBeans(beans);
+        outputObject.settotal(page.getTotal());
     }
 
     @Override
@@ -203,24 +203,6 @@ public class DwSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<DwSurve
         QueryWrapper<DwSurveyAnswer> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(DwSurveyAnswer::getSurveyId), id);
         return list(queryWrapper);
-    }
-
-    private void extracted(OutputObject outputObject, QueryWrapper<DwSurveyAnswer> queryWrapper, CommonPageInfo commonPageInfo, Integer page, Integer limit) {
-        List<DwSurveyAnswer> beans = list(queryWrapper); // 获取所有的已批阅信息
-        if (StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
-            beans = beans.stream().filter(examSurveyAnswer -> {
-                DwSurveyDirectory surveyMation = examSurveyAnswer.getSurveyMation();
-                return StrUtil.contains(surveyMation.getSurveyName(), commonPageInfo.getKeyword());
-            }).collect(Collectors.toList());
-        }
-        int fromIndex = (page - 1) * limit;
-        if (fromIndex >= beans.size()) {
-            outputObject.setBeans(new ArrayList<>());
-            outputObject.settotal(CommonNumConstants.NUM_ONE);
-        }
-        int toIndex = Math.min(fromIndex + limit, beans.size());
-        outputObject.setBeans(beans.subList(fromIndex, toIndex));
-        outputObject.settotal(beans.size());
     }
 
 }
