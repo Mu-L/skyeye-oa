@@ -552,7 +552,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         String userId = inputObject.getLogParams().get("id").toString();
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = super.getQueryWrapper(commonPageInfo);
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyDirectory::getCreateId), userId);
         extracted(commonPageInfo, queryWrapper);
         outputResult(outputObject, page, queryWrapper);
@@ -562,7 +562,7 @@ public class ExamSurveyDirectoryServiceImpl extends SkyeyeBusinessServiceImpl<Ex
     public void queryFilterExamLists(InputObject inputObject, OutputObject outputObject) {
         CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
         Page page = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
-        QueryWrapper<ExamSurveyDirectory> queryWrapper = new QueryWrapper<>();
+        QueryWrapper<ExamSurveyDirectory> queryWrapper = super.getQueryWrapper(commonPageInfo);
         extracted(commonPageInfo, queryWrapper);
         outputResult(outputObject, page, queryWrapper);
     }

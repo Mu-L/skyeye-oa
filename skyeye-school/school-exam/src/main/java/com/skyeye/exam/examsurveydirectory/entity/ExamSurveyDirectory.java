@@ -37,7 +37,7 @@ public class ExamSurveyDirectory extends OperatorUserInfo {
     private String id;
 
     @TableField("survey_name")
-    @ApiModelProperty(value = "试卷名称", required = "required")
+    @ApiModelProperty(value = "试卷名称", required = "required", fuzzyLike = true)
     private String surveyName;
 
     @TableField("survey_note")
