@@ -416,9 +416,11 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
         Integer state = Integer.valueOf(commonPageInfo.getState());
         String userId = inputObject.getLogParams().get("id").toString();
         List<ExamSurveyMarkExam> examSurveyMarkExams = examSurveyMarkExamService.selectByUserId(userId);
-        List<String> surveyIds = examSurveyMarkExams.stream().map(ExamSurveyMarkExam::getSurveyId).collect(Collectors.toList());
+        List<String> examIds = examSurveyMarkExams.stream().map(ExamSurveyMarkExam::getSurveyId).collect(Collectors.toList());
         QueryWrapper<ExamSurveyAnswer> queryWrapper = new QueryWrapper<>();
-        queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), surveyIds);
+        if (CollectionUtil.isNotEmpty(examIds)) {
+            queryWrapper.in(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getSurveyId), examIds);
+        }
         queryWrapper.eq(MybatisPlusUtil.toColumns(ExamSurveyAnswer::getState), state);
         extracted(outputObject, queryWrapper, commonPageInfo, commonPageInfo.getPage(), commonPageInfo.getLimit());
     }
