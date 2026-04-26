@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "学校管理", groupName = "学校管理")
+@SkyeyeService(name = "学校管理", groupName = "学校管理", allowDynamicAttrKey = false)
 public class SchoolServiceImpl extends SkyeyeBusinessServiceImpl<SchoolDao, School> implements SchoolService {
 
     @Override
@@ -70,7 +70,7 @@ public class SchoolServiceImpl extends SkyeyeBusinessServiceImpl<SchoolDao, Scho
 
     @Override
     public Map<String, List<School>> selectByIdList(List<String> schoolIds) {
-        if (CollectionUtil.isEmpty(schoolIds)){
+        if (CollectionUtil.isEmpty(schoolIds)) {
             return new HashMap<>();
         }
         QueryWrapper<School> queryWrapper = new QueryWrapper<>();

@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "专业管理", groupName = "专业管理")
+@SkyeyeService(name = "专业管理", groupName = "专业管理", allowDynamicAttrKey = false)
 public class MajorServiceImpl extends SkyeyeBusinessServiceImpl<MajorDao, Major> implements MajorService {
 
     @Autowired
@@ -51,7 +51,7 @@ public class MajorServiceImpl extends SkyeyeBusinessServiceImpl<MajorDao, Major>
         if (year == null) {
             throw new CustomException("请选择入学年份");
         }
-        if (year<2 || year >5 ){
+        if (year < 2 || year > 5) {
             throw new CustomException("入学年份只能为2-5年");
         }
     }

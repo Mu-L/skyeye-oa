@@ -702,9 +702,10 @@ public class ExamSurveyAnswerServiceImpl extends SkyeyeBusinessServiceImpl<ExamS
 
     private void extracted(OutputObject outputObject, QueryWrapper<ExamSurveyAnswer> queryWrapper, CommonPageInfo commonPageInfo, Integer page, Integer limit) {
         List<ExamSurveyAnswer> beans = list(queryWrapper); // 获取所有的已批阅回答者信息
+        List<String> createIds = beans.stream().map(ExamSurveyAnswer::getCreateId).distinct().collect(Collectors.toList());
+        Map<String, UserOrStudent> userOrStudentMap = schoolCommonService.queryUserOrStudentMap(createIds);
         for (ExamSurveyAnswer bean : beans) {
-            UserOrStudent userOrStudent = schoolCommonService.queryUserOrStudent(bean.getCreateId());
-            bean.setUserMation(userOrStudent);
+            bean.setUserMation(userOrStudentMap.get(bean.getCreateId()));
         }
         // 设置信息：
         List<String> stuNoList = beans.stream().map(ExamSurveyAnswer::getStudentNumber).collect(Collectors.toList());

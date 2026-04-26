@@ -793,8 +793,7 @@ public class QuestionServiceImpl extends SkyeyeBusinessServiceImpl<QuestionDao, 
                 item.setMajorMation(getFirst(majorMapList.get(item.getMajorId())));
                 item.setSubjectMation(getFirst(subjectMapList.get(item.getSubjectId())));
                 return item;
-            })
-            .collect(Collectors.toList());
+            }).collect(Collectors.toList());
         iAuthUserService.setName(questionList, "createId", "createName");
         iAuthUserService.setName(questionList, "lastUpdateId", "lastUpdateName");
         return questionList;
