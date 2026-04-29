@@ -64,14 +64,14 @@ public class DwSurveyAnswerController {
         dwSurveyAnswerService.querySurveyAnswerBySurveyId(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryFilterApprovedSurveys", value = "筛选已批阅获取问卷回答信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryFilterApprovedSurveys", value = "筛选已批阅问卷回答信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DwSurveyAnswerController/queryFilterApprovedSurveys")
     public void queryFilterApprovedSurveys(InputObject inputObject, OutputObject outputObject) {
         dwSurveyAnswerService.queryFilterApprovedSurveys(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryFilterToBeReviewedSurveys", value = "筛选待批阅获取问卷回答信息", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryFilterToBeReviewedSurveys", value = "筛选待批阅问卷回答信息", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/DwSurveyAnswerController/queryFilterToBeReviewedSurveys")
     public void queryFilterToBeReviewedSurveys(InputObject inputObject, OutputObject outputObject) {
