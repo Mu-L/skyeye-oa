@@ -31,12 +31,6 @@ public class SearchConfigController {
     @Autowired
     private SearchConfigService searchConfigService;
 
-    /**
-     * 根据urlId以及appId获取高级查询的参数配置信息----用于前台使用
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySearchParamsConfigToHtml", value = "根据urlId以及appId获取高级查询的参数配置信息----用于前台使用", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "urlId", name = "urlId", value = "接口的urlId", required = "required"),
@@ -46,12 +40,6 @@ public class SearchConfigController {
         searchConfigService.querySearchParamsConfigToHtml(inputObject, outputObject);
     }
 
-    /**
-     * 根据urlId以及appId获取高级查询的参数配置信息----用于后台使用
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "querySearchParamsConfig", value = "根据urlId以及appId获取高级查询的参数配置信息----用于后台使用", method = "POST", allUse = "0")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "urlId", name = "urlId", value = "接口的urlId", required = "required"),
@@ -61,12 +49,6 @@ public class SearchConfigController {
         searchConfigService.querySearchParamsConfig(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑高级查询配置
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeSearchConfigMation", value = "新增/编辑高级查询配置", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = SearchMation.class)
     @RequestMapping("/post/SearchConfigController/writeSearchConfigMation")
