@@ -4,20 +4,15 @@
 
 package com.skyeye.eve.forum.service.impl;
 
-import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.skyeye.annotation.cache.helper.ModelFieldCacheHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.enumeration.DeleteFlagEnum;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -26,10 +21,7 @@ import com.skyeye.eve.forum.dao.ForumTagDao;
 import com.skyeye.eve.forum.entity.ForumContent;
 import com.skyeye.eve.forum.entity.ForumTag;
 import com.skyeye.eve.forum.service.ForumTagService;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
-import org.apache.poi.ss.formula.functions.T;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -52,39 +44,9 @@ import java.util.stream.Collectors;
 @SkyeyeService(name = "论坛标签管理", groupName = "论坛标签管理")
 public class ForumTagServiceImpl extends SkyeyeBusinessServiceImpl<ForumTagDao, ForumTag> implements ForumTagService {
 
-    @Autowired
-    private IAuthUserService iAuthUserService;
-
-    @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        iAuthUserService.setName(beans, "createId", "createName");
-        iAuthUserService.setName(beans, "lastUpdateId", "lastUpdateName");
-        return beans;
-    }
-
     @Override
     public QueryWrapper<ForumTag> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        // 69-87均为父类的代码，父类代码设置了默认排序（根据时间见徐排序），所以重新设置排序（88）
-        QueryWrapper<ForumTag> wrapper = new QueryWrapper<>();
-        // 获取模糊匹配的字段，使用or
-        List<String> fuzzyLikeField = ModelFieldCacheHelper.get(clazz);
-        if (CollectionUtil.isNotEmpty(fuzzyLikeField) && StrUtil.isNotEmpty(commonPageInfo.getKeyword())) {
-            wrapper.and(wra -> {
-                for (String field : fuzzyLikeField) {
-                    wra.or().like(field, commonPageInfo.getKeyword());
-                }
-            });
-        }
-        // 高级搜索
-        if (StrUtil.isNotEmpty(commonPageInfo.getSqlExtract())) {
-            wrapper.apply(commonPageInfo.getSqlExtract());
-        }
-//        setNotDeleteFlag(wrapper);
-        if (ReflectUtil.hasField(clazz, CommonConstants.DELETE_FLAG)) {
-            // 判断是否有删除标识并放入，只查询没有删除的数据
-            wrapper.ne(MybatisPlusUtil.toColumns(clazz, CommonConstants.DELETE_FLAG), DeleteFlagEnum.DELETED.getKey());
-        }
+        QueryWrapper<ForumTag> wrapper = super.getQueryWrapper(commonPageInfo);
         wrapper.orderByDesc(MybatisPlusUtil.toColumns(ForumTag::getOrderBy));
         return wrapper;
     }
