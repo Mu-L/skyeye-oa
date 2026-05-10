@@ -21,6 +21,7 @@ import com.skyeye.bom.service.BomService;
 import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -140,6 +141,40 @@ public class MachinServiceImpl extends SkyeyeBusinessServiceImpl<MachinDao, Mach
 
     @Autowired
     protected ErpCommonService erpCommonService;
+
+    /**
+     * 部门范围与 {@link CommonPageInfo#getType()} 配合使用（不传 type 或传 AllDept：不按部门过滤，查全部）：
+     * <ul>
+     *     <li>AllDept — 所有部门（默认，不追加 department_id 条件）</li>
+     *     <li>SpecifyDept — 指定部门，需传 {@link CommonPageInfo#getDepartmentId()}</li>
+     *     <li>MyDept — 当前登录用户所属部门（登录缓存 departmentId）</li>
+     * </ul>
+     */
+    @Override
+    protected QueryWrapper<Machin> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<Machin> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        String scopeType = commonPageInfo.getType();
+        if (StrUtil.isEmpty(scopeType) || StrUtil.equals(scopeType, "AllDept")) {
+            return queryWrapper;
+        }
+        if (StrUtil.equals(scopeType, "SpecifyDept")) {
+            if (StrUtil.isEmpty(commonPageInfo.getDepartmentId())) {
+                throw new CustomException("指定部门查询时，部门id不能为空");
+            }
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Machin::getDepartmentId), commonPageInfo.getDepartmentId());
+            return queryWrapper;
+        }
+        if (StrUtil.equals(scopeType, "MyDept")) {
+            Map<String, Object> logParams = InputObject.getLogParamsStatic();
+            String departmentId = logParams.getOrDefault("departmentId", StrUtil.EMPTY).toString();
+            if (StrUtil.isEmpty(departmentId)) {
+                throw new CustomException("未获取到当前登录用户的部门信息");
+            }
+            queryWrapper.eq(MybatisPlusUtil.toColumns(Machin::getDepartmentId), departmentId);
+            return queryWrapper;
+        }
+        return queryWrapper;
+    }
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {

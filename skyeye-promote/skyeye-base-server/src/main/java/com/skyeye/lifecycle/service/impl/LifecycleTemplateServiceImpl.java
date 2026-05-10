@@ -9,6 +9,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.cache.redis.RedisCache;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -357,6 +358,7 @@ public class LifecycleTemplateServiceImpl extends SkyeyeBusinessServiceImpl<Life
     }
 
     @Override
+    @IgnoreTenant
     public void queryCurrentLifecycleTemplateByAppIdAndClassName(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         String appId = params.get("appId").toString();
