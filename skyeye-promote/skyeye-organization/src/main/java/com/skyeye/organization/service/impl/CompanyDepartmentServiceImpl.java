@@ -142,12 +142,6 @@ public class CompanyDepartmentServiceImpl extends SkyeyeBusinessServiceImpl<Comp
         outputObject.settotal(pages.getTotal());
     }
 
-    /**
-     * 获取当前登录用户所属企业的所有部门信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @Override
     public void queryDepartmentListByCurrentUserBelong(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> user = inputObject.getLogParams();
