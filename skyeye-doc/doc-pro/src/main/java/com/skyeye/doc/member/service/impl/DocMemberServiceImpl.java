@@ -315,9 +315,26 @@ public class DocMemberServiceImpl extends SkyeyeBusinessServiceImpl<DocMemberDao
             return;
         }
         Map<String, Object> result = new HashMap<>();
-        result.put("bindGitcodeToken", StrUtil.isEmpty(docMember.getGitcodeToken()) ? false : true);
+        boolean bound = !StrUtil.isEmpty(docMember.getGitcodeToken());
+        result.put("bindGitcodeToken", bound);
+        result.put("gitcodeTokenMask", bound ? maskGitcodeTokenForDisplay(docMember.getGitcodeToken()) : "");
         outputObject.setBean(result);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    /**
+     * 仅用于前端展示，不返回明文 Token（保留末尾若干字符便于用户辨认当前绑定的是哪一个令牌）
+     */
+    private String maskGitcodeTokenForDisplay(String token) {
+        if (StrUtil.isEmpty(token)) {
+            return "";
+        }
+        int len = token.length();
+        if (len <= 4) {
+            return "****";
+        }
+        int starCount = Math.min(20, len - 4);
+        return StrUtil.repeat('*', starCount) + token.substring(len - 4);
     }
 
     @Override
