@@ -52,11 +52,11 @@ public class Machin extends SkyeyeFlowable {
     private Map<String, Object> fromMation;
 
     @TableField(value = "department_id")
-    @ApiModelProperty(value = "部门id", required = "required")
+    @ApiModelProperty(value = "加工部门id", required = "required")
     private String departmentId;
 
     @TableField(exist = false)
-    @Property(value = "部门信息")
+    @Property(value = "加工部门信息")
     private Map<String, Object> departmentMation;
 
     @TableField("pick_state")

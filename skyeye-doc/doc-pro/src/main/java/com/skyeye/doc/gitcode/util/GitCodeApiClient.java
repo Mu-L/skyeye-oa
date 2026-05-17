@@ -89,8 +89,9 @@ public class GitCodeApiClient {
                 .addHeader("Authorization", "Bearer " + docMember.getGitcodeToken())
                 .build();
             Response response = client.newCall(request).execute();
-            String responseBody = response.body().string();
-            if (response.code() == 200) {
+            String responseBody = response.body() != null ? response.body().string() : StrUtil.EMPTY;
+            int statusCode = response.code();
+            if (statusCode >= 200 && statusCode < 300) {
                 if (StrUtil.isNotBlank(responseBody)) {
                     return JSONUtil.parseObj(responseBody);
                 } else {
@@ -98,12 +99,32 @@ public class GitCodeApiClient {
                 }
             }
 
-            log.info("GitCode API请求响应: {}", responseBody);
-            return JSONUtil.parseObj(responseBody);
+            log.warn("GitCode API请求失败: status={}, body={}", statusCode, responseBody);
+            throw new CustomException(parseGitCodeErrorMessage(responseBody, statusCode));
+        } catch (CustomException e) {
+            throw e;
         } catch (Exception e) {
             log.error("GitCode API请求异常", e);
             throw new CustomException("GitCode API请求异常: " + e.getMessage());
         }
+    }
+
+    /**
+     * 解析 GitCode 官方错误字段 message / error
+     */
+    private String parseGitCodeErrorMessage(String responseBody, int statusCode) {
+        if (StrUtil.isNotBlank(responseBody)) {
+            try {
+                JSONObject err = JSONUtil.parseObj(responseBody);
+                String msg = StrUtil.blankToDefault(err.getStr("message"), err.getStr("error"));
+                if (StrUtil.isNotBlank(msg)) {
+                    return msg;
+                }
+            } catch (Exception ignored) {
+                return responseBody;
+            }
+        }
+        return "HTTP " + statusCode;
     }
 
     /**

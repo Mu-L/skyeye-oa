@@ -128,14 +128,16 @@ public class FarmStaffServiceImpl extends SkyeyeBusinessServiceImpl<FarmStaffDao
 
     @Override
     public void queryStaffBelongFarmList(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String departmentId = params.get("departmentId").toString();
         String staffId = inputObject.getLogParams().get("staffId").toString();
         String userId = inputObject.getLogParams().get("id").toString();
-        List<Farm> farmList = getFarmListByStaffId(staffId, userId);
+        List<Farm> farmList = getFarmListByStaffId(staffId, userId, departmentId);
         outputObject.setBeans(farmList);
         outputObject.settotal(farmList.size());
     }
 
-    private List<Farm> getFarmListByStaffId(String staffId, String userId) {
+    private List<Farm> getFarmListByStaffId(String staffId, String userId, String departmentId) {
         // 1. 查询员工所属的车间
         QueryWrapper<FarmStaff> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(FarmStaff::getStaffId), staffId);
@@ -148,6 +150,10 @@ public class FarmStaffServiceImpl extends SkyeyeBusinessServiceImpl<FarmStaffDao
         List<Farm> chargeFarmList = farmService.queryFarmListByChargePerson(userId);
         // 3. 合并车间信息
         farmList.addAll(chargeFarmList);
+        if (StrUtil.isNotEmpty(departmentId)) {
+            // 根据部门信息过滤
+            farmList = farmList.stream().filter(farm -> StrUtil.equals(farm.getDepartmentId(), departmentId)).collect(Collectors.toList());
+        }
         // 4. 去重
         farmList = farmList.stream()
             .collect(Collectors.collectingAndThen(
