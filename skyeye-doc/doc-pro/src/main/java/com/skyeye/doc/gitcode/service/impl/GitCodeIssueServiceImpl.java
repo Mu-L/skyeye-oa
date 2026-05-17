@@ -25,6 +25,7 @@ import com.skyeye.doc.gitcode.service.GitCodeIssueService;
 import com.skyeye.doc.gitcode.util.GitCodeApiClient;
 import com.skyeye.doc.member.entity.DocMember;
 import com.skyeye.doc.member.service.DocMemberService;
+import com.skyeye.exception.CustomException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -92,7 +93,12 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
     protected void createPrepose(GitCodeIssue entity) {
         // 调用GitCode API创建Issue
         JSONObject result = gitCodeApiClient.createIssue(entity.getTitle(), entity.getDescription(), entity.getAssigneeId(), entity.getLabels());
-        entity.setIssueId(result.getStr("number")); // GitCode v5返回的Issue number
+        String issueNumber = result.getStr("number");
+        if (StrUtil.isBlank(issueNumber)) {
+            String msg = StrUtil.blankToDefault(result.getStr("message"), StrUtil.blankToDefault(result.getStr("error"), "未返回 Issue 编号"));
+            throw new CustomException("GitCode 创建 Issue 失败：" + msg);
+        }
+        entity.setIssueId(issueNumber);
         entity.setProjectUrl(gitCodeApiClient.projectUrl);
     }
 
