@@ -22,8 +22,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum NoticeRealLinesType implements SkyeyeEnumClass {
 
-    HAND_MOVEMENT(1, "手动上线", false, false),
-    AT_REGULAR_TIME(2, "定时上线", false, false);
+    HAND_MOVEMENT(1, "手动上线", true, false),
+    AT_REGULAR_TIME(2, "定时上线", true, false);
 
     private Integer key;
 
