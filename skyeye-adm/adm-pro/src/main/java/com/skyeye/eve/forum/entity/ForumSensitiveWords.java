@@ -33,6 +33,6 @@ public class ForumSensitiveWords extends OperatorUserInfo {
     private String id;
 
     @TableField(value = "sensitive_word")
-    @ApiModelProperty(value = "敏感词", required = "required")
+    @ApiModelProperty(value = "敏感词", required = "required", fuzzyLike = true)
     private String sensitiveWord;
 }

@@ -36,7 +36,7 @@ public class ForumSensitiveWordsController {
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/ForumSensitiveWordsController/queryForumSensitiveWordsList")
     public void queryForumSensitiveWordsList(InputObject inputObject, OutputObject outputObject) {
-        forumSensitiveWordsService.queryForumSensitiveWordsList(inputObject, outputObject);
+        forumSensitiveWordsService.queryPageList(inputObject, outputObject);
     }
 
 
