@@ -7,19 +7,23 @@ package com.skyeye.pick.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.business.service.impl.SkyeyeErpOrderServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.constants.ErpConstants;
 import com.skyeye.depot.classenum.DepotOutFromType;
 import com.skyeye.depot.classenum.DepotOutState;
 import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.depot.entity.DepotOut;
 import com.skyeye.depot.service.DepotOutService;
+import com.skyeye.entity.ErpOrderCommon;
 import com.skyeye.entity.ErpOrderItem;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
@@ -67,6 +71,23 @@ public class RequisitionOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<Requ
 
     @Autowired
     private FarmService farmService;
+
+    @Override
+    public QueryWrapper<RequisitionOutLet> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<RequisitionOutLet> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        // 查询所有的，type为空或者不等于department和farm即可
+        if (StrUtil.equals(commonPageInfo.getType(), "department")) {
+            // 我所在部门
+            String departmentId = InputObject.getLogParamsStatic().get("departmentId").toString();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ErpOrderCommon::getDepartmentId), departmentId);
+        } else if (StrUtil.equals(commonPageInfo.getType(), "farm")) {
+            // 指定车间
+            String departmentId = InputObject.getLogParamsStatic().get("departmentId").toString();
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ErpOrderCommon::getDepartmentId), departmentId);
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ErpOrderCommon::getFarmId), commonPageInfo.getObjectId());
+        }
+        return queryWrapper;
+    }
 
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {

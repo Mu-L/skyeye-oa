@@ -75,6 +75,7 @@ public class ErpPickServiceImpl<D extends SkyeyeBaseMapper<T>, T extends Pick> e
     public QueryWrapper<T> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<T> queryWrapper = super.getQueryWrapper(commonPageInfo);
         queryWrapper.eq(MybatisPlusUtil.toColumns(Pick::getIdKey), getServiceClassName());
+        // 查询所有的，type为空或者不等于department和farm即可
         if (StrUtil.equals(commonPageInfo.getType(), "department")) {
             // 我所在部门
             String departmentId = InputObject.getLogParamsStatic().get("departmentId").toString();
