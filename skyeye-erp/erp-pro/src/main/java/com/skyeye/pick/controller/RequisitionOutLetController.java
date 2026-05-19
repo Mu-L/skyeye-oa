@@ -33,12 +33,6 @@ public class RequisitionOutLetController {
     @Autowired
     private RequisitionOutLetService requisitionOutLetService;
 
-    /**
-     * 获取领料出库单列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryRequisitionOutLetList", value = "获取领料出库单列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/RequisitionOutLetController/queryRequisitionOutLetList")
@@ -46,12 +40,6 @@ public class RequisitionOutLetController {
         requisitionOutLetService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑领料出库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeRequisitionOutLet", value = "新增/编辑领料出库单", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = RequisitionOutLet.class)
     @RequestMapping("/post/RequisitionOutLetController/writeRequisitionOutLet")
@@ -59,12 +47,6 @@ public class RequisitionOutLetController {
         requisitionOutLetService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 转仓库出库单时，根据id查询领料出库单信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryRequisitionOutLetsTransById", value = "转仓库出库单时，根据id查询领料出库单信息", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -73,12 +55,6 @@ public class RequisitionOutLetController {
         requisitionOutLetService.queryRequisitionOutLetsTransById(inputObject, outputObject);
     }
 
-    /**
-     * 领料出库单信息转仓库出库单
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "insertRequisitionOutLetsToTurnDepot", value = "领料出库单信息转仓库出库单", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = DepotOut.class, value = {
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})

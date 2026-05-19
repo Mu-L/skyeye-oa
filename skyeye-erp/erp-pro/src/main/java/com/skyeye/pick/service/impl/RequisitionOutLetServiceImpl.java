@@ -94,6 +94,7 @@ public class RequisitionOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<Requ
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         // 设置领料需求单
         requisitionMaterialService.setOrderMationByFromId(beans, "fromId", "fromMation");
+        iDepmentService.setMationForMap(beans, "departmentId", "departmentMation");
         return beans;
     }
 
