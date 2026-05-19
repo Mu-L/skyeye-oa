@@ -112,6 +112,7 @@ public class ReturnPutServiceImpl extends SkyeyeErpOrderServiceImpl<ReturnPutDao
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         // 设置退料需求单
         returnMaterialService.setOrderMationByFromId(beans, "fromId", "fromMation");
+        farmService.setMationForMap(beans, "farmId", "farmMation");
         iDepmentService.setMationForMap(beans, "departmentId", "departmentMation");
         return beans;
     }
