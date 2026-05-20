@@ -94,6 +94,7 @@ public class PatchOutLetServiceImpl extends SkyeyeErpOrderServiceImpl<PatchOutLe
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         // 设置补料需求单
         patchMaterialService.setOrderMationByFromId(beans, "fromId", "fromMation");
+        farmService.setMationForMap(beans, "farmId", "farmMation");
         iDepmentService.setMationForMap(beans, "departmentId", "departmentMation");
         return beans;
     }
