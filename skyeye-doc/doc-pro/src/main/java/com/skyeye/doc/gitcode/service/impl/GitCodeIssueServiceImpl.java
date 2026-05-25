@@ -9,6 +9,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
@@ -76,6 +78,17 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
     }
 
     @Override
+    public void queryIssueListForAdmin(InputObject inputObject, OutputObject outputObject) {
+        CommonPageInfo commonPageInfo = inputObject.getParams(CommonPageInfo.class);
+        Page pages = PageHelper.startPage(commonPageInfo.getPage(), commonPageInfo.getLimit());
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        docMemberService.setMationForMap(beans, "createId", "createMation");
+        codeVersionService.setMationForMap(beans, "versionId", "versionMation");
+        outputObject.setBeans(beans);
+        outputObject.settotal(pages.getTotal());
+    }
+
+    @Override
     protected QueryWrapper<GitCodeIssue> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<GitCodeIssue> queryWrapper = super.getQueryWrapper(commonPageInfo);
         if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
@@ -87,10 +100,6 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
             queryWrapper.eq(MybatisPlusUtil.toColumns(GitCodeIssue::getCreateId), userId);
         }
 
-        if (StrUtil.isNotEmpty(commonPageInfo.getCreateId())) {
-            // 查询指定会员创建得
-            queryWrapper.eq(MybatisPlusUtil.toColumns(GitCodeIssue::getCreateId), commonPageInfo.getCreateId());
-        }
         return queryWrapper;
     }
 
