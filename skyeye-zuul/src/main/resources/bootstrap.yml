@@ -113,10 +113,10 @@ spring:
             - Path=/${spring.profiles.active}/auto/**
           filters:
             - StripPrefix=2
-        - id: protal
-          uri: lb://skyeye-protal-${spring.profiles.active}
+        - id: portal
+          uri: lb://skyeye-portal-${spring.profiles.active}
           predicates:
-            - Path=/${spring.profiles.active}/protal/**
+            - Path=/${spring.profiles.active}/portal/**
           filters:
             - StripPrefix=2
         - id: doc
