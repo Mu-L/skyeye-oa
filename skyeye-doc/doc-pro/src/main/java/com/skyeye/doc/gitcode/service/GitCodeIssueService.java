@@ -34,4 +34,9 @@ public interface GitCodeIssueService extends SkyeyeBusinessService<GitCodeIssue>
      */
     void updateIssueCommentCount(String id, boolean isAdd);
 
+    /**
+     * 后台分页查询Issue列表
+     */
+    void queryIssueListForAdmin(InputObject inputObject, OutputObject outputObject);
+
 }

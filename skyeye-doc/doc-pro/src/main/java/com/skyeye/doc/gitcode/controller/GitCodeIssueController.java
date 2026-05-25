@@ -63,6 +63,13 @@ public class GitCodeIssueController {
         gitCodeIssueService.queryPageList(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryIssueListForAdmin", value = "后台获取Issue列表", method = "POST", allUse = "1")
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
+    @RequestMapping("/post/GitCodeIssueController/queryIssueListForAdmin")
+    public void queryIssueListForAdmin(InputObject inputObject, OutputObject outputObject) {
+        gitCodeIssueService.queryIssueListForAdmin(inputObject, outputObject);
+    }
+
     @ApiOperation(id = "queryIssueById", value = "根据ID获取Issue详情", method = "GET", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "Issue ID", required = "required")})
