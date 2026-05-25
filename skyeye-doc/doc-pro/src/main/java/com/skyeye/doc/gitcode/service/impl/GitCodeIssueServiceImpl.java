@@ -86,6 +86,11 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
             String userId = InputObject.getLogParamsStatic().get("id").toString();
             queryWrapper.eq(MybatisPlusUtil.toColumns(GitCodeIssue::getCreateId), userId);
         }
+
+        if (StrUtil.isNotEmpty(commonPageInfo.getCreateId())) {
+            // 查询指定会员创建得
+            queryWrapper.eq(MybatisPlusUtil.toColumns(GitCodeIssue::getCreateId), commonPageInfo.getCreateId());
+        }
         return queryWrapper;
     }
 
