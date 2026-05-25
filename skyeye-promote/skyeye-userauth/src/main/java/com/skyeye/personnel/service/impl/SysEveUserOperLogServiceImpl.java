@@ -15,6 +15,8 @@ import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.NumberParseUtil;
+import com.skyeye.common.util.StatQueryUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.personnel.dao.SysEveUserOperLogDao;
 import com.skyeye.personnel.entity.SysEveUserOperLog;
@@ -76,7 +78,7 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
     public void queryOperLogOverviewStat(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         // 统计时间窗口：前端仅传 startTime/endTime；缺失时默认最近7天
-        String[] range = resolveStatTimeRange(params);
+        String[] range = StatQueryUtil.resolveStatTimeRange(params, DEFAULT_STAT_DAYS);
         String fromTime = range[0];
         String endTime = range[1];
         String todayStart = LocalDateTime.now().toLocalDate().atStartOfDay().format(OPER_TIME_FORMATTER);
@@ -93,10 +95,10 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
             .ge(operTimeColumn, fromTime)
             .le(operTimeColumn, endTime);
         Map<String, Object> dbRow = baseMapper.selectMaps(queryWrapper).stream().findFirst().orElse(new LinkedHashMap<>());
-        long totalCount = parseLong(dbRow.get("totalCount"));
-        long successCount = parseLong(dbRow.get("successCount"));
-        long failCount = parseLong(dbRow.get("failCount"));
-        double avgCostMs = parseDouble(dbRow.get("avgCostMs"));
+        long totalCount = NumberParseUtil.parseLong(dbRow.get("totalCount"));
+        long successCount = NumberParseUtil.parseLong(dbRow.get("successCount"));
+        long failCount = NumberParseUtil.parseLong(dbRow.get("failCount"));
+        double avgCostMs = NumberParseUtil.parseDouble(dbRow.get("avgCostMs"));
         double successRate = totalCount == 0 ? 0D : (successCount * 100D / totalCount);
         Map<String, Object> result = new LinkedHashMap<>();
         // startTime: 统计开始时间
@@ -110,7 +112,7 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
         // failCount: 返回码非0的失败日志数量
         result.put("failCount", failCount);
         // todayCount: 今日00:00:00至当前时间的日志数量
-        result.put("todayCount", parseLong(dbRow.get("todayCount")));
+        result.put("todayCount", NumberParseUtil.parseLong(dbRow.get("todayCount")));
         // avgCostMs: 平均接口耗时（毫秒）
         result.put("avgCostMs", avgCostMs);
         // successRate: 成功率（百分比，保留两位小数）
@@ -128,7 +130,7 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
     @IgnoreTenant
     public void queryOperLogTrendStat(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
-        String[] range = resolveStatTimeRange(params);
+        String[] range = StatQueryUtil.resolveStatTimeRange(params, DEFAULT_STAT_DAYS);
         String fromTime = range[0];
         String endTime = range[1];
         String fromDate = fromTime.substring(0, 10);
@@ -159,9 +161,9 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
         long total = 0L;
         for (String day : dayList) {
             Map<String, Object> row = dayMap.get(day);
-            long totalCount = row == null ? 0L : parseLong(row.get("totalCount"));
-            long successCount = row == null ? 0L : parseLong(row.get("successCount"));
-            long failCount = row == null ? 0L : parseLong(row.get("failCount"));
+            long totalCount = row == null ? 0L : NumberParseUtil.parseLong(row.get("totalCount"));
+            long successCount = row == null ? 0L : NumberParseUtil.parseLong(row.get("successCount"));
+            long failCount = row == null ? 0L : NumberParseUtil.parseLong(row.get("failCount"));
             total += totalCount;
             totalSeriesData.add(totalCount);
             successSeriesData.add(successCount);
@@ -192,8 +194,8 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
     public void queryOperLogTopApiStat(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         // topN: 返回前N个接口，默认10，范围[1, 100]
-        int topN = parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
-        String[] range = resolveStatTimeRange(params);
+        int topN = NumberParseUtil.parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
+        String[] range = StatQueryUtil.resolveStatTimeRange(params, DEFAULT_STAT_DAYS);
         String fromTime = range[0];
         String endTime = range[1];
         String operTimeColumn = MybatisPlusUtil.toColumns(SysEveUserOperLog::getOperTime);
@@ -225,9 +227,9 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
                 if (StrUtil.isBlank(apiName) || "null".equalsIgnoreCase(apiName)) {
                     apiName = String.valueOf(row.get("apiId"));
                 }
-                long totalCount = parseLong(row.get("totalCount"));
-                long successCount = parseLong(row.get("successCount"));
-                long failCount = parseLong(row.get("failCount"));
+                long totalCount = NumberParseUtil.parseLong(row.get("totalCount"));
+                long successCount = NumberParseUtil.parseLong(row.get("successCount"));
+                long failCount = NumberParseUtil.parseLong(row.get("failCount"));
                 total += totalCount;
                 xAxisData.add(apiName);
                 seriesData.add(totalCount);
@@ -263,8 +265,8 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
         Map<String, Object> params = inputObject.getParams();
         // startTime/endTime: 统计时间范围（不传则默认最近7天）
         // topN: 返回前N条路径，默认10，范围[1, 100]
-        int topN = parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
-        String[] range = resolveStatTimeRange(params);
+        int topN = NumberParseUtil.parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
+        String[] range = StatQueryUtil.resolveStatTimeRange(params, DEFAULT_STAT_DAYS);
         String fromTime = range[0];
         String endTime = range[1];
         String operTimeColumn = MybatisPlusUtil.toColumns(SysEveUserOperLog::getOperTime);
@@ -294,9 +296,9 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
                 if (StrUtil.isBlank(requestPath) || "null".equalsIgnoreCase(requestPath)) {
                     requestPath = "其他";
                 }
-                long totalCount = parseLong(row.get("totalCount"));
-                long successCount = parseLong(row.get("successCount"));
-                long failCount = parseLong(row.get("failCount"));
+                long totalCount = NumberParseUtil.parseLong(row.get("totalCount"));
+                long successCount = NumberParseUtil.parseLong(row.get("successCount"));
+                long failCount = NumberParseUtil.parseLong(row.get("failCount"));
                 total += totalCount;
                 xAxisData.add(requestPath);
                 seriesData.add(totalCount);
@@ -332,8 +334,8 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
         Map<String, Object> params = inputObject.getParams();
         // startTime/endTime: 统计时间范围（不传则默认最近7天）
         // topN: 返回前N个访问人，默认10，范围[1, 100]
-        int topN = parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
-        String[] range = resolveStatTimeRange(params);
+        int topN = NumberParseUtil.parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
+        String[] range = StatQueryUtil.resolveStatTimeRange(params, DEFAULT_STAT_DAYS);
         String fromTime = range[0];
         String endTime = range[1];
         String operTimeColumn = MybatisPlusUtil.toColumns(SysEveUserOperLog::getOperTime);
@@ -369,9 +371,9 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
                 if (StrUtil.isBlank(label) || "null".equalsIgnoreCase(label)) {
                     label = "未识别用户";
                 }
-                long totalCount = parseLong(row.get("totalCount"));
-                long successCount = parseLong(row.get("successCount"));
-                long failCount = parseLong(row.get("failCount"));
+                long totalCount = NumberParseUtil.parseLong(row.get("totalCount"));
+                long successCount = NumberParseUtil.parseLong(row.get("successCount"));
+                long failCount = NumberParseUtil.parseLong(row.get("failCount"));
                 total += totalCount;
                 xAxisData.add(label);
                 seriesData.add(totalCount);
@@ -407,8 +409,8 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
         Map<String, Object> params = inputObject.getParams();
         // startTime/endTime: 统计时间范围（不传则默认最近7天）
         // topN: 返回前N个来源服务，默认10，范围[1, 100]
-        int topN = parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
-        String[] range = resolveStatTimeRange(params);
+        int topN = NumberParseUtil.parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
+        String[] range = StatQueryUtil.resolveStatTimeRange(params, DEFAULT_STAT_DAYS);
         String fromTime = range[0];
         String endTime = range[1];
         String operTimeColumn = MybatisPlusUtil.toColumns(SysEveUserOperLog::getOperTime);
@@ -437,9 +439,9 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
                 if (StrUtil.isBlank(sourceService) || "null".equalsIgnoreCase(sourceService)) {
                     sourceService = "其他";
                 }
-                long totalCount = parseLong(row.get("totalCount"));
-                long successCount = parseLong(row.get("successCount"));
-                long failCount = parseLong(row.get("failCount"));
+                long totalCount = NumberParseUtil.parseLong(row.get("totalCount"));
+                long successCount = NumberParseUtil.parseLong(row.get("successCount"));
+                long failCount = NumberParseUtil.parseLong(row.get("failCount"));
                 total += totalCount;
                 xAxisData.add(sourceService);
                 seriesData.add(totalCount);
@@ -474,8 +476,8 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
     public void queryOperLogTopFailApiStat(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         // startTime/endTime: 统计时间范围（不传则默认最近7天）
-        int topN = parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
-        String[] range = resolveStatTimeRange(params);
+        int topN = NumberParseUtil.parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
+        String[] range = StatQueryUtil.resolveStatTimeRange(params, DEFAULT_STAT_DAYS);
         String fromTime = range[0];
         String endTime = range[1];
         String operTimeColumn = MybatisPlusUtil.toColumns(SysEveUserOperLog::getOperTime);
@@ -504,7 +506,7 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
                 if (StrUtil.isBlank(apiName) || "null".equalsIgnoreCase(apiName)) {
                     apiName = String.valueOf(row.get("apiId"));
                 }
-                long failCount = parseLong(row.get("failCount"));
+                long failCount = NumberParseUtil.parseLong(row.get("failCount"));
                 total += failCount;
                 xAxisData.add(apiName);
                 seriesData.add(failCount);
@@ -533,8 +535,8 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
     public void queryOperLogTopSlowApiStat(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
         // startTime/endTime: 统计时间范围（不传则默认最近7天）
-        int topN = parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
-        String[] range = resolveStatTimeRange(params);
+        int topN = NumberParseUtil.parseInt(params.get("topN"), DEFAULT_TOP_N, 1, MAX_TOP_N);
+        String[] range = StatQueryUtil.resolveStatTimeRange(params, DEFAULT_STAT_DAYS);
         String fromTime = range[0];
         String endTime = range[1];
         String operTimeColumn = MybatisPlusUtil.toColumns(SysEveUserOperLog::getOperTime);
@@ -564,7 +566,7 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
                 if (StrUtil.isBlank(apiName) || "null".equalsIgnoreCase(apiName)) {
                     apiName = String.valueOf(row.get("apiId"));
                 }
-                long avgCost = Math.round(parseDouble(row.get("avgCostMs")));
+                long avgCost = Math.round(NumberParseUtil.parseDouble(row.get("avgCostMs")));
                 total += avgCost;
                 xAxisData.add(apiName);
                 seriesData.add(avgCost);
@@ -588,66 +590,5 @@ public class SysEveUserOperLogServiceImpl extends SkyeyeBusinessServiceImpl<SysE
         QueryWrapper<SysEveUserOperLog> queryWrapper = super.getQueryWrapper(commonPageInfo);
         queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(SysEveUserOperLog::getOperTime));
         return queryWrapper;
-    }
-
-    private static int parseInt(Object val, int defaultVal, int minVal, int maxVal) {
-        if (val == null) {
-            return defaultVal;
-        }
-        try {
-            int v = Integer.parseInt(String.valueOf(val));
-            if (v < minVal) {
-                return minVal;
-            }
-            return Math.min(v, maxVal);
-        } catch (Exception e) {
-            return defaultVal;
-        }
-    }
-
-    private static long parseLong(Object val) {
-        if (val == null) {
-            return 0L;
-        }
-        try {
-            return Long.parseLong(String.valueOf(val));
-        } catch (Exception e) {
-            return 0L;
-        }
-    }
-
-    private static double parseDouble(Object val) {
-        if (val == null) {
-            return 0D;
-        }
-        try {
-            return Double.parseDouble(String.valueOf(val));
-        } catch (Exception e) {
-            return 0D;
-        }
-    }
-
-    /**
-     * 统计时间窗口：优先使用前端传入 startTime/endTime，缺失时默认最近7天。
-     */
-    private String[] resolveStatTimeRange(Map<String, Object> params) {
-        String startTime = params == null ? null : str(params.get("startTime"));
-        String endTime = params == null ? null : str(params.get("endTime"));
-        if (StrUtil.isBlank(startTime) || StrUtil.isBlank(endTime)) {
-            LocalDateTime end = LocalDateTime.now();
-            LocalDateTime start = end.minusDays(DEFAULT_STAT_DAYS - 1L).toLocalDate().atStartOfDay();
-            return new String[]{start.format(OPER_TIME_FORMATTER), end.format(OPER_TIME_FORMATTER)};
-        }
-        if (startTime.length() == 10) {
-            startTime = startTime + " 00:00:00";
-        }
-        if (endTime.length() == 10) {
-            endTime = endTime + " 23:59:59";
-        }
-        return new String[]{startTime, endTime};
-    }
-
-    private static String str(Object val) {
-        return val == null ? null : String.valueOf(val);
     }
 }
