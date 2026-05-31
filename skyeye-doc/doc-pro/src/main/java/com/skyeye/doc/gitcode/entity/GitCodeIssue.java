@@ -98,4 +98,20 @@ public class GitCodeIssue extends OperatorUserInfo {
     @TableField(value = "comment_count")
     @Property(value = "评论数量")
     private Integer commentCount;
+
+    @TableField(value = "record_bug")
+    @ApiModelProperty(value = "是否记录Bug", enumClass = WhetherEnum.class, defaultValue = "0")
+    private Integer recordBug;
+
+    @TableField(value = "record_requirement")
+    @ApiModelProperty(value = "是否记录需求", enumClass = WhetherEnum.class, defaultValue = "0")
+    private Integer recordRequirement;
+
+    @TableField(value = "bug_completed")
+    @ApiModelProperty(value = "Bug是否完成", enumClass = WhetherEnum.class, defaultValue = "0")
+    private Integer bugCompleted;
+
+    @TableField(value = "requirement_completed")
+    @ApiModelProperty(value = "需求是否完成", enumClass = WhetherEnum.class, defaultValue = "0")
+    private Integer requirementCompleted;
 }

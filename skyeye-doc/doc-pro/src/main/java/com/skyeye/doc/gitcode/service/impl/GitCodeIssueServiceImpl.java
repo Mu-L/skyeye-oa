@@ -112,8 +112,22 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
             String msg = StrUtil.blankToDefault(result.getStr("message"), StrUtil.blankToDefault(result.getStr("error"), "未返回 Issue 编号"));
             throw new CustomException("GitCode 创建 Issue 失败：" + msg);
         }
+        entity.setRecordBug(WhetherEnum.DISABLE_USING.getKey());
+        entity.setRecordRequirement(WhetherEnum.DISABLE_USING.getKey());
+        entity.setBugCompleted(WhetherEnum.DISABLE_USING.getKey());
+        entity.setRequirementCompleted(WhetherEnum.DISABLE_USING.getKey());
         entity.setIssueId(issueNumber);
         entity.setProjectUrl(gitCodeApiClient.projectUrl);
+    }
+
+    @Override
+    protected void updatePrepose(GitCodeIssue entity) {
+        GitCodeIssue oldGitCodeIssue = selectById(entity.getId());
+
+        entity.setRecordBug(oldGitCodeIssue.getRecordBug());
+        entity.setRecordRequirement(oldGitCodeIssue.getRecordRequirement());
+        entity.setBugCompleted(oldGitCodeIssue.getBugCompleted());
+        entity.setRequirementCompleted(oldGitCodeIssue.getRequirementCompleted());
     }
 
     @Override
@@ -164,6 +178,47 @@ public class GitCodeIssueServiceImpl extends SkyeyeBusinessServiceImpl<GitCodeIs
         Map<String, Object> updateData = new HashMap<>();
         updateData.put("state", state);
         gitCodeApiClient.updateIssue(gitCodeIssue.getIssueId(), updateData);
+    }
+
+    @Override
+    public void updateIssueRecordBug(InputObject inputObject, OutputObject outputObject) {
+        updateIssueWhetherField(inputObject, "recordBug", MybatisPlusUtil.toColumns(GitCodeIssue::getRecordBug));
+    }
+
+    @Override
+    public void updateIssueRecordRequirement(InputObject inputObject, OutputObject outputObject) {
+        updateIssueWhetherField(inputObject, "recordRequirement", MybatisPlusUtil.toColumns(GitCodeIssue::getRecordRequirement));
+    }
+
+    @Override
+    public void updateIssueBugCompleted(InputObject inputObject, OutputObject outputObject) {
+        updateIssueWhetherField(inputObject, "bugCompleted", MybatisPlusUtil.toColumns(GitCodeIssue::getBugCompleted));
+    }
+
+    @Override
+    public void updateIssueRequirementCompleted(InputObject inputObject, OutputObject outputObject) {
+        updateIssueWhetherField(inputObject, "requirementCompleted", MybatisPlusUtil.toColumns(GitCodeIssue::getRequirementCompleted));
+    }
+
+    private void updateIssueWhetherField(InputObject inputObject, String fieldKey, String column) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        Integer fieldValue = Integer.parseInt(params.get(fieldKey).toString());
+        if (!WhetherEnum.ENABLE_USING.getKey().equals(fieldValue)
+            && !WhetherEnum.DISABLE_USING.getKey().equals(fieldValue)) {
+            throw new CustomException("参数值无效，仅支持0或1");
+        }
+
+        GitCodeIssue gitCodeIssue = selectById(id);
+        if (ObjectUtil.isEmpty(gitCodeIssue) || StrUtil.isEmpty(gitCodeIssue.getId())) {
+            throw new CustomException("Issue不存在");
+        }
+
+        UpdateWrapper<GitCodeIssue> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(column, fieldValue);
+        update(updateWrapper);
+        refreshCache(id);
     }
 
     @Override
