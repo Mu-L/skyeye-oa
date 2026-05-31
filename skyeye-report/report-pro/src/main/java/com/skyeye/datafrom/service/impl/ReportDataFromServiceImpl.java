@@ -12,6 +12,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.enumeration.HttpMethodEnum;
+import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.GetUserToken;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -38,7 +39,10 @@ import org.springframework.util.CollectionUtils;
 
 import java.net.URI;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
 import java.util.stream.Collectors;
 
 /**
@@ -79,6 +83,12 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
 
     @Value("${spring.application.promote}")
     private String springApplicationPromoteName;
+
+    /**
+     * 批量取数专用线程池，Bean 定义见 report-common ExecutorConfig#reportDataBatchExecutor
+     */
+    @Autowired
+    private Executor reportDataBatchExecutor;
 
     /**
      * 配置本地缓存：永久有效，重启后失效。使用 computeIfAbsent 保证高并发下仅加载一次
@@ -156,7 +166,18 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
      */
     @Override
     public Map<String, Object> getReportDataFromMapByFromId(String fromId, List<String> needGetKeys, String inputParams) {
-        String jsonContent = getJsonStrByFromId(fromId, inputParams);
+        // 主线程入口：从 ThreadLocal 读取登录态，再委托给带上下文参数的重载
+        String userToken = InputObject.getRequest() != null ? GetUserToken.getUserToken(InputObject.getRequest()) : null;
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : null;
+        return getReportDataFromMapByFromId(fromId, needGetKeys, inputParams, userToken, tenantId);
+    }
+
+    /**
+     * 批量并行取数时使用：显式传入 userToken/tenantId，避免子线程读不到 Request 上下文
+     */
+    private Map<String, Object> getReportDataFromMapByFromId(String fromId, List<String> needGetKeys, String inputParams,
+                                                             String userToken, String tenantId) {
+        String jsonContent = getJsonStrByFromId(fromId, inputParams, userToken, tenantId);
         Map<String, Object> result = new HashMap<>();
         needGetKeys.forEach(key -> {
             Object value = JsonPath.read(jsonContent, String.format(Locale.ROOT, "$.%s", key));
@@ -173,6 +194,16 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
      * @return 获取数据并转换成json串
      */
     private String getJsonStrByFromId(String fromId, String inputParams) {
+        String userToken = InputObject.getRequest() != null ? GetUserToken.getUserToken(InputObject.getRequest()) : null;
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : null;
+        return getJsonStrByFromId(fromId, inputParams, userToken, tenantId);
+    }
+
+    /**
+     * 按数据来源类型拉取原始 JSON 字符串。
+     * REST 类型需携带 userToken/tenantId 请求头，批量场景必须在主线程捕获后传入。
+     */
+    private String getJsonStrByFromId(String fromId, String inputParams, String userToken, String tenantId) {
         // 根据dataFromId获取对应type
         ReportDataFrom reportDataFrom = selectById(fromId);
         if (ObjectUtil.isNotEmpty(reportDataFrom)) {
@@ -184,11 +215,13 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
                 ReportDataFromRest restEntity = reportDataFrom.getRestEntity();
                 Map<String, String> requestHeaderKey2Value = restEntity.getHeader().stream()
                     .collect(Collectors.toMap(bean -> bean.get("headerKey").toString(), bean -> bean.get("headerValue").toString()));
-                if (tenantEnable) {
-                    requestHeaderKey2Value.put("tenantId", TenantContext.getTenantId());
+                if (tenantEnable && tenantId != null) {
+                    requestHeaderKey2Value.put("tenantId", tenantId);
                 }
-                String userToken = GetUserToken.getUserToken(InputObject.getRequest());
-                requestHeaderKey2Value.put("userToken", userToken);
+                // 子线程无法访问 InputObject.getRequest()，必须使用主线程传入的 token
+                if (userToken != null) {
+                    requestHeaderKey2Value.put("userToken", userToken);
+                }
 
                 // 合并 restEntity.getRequestBody() 和 inputParams
                 String mergedRequestBody = mergeRequestBody(restEntity.getRequestBody(), inputParams);
@@ -343,22 +376,142 @@ public class ReportDataFromServiceImpl extends SkyeyeBusinessServiceImpl<ReportD
     @Override
     public void queryReportDataFromMationById(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> params = inputObject.getParams();
-        // 根据数据来源id获取解析对应的数据
         String fromId = params.get("id").toString();
-        // 前台需要获取的数据json
-        Map<String, Object> needGetData = JSONObject.fromObject(params.get("needGetDataStr").toString());
-        List<String> needGetKeys = needGetData.entrySet().stream().map(bean -> bean.getKey()).collect(Collectors.toList());
-        // 入参
-        String inputParams = params.get("inputParams").toString();
+        String needGetDataStr = params.get("needGetDataStr").toString();
+        String inputParams = normalizeInputParams(params.get("inputParams"));
+        outputObject.setBean(buildReportDataResult(fromId, needGetDataStr, inputParams));
+    }
 
-        Map<String, Object> data = getReportDataFromMapByFromId(fromId, needGetKeys, inputParams);
+    /**
+     * 批量根据数据来源取数（预览页合并请求入口）。
+     * <p>
+     * batchParamsStr 为 JSON 数组，每项结构：{ id, needGetDataStr, inputParams }。
+     * 多项之间无依赖时并行执行；单条时同步处理，避免线程切换开销。
+     * 返回 bean 为 List，每项含 id、inputParams、data，供前端按分组键回填。
+     */
+    @Override
+    public void queryReportDataFromMationBatch(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        net.sf.json.JSONArray batchArray = net.sf.json.JSONArray.fromObject(params.get("batchParamsStr").toString());
+        int size = batchArray.size();
+        if (size == 0) {
+            outputObject.setBean(Collections.emptyList());
+            return;
+        }
+
+        // 必须在主线程捕获：PutObject / TenantContext 均为 ThreadLocal，子线程无法读取
+        final String userToken = InputObject.getRequest() != null ? GetUserToken.getUserToken(InputObject.getRequest()) : null;
+        final String tenantId = tenantEnable ? TenantContext.getTenantId() : null;
+        final TenantEnum isolationType = tenantEnable ? TenantContext.getIsolationType() : null;
+
+        if (size == 1) {
+            outputObject.setBean(Collections.singletonList(buildBatchItem(batchArray.getJSONObject(0), userToken, tenantId)));
+            return;
+        }
+
+        // 预分配结果槽位，按 index 写入以保持与请求数组顺序一致
+        @SuppressWarnings("unchecked")
+        Map<String, Object>[] batchResults = new Map[size];
+        CompletableFuture<?>[] futures = new CompletableFuture[size];
+        for (int i = 0; i < size; i++) {
+            final int index = i;
+            JSONObject item = batchArray.getJSONObject(i);
+            futures[i] = CompletableFuture.runAsync(
+                () -> batchResults[index] = runBatchItemWithContext(item, userToken, tenantId, isolationType),
+                reportDataBatchExecutor);
+        }
+
+        try {
+            CompletableFuture.allOf(futures).join();
+        } catch (CompletionException e) {
+            // 任一子任务失败则整批失败，还原 CustomException 供前端展示
+            Throwable cause = e.getCause() != null ? e.getCause() : e;
+            if (cause instanceof CustomException) {
+                throw (CustomException) cause;
+            }
+            throw new CustomException(cause.getMessage());
+        }
+
+        outputObject.setBean(Arrays.asList(batchResults));
+    }
+
+    /**
+     * 子线程执行批量项：注入租户上下文，否则 MyBatis 租户拦截器报「租户ID不能为空」
+     */
+    private Map<String, Object> runBatchItemWithContext(JSONObject item, String userToken, String tenantId,
+                                                        TenantEnum isolationType) {
+        try {
+            if (tenantEnable) {
+                if (tenantId != null) {
+                    TenantContext.setTenantId(tenantId);
+                }
+                if (isolationType != null) {
+                    TenantContext.setIsolationType(isolationType);
+                }
+            }
+            return buildBatchItem(item, userToken, tenantId);
+        } finally {
+            if (tenantEnable) {
+                TenantContext.clear();
+            }
+        }
+    }
+
+    /**
+     * 组装单条批量结果，id + inputParams 供前端匹配分组
+     */
+    private Map<String, Object> buildBatchItem(JSONObject item, String userToken, String tenantId) {
+        String fromId = item.getString("id");
+        String needGetDataStr = item.getString("needGetDataStr");
+        Object inputParamsObj = item.has("inputParams") ? item.get("inputParams") : "{}";
+        String inputParams = normalizeInputParams(inputParamsObj);
+        Map<String, Object> data = buildReportDataResult(fromId, needGetDataStr, inputParams, userToken, tenantId);
+        Map<String, Object> batchItem = new HashMap<>();
+        batchItem.put("id", fromId);
+        batchItem.put("inputParams", inputParams);
+        batchItem.put("data", data);
+        return batchItem;
+    }
+
+    /**
+     * 单条取数时使用 ThreadLocal 上下文
+     */
+    private Map<String, Object> buildReportDataResult(String fromId, String needGetDataStr, String inputParams) {
+        String userToken = InputObject.getRequest() != null ? GetUserToken.getUserToken(InputObject.getRequest()) : null;
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : null;
+        return buildReportDataResult(fromId, needGetDataStr, inputParams, userToken, tenantId);
+    }
+
+    /**
+     * 按 needGetDataStr 声明的字段路径，从数据源结果中裁剪出前端需要的键值
+     */
+    private Map<String, Object> buildReportDataResult(String fromId, String needGetDataStr, String inputParams,
+                                                      String userToken, String tenantId) {
+        Map<String, Object> needGetData = JSONObject.fromObject(needGetDataStr);
+        List<String> needGetKeys = needGetData.entrySet().stream().map(bean -> bean.getKey()).collect(Collectors.toList());
+        Map<String, Object> data = getReportDataFromMapByFromId(fromId, needGetKeys, inputParams, userToken, tenantId);
         Map<String, Object> result = new HashMap<>();
         needGetData.forEach((key, value) -> {
             if (data.containsKey(key)) {
                 result.put(key, data.get(key));
             }
         });
-        outputObject.setBean(result);
+        return result;
+    }
+
+    /**
+     * 统一 inputParams 为 JSON 字符串。
+     * 网关校验后可能是 Map，直接 toString 会得到非 JSON 格式，需显式序列化。
+     */
+    private String normalizeInputParams(Object inputParamsObj) {
+        if (inputParamsObj == null) {
+            return "{}";
+        }
+        if (inputParamsObj instanceof Map || inputParamsObj instanceof List) {
+            return JSONUtil.toJsonStr(inputParamsObj);
+        }
+        String inputParams = String.valueOf(inputParamsObj);
+        return ObjectUtil.isEmpty(inputParams) ? "{}" : inputParams;
     }
 
 }

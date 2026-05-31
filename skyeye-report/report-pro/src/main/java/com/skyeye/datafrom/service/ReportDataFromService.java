@@ -40,4 +40,9 @@ public interface ReportDataFromService extends SkyeyeBusinessService<ReportDataF
      */
     void queryReportDataFromMationById(InputObject inputObject, OutputObject outputObject);
 
+    /**
+     * 批量根据数据来源信息获取要取的数据（同页多组件合并请求）
+     */
+    void queryReportDataFromMationBatch(InputObject inputObject, OutputObject outputObject);
+
 }

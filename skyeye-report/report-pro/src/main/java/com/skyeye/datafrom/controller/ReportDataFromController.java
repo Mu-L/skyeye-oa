@@ -72,4 +72,15 @@ public class ReportDataFromController {
         reportDataFromService.queryReportDataFromMationById(inputObject, outputObject);
     }
 
+    /**
+     * 预览页合并取数：前端按 fromId+inputParams 分组后一次提交，服务端多线程并行拉取
+     */
+    @ApiOperation(id = "queryReportDataFromMationBatch", value = "批量根据数据来源信息获取要取的数据", method = "POST", allUse = "0")
+    @ApiImplicitParams(value = {
+        @ApiImplicitParam(id = "batchParamsStr", name = "batchParamsStr", value = "批量请求参数JSON数组，元素含id/needGetDataStr/inputParams", required = "required,json")})
+    @RequestMapping("/post/ReportDataFromController/queryReportDataFromMationBatch")
+    public void queryReportDataFromMationBatch(InputObject inputObject, OutputObject outputObject) {
+        reportDataFromService.queryReportDataFromMationBatch(inputObject, outputObject);
+    }
+
 }
