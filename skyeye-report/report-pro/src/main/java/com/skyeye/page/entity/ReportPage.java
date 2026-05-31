@@ -8,10 +8,12 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
+import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
+import com.skyeye.common.enumeration.DeleteFlagEnum;
 import lombok.Data;
 
 /**
@@ -32,5 +34,9 @@ public class ReportPage extends BaseGeneralInfo {
     @TableField(value = "content")
     @ApiModelProperty(value = "页面报表json串")
     private String content;
+
+    @TableField(value = "delete_flag")
+    @Property(value = "删除标记", enumClass = DeleteFlagEnum.class)
+    private Integer deleteFlag;
 
 }
