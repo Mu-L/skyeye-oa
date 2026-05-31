@@ -25,70 +25,70 @@ public class GitCodeIssueStatisticsController {
     @Autowired
     private GitCodeIssueStatisticsService gitCodeIssueStatisticsService;
 
-    @ApiOperation(id = "queryIssueTotal", value = "问答总数统计", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryIssueTotal", value = "问答总数统计", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/GitCodeIssueStatisticsController/queryIssueTotal")
     public void queryIssueTotal(InputObject inputObject, OutputObject outputObject) {
         gitCodeIssueStatisticsService.queryIssueTotal(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryIssueCommentTotal", value = "回答总数统计", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryIssueCommentTotal", value = "回答总数统计", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/GitCodeIssueStatisticsController/queryIssueCommentTotal")
     public void queryIssueCommentTotal(InputObject inputObject, OutputObject outputObject) {
         gitCodeIssueStatisticsService.queryIssueCommentTotal(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryIssueBugTotal", value = "Bug标记总数统计", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryIssueBugTotal", value = "Bug标记总数统计", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/GitCodeIssueStatisticsController/queryIssueBugTotal")
     public void queryIssueBugTotal(InputObject inputObject, OutputObject outputObject) {
         gitCodeIssueStatisticsService.queryIssueBugTotal(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryIssueRequirementTotal", value = "需求标记总数统计", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryIssueRequirementTotal", value = "需求标记总数统计", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/GitCodeIssueStatisticsController/queryIssueRequirementTotal")
     public void queryIssueRequirementTotal(InputObject inputObject, OutputObject outputObject) {
         gitCodeIssueStatisticsService.queryIssueRequirementTotal(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryIssueBugCompletedTotal", value = "Bug已完成总数统计", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryIssueBugCompletedTotal", value = "Bug已完成总数统计", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/GitCodeIssueStatisticsController/queryIssueBugCompletedTotal")
     public void queryIssueBugCompletedTotal(InputObject inputObject, OutputObject outputObject) {
         gitCodeIssueStatisticsService.queryIssueBugCompletedTotal(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryIssueRequirementCompletedTotal", value = "需求已完成总数统计", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryIssueRequirementCompletedTotal", value = "需求已完成总数统计", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/GitCodeIssueStatisticsController/queryIssueRequirementCompletedTotal")
     public void queryIssueRequirementCompletedTotal(InputObject inputObject, OutputObject outputObject) {
         gitCodeIssueStatisticsService.queryIssueRequirementCompletedTotal(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryIssueStatsByCreateTime", value = "问答按创建时间趋势统计", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryIssueStatsByCreateTime", value = "问答按创建时间趋势统计", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/GitCodeIssueStatisticsController/queryIssueStatsByCreateTime")
     public void queryIssueStatsByCreateTime(InputObject inputObject, OutputObject outputObject) {
         gitCodeIssueStatisticsService.queryIssueStatsByCreateTime(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryIssueCommentStatsByCreateTime", value = "回答按创建时间趋势统计", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryIssueCommentStatsByCreateTime", value = "回答按创建时间趋势统计", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/GitCodeIssueStatisticsController/queryIssueCommentStatsByCreateTime")
     public void queryIssueCommentStatsByCreateTime(InputObject inputObject, OutputObject outputObject) {
         gitCodeIssueStatisticsService.queryIssueCommentStatsByCreateTime(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryIssueStatsByVersion", value = "问答按版本统计", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryIssueStatsByVersion", value = "问答按版本统计", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/GitCodeIssueStatisticsController/queryIssueStatsByVersion")
     public void queryIssueStatsByVersion(InputObject inputObject, OutputObject outputObject) {
         gitCodeIssueStatisticsService.queryIssueStatsByVersion(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryIssueStatsByRecordType", value = "问答按标记类型统计", method = "POST", allUse = "1")
+    @ApiOperation(id = "queryIssueStatsByRecordType", value = "问答按标记类型统计", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = TableSelectInfo.class)
     @RequestMapping("/post/GitCodeIssueStatisticsController/queryIssueStatsByRecordType")
     public void queryIssueStatsByRecordType(InputObject inputObject, OutputObject outputObject) {
