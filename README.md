@@ -17,7 +17,7 @@
 
 **1. Skyeye会员（只有 `Skyeye会员` 才能获取完整源代码，扫描下方付款码成为会员吧）拿到源码后可进行学习、毕设、企业等使用。**
 
-**2. [官方网站](http://ip.makerview.cn:30003/skyPortal)    [二开文档](https://articles.zsxq.com/id_xi3xhacte72g.html)     [二开视频教程](https://www.bilibili.com/video/BV1w34y1M7ZH/?spm_id_from=333.1387.collection.video_card.click&vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [操作视频](https://www.bilibili.com/video/BV16mwVeKE4X/?vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [功能清单](https://kdocs.cn/l/cbf2cgCLrUyz)**
+**2. [官方网站](http://ip.makerview.cn:30003/skyPortal)    [二开文档](http://ip.makerview.cn:30003/skyDoc/)     [二开视频教程](https://www.bilibili.com/video/BV1w34y1M7ZH/?spm_id_from=333.1387.collection.video_card.click&vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [操作视频](https://www.bilibili.com/video/BV16mwVeKE4X/?vd_source=714dd9434dc2ba981f2f47b7aa44be38)      [功能清单](https://kdocs.cn/l/cbf2cgCLrUyz)**
 
 ## **[价格点我<-----------------全网最低](http://ip.makerview.cn:30003/skyPortal/#/price)**
 
@@ -25,7 +25,7 @@
 
 **4. 零代码操作讲解视频：https://www.bilibili.com/video/BV1rv2CB3E3P**
 
-**5. Skyeye云流程图（还在补充中）：https://www.kdocs.cn/l/ctDzURtzHWXE**
+**5. Skyeye云流程图：https://www.kdocs.cn/l/ctDzURtzHWXE**
 
 **6. 个人开发者，虽不是企业，但也学习《胖东来》的服务。**
 
@@ -62,7 +62,7 @@
 |:-------------------:|:-------------------:|:-------------------:|:-------------------:|
 |   ![](images/mindMap/微信公众号.jpg) | ![](images/mindMap/qq2.jpg) | ![](images/mindMap/微信.jpg) | ![](images/mindMap/wechatPay.jpg) |
 
-## Skyeye云整体规划图
+## Skyeye云整体图
 
 ![输入图片说明](images/mindMap/Skyeye%E4%BA%91%E7%9B%AE%E6%A0%87.jpeg)
 
