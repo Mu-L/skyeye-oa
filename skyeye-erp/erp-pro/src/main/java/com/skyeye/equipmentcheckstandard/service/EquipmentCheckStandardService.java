@@ -1,8 +1,6 @@
 package com.skyeye.equipmentcheckstandard.service;
 
 import com.skyeye.base.business.service.SkyeyeBusinessService;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
 import com.skyeye.equipmentcheckstandard.entity.EquipmentCheckStandard;
 
 /**
@@ -10,7 +8,5 @@ import com.skyeye.equipmentcheckstandard.entity.EquipmentCheckStandard;
  * @Description: 设备点检标准服务接口层
  */
 public interface EquipmentCheckStandardService extends SkyeyeBusinessService<EquipmentCheckStandard> {
-
-    void queryStandardDetailForOrder(InputObject inputObject, OutputObject outputObject);
 }
 

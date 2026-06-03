@@ -71,13 +71,5 @@ public class EquipmentCheckStandardController {
         equipmentCheckStandardService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryEquipmentCheckStandardDetailForOrder", value = "点检单选择标准后查询标准及明细", method = "GET", allUse = "2")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "点检标准id", required = "required")})
-    @RequestMapping("/post/EquipmentCheckStandardController/queryStandardDetailForOrder")
-    public void queryStandardDetailForOrder(InputObject inputObject, OutputObject outputObject) {
-        equipmentCheckStandardService.queryStandardDetailForOrder(inputObject, outputObject);
-    }
-
 }
 

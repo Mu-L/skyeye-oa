@@ -6,8 +6,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.equipmentcheckstandard.dao.EquipmentCheckStandardDao;
 import com.skyeye.equipmentcheckstandard.entity.EquipmentCheckStandard;
@@ -18,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * @ClassName: EquipmentCheckStandardServiceImpl
@@ -69,16 +66,6 @@ public class EquipmentCheckStandardServiceImpl extends SkyeyeBusinessServiceImpl
     }
 
     @Override
-    public EquipmentCheckStandard selectById(String id) {
-        EquipmentCheckStandard standard = super.selectById(id);
-        if (Objects.isNull(standard)) {
-            return null;
-        }
-        standard.setItemList(equipmentCheckStandardItemService.selectByParentId(id));
-        return standard;
-    }
-
-    @Override
     public void writePostpose(EquipmentCheckStandard entity, String userId) {
         equipmentCheckStandardItemService.saveList(entity.getId(), entity.getItemList());
         super.writePostpose(entity, userId);
@@ -87,11 +74,6 @@ public class EquipmentCheckStandardServiceImpl extends SkyeyeBusinessServiceImpl
     @Override
     public void deletePostpose(String id) {
         equipmentCheckStandardItemService.deleteByParentId(id);
-    }
-
-    @Override
-    public void queryStandardDetailForOrder(InputObject inputObject, OutputObject outputObject) {
-        selectById(inputObject, outputObject);
     }
 
 }
