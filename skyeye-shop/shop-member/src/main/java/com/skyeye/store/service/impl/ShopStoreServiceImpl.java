@@ -71,6 +71,8 @@ public class ShopStoreServiceImpl extends SkyeyeBusinessServiceImpl<ShopStoreDao
             String orderByClause = "ORDER BY CASE WHEN longitude IS NULL THEN 1 ELSE 0 END, ST_Distance_Sphere(point(longitude, latitude), " +
                 "point(" + commonPageInfo.getLongitude() + ", " + commonPageInfo.getLatitude() + ")) ASC";
             wrapper.last(orderByClause);
+        } else {
+            wrapper.orderByDesc(MybatisPlusUtil.toColumns(ShopStore::getCreateTime));
         }
     }
 
