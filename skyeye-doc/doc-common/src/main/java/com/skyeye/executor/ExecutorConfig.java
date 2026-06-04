@@ -42,4 +42,14 @@ public class ExecutorConfig {
         executor.initialize();
         return executor;
     }
+
+    @Bean(name = "docMemberBrowseHistoryExecutor")
+    public Executor getMemberBrowseHistoryAsyncExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(6);
+        executor.setQueueCapacity(1000);
+        executor.setThreadNamePrefix("docMemberBrowseHistoryExecutor-");
+        executor.initialize();
+        return executor;
+    }
 }
