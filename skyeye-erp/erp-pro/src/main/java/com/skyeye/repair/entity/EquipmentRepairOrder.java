@@ -46,12 +46,8 @@ public class EquipmentRepairOrder extends SkyeyeFlowable {
     @ApiModelProperty(value = "紧急程度", enumClass = EquipmentRepairUrgency.class, required = "required,num")
     private Integer urgencyLevel;
 
-    @TableField(value = "current_owner")
-    @ApiModelProperty(value = "当前负责人")
-    private String currentOwnerName;
-
     @TableField(value = "equipment_id")
-    @ApiModelProperty(value = "设备id")
+    @ApiModelProperty(value = "设备id", required = "required")
     private String equipmentId;
 
     @TableField(exist = false)
@@ -75,17 +71,25 @@ public class EquipmentRepairOrder extends SkyeyeFlowable {
     @ApiModelProperty(value = "报修时间")
     private String reportTime;
 
-    @TableField(value = "reporter_name")
-    @ApiModelProperty(value = "报修人")
-    private String reporterName;
+    @TableField(value = "user_id")
+    @ApiModelProperty(value = "报修人用户ID")
+    private String userId;
+
+    @TableField(exist = false)
+    @Property(value = "报修人信息")
+    private Map<String, Object> userMation;
 
     @TableField(value = "reject_reason")
     @ApiModelProperty(value = "驳回原因")
     private String rejectReason;
 
-    @TableField(value = "repair_leader")
-    @ApiModelProperty(value = "维修负责人")
-    private String repairLeaderName;
+    @TableField(value = "staff_id")
+    @ApiModelProperty(value = "维修负责人员工ID")
+    private String staffId;
+
+    @TableField(exist = false)
+    @Property(value = "维修负责人信息")
+    private Map<String, Object> staffMation;
 
     @TableField(value = "fault_type")
     @ApiModelProperty(value = "故障类别", enumClass = EquipmentFaultCategory.class, required = "num")
@@ -94,10 +98,6 @@ public class EquipmentRepairOrder extends SkyeyeFlowable {
     @TableField(value = "repairTeam")
     @ApiModelProperty(value = "维修班组", enumClass = EquipmentRepairTeam.class, required = "num")
     private Integer repairTeam;
-
-    @TableField(value = "repair_personnel")
-    @ApiModelProperty(value = "维修人员")
-    private String repairPersonnel;
 
     @TableField(value = "dispatch_time")
     @ApiModelProperty(value = "派工时间")

@@ -12,10 +12,8 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.DateUtil;
 import com.skyeye.equipment.entity.Equipment;
 import com.skyeye.equipment.service.EquipmentService;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.repair.dao.EquipmentScrapOrderDao;
 import com.skyeye.repair.entity.EquipmentScrapOrder;
@@ -23,10 +21,9 @@ import com.skyeye.repair.service.EquipmentScrapOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
+
 
 /**
  * @ClassName: EquipmentScrapOrderServiceImpl
@@ -43,9 +40,6 @@ public class EquipmentScrapOrderServiceImpl extends SkyeyeBusinessServiceImpl<Eq
     @Autowired
     private EquipmentService equipmentService;
 
-    @Autowired
-    private IAuthUserService iAuthUserService;
-
     @Override
     public EquipmentScrapOrder selectById(String id) {
         EquipmentScrapOrder entity = super.selectById(id);
@@ -53,12 +47,7 @@ public class EquipmentScrapOrderServiceImpl extends SkyeyeBusinessServiceImpl<Eq
             return null;
         }
         equipmentService.setDataMation(entity, EquipmentScrapOrder::getEquipmentId);
-        if (StrUtil.isNotEmpty(entity.getStaffId())) {
-            List<String> staffIds = new ArrayList<>();
-            staffIds.add(entity.getStaffId());
-            Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
-            entity.setStaffMation(staffMap.get(entity.getStaffId()));
-        }
+        iAuthUserService.setDataMation(entity, EquipmentScrapOrder::getUserId);
         return entity;
     }
 
@@ -67,17 +56,11 @@ public class EquipmentScrapOrderServiceImpl extends SkyeyeBusinessServiceImpl<Eq
         Map<String, Object> business = BeanUtil.beanToMap(entity);
         String oddNumber = iCodeRuleService.getNextCodeByClassName(this.getClass().getName(), business);
         entity.setOddNumber(oddNumber);
-        if (StrUtil.isEmpty(entity.getApplicationDate())) {
-            entity.setApplicationDate(DateUtil.getYmdTimeAndToString());
-        }
     }
 
     @Override
     public void validatorEntity(EquipmentScrapOrder entity) {
         super.validatorEntity(entity);
-        if (StrUtil.isEmpty(entity.getEquipmentId())) {
-            throw new CustomException("请选择设备");
-        }
         Equipment equipment = equipmentService.selectById(entity.getEquipmentId());
         if (equipment == null || StrUtil.isEmpty(equipment.getId())) {
             throw new CustomException("设备不存在: " + entity.getEquipmentId());
@@ -91,10 +74,7 @@ public class EquipmentScrapOrderServiceImpl extends SkyeyeBusinessServiceImpl<Eq
             return beans;
         }
         equipmentService.setMationForMap(beans, "equipmentId", "equipmentMation");
-        List<String> staffIds = beans.stream().map(bean -> bean.get("staffId").toString())
-            .filter(StrUtil::isNotEmpty).distinct().collect(Collectors.toList());
-        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
-        beans.forEach(bean -> bean.put("staffMation", staffMap.get(bean.get("staffId").toString())));
+        iAuthUserService.setMationForMap(beans, "userId", "userMation");
         return beans;
     }
 

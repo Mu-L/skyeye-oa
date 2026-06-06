@@ -57,13 +57,13 @@ public class EquipmentSparePartRequisition extends SkyeyeLinkData {
     @ApiModelProperty(value = "领用日期 yyyy-MM-dd")
     private String requisitionDate;
 
-    @TableField(value = "staff_id")
-    @ApiModelProperty(value = "领用人ID")
-    private String staffId;
+    @TableField(value = "user_id")
+    @ApiModelProperty(value = "领用人用户ID")
+    private String userId;
 
     @TableField(exist = false)
     @Property(value = "领用人信息")
-    private Map<String, Object> staffMation;
+    private Map<String, Object> userMation;
 
     @TableField(value = "total_amount")
     @ApiModelProperty(value = "出库总金额(元)，由明细出库金额汇总")

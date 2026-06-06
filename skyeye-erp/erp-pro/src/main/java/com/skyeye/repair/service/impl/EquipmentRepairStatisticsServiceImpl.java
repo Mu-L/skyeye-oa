@@ -12,6 +12,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.common.enumeration.FlowableStateEnum;
@@ -24,7 +25,6 @@ import com.skyeye.equipment.service.EquipmentService;
 import com.skyeye.repair.classenum.EquipmentRepairEquipmentStatus;
 import com.skyeye.repair.dao.EquipmentRepairOrderDao;
 import com.skyeye.repair.entity.EquipmentRepairOrder;
-import com.skyeye.repair.entity.EquipmentRepairOrderByNamePageInfo;
 import com.skyeye.repair.service.EquipmentRepairOrderService;
 import com.skyeye.repair.service.EquipmentRepairStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -180,8 +180,8 @@ public class EquipmentRepairStatisticsServiceImpl implements EquipmentRepairStat
 
     @Override
     public void queryRepairOrderPageListByEquipmentName(InputObject inputObject, OutputObject outputObject) {
-        EquipmentRepairOrderByNamePageInfo pageInfo = inputObject.getParams(EquipmentRepairOrderByNamePageInfo.class);
-        String name = StrUtil.trim(pageInfo.getName());
+        CommonPageInfo pageInfo = inputObject.getParams(CommonPageInfo.class);
+        String name = StrUtil.trim(pageInfo.getCustomParamsMapStr("name"));
         if (StrUtil.isEmpty(name)) {
             outputObject.setBeans(new ArrayList<>());
             outputObject.settotal(0);

@@ -18,10 +18,10 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.equipment.entity.Equipment;
 import com.skyeye.equipment.service.EquipmentService;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.farm.service.FarmService;
 import com.skyeye.material.service.MaterialService;
+import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.repair.dao.EquipmentRepairOrderDao;
 import com.skyeye.repair.entity.EquipmentRepairOrder;
 import com.skyeye.repair.entity.EquipmentSparePartRequisition;
@@ -31,6 +31,7 @@ import com.skyeye.repair.service.EquipmentSparePartRequisitionDetailService;
 import com.skyeye.repair.service.EquipmentSparePartRequisitionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 
 import java.util.Collections;
 import java.util.List;
@@ -69,15 +70,22 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
     private MaterialService materialService;
 
     @Autowired
-    private IAuthUserService iAuthUserService;
+    private MaterialNormsService materialNormsService;
+
 
     @Override
     public EquipmentRepairOrder getDataFromDb(String id) {
         EquipmentRepairOrder order = super.getDataFromDb(id);
         List<EquipmentSparePartRequisition> sparePartRequisitionList = equipmentSparePartRequisitionService.selectByPId(id);
         if (CollectionUtil.isNotEmpty(sparePartRequisitionList)) {
+            List<String> requisitionIds = sparePartRequisitionList.stream()
+                    .map(EquipmentSparePartRequisition::getId)
+                    .collect(java.util.stream.Collectors.toList());
+            List<EquipmentSparePartRequisitionDetail> allDetails = equipmentSparePartRequisitionDetailService.selectByPIds(requisitionIds);
+            java.util.Map<String, List<EquipmentSparePartRequisitionDetail>> detailsMap = allDetails.stream()
+                    .collect(java.util.stream.Collectors.groupingBy(EquipmentSparePartRequisitionDetail::getParentId));
             sparePartRequisitionList.forEach(bean -> {
-                List<EquipmentSparePartRequisitionDetail> detailList = equipmentSparePartRequisitionDetailService.selectByPId(bean.getId());
+                List<EquipmentSparePartRequisitionDetail> detailList = detailsMap.getOrDefault(bean.getId(), new java.util.ArrayList<>());
                 bean.setDetailList(detailList);
             });
         }
@@ -92,22 +100,27 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
             return null;
         }
         equipmentService.setDataMation(order, EquipmentRepairOrder::getEquipmentId);
+        iAuthUserService.setDataMation(order, EquipmentRepairOrder::getUserId);
+        if (StrUtil.isNotEmpty(order.getStaffId())) {
+            Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(
+                Collections.singletonList(order.getStaffId()));
+            order.setStaffMation(staffMap.get(order.getStaffId()));
+        }
         if (CollectionUtil.isEmpty(order.getSparePartRequisitionList())) {
             return order;
         }
         erpDepotService.setDataMation(order.getSparePartRequisitionList(), EquipmentSparePartRequisition::getDepotId);
-        order.getSparePartRequisitionList().forEach(bean -> {
-            if (CollectionUtil.isNotEmpty(bean.getDetailList())) {
-                materialService.setDataMation(bean.getDetailList(), EquipmentSparePartRequisitionDetail::getMaterialId);
-            }
-        });
-        List<String> staffIds = order.getSparePartRequisitionList().stream()
-            .map(EquipmentSparePartRequisition::getStaffId)
-            .filter(StrUtil::isNotEmpty)
-            .distinct()
-            .collect(Collectors.toList());
-        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
-        order.getSparePartRequisitionList().forEach(bean -> bean.setStaffMation(staffMap.get(bean.getStaffId())));
+        iAuthUserService.setDataMation(order.getSparePartRequisitionList(), EquipmentSparePartRequisition::getUserId);
+
+        // 收集所有明细中的物料ID，去重后批量查询
+        List<EquipmentSparePartRequisitionDetail> allDetailList = order.getSparePartRequisitionList().stream()
+                .filter(bean -> CollectionUtil.isNotEmpty(bean.getDetailList()))
+                .flatMap(bean -> bean.getDetailList().stream())
+                .collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(allDetailList)) {
+            materialService.setDataMation(allDetailList, EquipmentSparePartRequisitionDetail::getMaterialId);
+            materialNormsService.setDataMation(allDetailList, EquipmentSparePartRequisitionDetail::getNormsId);
+        }
         return order;
     }
 
@@ -124,10 +137,6 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
     @Override
     public void validatorEntity(EquipmentRepairOrder entity) {
         super.validatorEntity(entity);
-        // 判断equipmentId是否为空，如果为空，则抛出异常
-        if (StrUtil.isEmpty(entity.getEquipmentId())) {
-            throw new CustomException("请选择设备");
-        }
         // 判断equipmentId是否存在
         if (StrUtil.isNotEmpty(entity.getEquipmentId())) {
             Equipment equipment = equipmentService.selectById(entity.getEquipmentId());
@@ -145,6 +154,23 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
             return beans;
         }
         equipmentService.setMationForMap(beans, "equipmentId", "equipmentMation");
+        iAuthUserService.setMationForMap(beans, "userId", "userMation");
+        List<String> staffIds = beans.stream()
+            .map(bean -> bean.get("staffId"))
+            .filter(Objects::nonNull)
+            .map(Object::toString)
+            .filter(StrUtil::isNotEmpty)
+            .distinct()
+            .collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(staffIds)) {
+            Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
+            beans.forEach(bean -> {
+                Object staffId = bean.get("staffId");
+                if (staffId != null && StrUtil.isNotEmpty(staffId.toString())) {
+                    bean.put("staffMation", staffMap.get(staffId.toString()));
+                }
+            });
+        }
         List<Map<String, Object>> equipmentMationList = beans.stream()
             .map(bean -> (Map<String, Object>) bean.get("equipmentMation"))
             .filter(Objects::nonNull)
@@ -157,9 +183,27 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
 
     @Override
     public QueryWrapper<EquipmentRepairOrder> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        String keyword = StrUtil.trim(commonPageInfo.getKeyword());
+        String savedKeyword = commonPageInfo.getKeyword();
+        if (StrUtil.isNotEmpty(keyword)) {
+            commonPageInfo.setKeyword(null);
+        }
         QueryWrapper<EquipmentRepairOrder> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEquipmentStatus), commonPageInfo.getState());
+        commonPageInfo.setKeyword(savedKeyword);
+        if (StrUtil.isNotEmpty(keyword)) {
+            QueryWrapper<Equipment> equipmentQueryWrapper = new QueryWrapper<>();
+            equipmentQueryWrapper.like(MybatisPlusUtil.toColumns(Equipment::getName), keyword);
+            List<Equipment> equipmentList = equipmentService.list(equipmentQueryWrapper);
+            if (CollectionUtil.isEmpty(equipmentList)) {
+                queryWrapper.in(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEquipmentId),
+                    Collections.singletonList("-1"));
+            } else {
+                List<String> equipmentIds = equipmentList.stream()
+                    .map(Equipment::getId)
+                    .filter(StrUtil::isNotEmpty)
+                    .collect(Collectors.toList());
+                queryWrapper.in(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEquipmentId), equipmentIds);
+            }
         }
         return queryWrapper;
     }

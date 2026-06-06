@@ -7,14 +7,9 @@ package com.skyeye.repair.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeLinkDataServiceImpl;
-import com.skyeye.common.entity.search.CommonPageInfo;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.service.ErpDepotService;
-import com.skyeye.eve.service.IAuthUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.repair.dao.EquipmentSparePartRequisitionDao;
@@ -22,21 +17,20 @@ import com.skyeye.repair.entity.EquipmentSparePartRequisition;
 import com.skyeye.repair.entity.EquipmentSparePartRequisitionDetail;
 import com.skyeye.repair.service.EquipmentRepairOrderService;
 import com.skyeye.repair.service.EquipmentSparePartRequisitionDetailService;
+import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.repair.service.EquipmentSparePartRequisitionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 备件领用单：与售后工单、巡检任务等模块一致，主表关联用 {@code setDataMation} / 列表用 {@code setMationForMap}；明细单价来自 ERP 物料。
  */
 @Service
-@SkyeyeService(name = "备件领用单", groupName = "设备维修", flowable = true)
+@SkyeyeService(name = "备件领用单", groupName = "设备维修")
 public class EquipmentSparePartRequisitionServiceImpl extends SkyeyeLinkDataServiceImpl<EquipmentSparePartRequisitionDao, EquipmentSparePartRequisition>
     implements EquipmentSparePartRequisitionService {
 
@@ -50,26 +44,21 @@ public class EquipmentSparePartRequisitionServiceImpl extends SkyeyeLinkDataServ
     private ErpDepotService erpDepotService;
 
     @Autowired
-    private IAuthUserService iAuthUserService;
+    private MaterialService materialService;
 
     @Autowired
-    private MaterialService materialService;
+    private MaterialNormsService materialNormsService;
+
 
     @Override
     public void validatorEntity(EquipmentSparePartRequisition entity) {
         if (CollectionUtil.isEmpty(entity.getDetailList())) {
             throw new CustomException("请至少填写一条领用明细");
         }
-        for (EquipmentSparePartRequisitionDetail row : entity.getDetailList()) {
-            // 判断备件明细表id是否为空，如果为空，则抛出异常
-            if (StrUtil.isBlank(row.getMaterialId())) {
-                throw new CustomException("请选择备件明细");
-            }
-            // 判断备件明细是否存在
-            if (StrUtil.isNotBlank(row.getMaterialId())) {
-                if (materialService.selectById(row.getMaterialId()) == null) {
-                    throw new CustomException("备件明细不存在: " + row.getMaterialId());
-                }
+        // 判断备件明细是否存在
+        if (StrUtil.isNotBlank(entity.getId())) {
+            if (equipmentSparePartRequisitionDetailService.selectById(entity.getId()) == null) {
+                throw new CustomException("备件明细不存在: " + entity.getId());
             }
         }
         String allPrice = equipmentSparePartRequisitionDetailService.calcOrderAllTotalPrice(entity.getDetailList());
@@ -91,6 +80,13 @@ public class EquipmentSparePartRequisitionServiceImpl extends SkyeyeLinkDataServ
     }
 
     @Override
+    public void createPrepose(EquipmentSparePartRequisition entity) {
+        Map<String, Object> business = BeanUtil.beanToMap(entity);
+        String oddNumber = iCodeRuleService.getNextCodeByClassName(this.getClass().getName(), business);
+        entity.setOddNumber(oddNumber);
+    }
+
+    @Override
     public EquipmentSparePartRequisition selectById(String id) {
         EquipmentSparePartRequisition entity = super.selectById(id);
         if (entity == null) {
@@ -104,47 +100,15 @@ public class EquipmentSparePartRequisitionServiceImpl extends SkyeyeLinkDataServ
             }
         }
         erpDepotService.setDataMation(entity, EquipmentSparePartRequisition::getDepotId);
-        if (StrUtil.isNotEmpty(entity.getStaffId())) {
-            List<String> staffIds = new ArrayList<>();
-            staffIds.add(entity.getStaffId());
-            Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
-            entity.setStaffMation(staffMap.get(entity.getStaffId()));
-        }
+        iAuthUserService.setDataMation(entity, EquipmentSparePartRequisition::getUserId);
         materialService.setDataMation(entity.getDetailList(), EquipmentSparePartRequisitionDetail::getMaterialId);
+        materialNormsService.setDataMation(entity.getDetailList(), EquipmentSparePartRequisitionDetail::getNormsId);
         return entity;
     }
 
     @Override
     public void deletePreExecution(EquipmentSparePartRequisition entity) {
         equipmentSparePartRequisitionDetailService.deleteByPId(entity.getId());
-    }
-
-    @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        if (CollectionUtil.isEmpty(beans)) {
-            return beans;
-        }
-        erpDepotService.setMationForMap(beans, "depotId", "depotMation");
-        // 设置员工信息
-        List<String> staffIds = beans.stream().map(bean -> bean.get("staffId").toString())
-            .filter(staffId -> StrUtil.isNotEmpty(staffId)).distinct().collect(Collectors.toList());
-        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
-        beans.forEach(bean -> {
-            String staffId = bean.get("staffId").toString();
-            Map<String, Object> staffMation = staffMap.get(staffId);
-            bean.put("staffMation", staffMation);
-        });
-        return beans;
-    }
-
-    @Override
-    public QueryWrapper<EquipmentSparePartRequisition> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<EquipmentSparePartRequisition> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(EquipmentSparePartRequisition::getState), commonPageInfo.getState());
-        }
-        return queryWrapper;
     }
 
 }

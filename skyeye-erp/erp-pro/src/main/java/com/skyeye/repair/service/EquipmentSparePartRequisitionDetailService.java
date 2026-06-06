@@ -12,7 +12,15 @@ import java.util.List;
 /**
  * 备件领用明细
  */
+/*
 public interface EquipmentSparePartRequisitionDetailService extends SkyeyeLinkDataService<EquipmentSparePartRequisitionDetail> {
 
     String calcOrderAllTotalPrice(List<EquipmentSparePartRequisitionDetail> detailList);
+}
+*/
+public interface EquipmentSparePartRequisitionDetailService extends SkyeyeLinkDataService<EquipmentSparePartRequisitionDetail> {
+
+    String calcOrderAllTotalPrice(List<EquipmentSparePartRequisitionDetail> detailList);
+
+    List<EquipmentSparePartRequisitionDetail> selectByPIds(List<String> pIds);
 }

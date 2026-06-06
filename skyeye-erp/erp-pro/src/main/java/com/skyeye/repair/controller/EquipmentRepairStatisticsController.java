@@ -7,10 +7,10 @@ package com.skyeye.repair.controller;
 import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.repair.entity.EquipmentRepairOrderByNamePageInfo;
 import com.skyeye.repair.service.EquipmentRepairStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,7 +38,7 @@ public class EquipmentRepairStatisticsController {
     }
 
     @ApiOperation(id = "queryRepairOrderPageListByEquipmentName", value = "报修维修统计-按设备名称分页查询维修单", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = EquipmentRepairOrderByNamePageInfo.class)
+    @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/EquipmentRepairStatisticsController/queryRepairOrderPageListByEquipmentName")
     public void queryRepairOrderPageListByEquipmentName(InputObject inputObject, OutputObject outputObject) {
         equipmentRepairStatisticsService.queryRepairOrderPageListByEquipmentName(inputObject, outputObject);
