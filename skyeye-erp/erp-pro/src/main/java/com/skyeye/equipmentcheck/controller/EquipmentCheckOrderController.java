@@ -55,22 +55,13 @@ public class EquipmentCheckOrderController {
         equipmentCheckOrderService.revoke(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteEquipmentCheckOrder", value = "删除设备点检单", method = "DELETE", allUse = "1")
+    @ApiOperation(id = "deleteEquipmentCheckOrderByIds", value = "删除设备点检单（传 ids，单个或多个逗号分隔）", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping(value = "/post/EquipmentCheckOrderController/deleteEquipmentCheckOrder", method = RequestMethod.DELETE)
-    public void deleteEquipmentCheckOrder(InputObject inputObject, OutputObject outputObject) {
-        equipmentCheckOrderService.deleteById(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "deleteEquipmentCheckOrderByIds", value = "批量删除设备点检单", method = "DELETE", allUse = "1")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "ids", name = "ids", value = "主键id列表,多个用逗号分隔", required = "required")})
+        @ApiImplicitParam(id = "ids", name = "ids", value = "主键id列表，多个用逗号分隔", required = "required")})
     @RequestMapping(value = "/post/EquipmentCheckOrderController/deleteEquipmentCheckOrderByIds", method = RequestMethod.DELETE)
     public void deleteEquipmentCheckOrderByIds(InputObject inputObject, OutputObject outputObject) {
         equipmentCheckOrderService.deleteByIds(inputObject, outputObject);
     }
-
 
     @ApiOperation(id = "queryEquipmentCheckStatistics", value = "设备点检统计", method = "POST", allUse = "2")
     @RequestMapping("/post/EquipmentCheckOrderController/queryStatistics")
