@@ -48,6 +48,7 @@ public class WagesPaymentHistoryServiceImpl extends SkyeyeBusinessServiceImpl<Wa
         if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
             queryWrapper.eq(MybatisPlusUtil.toColumns(WagesPaymentHistory::getState), commonPageInfo.getState());
         }
+        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(WagesPaymentHistory::getCreateTime));
         return queryWrapper;
     }
 
