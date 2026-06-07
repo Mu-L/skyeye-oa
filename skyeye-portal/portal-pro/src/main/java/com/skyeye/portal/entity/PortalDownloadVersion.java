@@ -45,6 +45,10 @@ public class PortalDownloadVersion extends OperatorUserInfo {
     @ApiModelProperty(value = "更新视频链接")
     private String videoUrl;
 
+    @TableField("download_url")
+    @ApiModelProperty(value = "下载链接")
+    private String downloadUrl;
+
     @TableField("enabled")
     @ApiModelProperty(value = "状态", enumClass = EnableEnum.class, required = "required")
     private Integer enabled;
