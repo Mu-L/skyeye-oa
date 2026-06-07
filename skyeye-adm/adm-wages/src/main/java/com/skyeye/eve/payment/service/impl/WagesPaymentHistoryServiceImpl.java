@@ -15,6 +15,7 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.payment.classenum.PaymentHistoryState;
@@ -36,19 +37,31 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "薪资发放历史", groupName = "薪资发放历史")
+@SkyeyeService(name = "薪资发放历史", groupName = "薪资发放历史", allowDynamicAttrKey = false)
 public class WagesPaymentHistoryServiceImpl extends SkyeyeBusinessServiceImpl<WagesPaymentHistoryDao, WagesPaymentHistory> implements WagesPaymentHistoryService {
+    @Override
+    protected QueryWrapper<WagesPaymentHistory> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<WagesPaymentHistory> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getStaffId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(WagesPaymentHistory::getStaffId), commonPageInfo.getStaffId());
+        }
+        if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(WagesPaymentHistory::getState), commonPageInfo.getState());
+        }
+        return queryWrapper;
+    }
 
     private void queryList(CommonPageInfo pageInfo, OutputObject outputObject) {
         Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
-        List<Map<String, Object>> beans = skyeyeBaseMapper.queryWagesPaymentHistoryList(pageInfo);
+        QueryWrapper<WagesPaymentHistory> queryWrapper = getQueryWrapper(pageInfo);
+        List<WagesPaymentHistory> beans = list(queryWrapper);
         // 设置员工信息
-        List<String> staffIds = beans.stream().map(bean -> bean.get("staffId").toString())
+        List<String> staffIds = beans.stream().map(bean -> bean.getStaffId())
             .filter(staffId -> StrUtil.isNotEmpty(staffId)).distinct().collect(Collectors.toList());
         Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
         beans.forEach(bean -> {
-            String staffId = bean.get("staffId").toString();
-            bean.put("staffMation", staffMap.get(staffId));
+            bean.setStaffMation(staffMap.get(bean.getStaffId()));
+            bean.setActWages(CalculationUtil.format(bean.getActWages()));
         });
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
