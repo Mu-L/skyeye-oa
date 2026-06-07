@@ -6,10 +6,12 @@ package com.skyeye.repair.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeLinkDataServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.entity.MaterialNorms;
 import com.skyeye.material.service.MaterialNormsService;
@@ -20,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -86,6 +89,16 @@ public class EquipmentSparePartRequisitionDetailServiceImpl extends SkyeyeLinkDa
             allPrice = CalculationUtil.add(rowAllPrice, allPrice);
         }
         return allPrice;
+    }
+
+    @Override
+    public List<EquipmentSparePartRequisitionDetail> selectByPIds(List<String> pIds) {
+        if (CollectionUtil.isEmpty(pIds)) {
+            return new ArrayList<>();
+        }
+        QueryWrapper<EquipmentSparePartRequisitionDetail> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in(MybatisPlusUtil.toColumns(EquipmentSparePartRequisitionDetail::getParentId), pIds);
+        return list(queryWrapper);
     }
 
 }

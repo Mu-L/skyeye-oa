@@ -36,13 +36,13 @@ public class EquipmentScrapOrder extends SkyeyeFlowable {
     @ApiModelProperty(value = "申请日期")
     private String applicationDate;
 
-    @TableField(value = "staff_id")
-    @ApiModelProperty(value = "申请人ID")
-    private String staffId;
+    @TableField(value = "user_id")
+    @ApiModelProperty(value = "申请人用户ID")
+    private String userId;
 
     @TableField(exist = false)
     @Property(value = "申请人信息")
-    private Map<String, Object> staffMation;
+    private Map<String, Object> userMation;
 
     @TableField(value = "equipment_id")
     @ApiModelProperty(value = "设备id", required = "required")

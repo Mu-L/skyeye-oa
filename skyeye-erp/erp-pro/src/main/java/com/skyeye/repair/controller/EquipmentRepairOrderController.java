@@ -92,11 +92,5 @@ public class EquipmentRepairOrderController {
         equipmentRepairOrderService.revoke(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "invalidEquipmentRepairOrder", value = "作废设备维修单申请", method = "POST", allUse = "1")
-    @ApiImplicitParams({
-            @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/EquipmentRepairOrderController/invalid")
-    public void invalid(InputObject inputObject, OutputObject outputObject) {
-        equipmentRepairOrderService.invalid(inputObject, outputObject);
-    }
 }
+
