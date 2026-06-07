@@ -159,10 +159,6 @@ public class EquipmentRepairOrder extends SkyeyeFlowable {
     @ApiModelProperty(value = "是否修复", enumClass = WhetherEnum.class, required = "num")
     private Integer isFixed;
 
-    @TableField(value = "equipment_status")
-    @ApiModelProperty(value = "设备状态", enumClass = EquipmentRepairEquipmentStatus.class, required = "num")
-    private Integer equipmentStatus;
-
     @TableField(value = "repair_score")
     @ApiModelProperty(value = "维修评分1-10分")
     private Integer repairScore;

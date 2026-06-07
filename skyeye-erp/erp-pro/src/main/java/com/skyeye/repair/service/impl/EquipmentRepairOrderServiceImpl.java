@@ -14,12 +14,10 @@ import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
-import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.equipment.entity.Equipment;
 import com.skyeye.equipment.service.EquipmentService;
 import com.skyeye.exception.CustomException;
-import com.skyeye.farm.service.FarmService;
 import com.skyeye.material.service.MaterialService;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.repair.dao.EquipmentRepairOrderDao;
@@ -59,9 +57,6 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
 
     @Autowired
     private EquipmentService equipmentService;
-
-    @Autowired
-    private FarmService farmService;
 
     @Autowired
     private ErpDepotService erpDepotService;
@@ -171,47 +166,12 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
                 }
             });
         }
-        List<Map<String, Object>> equipmentMationList = beans.stream()
-            .map(bean -> (Map<String, Object>) bean.get("equipmentMation"))
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(equipmentMationList)) {
-            farmService.setMationForMap(equipmentMationList, "farmId", "farmMation");
-        }
         return beans;
-    }
-
-    @Override
-    public QueryWrapper<EquipmentRepairOrder> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        String keyword = StrUtil.trim(commonPageInfo.getKeyword());
-        String savedKeyword = commonPageInfo.getKeyword();
-        if (StrUtil.isNotEmpty(keyword)) {
-            commonPageInfo.setKeyword(null);
-        }
-        QueryWrapper<EquipmentRepairOrder> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        commonPageInfo.setKeyword(savedKeyword);
-        if (StrUtil.isNotEmpty(keyword)) {
-            QueryWrapper<Equipment> equipmentQueryWrapper = new QueryWrapper<>();
-            equipmentQueryWrapper.like(MybatisPlusUtil.toColumns(Equipment::getName), keyword);
-            List<Equipment> equipmentList = equipmentService.list(equipmentQueryWrapper);
-            if (CollectionUtil.isEmpty(equipmentList)) {
-                queryWrapper.in(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEquipmentId),
-                    Collections.singletonList("-1"));
-            } else {
-                List<String> equipmentIds = equipmentList.stream()
-                    .map(Equipment::getId)
-                    .filter(StrUtil::isNotEmpty)
-                    .collect(Collectors.toList());
-                queryWrapper.in(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEquipmentId), equipmentIds);
-            }
-        }
-        return queryWrapper;
     }
 
     @Override
     public void queryAllEquipmentRepairOrderList(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<EquipmentRepairOrder> queryWrapper = new QueryWrapper<>();
-
         List<EquipmentRepairOrder> list = list(queryWrapper);
         outputObject.setBeans(list);
         outputObject.settotal(list.size());

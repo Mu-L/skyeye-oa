@@ -37,10 +37,10 @@ public class EquipmentRepairStatisticsController {
         equipmentRepairStatisticsService.queryRepairStatsByEquipmentName(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryRepairOrderPageListByEquipmentName", value = "报修维修统计-按设备名称分页查询维修单", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryRepairOrderPageList", value = "报修维修统计-按设备分页查询维修单", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/EquipmentRepairStatisticsController/queryRepairOrderPageListByEquipmentName")
-    public void queryRepairOrderPageListByEquipmentName(InputObject inputObject, OutputObject outputObject) {
-        equipmentRepairStatisticsService.queryRepairOrderPageListByEquipmentName(inputObject, outputObject);
+    @RequestMapping("/post/EquipmentRepairStatisticsController/queryRepairOrderPageList")
+    public void queryRepairOrderPageList(InputObject inputObject, OutputObject outputObject) {
+        equipmentRepairStatisticsService.queryPageList(inputObject, outputObject);
     }
 }
