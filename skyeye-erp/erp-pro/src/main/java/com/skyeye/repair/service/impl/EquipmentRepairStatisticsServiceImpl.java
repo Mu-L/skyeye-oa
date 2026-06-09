@@ -7,32 +7,24 @@ package com.skyeye.repair.service.impl;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.github.pagehelper.Page;
-import com.github.pagehelper.PageHelper;
+import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.entity.search.TableSelectInfo;
-import com.skyeye.farm.service.FarmService;
-import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
-import com.skyeye.equipment.entity.Equipment;
 import com.skyeye.equipment.service.EquipmentService;
-import com.skyeye.repair.classenum.EquipmentRepairEquipmentStatus;
 import com.skyeye.repair.dao.EquipmentRepairOrderDao;
 import com.skyeye.repair.entity.EquipmentRepairOrder;
-import com.skyeye.repair.entity.EquipmentRepairOrderByNamePageInfo;
-import com.skyeye.repair.service.EquipmentRepairOrderService;
 import com.skyeye.repair.service.EquipmentRepairStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -47,7 +39,8 @@ import java.util.stream.Collectors;
  * @Copyright 2026 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  */
 @Service
-public class EquipmentRepairStatisticsServiceImpl implements EquipmentRepairStatisticsService {
+public class EquipmentRepairStatisticsServiceImpl extends SkyeyeBusinessServiceImpl<EquipmentRepairOrderDao, EquipmentRepairOrder>
+    implements EquipmentRepairStatisticsService {
 
     /**
      * 空值或缺失数据归类显示名称
@@ -55,17 +48,7 @@ public class EquipmentRepairStatisticsServiceImpl implements EquipmentRepairStat
     private static final String OTHER_LABEL = "其他";
 
     @Autowired
-    private EquipmentRepairOrderDao equipmentRepairOrderDao;
-
-    @Autowired
-    private EquipmentRepairOrderService equipmentRepairOrderService;
-
-    @Autowired
     private EquipmentService equipmentService;
-
-    @Autowired
-    private FarmService farmService;
-
 
     @Override
     public void queryRepairMonthlyTrendStats(InputObject inputObject, OutputObject outputObject) {
@@ -81,10 +64,10 @@ public class EquipmentRepairStatisticsServiceImpl implements EquipmentRepairStat
             queryWrapper.le(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getDispatchTime), endTime);
         }
 
-        long total = equipmentRepairOrderDao.selectCount(queryWrapper);
+        long total = count(queryWrapper);
 
         Map<String, Long> monthCountMap = new HashMap<>();
-        List<EquipmentRepairOrder> orderList = equipmentRepairOrderDao.selectList(queryWrapper);
+        List<EquipmentRepairOrder> orderList = list(queryWrapper);
         for (EquipmentRepairOrder order : orderList) {
             String ymKey = null;
             String dispatchTime = order.getDispatchTime();
@@ -145,9 +128,9 @@ public class EquipmentRepairStatisticsServiceImpl implements EquipmentRepairStat
     public void queryRepairStatsByEquipmentName(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<EquipmentRepairOrder> queryWrapper = new QueryWrapper<>();
 
-        long total = equipmentRepairOrderDao.selectCount(queryWrapper);
+        long total = count(queryWrapper);
 
-        List<EquipmentRepairOrder> orderList = equipmentRepairOrderDao.selectList(queryWrapper);
+        List<EquipmentRepairOrder> orderList = list(queryWrapper);
         equipmentService.setDataMation(orderList, EquipmentRepairOrder::getEquipmentId);
 
         Map<String, Long> nameCountMap = new HashMap<>();
@@ -179,62 +162,41 @@ public class EquipmentRepairStatisticsServiceImpl implements EquipmentRepairStat
     }
 
     @Override
-    public void queryRepairOrderPageListByEquipmentName(InputObject inputObject, OutputObject outputObject) {
-        EquipmentRepairOrderByNamePageInfo pageInfo = inputObject.getParams(EquipmentRepairOrderByNamePageInfo.class);
-        String name = StrUtil.trim(pageInfo.getName());
-        if (StrUtil.isEmpty(name)) {
-            outputObject.setBeans(new ArrayList<>());
-            outputObject.settotal(0);
-            return;
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        if (CollectionUtil.isEmpty(beans)) {
+            return beans;
         }
+        equipmentService.setMationForMap(beans, "equipmentId", "equipmentMation");
+        iAuthUserService.setMationForMap(beans, "userId", "userMation");
+        List<String> staffIds = beans.stream()
+            .map(bean -> bean.get("staffId"))
+            .filter(Objects::nonNull)
+            .map(Object::toString)
+            .filter(StrUtil::isNotEmpty)
+            .distinct()
+            .collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(staffIds)) {
+            Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
+            beans.forEach(bean -> {
+                Object staffId = bean.get("staffId");
+                if (staffId != null && StrUtil.isNotEmpty(staffId.toString())) {
+                    bean.put("staffMation", staffMap.get(staffId.toString()));
+                }
+            });
+        }
+        return beans;
+    }
 
-        QueryWrapper<EquipmentRepairOrder> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(pageInfo.getState())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEquipmentStatus), pageInfo.getState());
+    @Override
+    protected QueryWrapper<EquipmentRepairOrder> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<EquipmentRepairOrder> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getState), commonPageInfo.getState());
         }
-        if (OTHER_LABEL.equals(name)) {
-            queryWrapper.and(nested -> nested
-                .isNull(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEquipmentId))
-                .or()
-                .eq(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEquipmentId), ""));
-        } else {
-            QueryWrapper<Equipment> equipmentQueryWrapper = new QueryWrapper<>();
-            equipmentQueryWrapper.eq(MybatisPlusUtil.toColumns(Equipment::getName), name);
-            List<Equipment> equipmentList = equipmentService.list(equipmentQueryWrapper);
-            if (CollectionUtil.isEmpty(equipmentList)) {
-                outputObject.setBeans(new ArrayList<>());
-                outputObject.settotal(0);
-                return;
-            }
-            List<String> equipmentIds = equipmentList.stream()
-                .map(Equipment::getId)
-                .filter(StrUtil::isNotEmpty)
-                .collect(Collectors.toList());
-            if (CollectionUtil.isEmpty(equipmentIds)) {
-                outputObject.setBeans(new ArrayList<>());
-                outputObject.settotal(0);
-                return;
-            }
-            queryWrapper.in(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEquipmentId), equipmentIds);
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEquipmentId), commonPageInfo.getObjectId());
         }
-        queryWrapper.orderByDesc(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getCreateTime));
-
-        Page pages = PageHelper.startPage(pageInfo.getPage(), pageInfo.getLimit());
-        List<EquipmentRepairOrder> list = equipmentRepairOrderService.list(queryWrapper);
-        List<Map<String, Object>> resultList = CollectionUtil.isEmpty(list)
-            ? new ArrayList<>()
-            : JSONUtil.toList(JSONUtil.toJsonStr(list), null);
-        if (CollectionUtil.isNotEmpty(resultList)) {
-            equipmentService.setMationForMap(resultList, "equipmentId", "equipmentMation");
-            List<Map<String, Object>> equipmentMationList = resultList.stream()
-                .map(bean -> (Map<String, Object>) bean.get("equipmentMation"))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-            if (CollectionUtil.isNotEmpty(equipmentMationList)) {
-                farmService.setMationForMap(equipmentMationList, "farmId", "farmMation");
-            }
-        }
-        outputObject.setBeans(resultList);
-        outputObject.settotal(pages.getTotal());
+        return queryWrapper;
     }
 }

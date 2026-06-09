@@ -92,11 +92,4 @@ public class EquipmentScrapOrderController {
         equipmentScrapOrderService.revoke(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "invalidEquipmentScrapOrder", value = "作废设备报废单申请", method = "POST", allUse = "1")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/EquipmentScrapOrderController/invalid")
-    public void invalid(InputObject inputObject, OutputObject outputObject) {
-        equipmentScrapOrderService.invalid(inputObject, outputObject);
-    }
 }

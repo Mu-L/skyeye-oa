@@ -25,11 +25,19 @@ public class EquipmentSparePartRequisitionDetail extends SkyeyeLinkData {
 
     @TableField(value = "material_id")
     @ApiModelProperty(value = "商品ID，erp_material.id")
-    private String materialId;
+        private String materialId;
 
     @TableField(exist = false)
     @Property(value = "商品信息")
     private Map<String, Object> materialMation;
+
+    @TableField("norms_id")
+    @ApiModelProperty(value = "规格id", required = "required")
+    private String normsId;
+
+    @TableField(exist = false)
+    @Property(value = "规格信息")
+    private Map<String, Object> normsMation;
 
     @TableField(value = "apply_qty")
     @ApiModelProperty(value = "领用数量", required = "required,num")

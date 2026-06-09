@@ -28,13 +28,6 @@ public class EquipmentSparePartRequisitionController {
     @Autowired
     private EquipmentSparePartRequisitionService equipmentSparePartRequisitionService;
 
-    @ApiOperation(id = "queryEquipmentSparePartRequisitionList", value = "获取备件领用单列表", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = CommonPageInfo.class)
-    @RequestMapping("/post/EquipmentSparePartRequisitionController/queryEquipmentSparePartRequisitionList")
-    public void queryEquipmentSparePartRequisitionList(InputObject inputObject, OutputObject outputObject) {
-        equipmentSparePartRequisitionService.queryPageList(inputObject, outputObject);
-    }
-
     @ApiOperation(id = "writeEquipmentSparePartRequisition", value = "新增/编辑备件领用单", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = EquipmentSparePartRequisition.class)
     @RequestMapping("/post/EquipmentSparePartRequisitionController/writeEquipmentSparePartRequisition")
@@ -79,14 +72,6 @@ public class EquipmentSparePartRequisitionController {
     @RequestMapping("/post/EquipmentSparePartRequisitionController/revoke")
     public void revoke(InputObject inputObject, OutputObject outputObject) {
         equipmentSparePartRequisitionService.revoke(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "invalidEquipmentSparePartRequisition", value = "作废备件领用单申请", method = "POST", allUse = "1")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
-    @RequestMapping("/post/EquipmentSparePartRequisitionController/invalid")
-    public void invalid(InputObject inputObject, OutputObject outputObject) {
-        equipmentSparePartRequisitionService.invalid(inputObject, outputObject);
     }
 
 }
