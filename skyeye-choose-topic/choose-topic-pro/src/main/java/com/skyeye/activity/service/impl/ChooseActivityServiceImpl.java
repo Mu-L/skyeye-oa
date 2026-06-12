@@ -21,6 +21,7 @@ import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.exception.CustomException;
 import com.skyeye.user.enumclass.ChooseUserType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,6 +57,12 @@ public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseA
         }
         if (DateUtil.compare(entity.getEndTime(), entity.getStartTime())) {
             throw new CustomException("结束时间不能早于开始时间");
+        }
+        if (entity.getTopicEnable() == null) {
+            entity.setTopicEnable(WhetherEnum.ENABLE_USING.getKey());
+        }
+        if (entity.getTeacherEnable() == null) {
+            entity.setTeacherEnable(WhetherEnum.ENABLE_USING.getKey());
         }
     }
 
@@ -131,6 +138,32 @@ public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseA
     public boolean checkActivityIsStart(ChooseActivity activity) {
         String currentTime = DateUtil.getTimeAndToString();
         return DateUtil.compare(activity.getStartTime(), currentTime);
+    }
+
+    @Override
+    public boolean isTopicSelectionEnabled(ChooseActivity activity) {
+        return activity == null || activity.getTopicEnable() == null
+            || WhetherEnum.ENABLE_USING.getKey().equals(activity.getTopicEnable());
+    }
+
+    @Override
+    public boolean isTeacherSelectionEnabled(ChooseActivity activity) {
+        return activity == null || activity.getTeacherEnable() == null
+            || WhetherEnum.ENABLE_USING.getKey().equals(activity.getTeacherEnable());
+    }
+
+    @Override
+    public void checkTopicSelectionEnabled(ChooseActivity activity) {
+        if (!isTopicSelectionEnabled(activity)) {
+            throw new CustomException("当前活动已关闭选题功能");
+        }
+    }
+
+    @Override
+    public void checkTeacherSelectionEnabled(ChooseActivity activity) {
+        if (!isTeacherSelectionEnabled(activity)) {
+            throw new CustomException("当前活动已关闭导师选择功能");
+        }
     }
 
 }
