@@ -327,8 +327,14 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
 
     private void exportExcel(String activityId) {
         HttpServletResponse response = InputObject.getResponse();
+        ChooseActivity activity = chooseActivityService.selectById(activityId);
+        boolean topicEnabled = chooseActivityService.isTopicSelectionEnabled(activity);
+        boolean teacherOnly = !topicEnabled && chooseActivityService.isTeacherSelectionEnabled(activity);
         QueryWrapper<ChooseTopic> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getActivityId), activityId);
+        if (teacherOnly) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseTopic::getChoose), CommonNumConstants.NUM_TWO);
+        }
         // 导出数据
         List<ChooseTopic> list = list(queryWrapper);
         chooseUserService.setDataMation(list, ChooseTopic::getChooseUserId);
@@ -343,7 +349,12 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             }
             if (ObjectUtil.isNotEmpty(bean.getTeacherMation())) {
                 bean.setMentorName(bean.getTeacherMation().getName());
-                bean.setActivityType(bean.getTeacherMation().getType());
+                if (ObjectUtil.isNotEmpty(bean.getTeacherMation().getActivityType())) {
+                    bean.setActivityType(bean.getTeacherMation().getActivityType());
+                }
+            }
+            if (teacherOnly && StrUtil.isNotEmpty(bean.getTitle()) && StrUtil.startWith(bean.getTitle(), "仅选导师")) {
+                bean.setTitle("直接选导");
             }
         });
         //.xls格式
@@ -357,7 +368,7 @@ public class ChooseTopicServiceImpl extends SkyeyeBusinessServiceImpl<ChooseTopi
             response.setHeader("Content-disposition", "attachment;filename=chooseTopicResult.xls");
             //设置sheet名
             ExportParams params = new ExportParams();
-            params.setSheetName("学生选题结果表");
+            params.setSheetName(teacherOnly ? "学生选导结果表" : "学生选题结果表");
             // 这里需要设置不关闭流
             Workbook workbook = ExcelExportUtil.exportExcel(params, ChooseTopic.class, list);
             //输出流
