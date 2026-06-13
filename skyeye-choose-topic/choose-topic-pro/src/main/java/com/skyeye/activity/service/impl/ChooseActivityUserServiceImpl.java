@@ -183,4 +183,20 @@ public class ChooseActivityUserServiceImpl extends SkyeyeBusinessServiceImpl<Cho
         }
         deleteById(chooseActivityUser.getId());
     }
+
+    @Override
+    @IgnoreTenant
+    public boolean isActivityParticipant(String activityId, String userId) {
+        if (StrUtil.isEmpty(activityId) || StrUtil.isEmpty(userId)) {
+            return false;
+        }
+        QueryWrapper<ChooseActivityUser> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseActivityUser::getActivityId), activityId);
+        queryWrapper.eq(MybatisPlusUtil.toColumns(ChooseActivityUser::getUserId), userId);
+        if (tenantEnable) {
+            String tenantId = TenantContext.getTenantId();
+            queryWrapper.eq(CommonConstants.TENANT_ID_FIELD, tenantId);
+        }
+        return count(queryWrapper) > 0;
+    }
 }

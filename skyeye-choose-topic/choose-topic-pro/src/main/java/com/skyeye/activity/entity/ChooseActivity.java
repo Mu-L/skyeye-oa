@@ -50,4 +50,8 @@ public class ChooseActivity extends BaseGeneralInfo {
     @TableField(exist = false)
     @ApiModelProperty(value = "课题列表")
     private List<ChooseTopic> chooseTopicList;
+
+    @TableField(exist = false)
+    @ApiModelProperty(value = "当前用户是否为活动参选人员")
+    private Boolean inActivity;
 }

@@ -8,6 +8,7 @@ import com.skyeye.annotation.api.Api;
 import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
+import com.skyeye.chtopic.service.ChooseStudentHistoryService;
 import com.skyeye.chtopic.service.ChooseTopicService;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
@@ -30,6 +31,9 @@ public class ChooseTopicController {
 
     @Autowired
     private ChooseTopicService chooseTopicService;
+
+    @Autowired
+    private ChooseStudentHistoryService chooseStudentHistoryService;
 
     @ApiOperation(id = "queryChooseTopicList", value = "分页获取课题信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class,
@@ -146,6 +150,22 @@ public class ChooseTopicController {
     @RequestMapping("/post/ChooseTopicController/queryStudentChooseByActivity")
     public void queryStudentChooseByActivity(InputObject inputObject, OutputObject outputObject) {
         chooseTopicService.queryStudentChooseByActivity(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryStudentChooseHistoryByActivity", value = "查询学生在活动中的选择历史", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "activityId", name = "activityId", value = "活动id", required = "required")})
+    @RequestMapping("/post/ChooseTopicController/queryStudentChooseHistoryByActivity")
+    public void queryStudentChooseHistoryByActivity(InputObject inputObject, OutputObject outputObject) {
+        chooseStudentHistoryService.queryStudentChooseHistoryByActivity(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryTeacherReviewHistoryByActivity", value = "查询教师在活动中的审核历史", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "activityId", name = "activityId", value = "活动id", required = "required")})
+    @RequestMapping("/post/ChooseTopicController/queryTeacherReviewHistoryByActivity")
+    public void queryTeacherReviewHistoryByActivity(InputObject inputObject, OutputObject outputObject) {
+        chooseStudentHistoryService.queryTeacherReviewHistoryByActivity(inputObject, outputObject);
     }
 
 }

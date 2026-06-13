@@ -92,7 +92,27 @@ public class ChooseActivityServiceImpl extends SkyeyeBusinessServiceImpl<ChooseA
     @Override
     public ChooseActivity selectById(String id) {
         ChooseActivity chooseActivity = super.selectById(id);
+        Map<String, Object> user = InputObject.getLogParamsStatic();
+        Integer type = Integer.valueOf(user.get("type").toString());
+        if (ChooseUserType.ADMIN.getKey().equals(type)) {
+            chooseActivity.setInActivity(true);
+            return chooseActivity;
+        }
+        String userId = user.get("id").toString();
+        chooseActivity.setInActivity(isActivityParticipant(chooseActivity.getId(), userId));
         return chooseActivity;
+    }
+
+    @Override
+    public boolean isActivityParticipant(String activityId, String userId) {
+        return chooseActivityUserService.isActivityParticipant(activityId, userId);
+    }
+
+    @Override
+    public void checkActivityParticipant(String activityId, String userId) {
+        if (!isActivityParticipant(activityId, userId)) {
+            throw new CustomException("您不是本次活动的参选人员，无法操作");
+        }
     }
 
     @Override

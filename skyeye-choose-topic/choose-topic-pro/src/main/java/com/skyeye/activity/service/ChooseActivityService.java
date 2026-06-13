@@ -34,4 +34,8 @@ public interface ChooseActivityService extends SkyeyeBusinessService<ChooseActiv
     void queryActivityList(InputObject inputObject, OutputObject outputObject);
 
     void updateActivityFeatureEnable(InputObject inputObject, OutputObject outputObject);
+
+    boolean isActivityParticipant(String activityId, String userId);
+
+    void checkActivityParticipant(String activityId, String userId);
 }
