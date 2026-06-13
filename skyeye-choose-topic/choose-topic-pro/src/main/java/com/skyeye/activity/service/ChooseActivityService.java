@@ -32,4 +32,6 @@ public interface ChooseActivityService extends SkyeyeBusinessService<ChooseActiv
     void checkTeacherSelectionEnabled(ChooseActivity activity);
 
     void queryActivityList(InputObject inputObject, OutputObject outputObject);
+
+    void updateActivityFeatureEnable(InputObject inputObject, OutputObject outputObject);
 }
