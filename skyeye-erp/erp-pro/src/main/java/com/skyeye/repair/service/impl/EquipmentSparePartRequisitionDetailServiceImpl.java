@@ -62,6 +62,7 @@ public class EquipmentSparePartRequisitionDetailServiceImpl extends SkyeyeLinkDa
         if (missingOperNumber) {
             throw new CustomException("请为每条明细填写领用数量");
         }
+        calcOrderAllTotalPrice(beans);
     }
 
     @Override

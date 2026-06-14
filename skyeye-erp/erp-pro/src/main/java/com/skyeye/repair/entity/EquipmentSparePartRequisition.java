@@ -24,7 +24,7 @@ import java.util.Map;
  */
 @Data
 @RedisCacheField(name = "seal:repair:spareRequisition", cacheTime = RedisConstants.THIRTY_DAY_SECONDS)
-@TableName(value = "equipment_spare_part_requisition")
+@TableName(value = "erp_equipment_spare_part_requisition")
 @ApiModel("备件领用单实体类")
 public class EquipmentSparePartRequisition extends SkyeyeLinkData {
 
@@ -37,8 +37,7 @@ public class EquipmentSparePartRequisition extends SkyeyeLinkData {
     private EquipmentRepairOrder repairOrderMation;
 
     @TableField(value = "odd_number")
-    @Property(value = "单据编号", fuzzyLike = true)
-    @ApiModelProperty(value = "单据编号")
+    @Property(value = "备件领用单编号", fuzzyLike = true)
     private String oddNumber;
 
     @TableField(value = "depot_id")

@@ -19,7 +19,7 @@ import java.util.Map;
  * 备件领用明细（备件 erp_material 一对多子表）
  */
 @Data
-@TableName(value = "equipment_spare_part_requisition_detail")
+@TableName(value = "erp_equipment_spare_part_requisition_detail")
 @ApiModel("备件领用明细实体类")
 public class EquipmentSparePartRequisitionDetail extends SkyeyeLinkData {
 

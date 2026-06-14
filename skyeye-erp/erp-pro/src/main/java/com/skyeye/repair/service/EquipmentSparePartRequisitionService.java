@@ -4,16 +4,12 @@
 
 package com.skyeye.repair.service;
 
-import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.base.business.service.SkyeyeLinkDataService;
 import com.skyeye.repair.entity.EquipmentSparePartRequisition;
-
-import java.util.List;
 
 /**
  * 备件领用单
  */
 public interface EquipmentSparePartRequisitionService extends SkyeyeLinkDataService<EquipmentSparePartRequisition> {
 
-    List<EquipmentSparePartRequisition> selectByPId(String pId);
 }

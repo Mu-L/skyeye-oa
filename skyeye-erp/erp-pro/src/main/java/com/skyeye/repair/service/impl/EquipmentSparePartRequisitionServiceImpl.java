@@ -7,27 +7,31 @@ package com.skyeye.repair.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeLinkDataServiceImpl;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.service.MaterialService;
+import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.repair.dao.EquipmentSparePartRequisitionDao;
 import com.skyeye.repair.entity.EquipmentSparePartRequisition;
 import com.skyeye.repair.entity.EquipmentSparePartRequisitionDetail;
 import com.skyeye.repair.service.EquipmentRepairOrderService;
 import com.skyeye.repair.service.EquipmentSparePartRequisitionDetailService;
-import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.repair.service.EquipmentSparePartRequisitionService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
- * 备件领用单：与售后工单、巡检任务等模块一致，主表关联用 {@code setDataMation} / 列表用 {@code setMationForMap}；明细单价来自 ERP 物料。
+ * 备件领用单
  */
 @Service
 @SkyeyeService(name = "备件领用单", groupName = "设备维修")
@@ -49,17 +53,52 @@ public class EquipmentSparePartRequisitionServiceImpl extends SkyeyeLinkDataServ
     @Autowired
     private MaterialNormsService materialNormsService;
 
+    @Override
+    public void saveLinkList(String pId, List<EquipmentSparePartRequisition> beans) {
+        if (beans == null) {
+            beans = new ArrayList<>();
+        }
+        if (CollectionUtil.isNotEmpty(beans)) {
+            beans.forEach(bean -> {
+                bean.setRepairOrderId(pId);
+                if (StrUtil.isEmpty(bean.getOddNumber())) {
+                    bean.setOddNumber(iCodeRuleService.getNextCodeByClassName(getServiceClassName(), BeanUtil.beanToMap(bean)));
+                }
+                if (CollectionUtil.isNotEmpty(bean.getDetailList())) {
+                    String allPrice = equipmentSparePartRequisitionDetailService.calcOrderAllTotalPrice(bean.getDetailList());
+                    bean.setTotalAmount(new BigDecimal(allPrice));
+                }
+            });
+        }
+        super.saveLinkList(pId, beans);
+        if (CollectionUtil.isEmpty(beans)) {
+            return;
+        }
+        for (EquipmentSparePartRequisition bean : beans) {
+            if (CollectionUtil.isNotEmpty(bean.getDetailList())) {
+                equipmentSparePartRequisitionDetailService.saveLinkList(bean.getId(), bean.getDetailList());
+            }
+        }
+    }
+
+    @Override
+    public void deleteByPId(String pId) {
+        List<EquipmentSparePartRequisition> requisitionList = selectByPId(pId);
+        if (CollectionUtil.isNotEmpty(requisitionList)) {
+            List<String> requisitionIds = requisitionList.stream()
+                .map(EquipmentSparePartRequisition::getId)
+                .collect(Collectors.toList());
+            QueryWrapper<EquipmentSparePartRequisitionDetail> queryWrapper = new QueryWrapper<>();
+            queryWrapper.in(MybatisPlusUtil.toColumns(EquipmentSparePartRequisitionDetail::getParentId), requisitionIds);
+            equipmentSparePartRequisitionDetailService.remove(queryWrapper);
+        }
+        super.deleteByPId(pId);
+    }
 
     @Override
     public void validatorEntity(EquipmentSparePartRequisition entity) {
         if (CollectionUtil.isEmpty(entity.getDetailList())) {
             throw new CustomException("请至少填写一条领用明细");
-        }
-        // 判断备件明细是否存在
-        if (StrUtil.isNotBlank(entity.getId())) {
-            if (equipmentSparePartRequisitionDetailService.selectById(entity.getId()) == null) {
-                throw new CustomException("备件明细不存在: " + entity.getId());
-            }
         }
         String allPrice = equipmentSparePartRequisitionDetailService.calcOrderAllTotalPrice(entity.getDetailList());
         entity.setTotalAmount(new BigDecimal(allPrice));
@@ -74,8 +113,7 @@ public class EquipmentSparePartRequisitionServiceImpl extends SkyeyeLinkDataServ
     @Override
     public EquipmentSparePartRequisition getDataFromDb(String id) {
         EquipmentSparePartRequisition bean = super.getDataFromDb(id);
-        List<EquipmentSparePartRequisitionDetail> details = equipmentSparePartRequisitionDetailService.selectByPId(bean.getId());
-        bean.setDetailList(details);
+        bean.setDetailList(equipmentSparePartRequisitionDetailService.selectByPId(bean.getId()));
         return bean;
     }
 
@@ -95,7 +133,6 @@ public class EquipmentSparePartRequisitionServiceImpl extends SkyeyeLinkDataServ
         if (StrUtil.isNotBlank(entity.getRepairOrderId())) {
             equipmentRepairOrderService.setDataMation(entity, EquipmentSparePartRequisition::getRepairOrderId);
             if (entity.getRepairOrderMation() != null) {
-                // 详情页不需要在维修单信息内再次嵌套备件领用单列表，避免前端出现重复列表结构。
                 entity.getRepairOrderMation().setSparePartRequisitionList(null);
             }
         }

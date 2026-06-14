@@ -10,7 +10,6 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
@@ -27,6 +26,7 @@ import com.skyeye.repair.entity.EquipmentSparePartRequisitionDetail;
 import com.skyeye.repair.service.EquipmentRepairOrderService;
 import com.skyeye.repair.service.EquipmentSparePartRequisitionDetailService;
 import com.skyeye.repair.service.EquipmentSparePartRequisitionService;
+import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -67,6 +67,9 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
     @Autowired
     private MaterialNormsService materialNormsService;
 
+    @Autowired
+    private SupplierService supplierService;
+
 
     @Override
     public EquipmentRepairOrder getDataFromDb(String id) {
@@ -104,6 +107,7 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
         if (CollectionUtil.isEmpty(order.getSparePartRequisitionList())) {
             return order;
         }
+        supplierService.setDataMation(order, EquipmentRepairOrder::getSupplierId);
         erpDepotService.setDataMation(order.getSparePartRequisitionList(), EquipmentSparePartRequisition::getDepotId);
         iAuthUserService.setDataMation(order.getSparePartRequisitionList(), EquipmentSparePartRequisition::getUserId);
 
@@ -130,6 +134,17 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
     }
 
     @Override
+    public void writePostpose(EquipmentRepairOrder entity, String userId) {
+        equipmentSparePartRequisitionService.saveLinkList(entity.getId(), entity.getSparePartRequisitionList());
+        super.writePostpose(entity, userId);
+    }
+
+    @Override
+    public void deletePreExecution(EquipmentRepairOrder entity) {
+        equipmentSparePartRequisitionService.deleteByPId(entity.getId());
+    }
+
+    @Override
     public void validatorEntity(EquipmentRepairOrder entity) {
         super.validatorEntity(entity);
         // 判断equipmentId是否存在
@@ -150,6 +165,7 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
         }
         equipmentService.setMationForMap(beans, "equipmentId", "equipmentMation");
         iAuthUserService.setMationForMap(beans, "userId", "userMation");
+        supplierService.setMationForMap(beans, "supplierId", "supplierMation");
         List<String> staffIds = beans.stream()
             .map(bean -> bean.get("staffId"))
             .filter(Objects::nonNull)

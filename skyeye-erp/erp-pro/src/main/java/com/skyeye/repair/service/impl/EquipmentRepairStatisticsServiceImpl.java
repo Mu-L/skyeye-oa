@@ -4,13 +4,10 @@
 
 package com.skyeye.repair.service.impl;
 
-import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.entity.search.TableSelectInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -19,6 +16,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.equipment.service.EquipmentService;
 import com.skyeye.repair.dao.EquipmentRepairOrderDao;
 import com.skyeye.repair.entity.EquipmentRepairOrder;
+import com.skyeye.repair.service.EquipmentRepairOrderService;
 import com.skyeye.repair.service.EquipmentRepairStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -29,7 +27,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -39,8 +36,7 @@ import java.util.stream.Collectors;
  * @Copyright 2026 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  */
 @Service
-public class EquipmentRepairStatisticsServiceImpl extends SkyeyeBusinessServiceImpl<EquipmentRepairOrderDao, EquipmentRepairOrder>
-    implements EquipmentRepairStatisticsService {
+public class EquipmentRepairStatisticsServiceImpl implements EquipmentRepairStatisticsService {
 
     /**
      * 空值或缺失数据归类显示名称
@@ -48,7 +44,13 @@ public class EquipmentRepairStatisticsServiceImpl extends SkyeyeBusinessServiceI
     private static final String OTHER_LABEL = "其他";
 
     @Autowired
+    private EquipmentRepairOrderDao equipmentRepairOrderDao;
+
+    @Autowired
     private EquipmentService equipmentService;
+
+    @Autowired
+    private EquipmentRepairOrderService equipmentRepairOrderService;
 
     @Override
     public void queryRepairMonthlyTrendStats(InputObject inputObject, OutputObject outputObject) {
@@ -64,10 +66,10 @@ public class EquipmentRepairStatisticsServiceImpl extends SkyeyeBusinessServiceI
             queryWrapper.le(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getDispatchTime), endTime);
         }
 
-        long total = count(queryWrapper);
+        long total = equipmentRepairOrderDao.selectCount(queryWrapper);
 
         Map<String, Long> monthCountMap = new HashMap<>();
-        List<EquipmentRepairOrder> orderList = list(queryWrapper);
+        List<EquipmentRepairOrder> orderList = equipmentRepairOrderDao.selectList(queryWrapper);
         for (EquipmentRepairOrder order : orderList) {
             String ymKey = null;
             String dispatchTime = order.getDispatchTime();
@@ -128,9 +130,9 @@ public class EquipmentRepairStatisticsServiceImpl extends SkyeyeBusinessServiceI
     public void queryRepairStatsByEquipmentName(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<EquipmentRepairOrder> queryWrapper = new QueryWrapper<>();
 
-        long total = count(queryWrapper);
+        long total = equipmentRepairOrderDao.selectCount(queryWrapper);
 
-        List<EquipmentRepairOrder> orderList = list(queryWrapper);
+        List<EquipmentRepairOrder> orderList = equipmentRepairOrderDao.selectList(queryWrapper);
         equipmentService.setDataMation(orderList, EquipmentRepairOrder::getEquipmentId);
 
         Map<String, Long> nameCountMap = new HashMap<>();
@@ -162,41 +164,7 @@ public class EquipmentRepairStatisticsServiceImpl extends SkyeyeBusinessServiceI
     }
 
     @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        if (CollectionUtil.isEmpty(beans)) {
-            return beans;
-        }
-        equipmentService.setMationForMap(beans, "equipmentId", "equipmentMation");
-        iAuthUserService.setMationForMap(beans, "userId", "userMation");
-        List<String> staffIds = beans.stream()
-            .map(bean -> bean.get("staffId"))
-            .filter(Objects::nonNull)
-            .map(Object::toString)
-            .filter(StrUtil::isNotEmpty)
-            .distinct()
-            .collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(staffIds)) {
-            Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
-            beans.forEach(bean -> {
-                Object staffId = bean.get("staffId");
-                if (staffId != null && StrUtil.isNotEmpty(staffId.toString())) {
-                    bean.put("staffMation", staffMap.get(staffId.toString()));
-                }
-            });
-        }
-        return beans;
-    }
-
-    @Override
-    protected QueryWrapper<EquipmentRepairOrder> getQueryWrapper(CommonPageInfo commonPageInfo) {
-        QueryWrapper<EquipmentRepairOrder> queryWrapper = super.getQueryWrapper(commonPageInfo);
-        if (StrUtil.isNotEmpty(commonPageInfo.getState())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getState), commonPageInfo.getState());
-        }
-        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
-            queryWrapper.eq(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEquipmentId), commonPageInfo.getObjectId());
-        }
-        return queryWrapper;
+    public void queryPageList(InputObject inputObject, OutputObject outputObject) {
+        equipmentRepairOrderService.queryPageList(inputObject, outputObject);
     }
 }
