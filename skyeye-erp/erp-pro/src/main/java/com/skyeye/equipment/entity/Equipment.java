@@ -32,6 +32,30 @@ import java.util.Map;
 @ApiModel("设备管理实体类")
 public class Equipment extends BaseGeneralInfo {
 
+    @TableField(value = "odd_number")
+    @ApiModelProperty(value = "设备编码", required = "required")
+    private String oddNumber;
+
+    @TableField(value = "equipment_type_id")
+    @ApiModelProperty(value = "设备类型id")
+    private String equipmentTypeId;
+
+    @TableField(value = "equipment_type_name")
+    @ApiModelProperty(value = "设备类型名称")
+    private String equipmentTypeName;
+
+    @TableField(value = "equipment_state")
+    @ApiModelProperty(value = "设备状态")
+    private String equipmentState;
+
+    @TableField(value = "equipment_img")
+    @ApiModelProperty(value = "设备图片")
+    private String equipmentImg;
+
+    @TableField(value = "technical_manual")
+    @ApiModelProperty(value = "设备技术手册")
+    private String technicalManual;
+
     @TableField(value = "model")
     @ApiModelProperty(value = "规格", required = "required", fuzzyLike = true)
     private String model;
@@ -47,6 +71,10 @@ public class Equipment extends BaseGeneralInfo {
     @TableField(value = "buy_time")
     @ApiModelProperty(value = "购买日期", required = "required")
     private String buyTime;
+
+    @TableField(value = "enable_time")
+    @ApiModelProperty(value = "启用日期")
+    private String enableTime;
 
     @TableField(value = "operating_hours")
     @ApiModelProperty(value = "每日运转时长")
@@ -64,6 +92,14 @@ public class Equipment extends BaseGeneralInfo {
     @ApiModelProperty(value = "车间id", required = "required")
     private String farmId;
 
+    @TableField(value = "install_address")
+    @ApiModelProperty(value = "安装地点")
+    private String installAddress;
+
+    @TableField(value = "responsible_id")
+    @ApiModelProperty(value = "设备负责人id")
+    private String responsibleId;
+
     @TableField(value = "unit_price")
     @ApiModelProperty(value = "单价",required = "required")
     private String unitPrice;
@@ -71,6 +107,10 @@ public class Equipment extends BaseGeneralInfo {
     @TableField(value = "project_id")
     @ApiModelProperty(value = "项目id")
     private String projectId;
+
+    @TableField(value = "supplier_id")
+    @ApiModelProperty(value = "供应商id")
+    private String supplierId;
 
     @TableField(exist = false)
     @Property(value = "项目信息")
