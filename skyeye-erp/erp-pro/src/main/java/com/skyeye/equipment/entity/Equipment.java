@@ -13,6 +13,8 @@ import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.equipment.classenum.EquipmentState;
+import com.skyeye.farm.entity.Farm;
+import com.skyeye.supplier.entity.Supplier;
 import lombok.Data;
 
 import java.util.Map;
@@ -111,5 +113,17 @@ public class Equipment extends BaseGeneralInfo {
     @TableField(exist = false)
     @Property(value = "项目信息")
     private Map<String,Object> projectMation;
+
+    @TableField(exist = false)
+    @Property(value = "车间信息")
+    private Farm farmMation;
+
+    @TableField(exist = false)
+    @Property(value = "设备负责人信息")
+    private Map<String, Object> responsibleMation;
+
+    @TableField(exist = false)
+    @Property(value = "供应商信息")
+    private Supplier supplierMation;
 
 }
