@@ -12,7 +12,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
-import com.skyeye.farm.entity.Farm;
+import com.skyeye.equipment.classenum.EquipmentState;
 import lombok.Data;
 
 import java.util.Map;
@@ -45,8 +45,8 @@ public class Equipment extends BaseGeneralInfo {
     private String equipmentTypeName;
 
     @TableField(value = "equipment_state")
-    @ApiModelProperty(value = "设备状态")
-    private String equipmentState;
+    @ApiModelProperty(value = "设备状态", enumClass = EquipmentState.class, required = "required,num")
+    private Integer equipmentState;
 
     @TableField(value = "equipment_img")
     @ApiModelProperty(value = "设备图片")
@@ -92,10 +92,6 @@ public class Equipment extends BaseGeneralInfo {
     @ApiModelProperty(value = "车间id", required = "required")
     private String farmId;
 
-    @TableField(value = "install_address")
-    @ApiModelProperty(value = "安装地点")
-    private String installAddress;
-
     @TableField(value = "responsible_id")
     @ApiModelProperty(value = "设备负责人id")
     private String responsibleId;
@@ -115,9 +111,5 @@ public class Equipment extends BaseGeneralInfo {
     @TableField(exist = false)
     @Property(value = "项目信息")
     private Map<String,Object> projectMation;
-
-    @TableField(exist = false)
-    @Property(value = "车间信息")
-    private Farm farmMation;
 
 }
