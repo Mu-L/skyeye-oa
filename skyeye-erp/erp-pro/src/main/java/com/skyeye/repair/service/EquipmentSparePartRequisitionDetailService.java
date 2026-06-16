@@ -4,7 +4,7 @@
 
 package com.skyeye.repair.service;
 
-import com.skyeye.base.business.service.SkyeyeLinkDataService;
+import com.skyeye.base.business.service.SkyeyeBusinessService;
 import com.skyeye.repair.entity.EquipmentSparePartRequisitionDetail;
 
 import java.util.List;
@@ -12,9 +12,13 @@ import java.util.List;
 /**
  * 备件领用明细
  */
-public interface EquipmentSparePartRequisitionDetailService extends SkyeyeLinkDataService<EquipmentSparePartRequisitionDetail> {
+public interface EquipmentSparePartRequisitionDetailService extends SkyeyeBusinessService<EquipmentSparePartRequisitionDetail> {
+
+    void saveList(String parentId, List<EquipmentSparePartRequisitionDetail> beans);
+
+    void deleteByParentId(String parentId);
+
+    List<EquipmentSparePartRequisitionDetail> selectByParentId(String parentId);
 
     String calcOrderAllTotalPrice(List<EquipmentSparePartRequisitionDetail> detailList);
-
-    List<EquipmentSparePartRequisitionDetail> selectByPIds(List<String> pIds);
 }

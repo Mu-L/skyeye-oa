@@ -19,9 +19,6 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 备件领用单主表（关联 erp 仓库、设备维修单、sys 用户/部门、明细一对多 erp_material）
- */
 @Data
 @RedisCacheField(name = "seal:repair:spareRequisition", cacheTime = RedisConstants.THIRTY_DAY_SECONDS)
 @TableName(value = "erp_equipment_spare_part_requisition")
@@ -35,10 +32,6 @@ public class EquipmentSparePartRequisition extends SkyeyeLinkData {
     @TableField(exist = false)
     @Property(value = "设备维修单信息")
     private EquipmentRepairOrder repairOrderMation;
-
-    @TableField(value = "odd_number")
-    @Property(value = "备件领用单编号", fuzzyLike = true)
-    private String oddNumber;
 
     @TableField(value = "depot_id")
     @ApiModelProperty(value = "出库仓库ID，关联 erp 仓库 depot")

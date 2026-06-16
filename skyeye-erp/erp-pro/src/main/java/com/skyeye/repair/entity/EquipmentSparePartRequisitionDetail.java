@@ -5,27 +5,36 @@
 package com.skyeye.repair.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
-import com.skyeye.common.entity.features.SkyeyeLinkData;
+import com.skyeye.common.entity.CommonInfo;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.Map;
 
-/**
- * 备件领用明细（备件 erp_material 一对多子表）
- */
 @Data
 @TableName(value = "erp_equipment_spare_part_requisition_detail")
 @ApiModel("备件领用明细实体类")
-public class EquipmentSparePartRequisitionDetail extends SkyeyeLinkData {
+public class EquipmentSparePartRequisitionDetail extends CommonInfo {
+
+    @TableId("id")
+    private String id;
+
+    @TableField("parent_id")
+    @Property(value = "维修单ID")
+    private String parentId;
+
+    @TableField("requisition_id")
+    @Property(value = "备件领用单ID")
+    private String requisitionId;
 
     @TableField(value = "material_id")
     @ApiModelProperty(value = "商品ID，erp_material.id")
-        private String materialId;
+    private String materialId;
 
     @TableField(exist = false)
     @Property(value = "商品信息")
@@ -41,7 +50,11 @@ public class EquipmentSparePartRequisitionDetail extends SkyeyeLinkData {
 
     @TableField(value = "apply_qty")
     @ApiModelProperty(value = "领用数量", required = "required,num")
-    private BigDecimal operNumber;
+    private Integer operNumber;
+
+    @TableField(value = "requisition_reason")
+    @ApiModelProperty(value = "领用原因")
+    private String requisitionReason;
 
     @TableField(value = "unit_price")
     @ApiModelProperty(value = "出库单价(元)，来源于备件/规格档案，保存时回填")
