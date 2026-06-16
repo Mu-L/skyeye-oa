@@ -40,28 +40,6 @@ public class EquipmentCheckOrderServiceImpl extends SkyeyeBusinessServiceImpl<Eq
     private EquipmentService equipmentService;
 
     @Override
-    public EquipmentCheckOrder selectById(String id) {
-        EquipmentCheckOrder order = super.selectById(id);
-        if (order == null) {
-            return null;
-        }
-        equipmentService.setDataMation(order, EquipmentCheckOrder::getEquipmentId);
-        iAuthUserService.setDataMation(order, EquipmentCheckOrder::getCheckerId);
-        return order;
-    }
-
-    @Override
-    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
-        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        if (CollectionUtil.isEmpty(beans)) {
-            return beans;
-        }
-        equipmentService.setMationForMap(beans, "equipmentId", "equipmentMation");
-        iAuthUserService.setMationForMap(beans, "checkerId", "checkerMation");
-        return beans;
-    }
-
-    @Override
     protected QueryWrapper<EquipmentCheckOrder> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<EquipmentCheckOrder> queryWrapper = super.getQueryWrapper(commonPageInfo);
         if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
@@ -116,6 +94,25 @@ public class EquipmentCheckOrderServiceImpl extends SkyeyeBusinessServiceImpl<Eq
         if (CollectionUtil.isNotEmpty(ids)) {
             ids.forEach(equipmentCheckOrderItemService::deleteByParentId);
         }
+    }
+
+    @Override
+    public EquipmentCheckOrder selectById(String id) {
+        EquipmentCheckOrder order = super.selectById(id);
+        equipmentService.setDataMation(order, EquipmentCheckOrder::getEquipmentId);
+        iAuthUserService.setDataMation(order, EquipmentCheckOrder::getCheckerId);
+        return order;
+    }
+
+    @Override
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        if (CollectionUtil.isEmpty(beans)) {
+            return beans;
+        }
+        equipmentService.setMationForMap(beans, "equipmentId", "equipmentMation");
+        iAuthUserService.setMationForMap(beans, "checkerId", "checkerMation");
+        return beans;
     }
 
     //统计今日点检设备分布、今日点检设备次数、今日未点检设备分布

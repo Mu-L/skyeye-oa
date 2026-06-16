@@ -43,11 +43,11 @@ public class Quit extends SkyeyeFlowable {
     private String remark;
 
     @TableField(value = "manager_transfer_staff_id")
-    @ApiModelProperty(value = "经理转让交接人(员工id)")
-    private String managerTransferStaffId;
+    @ApiModelProperty(value = "经理转让交接人(用户id)")
+    private String managerTransferUserId;
 
     @TableField(exist = false)
     @Property(value = "经理转让交接人信息")
-    private Map<String, Object> managerTransferStaffMation;
+    private Map<String, Object> managerTransferUserMation;
 
 }

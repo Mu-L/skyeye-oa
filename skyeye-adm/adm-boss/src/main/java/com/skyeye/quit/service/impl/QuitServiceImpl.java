@@ -28,7 +28,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,26 +69,17 @@ public class QuitServiceImpl extends SkyeyeBusinessServiceImpl<QuitDao, Quit> im
     public Quit selectById(String id) {
         Quit quit = super.selectById(id);
         iAuthUserService.setName(quit, "createId", "createName");
-        if (StrUtil.isNotEmpty(quit.getManagerTransferStaffId())) {
-            Map<String, Map<String, Object>> staffMap = iAuthUserService
-                .queryUserMationListByStaffIds(Arrays.asList(quit.getManagerTransferStaffId()));
-            quit.setManagerTransferStaffMation(staffMap.get(quit.getManagerTransferStaffId()));
-        }
+        iAuthUserService.setDataMation(quit, Quit::getManagerTransferUserId);
         return quit;
     }
 
     @Override
     protected void approvalEndIsSuccess(Quit entity) {
-        if (StrUtil.isNotEmpty(entity.getManagerTransferStaffId())) {
-            Map<String, Map<String, Object>> staffMap = iAuthUserService
-                .queryUserMationListByStaffIds(Arrays.asList(entity.getManagerTransferStaffId()));
-            Map<String, Object> toStaff = staffMap.get(entity.getManagerTransferStaffId());
-            if (CollectionUtil.isNotEmpty(toStaff) && toStaff.get("id") != null) {
-                Map<String, Object> params = new HashMap<>();
-                params.put("fromUserId", entity.getCreateId());
-                params.put("toUserId", toStaff.get("id").toString());
-                ExecuteFeignClient.get(() -> teamBusinessRestService.transferAllChargeUser(params));
-            }
+        if (StrUtil.isNotEmpty(entity.getManagerTransferUserId())) {
+            Map<String, Object> params = new HashMap<>();
+            params.put("fromUserId", entity.getCreateId());
+            params.put("toUserId", entity.getManagerTransferUserId());
+            ExecuteFeignClient.get(() -> teamBusinessRestService.transferAllChargeUser(params));
         }
 
         Map<String, Object> userMation = iAuthUserService.queryDataMationById(entity.getCreateId());

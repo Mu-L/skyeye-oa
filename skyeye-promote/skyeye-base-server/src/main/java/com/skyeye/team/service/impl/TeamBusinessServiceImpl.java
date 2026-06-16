@@ -37,9 +37,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -234,43 +237,56 @@ public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusines
             outputObject.settotal(CommonNumConstants.NUM_ZERO);
             return;
         }
+        List<String> teamIds = teamList.stream().map(TeamBusiness::getId).collect(Collectors.toList());
         String serviceClassName = getServiceClassName();
-        for (TeamBusiness team : teamList) {
-            String teamId = team.getId();
-            TeamBusiness updateEntity = new TeamBusiness();
-            updateEntity.setId(teamId);
-            updateEntity.setChargeUser(toUserId);
-            updateById(updateEntity);
 
-            QueryWrapper<TeamRoleUser> removeWrapper = new QueryWrapper<>();
-            removeWrapper.eq(MybatisPlusUtil.toColumns(TeamRoleUser::getTeamId), teamId);
-            removeWrapper.eq(MybatisPlusUtil.toColumns(TeamRoleUser::getUserId), fromUserId);
-            teamRoleUserService.remove(removeWrapper);
+        UpdateWrapper<TeamBusiness> businessWrapper = new UpdateWrapper<>();
+        businessWrapper.in(CommonConstants.ID, teamIds);
+        businessWrapper.set(MybatisPlusUtil.toColumns(TeamBusiness::getChargeUser), toUserId);
+        update(businessWrapper);
 
-            QueryWrapper<TeamRoleUser> existsWrapper = new QueryWrapper<>();
-            existsWrapper.eq(MybatisPlusUtil.toColumns(TeamRoleUser::getTeamId), teamId);
-            existsWrapper.eq(MybatisPlusUtil.toColumns(TeamRoleUser::getUserId), toUserId);
-            if (teamRoleUserService.count(existsWrapper) == 0) {
-                Map<String, List<TeamRole>> roleMap = teamRoleService.queryTeamRoleByTeamIds(teamId);
+        QueryWrapper<TeamRoleUser> removeWrapper = new QueryWrapper<>();
+        removeWrapper.in(MybatisPlusUtil.toColumns(TeamRoleUser::getTeamId), teamIds);
+        removeWrapper.eq(MybatisPlusUtil.toColumns(TeamRoleUser::getUserId), fromUserId);
+        teamRoleUserService.remove(removeWrapper);
+
+        QueryWrapper<TeamRoleUser> existsWrapper = new QueryWrapper<>();
+        existsWrapper.in(MybatisPlusUtil.toColumns(TeamRoleUser::getTeamId), teamIds);
+        existsWrapper.eq(MybatisPlusUtil.toColumns(TeamRoleUser::getUserId), toUserId);
+        Set<String> teamIdsWithToUser = teamRoleUserService.list(existsWrapper).stream()
+            .map(TeamRoleUser::getTeamId).collect(Collectors.toCollection(HashSet::new));
+
+        List<String> teamIdsNeedRoleUser = teamIds.stream()
+            .filter(teamId -> !teamIdsWithToUser.contains(teamId))
+            .collect(Collectors.toList());
+        if (CollectionUtil.isNotEmpty(teamIdsNeedRoleUser)) {
+            Map<String, List<TeamRole>> roleMap = teamRoleService.queryTeamRoleByTeamIds(
+                teamIdsNeedRoleUser.toArray(new String[0]));
+            List<TeamRoleUser> newRoleUsers = new ArrayList<>();
+            for (String teamId : teamIdsNeedRoleUser) {
                 List<TeamRole> roles = roleMap.get(teamId);
-                if (CollectionUtil.isNotEmpty(roles)) {
-                    TeamRoleUser roleUser = new TeamRoleUser();
-                    roleUser.setTeamId(teamId);
-                    roleUser.setTeamKey(serviceClassName);
-                    roleUser.setUserId(toUserId);
-                    roleUser.setRoleId(roles.get(0).getRoleId());
-                    teamRoleUserService.createEntity(roleUser, operatorUserId);
+                if (CollectionUtil.isEmpty(roles)) {
+                    continue;
                 }
+                TeamRoleUser roleUser = new TeamRoleUser();
+                roleUser.setTeamId(teamId);
+                roleUser.setTeamKey(serviceClassName);
+                roleUser.setUserId(toUserId);
+                roleUser.setRoleId(roles.get(0).getRoleId());
+                newRoleUsers.add(roleUser);
             }
-
-            UpdateWrapper<TeamObjectPermission> permissionWrapper = new UpdateWrapper<>();
-            permissionWrapper.eq(MybatisPlusUtil.toColumns(TeamObjectPermission::getTeamId), teamId);
-            permissionWrapper.eq(MybatisPlusUtil.toColumns(TeamObjectPermission::getOwnerId), fromUserId);
-            permissionWrapper.set(MybatisPlusUtil.toColumns(TeamObjectPermission::getOwnerId), toUserId);
-            teamObjectPermissionService.update(permissionWrapper);
-
-            refreshCache(teamId);
+            if (CollectionUtil.isNotEmpty(newRoleUsers)) {
+                teamRoleUserService.createEntity(newRoleUsers, operatorUserId);
+            }
         }
+
+        UpdateWrapper<TeamObjectPermission> permissionWrapper = new UpdateWrapper<>();
+        permissionWrapper.in(MybatisPlusUtil.toColumns(TeamObjectPermission::getTeamId), teamIds);
+        permissionWrapper.eq(MybatisPlusUtil.toColumns(TeamObjectPermission::getOwnerId), fromUserId);
+        permissionWrapper.set(MybatisPlusUtil.toColumns(TeamObjectPermission::getOwnerId), toUserId);
+        teamObjectPermissionService.update(permissionWrapper);
+
+        refreshCache(teamIds);
         outputObject.settotal(teamList.size());
     }
 }
