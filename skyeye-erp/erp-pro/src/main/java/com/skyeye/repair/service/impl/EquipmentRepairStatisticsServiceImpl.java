@@ -4,7 +4,6 @@
 
 package com.skyeye.repair.service.impl;
 
-import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -21,7 +20,6 @@ import com.skyeye.repair.service.EquipmentRepairStatisticsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,18 +28,13 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * 报修维修统计服务层（看板本月区间等仍按报修时间 {@link DateUtil#YYYY_MM_DD_HH_MM} 计算）
+ * 报修维修统计服务层（月度趋势按派工时间 {@link EquipmentRepairOrder#getDispatchTime()} 统计）
  *
  * @author skyeye云系列--卫志强
  * @Copyright 2026 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
  */
 @Service
 public class EquipmentRepairStatisticsServiceImpl implements EquipmentRepairStatisticsService {
-
-    /**
-     * 空值或缺失数据归类显示名称
-     */
-    private static final String OTHER_LABEL = "其他";
 
     @Autowired
     private EquipmentRepairOrderDao equipmentRepairOrderDao;
@@ -55,66 +48,43 @@ public class EquipmentRepairStatisticsServiceImpl implements EquipmentRepairStat
     @Override
     public void queryRepairMonthlyTrendStats(InputObject inputObject, OutputObject outputObject) {
         TableSelectInfo tableSelectInfo = inputObject.getParams(TableSelectInfo.class);
-        String startTime = tableSelectInfo.getStartTime();
-        String endTime = tableSelectInfo.getEndTime();
+        String startTime;
+        String endTime;
+        if (StrUtil.isNotEmpty(tableSelectInfo.getStartTime()) && StrUtil.isNotEmpty(tableSelectInfo.getEndTime())) {
+            startTime = tableSelectInfo.getStartTime();
+            endTime = tableSelectInfo.getEndTime();
+        } else {
+            startTime = DateUtil.formatDate2Str(
+                DateUtil.getAfDate(DateUtil.getPointTime(DateUtil.getYmdTimeAndToString(), DateUtil.YYYY_MM_DD), -30, "d"),
+                DateUtil.YYYY_MM_DD);
+            endTime = DateUtil.getYmdTimeAndToString();
+        }
+
+        String startMonth = DateUtil.formatDate2Str(DateUtil.getPointTime(startTime, DateUtil.YYYY_MM_DD), DateUtil.YYYY_MM);
+        String endMonth = DateUtil.formatDate2Str(DateUtil.getPointTime(endTime, DateUtil.YYYY_MM_DD), DateUtil.YYYY_MM);
+        List<String> monthList = DateUtil.getMonth(startMonth, endMonth);
 
         QueryWrapper<EquipmentRepairOrder> queryWrapper = new QueryWrapper<>();
-        if (StrUtil.isNotEmpty(startTime)) {
-            queryWrapper.ge(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getDispatchTime), startTime);
-        }
-        if (StrUtil.isNotEmpty(endTime)) {
-            queryWrapper.le(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getDispatchTime), endTime);
-        }
+        queryWrapper.ge(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getDispatchTime), startTime)
+            .le(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getDispatchTime), endTime);
 
-        long total = equipmentRepairOrderDao.selectCount(queryWrapper);
-
-        Map<String, Long> monthCountMap = new HashMap<>();
         List<EquipmentRepairOrder> orderList = equipmentRepairOrderDao.selectList(queryWrapper);
-        for (EquipmentRepairOrder order : orderList) {
-            String ymKey = null;
-            String dispatchTime = order.getDispatchTime();
-            if (StrUtil.isNotEmpty(dispatchTime)) {
-                try {
-                    String normalized = DateUtil.formatDate(dispatchTime);
-                    String pattern = normalized.length() >= 19 ? DateUtil.YYYY_MM_DD_HH_MM_SS
-                        : (normalized.length() >= 16 ? DateUtil.YYYY_MM_DD_HH_MM : DateUtil.YYYY_MM_DD);
-                    Date date = DateUtil.getPointTime(normalized, pattern);
-                    ymKey = DateUtil.formatDate2Str(date, DateUtil.YYYY_MM);
-                } catch (Exception ex) {
-                    ymKey = null;
-                }
-            }
-            monthCountMap.put(ymKey, monthCountMap.getOrDefault(ymKey, 0L) + 1);
-        }
+        long total = orderList.size();
 
-        List<String> monthOrder = monthCountMap.keySet().stream()
-            .filter(ym -> ym != null)
-            .sorted()
-            .collect(Collectors.toList());
+        Map<String, Long> monthCountMap = orderList.stream()
+            .filter(order -> StrUtil.isNotEmpty(order.getDispatchTime()))
+            .collect(Collectors.groupingBy(order -> {
+                Date pointTime = DateUtil.getPointTime(order.getDispatchTime(), DateUtil.YYYY_MM_DD);
+                return DateUtil.formatDate2Str(pointTime, DateUtil.YYYY_MM);
+            }, Collectors.counting()));
+
         List<String> xAxisData = new ArrayList<>();
         List<Long> seriesData = new ArrayList<>();
-        for (String ym : monthOrder) {
-            String monthLabel;
-            if (StrUtil.isEmpty(ym)) {
-                monthLabel = ym;
-            } else {
-                try {
-                    Date ymDate = DateUtil.getPointTime(ym, DateUtil.YYYY_MM);
-                    monthLabel = new SimpleDateFormat("yyyy年MM月").format(ymDate);
-                } catch (Exception ex) {
-                    monthLabel = ym;
-                }
-            }
-            xAxisData.add(monthLabel);
-            seriesData.add(monthCountMap.getOrDefault(ym, 0L));
-        }
-        long otherCount = monthCountMap.entrySet().stream()
-            .filter(e -> e.getKey() == null)
-            .mapToLong(Map.Entry::getValue)
-            .sum();
-        if (otherCount > 0) {
-            xAxisData.add(OTHER_LABEL);
-            seriesData.add(otherCount);
+        Long defaultValue = Long.valueOf(CommonNumConstants.NUM_ZERO);
+        for (String ym : monthList) {
+            Date ymDate = DateUtil.getPointTime(ym, DateUtil.YYYY_MM);
+            xAxisData.add(DateUtil.formatDate2Str(ymDate, "yyyy年MM月"));
+            seriesData.add(monthCountMap.getOrDefault(ym, defaultValue));
         }
 
         Map<String, Object> result = new HashMap<>();
@@ -130,27 +100,31 @@ public class EquipmentRepairStatisticsServiceImpl implements EquipmentRepairStat
     public void queryRepairStatsByEquipmentName(InputObject inputObject, OutputObject outputObject) {
         QueryWrapper<EquipmentRepairOrder> queryWrapper = new QueryWrapper<>();
 
-        long total = equipmentRepairOrderDao.selectCount(queryWrapper);
-
         List<EquipmentRepairOrder> orderList = equipmentRepairOrderDao.selectList(queryWrapper);
+        long total = orderList.size();
+
         equipmentService.setDataMation(orderList, EquipmentRepairOrder::getEquipmentId);
 
-        Map<String, Long> nameCountMap = new HashMap<>();
+        // 按 equipmentId 分组统计
+        Map<String, Long> equipmentStats = orderList.stream()
+            .collect(Collectors.groupingBy(EquipmentRepairOrder::getEquipmentId, Collectors.counting()));
+
+        Map<String, String> equipmentIdToName = new HashMap<>();
         for (EquipmentRepairOrder order : orderList) {
-            String equipmentName = OTHER_LABEL;
-            if (StrUtil.isNotEmpty(order.getEquipmentId())) {
-                Map<String, Object> equipmentMation = order.getEquipmentMation();
-                if (equipmentMation != null && StrUtil.isNotEmpty(MapUtil.getStr(equipmentMation, "name"))) {
-                    equipmentName = MapUtil.getStr(equipmentMation, "name");
-                }
+            if (equipmentIdToName.containsKey(order.getEquipmentId())) {
+                continue;
             }
-            nameCountMap.put(equipmentName, nameCountMap.getOrDefault(equipmentName, 0L) + 1);
+            Map<String, Object> equipmentMation = order.getEquipmentMation();
+            String name = equipmentMation != null && StrUtil.isNotEmpty(String.valueOf(equipmentMation.get("name")))
+                ? String.valueOf(equipmentMation.get("name"))
+                : order.getEquipmentId();
+            equipmentIdToName.put(order.getEquipmentId(), name);
         }
 
         List<String> xAxisData = new ArrayList<>();
         List<Long> seriesData = new ArrayList<>();
-        for (Map.Entry<String, Long> entry : nameCountMap.entrySet()) {
-            xAxisData.add(entry.getKey());
+        for (Map.Entry<String, Long> entry : equipmentStats.entrySet()) {
+            xAxisData.add(equipmentIdToName.getOrDefault(entry.getKey(), entry.getKey()));
             seriesData.add(entry.getValue());
         }
 

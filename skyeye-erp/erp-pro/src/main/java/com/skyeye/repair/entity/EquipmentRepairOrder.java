@@ -163,5 +163,6 @@ public class EquipmentRepairOrder extends SkyeyeFlowable {
 
     @TableField(exist = false)
     @Property(value = "备件信息")
-    List<EquipmentSparePartRequisition> sparePartRequisitionList;
+    @ApiModelProperty(value = "备件领用单列表", required = "json")
+    private List<EquipmentSparePartRequisition> sparePartRequisitionList;
 }

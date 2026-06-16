@@ -10,9 +10,13 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
+import com.skyeye.common.constans.CommonNumConstants;
+import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
+import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.service.ErpDepotService;
 import com.skyeye.equipment.entity.Equipment;
 import com.skyeye.equipment.service.EquipmentService;
@@ -31,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -70,24 +75,19 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
     @Autowired
     private SupplierService supplierService;
 
+    @Override
+    protected QueryWrapper<EquipmentRepairOrder> getQueryWrapper(CommonPageInfo commonPageInfo) {
+        QueryWrapper<EquipmentRepairOrder> queryWrapper = super.getQueryWrapper(commonPageInfo);
+        if (StrUtil.isNotEmpty(commonPageInfo.getObjectId())) {
+            queryWrapper.eq(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEquipmentId), commonPageInfo.getObjectId());
+        }
+        return queryWrapper;
+    }
 
     @Override
     public EquipmentRepairOrder getDataFromDb(String id) {
         EquipmentRepairOrder order = super.getDataFromDb(id);
-        List<EquipmentSparePartRequisition> sparePartRequisitionList = equipmentSparePartRequisitionService.selectByPId(id);
-        if (CollectionUtil.isNotEmpty(sparePartRequisitionList)) {
-            List<String> requisitionIds = sparePartRequisitionList.stream()
-                    .map(EquipmentSparePartRequisition::getId)
-                    .collect(java.util.stream.Collectors.toList());
-            List<EquipmentSparePartRequisitionDetail> allDetails = equipmentSparePartRequisitionDetailService.selectByPIds(requisitionIds);
-            java.util.Map<String, List<EquipmentSparePartRequisitionDetail>> detailsMap = allDetails.stream()
-                    .collect(java.util.stream.Collectors.groupingBy(EquipmentSparePartRequisitionDetail::getParentId));
-            sparePartRequisitionList.forEach(bean -> {
-                List<EquipmentSparePartRequisitionDetail> detailList = detailsMap.getOrDefault(bean.getId(), new java.util.ArrayList<>());
-                bean.setDetailList(detailList);
-            });
-        }
-        order.setSparePartRequisitionList(sparePartRequisitionList);
+        order.setSparePartRequisitionList(equipmentSparePartRequisitionService.selectByPId(id));
         return order;
     }
 
@@ -147,13 +147,43 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
     @Override
     public void validatorEntity(EquipmentRepairOrder entity) {
         super.validatorEntity(entity);
-        // 判断equipmentId是否存在
         if (StrUtil.isNotEmpty(entity.getEquipmentId())) {
             Equipment equipment = equipmentService.selectById(entity.getEquipmentId());
-            // 判断equipmentId是否为空，如果为空，则抛出异常
             if (equipment == null || equipment.getId() == null) {
                 throw new CustomException("设备不存在: " + entity.getEquipmentId());
             }
+        }
+        if (CollectionUtil.isNotEmpty(entity.getSparePartRequisitionList())) {
+            entity.getSparePartRequisitionList().forEach(bean -> {
+                if (CollectionUtil.isEmpty(bean.getDetailList())) {
+                    throw new CustomException("请至少填写一条领用明细");
+                }
+            });
+        }
+        getSparePartRequisitionTotalPrice(entity);
+    }
+
+    private void getSparePartRequisitionTotalPrice(EquipmentRepairOrder entity) {
+        if (CollectionUtil.isEmpty(entity.getSparePartRequisitionList())) {
+            return;
+        }
+        List<EquipmentSparePartRequisitionDetail> allDetailList = entity.getSparePartRequisitionList().stream()
+            .filter(bean -> CollectionUtil.isNotEmpty(bean.getDetailList()))
+            .flatMap(bean -> bean.getDetailList().stream())
+            .collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(allDetailList)) {
+            return;
+        }
+        equipmentSparePartRequisitionDetailService.calcOrderAllTotalPrice(allDetailList);
+        for (EquipmentSparePartRequisition requisition : entity.getSparePartRequisitionList()) {
+            if (CollectionUtil.isEmpty(requisition.getDetailList())) {
+                continue;
+            }
+            String totalPrice = CommonNumConstants.NUM_ZERO.toString();
+            for (EquipmentSparePartRequisitionDetail detail : requisition.getDetailList()) {
+                totalPrice = CalculationUtil.add(totalPrice, detail.getAllPrice().toString());
+            }
+            requisition.setTotalAmount(new BigDecimal(totalPrice));
         }
     }
 

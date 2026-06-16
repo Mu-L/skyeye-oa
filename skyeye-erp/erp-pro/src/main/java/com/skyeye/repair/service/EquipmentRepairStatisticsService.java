@@ -20,7 +20,7 @@ public interface EquipmentRepairStatisticsService {
     void queryRepairMonthlyTrendStats(InputObject inputObject, OutputObject outputObject);
 
     /**
-     * 按设备名称统计维修单数（全量，不按起止时间筛选；xAxisData + seriesData + total）
+     * 按设备 id 统计维修单数
      */
     void queryRepairStatsByEquipmentName(InputObject inputObject, OutputObject outputObject);
 
