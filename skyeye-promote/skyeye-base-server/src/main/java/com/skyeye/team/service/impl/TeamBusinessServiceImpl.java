@@ -35,7 +35,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -231,19 +234,23 @@ public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusines
             outputObject.settotal(CommonNumConstants.NUM_ZERO);
             return;
         }
-        List<String> teamIds = teamList.stream().map(TeamBusiness::getId).collect(Collectors.toList());
+        List<String> chargeTeamIds = teamList.stream().map(TeamBusiness::getId).collect(Collectors.toList());
+        List<String> memberTeamIds = teamRoleUserService.getTeamIdsByUserId(fromUserId);
+        Set<String> clearTeamIdSet = new HashSet<>(chargeTeamIds);
+        clearTeamIdSet.addAll(memberTeamIds);
+        List<String> clearTeamIds = new ArrayList<>(clearTeamIdSet);
 
         UpdateWrapper<TeamBusiness> businessWrapper = new UpdateWrapper<>();
-        businessWrapper.in(CommonConstants.ID, teamIds);
+        businessWrapper.in(CommonConstants.ID, chargeTeamIds);
         businessWrapper.set(MybatisPlusUtil.toColumns(TeamBusiness::getChargeUser), toUserId);
         update(businessWrapper);
 
         QueryWrapper<TeamRoleUser> removeWrapper = new QueryWrapper<>();
-        removeWrapper.in(MybatisPlusUtil.toColumns(TeamRoleUser::getTeamId), teamIds);
+        removeWrapper.in(MybatisPlusUtil.toColumns(TeamRoleUser::getTeamId), clearTeamIds);
         removeWrapper.eq(MybatisPlusUtil.toColumns(TeamRoleUser::getUserId), fromUserId);
         teamRoleUserService.remove(removeWrapper);
 
-        refreshCache(teamIds);
+        clearCache(clearTeamIds);
         outputObject.settotal(teamList.size());
     }
 }
