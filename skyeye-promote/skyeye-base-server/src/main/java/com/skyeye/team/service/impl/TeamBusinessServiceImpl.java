@@ -26,8 +26,6 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.team.dao.TeamBusinessDao;
 import com.skyeye.team.entity.TeamBusiness;
-import com.skyeye.team.entity.TeamObjectPermission;
-import com.skyeye.team.entity.TeamRole;
 import com.skyeye.team.entity.TeamRoleUser;
 import com.skyeye.team.entity.TeamTemplate;
 import com.skyeye.team.service.ITeamBusinessService;
@@ -37,12 +35,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -226,7 +221,6 @@ public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusines
         Map<String, Object> params = inputObject.getParams();
         String fromUserId = params.get("fromUserId").toString();
         String toUserId = params.get("toUserId").toString();
-        String operatorUserId = inputObject.getLogParams().get(CommonConstants.ID).toString();
         if (StrUtil.equals(fromUserId, toUserId)) {
             throw new CustomException("交接人不能为本人.");
         }
@@ -238,7 +232,6 @@ public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusines
             return;
         }
         List<String> teamIds = teamList.stream().map(TeamBusiness::getId).collect(Collectors.toList());
-        String serviceClassName = getServiceClassName();
 
         UpdateWrapper<TeamBusiness> businessWrapper = new UpdateWrapper<>();
         businessWrapper.in(CommonConstants.ID, teamIds);
@@ -249,42 +242,6 @@ public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusines
         removeWrapper.in(MybatisPlusUtil.toColumns(TeamRoleUser::getTeamId), teamIds);
         removeWrapper.eq(MybatisPlusUtil.toColumns(TeamRoleUser::getUserId), fromUserId);
         teamRoleUserService.remove(removeWrapper);
-
-        QueryWrapper<TeamRoleUser> existsWrapper = new QueryWrapper<>();
-        existsWrapper.in(MybatisPlusUtil.toColumns(TeamRoleUser::getTeamId), teamIds);
-        existsWrapper.eq(MybatisPlusUtil.toColumns(TeamRoleUser::getUserId), toUserId);
-        Set<String> teamIdsWithToUser = teamRoleUserService.list(existsWrapper).stream()
-            .map(TeamRoleUser::getTeamId).collect(Collectors.toCollection(HashSet::new));
-
-        List<String> teamIdsNeedRoleUser = teamIds.stream()
-            .filter(teamId -> !teamIdsWithToUser.contains(teamId))
-            .collect(Collectors.toList());
-        if (CollectionUtil.isNotEmpty(teamIdsNeedRoleUser)) {
-            Map<String, List<TeamRole>> roleMap = teamRoleService.queryTeamRoleByTeamIds(
-                teamIdsNeedRoleUser.toArray(new String[0]));
-            List<TeamRoleUser> newRoleUsers = new ArrayList<>();
-            for (String teamId : teamIdsNeedRoleUser) {
-                List<TeamRole> roles = roleMap.get(teamId);
-                if (CollectionUtil.isEmpty(roles)) {
-                    continue;
-                }
-                TeamRoleUser roleUser = new TeamRoleUser();
-                roleUser.setTeamId(teamId);
-                roleUser.setTeamKey(serviceClassName);
-                roleUser.setUserId(toUserId);
-                roleUser.setRoleId(roles.get(0).getRoleId());
-                newRoleUsers.add(roleUser);
-            }
-            if (CollectionUtil.isNotEmpty(newRoleUsers)) {
-                teamRoleUserService.createEntity(newRoleUsers, operatorUserId);
-            }
-        }
-
-        UpdateWrapper<TeamObjectPermission> permissionWrapper = new UpdateWrapper<>();
-        permissionWrapper.in(MybatisPlusUtil.toColumns(TeamObjectPermission::getTeamId), teamIds);
-        permissionWrapper.eq(MybatisPlusUtil.toColumns(TeamObjectPermission::getOwnerId), fromUserId);
-        permissionWrapper.set(MybatisPlusUtil.toColumns(TeamObjectPermission::getOwnerId), toUserId);
-        teamObjectPermissionService.update(permissionWrapper);
 
         refreshCache(teamIds);
         outputObject.settotal(teamList.size());

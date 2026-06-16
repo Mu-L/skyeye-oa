@@ -107,9 +107,6 @@ public class EquipmentCheckOrderServiceImpl extends SkyeyeBusinessServiceImpl<Eq
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
-        if (CollectionUtil.isEmpty(beans)) {
-            return beans;
-        }
         equipmentService.setMationForMap(beans, "equipmentId", "equipmentMation");
         iAuthUserService.setMationForMap(beans, "checkerId", "checkerMation");
         return beans;
