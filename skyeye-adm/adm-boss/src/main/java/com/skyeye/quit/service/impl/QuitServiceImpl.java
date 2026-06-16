@@ -5,10 +5,12 @@
 package com.skyeye.quit.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.centerrest.entity.staff.UserStaffLeaveRest;
+import com.skyeye.centerrest.team.TeamBusinessRestService;
 import com.skyeye.centerrest.user.SysEveUserStaffService;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.constans.CommonConstants;
@@ -26,6 +28,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -44,6 +48,9 @@ public class QuitServiceImpl extends SkyeyeBusinessServiceImpl<QuitDao, Quit> im
     @Autowired
     private SysEveUserStaffService sysEveUserStaffService;
 
+    @Autowired
+    private TeamBusinessRestService teamBusinessRestService;
+
     @Override
     protected QueryWrapper<Quit> getQueryWrapper(CommonPageInfo commonPageInfo) {
         QueryWrapper<Quit> queryWrapper = super.getQueryWrapper(commonPageInfo);
@@ -54,8 +61,7 @@ public class QuitServiceImpl extends SkyeyeBusinessServiceImpl<QuitDao, Quit> im
     @Override
     public void validatorEntity(Quit entity) {
         String userId = InputObject.getLogParamsStatic().get("id").toString();
-        boolean canApply = isCanApply(userId, entity.getId());
-        if (!canApply) {
+        if (!isCanApply(userId, entity.getId())) {
             throw new CustomException("您已提交过离职申请，请等待审批。");
         }
     }
@@ -64,17 +70,31 @@ public class QuitServiceImpl extends SkyeyeBusinessServiceImpl<QuitDao, Quit> im
     public Quit selectById(String id) {
         Quit quit = super.selectById(id);
         iAuthUserService.setName(quit, "createId", "createName");
+        if (StrUtil.isNotEmpty(quit.getManagerTransferStaffId())) {
+            Map<String, Map<String, Object>> staffMap = iAuthUserService
+                .queryUserMationListByStaffIds(Arrays.asList(quit.getManagerTransferStaffId()));
+            quit.setManagerTransferStaffMation(staffMap.get(quit.getManagerTransferStaffId()));
+        }
         return quit;
     }
 
     @Override
     protected void approvalEndIsSuccess(Quit entity) {
-        Map<String, Object> userMation = iAuthUserService.queryDataMationById(entity.getCreateId());
-        String staffId = userMation.get("staffId").toString();
+        if (StrUtil.isNotEmpty(entity.getManagerTransferStaffId())) {
+            Map<String, Map<String, Object>> staffMap = iAuthUserService
+                .queryUserMationListByStaffIds(Arrays.asList(entity.getManagerTransferStaffId()));
+            Map<String, Object> toStaff = staffMap.get(entity.getManagerTransferStaffId());
+            if (CollectionUtil.isNotEmpty(toStaff) && toStaff.get("id") != null) {
+                Map<String, Object> params = new HashMap<>();
+                params.put("fromUserId", entity.getCreateId());
+                params.put("toUserId", toStaff.get("id").toString());
+                ExecuteFeignClient.get(() -> teamBusinessRestService.transferAllChargeUser(params));
+            }
+        }
 
-        // 修改员工信息为离职状态
+        Map<String, Object> userMation = iAuthUserService.queryDataMationById(entity.getCreateId());
         UserStaffLeaveRest userStaffLeaveRest = new UserStaffLeaveRest();
-        userStaffLeaveRest.setId(staffId);
+        userStaffLeaveRest.setId(userMation.get("staffId").toString());
         userStaffLeaveRest.setQuitTime(entity.getLeaveTime());
         userStaffLeaveRest.setQuitReason(entity.getRemark());
         ExecuteFeignClient.get(() -> sysEveUserStaffService.userStaffQuit(userStaffLeaveRest));
@@ -96,16 +116,13 @@ public class QuitServiceImpl extends SkyeyeBusinessServiceImpl<QuitDao, Quit> im
         if (state == UserStaffState.ON_THE_JOB.getKey()
             || state == UserStaffState.PROBATION.getKey()
             || state == UserStaffState.PROBATION_PERIOD.getKey()) {
-            // 试用期，获取该用户是否有已经添加的离职申请(不是作废状态的)
             QueryWrapper<Quit> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq(MybatisPlusUtil.toColumns(Quit::getCreateId), userId);
             queryWrapper.ne(MybatisPlusUtil.toColumns(Quit::getState), FlowableStateEnum.INVALID.getKey());
             if (StringUtils.isNotEmpty(id)) {
                 queryWrapper.ne(CommonConstants.ID, id);
             }
-            List<Quit> list = list(queryWrapper);
-            if (CollectionUtil.isEmpty(list)) {
-                // 为空，说明还没有提交离职申请
+            if (CollectionUtil.isEmpty(list(queryWrapper))) {
                 canApply = true;
             }
         }

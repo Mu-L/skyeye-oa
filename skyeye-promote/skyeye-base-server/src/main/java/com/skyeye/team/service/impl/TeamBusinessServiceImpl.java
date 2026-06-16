@@ -8,6 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.convert.Convert;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.yulichang.toolkit.JoinWrappers;
@@ -25,6 +26,8 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
 import com.skyeye.team.dao.TeamBusinessDao;
 import com.skyeye.team.entity.TeamBusiness;
+import com.skyeye.team.entity.TeamObjectPermission;
+import com.skyeye.team.entity.TeamRole;
 import com.skyeye.team.entity.TeamRoleUser;
 import com.skyeye.team.entity.TeamTemplate;
 import com.skyeye.team.service.ITeamBusinessService;
@@ -212,6 +215,63 @@ public class TeamBusinessServiceImpl extends AbstractTeamServiceImpl<TeamBusines
         } else {
             outputObject.settotal(teamBusinessList.size());
         }
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void transferAllChargeUser(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String fromUserId = params.get("fromUserId").toString();
+        String toUserId = params.get("toUserId").toString();
+        String operatorUserId = inputObject.getLogParams().get(CommonConstants.ID).toString();
+        if (StrUtil.equals(fromUserId, toUserId)) {
+            throw new CustomException("交接人不能为本人.");
+        }
+        QueryWrapper<TeamBusiness> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq(MybatisPlusUtil.toColumns(TeamBusiness::getChargeUser), fromUserId);
+        List<TeamBusiness> teamList = list(queryWrapper);
+        if (CollectionUtil.isEmpty(teamList)) {
+            outputObject.settotal(CommonNumConstants.NUM_ZERO);
+            return;
+        }
+        String serviceClassName = getServiceClassName();
+        for (TeamBusiness team : teamList) {
+            String teamId = team.getId();
+            TeamBusiness updateEntity = new TeamBusiness();
+            updateEntity.setId(teamId);
+            updateEntity.setChargeUser(toUserId);
+            updateById(updateEntity);
+
+            QueryWrapper<TeamRoleUser> removeWrapper = new QueryWrapper<>();
+            removeWrapper.eq(MybatisPlusUtil.toColumns(TeamRoleUser::getTeamId), teamId);
+            removeWrapper.eq(MybatisPlusUtil.toColumns(TeamRoleUser::getUserId), fromUserId);
+            teamRoleUserService.remove(removeWrapper);
+
+            QueryWrapper<TeamRoleUser> existsWrapper = new QueryWrapper<>();
+            existsWrapper.eq(MybatisPlusUtil.toColumns(TeamRoleUser::getTeamId), teamId);
+            existsWrapper.eq(MybatisPlusUtil.toColumns(TeamRoleUser::getUserId), toUserId);
+            if (teamRoleUserService.count(existsWrapper) == 0) {
+                Map<String, List<TeamRole>> roleMap = teamRoleService.queryTeamRoleByTeamIds(teamId);
+                List<TeamRole> roles = roleMap.get(teamId);
+                if (CollectionUtil.isNotEmpty(roles)) {
+                    TeamRoleUser roleUser = new TeamRoleUser();
+                    roleUser.setTeamId(teamId);
+                    roleUser.setTeamKey(serviceClassName);
+                    roleUser.setUserId(toUserId);
+                    roleUser.setRoleId(roles.get(0).getRoleId());
+                    teamRoleUserService.createEntity(roleUser, operatorUserId);
+                }
+            }
+
+            UpdateWrapper<TeamObjectPermission> permissionWrapper = new UpdateWrapper<>();
+            permissionWrapper.eq(MybatisPlusUtil.toColumns(TeamObjectPermission::getTeamId), teamId);
+            permissionWrapper.eq(MybatisPlusUtil.toColumns(TeamObjectPermission::getOwnerId), fromUserId);
+            permissionWrapper.set(MybatisPlusUtil.toColumns(TeamObjectPermission::getOwnerId), toUserId);
+            teamObjectPermissionService.update(permissionWrapper);
+
+            refreshCache(teamId);
+        }
+        outputObject.settotal(teamList.size());
     }
 }
 
