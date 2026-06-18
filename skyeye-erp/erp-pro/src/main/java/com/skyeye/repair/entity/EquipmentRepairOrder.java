@@ -18,6 +18,7 @@ import com.skyeye.repair.classenum.EquipmentRepairEquipmentStatus;
 import com.skyeye.repair.classenum.EquipmentRepairFaultReason;
 import com.skyeye.repair.classenum.EquipmentRepairTeam;
 import com.skyeye.repair.classenum.EquipmentRepairUrgency;
+import com.skyeye.sparepart.entity.EquipmentSparePartRequisition;
 import com.skyeye.supplier.entity.Supplier;
 import lombok.Data;
 

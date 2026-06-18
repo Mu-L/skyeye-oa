@@ -10,11 +10,9 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
-import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.depot.service.ErpDepotService;
@@ -25,17 +23,14 @@ import com.skyeye.material.service.MaterialService;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.repair.dao.EquipmentRepairOrderDao;
 import com.skyeye.repair.entity.EquipmentRepairOrder;
-import com.skyeye.repair.entity.EquipmentSparePartRequisition;
-import com.skyeye.repair.entity.EquipmentSparePartRequisitionDetail;
 import com.skyeye.repair.service.EquipmentRepairOrderService;
-import com.skyeye.repair.service.EquipmentSparePartRequisitionDetailService;
-import com.skyeye.repair.service.EquipmentSparePartRequisitionService;
+import com.skyeye.sparepart.entity.EquipmentSparePartRequisition;
+import com.skyeye.sparepart.entity.EquipmentSparePartRequisitionDetail;
+import com.skyeye.sparepart.service.EquipmentSparePartRequisitionService;
 import com.skyeye.supplier.service.SupplierService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-
-import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -45,10 +40,6 @@ import java.util.stream.Collectors;
 /**
  * @ClassName: EquipmentRepairOrderServiceImpl
  * @Description: 设备维修单服务层
- * @author: skyeye云系列--卫志强
- * @date: 2026/01/19
- * @Copyright: 2026 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
- * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
 @SkyeyeService(name = "设备维修单", groupName = "设备维修", flowable = true)
@@ -56,9 +47,6 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
 
     @Autowired
     private EquipmentSparePartRequisitionService equipmentSparePartRequisitionService;
-
-    @Autowired
-    private EquipmentSparePartRequisitionDetailService equipmentSparePartRequisitionDetailService;
 
     @Autowired
     private EquipmentService equipmentService;
@@ -111,11 +99,10 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
         erpDepotService.setDataMation(order.getSparePartRequisitionList(), EquipmentSparePartRequisition::getDepotId);
         iAuthUserService.setDataMation(order.getSparePartRequisitionList(), EquipmentSparePartRequisition::getUserId);
 
-        // 收集所有明细中的物料ID，去重后批量查询
         List<EquipmentSparePartRequisitionDetail> allDetailList = order.getSparePartRequisitionList().stream()
-                .filter(bean -> CollectionUtil.isNotEmpty(bean.getDetailList()))
-                .flatMap(bean -> bean.getDetailList().stream())
-                .collect(Collectors.toList());
+            .filter(bean -> CollectionUtil.isNotEmpty(bean.getDetailList()))
+            .flatMap(bean -> bean.getDetailList().stream())
+            .collect(Collectors.toList());
         if (CollectionUtil.isNotEmpty(allDetailList)) {
             materialService.setDataMation(allDetailList, EquipmentSparePartRequisitionDetail::getMaterialId);
             materialNormsService.setDataMation(allDetailList, EquipmentSparePartRequisitionDetail::getNormsId);
@@ -134,17 +121,6 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
     }
 
     @Override
-    public void writePostpose(EquipmentRepairOrder entity, String userId) {
-        equipmentSparePartRequisitionService.saveLinkList(entity.getId(), entity.getSparePartRequisitionList());
-        super.writePostpose(entity, userId);
-    }
-
-    @Override
-    public void deletePreExecution(EquipmentRepairOrder entity) {
-        equipmentSparePartRequisitionService.deleteByPId(entity.getId());
-    }
-
-    @Override
     public void validatorEntity(EquipmentRepairOrder entity) {
         super.validatorEntity(entity);
         if (StrUtil.isNotEmpty(entity.getEquipmentId())) {
@@ -152,38 +128,6 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
             if (equipment == null || equipment.getId() == null) {
                 throw new CustomException("设备不存在: " + entity.getEquipmentId());
             }
-        }
-        if (CollectionUtil.isNotEmpty(entity.getSparePartRequisitionList())) {
-            entity.getSparePartRequisitionList().forEach(bean -> {
-                if (CollectionUtil.isEmpty(bean.getDetailList())) {
-                    throw new CustomException("请至少填写一条领用明细");
-                }
-            });
-        }
-        getSparePartRequisitionTotalPrice(entity);
-    }
-
-    private void getSparePartRequisitionTotalPrice(EquipmentRepairOrder entity) {
-        if (CollectionUtil.isEmpty(entity.getSparePartRequisitionList())) {
-            return;
-        }
-        List<EquipmentSparePartRequisitionDetail> allDetailList = entity.getSparePartRequisitionList().stream()
-            .filter(bean -> CollectionUtil.isNotEmpty(bean.getDetailList()))
-            .flatMap(bean -> bean.getDetailList().stream())
-            .collect(Collectors.toList());
-        if (CollectionUtil.isEmpty(allDetailList)) {
-            return;
-        }
-        equipmentSparePartRequisitionDetailService.calcOrderAllTotalPrice(allDetailList);
-        for (EquipmentSparePartRequisition requisition : entity.getSparePartRequisitionList()) {
-            if (CollectionUtil.isEmpty(requisition.getDetailList())) {
-                continue;
-            }
-            String totalPrice = CommonNumConstants.NUM_ZERO.toString();
-            for (EquipmentSparePartRequisitionDetail detail : requisition.getDetailList()) {
-                totalPrice = CalculationUtil.add(totalPrice, detail.getAllPrice().toString());
-            }
-            requisition.setTotalAmount(new BigDecimal(totalPrice));
         }
     }
 
