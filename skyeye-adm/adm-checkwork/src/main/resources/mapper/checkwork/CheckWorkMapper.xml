@@ -226,58 +226,110 @@
 			</if>
     </select>
     
+    <sql id="checkWorkReportSubQueryFilter">
+        <if test="tenantId != '' and tenantId != null">
+            AND tenant_id = #{tenantId}
+        </if>
+        <if test="timeId != '' and timeId != null">
+            AND time_id = #{timeId}
+        </if>
+    </sql>
+
+    <!-- 排除「查询开始前已离职」的员工，其余状态(在职/见习/试用期/退休等)均纳入统计 -->
+    <sql id="checkWorkReportStaffStateFilter">
+        <choose>
+            <when test="tenantId != null and tenantId != ''">
+                (c.state != 2 OR c.quit_time IS NULL OR LENGTH(c.quit_time) = 0 OR c.quit_time >= #{startTime})
+            </when>
+            <otherwise>
+                (a.state != 2 OR a.quit_time IS NULL OR LENGTH(a.quit_time) = 0 OR a.quit_time >= #{startTime})
+            </otherwise>
+        </choose>
+    </sql>
+
     <select id="queryCheckWorkReport" parameterType="java.util.Map" resultType="java.util.Map">
         SELECT
-        	a.user_id userId,
-			a.job_number jobNumber,
+            a.id staffId,
+            IFNULL(a.user_id, '') userId,
+            <choose>
+                <when test="tenantId != null and tenantId != ''">
+                    c.job_number jobNumber,
+                    c.company_id companyId,
+                    c.department_id departmentId,
+                    c.job_id jobId,
+                </when>
+                <otherwise>
+                    a.job_number jobNumber,
+                    a.company_id companyId,
+                    a.department_id departmentId,
+                    a.job_id jobId,
+                </otherwise>
+            </choose>
             a.user_name userName,
-            a.company_id companyId,
-			a.department_id departmentId,
-			a.job_id jobId,
-            GROUP_CONCAT(b.check_work_time_id SEPARATOR ',') timsIds,
+            <choose>
+                <when test="tenantId != null and tenantId != ''">
+                    MAX(c.state) state,
+                    MAX(IFNULL(c.quit_time, '')) quitTime,
+                </when>
+                <otherwise>
+                    a.state state,
+                    IFNULL(a.quit_time, '') quitTime,
+                </otherwise>
+            </choose>
+            GROUP_CONCAT(DISTINCT b.check_work_time_id SEPARATOR ',') timsIds,
             (SELECT count(1) from check_work where create_id = a.user_id and state = 1 and check_date >= #{startTime} and #{endTime} >= check_date
-													<if test="tenantId != '' and tenantId != null">
-														AND tenant_id = #{tenantId}
-													</if>) fullTime,
+                <include refid="checkWorkReportSubQueryFilter"/>) fullTime,
             (SELECT count(1) from check_work where create_id = a.user_id and state = 2 and check_date >= #{startTime} and #{endTime} >= check_date
-													<if test="tenantId != '' and tenantId != null">
-														AND tenant_id = #{tenantId}
-													</if>) absenteeism,
+                <include refid="checkWorkReportSubQueryFilter"/>) absenteeism,
             (SELECT count(1) from check_work where create_id = a.user_id and state = 3 and check_date >= #{startTime} and #{endTime} >= check_date
-													<if test="tenantId != '' and tenantId != null">
-														AND tenant_id = #{tenantId}
-													</if>) lackTime,
+                <include refid="checkWorkReportSubQueryFilter"/>) lackTime,
             (SELECT count(1) from check_work where create_id = a.user_id and clock_in_state = 2 and check_date >= #{startTime} and #{endTime} >= check_date
-													<if test="tenantId != '' and tenantId != null">
-														AND tenant_id = #{tenantId}
-													</if>) late,
+                <include refid="checkWorkReportSubQueryFilter"/>) late,
             (SELECT count(1) from check_work where create_id = a.user_id and clock_out_state = 2 and check_date >= #{startTime} and #{endTime} >= check_date
-													<if test="tenantId != '' and tenantId != null">
-														AND tenant_id = #{tenantId}
-													</if>) leaveEarly,
-            (SELECT count(1) from check_work where create_id = a.user_id and ((clock_out is not null and  clock_in is null) or (clock_out is null and  clock_in is not null))
-                                               		and check_date >= #{startTime} and #{endTime} >= check_date
-													<if test="tenantId != '' and tenantId != null">
-														AND tenant_id = #{tenantId}
-													</if>) missing
+                <include refid="checkWorkReportSubQueryFilter"/>) leaveEarly,
+            (SELECT count(1) from check_work where create_id = a.user_id and ((clock_out is not null and clock_in is null) or (clock_out is null and clock_in is not null))
+                and check_date >= #{startTime} and #{endTime} >= check_date
+                <include refid="checkWorkReportSubQueryFilter"/>) missing
         FROM
-            sys_eve_user_staff a,
-            sys_eve_user_staff_time b
+            sys_eve_user_staff a
+            <choose>
+                <when test="tenantId != null and tenantId != ''">
+                    INNER JOIN tenant_user c ON c.staff_id = a.id AND c.tenant_id = #{tenantId}
+                    <choose>
+                        <when test="timeId != '' and timeId != null">
+                            INNER JOIN sys_eve_user_staff_time b ON b.staff_id = a.id AND b.tenant_id = #{tenantId} AND b.check_work_time_id = #{timeId}
+                        </when>
+                        <otherwise>
+                            LEFT JOIN sys_eve_user_staff_time b ON b.staff_id = a.id AND b.tenant_id = #{tenantId}
+                        </otherwise>
+                    </choose>
+                </when>
+                <otherwise>
+                    <choose>
+                        <when test="timeId != '' and timeId != null">
+                            INNER JOIN sys_eve_user_staff_time b ON b.staff_id = a.id AND b.check_work_time_id = #{timeId}
+                        </when>
+                        <otherwise>
+                            LEFT JOIN sys_eve_user_staff_time b ON b.staff_id = a.id
+                        </otherwise>
+                    </choose>
+                </otherwise>
+            </choose>
         <where>
-            a.id = b.staff_id
-            AND (a.state = 1 OR (a.state = 2 AND #{endTime} >= a.quit_time AND a.quit_time >= #{startTime}) OR (a.state = 2 AND a.quit_time >= #{endTime}))
+            <include refid="checkWorkReportStaffStateFilter"/>
             <if test="userName != '' and userName != null">
                 AND a.user_name LIKE '%${userName}%'
             </if>
-            <if test="timeId != '' and timeId != null">
-                AND b.check_work_time_id = #{timeId}
-            </if>
-			<if test="tenantId != '' and tenantId != null">
-				AND b.tenant_id = #{tenantId}
-			</if>
         </where>
         GROUP BY a.id
-        ORDER BY a.entry_time DESC, a.user_name
+        <choose>
+            <when test="tenantId != null and tenantId != ''">
+                ORDER BY c.entry_time DESC, a.user_name
+            </when>
+            <otherwise>
+                ORDER BY a.entry_time DESC, a.user_name
+            </otherwise>
+        </choose>
     </select>
 	
     <select id="queryCheckWorkEcharts" parameterType="java.util.Map" resultType="java.util.Map">

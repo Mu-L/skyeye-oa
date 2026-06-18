@@ -11,7 +11,6 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.google.common.base.Joiner;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
@@ -804,36 +803,26 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         map.put("tenantId", tenantId);
         List<Map<String, Object>> beans = checkWorkDao.queryCheckWorkReport(map);
-        if (tenantEnable) {
-            // 如果开启多租户，则需要查询员工所在的租户下的员工信息
-            List<String> userIds = beans.stream().map(item -> item.get("userId").toString()).distinct().collect(Collectors.toList());
-            Map<String, Map<String, Object>> tenantUserMap = iAuthUserService.queryDataMationForMapByIds(Joiner.on(CommonCharConstants.COMMA_MARK).join(userIds));
-            beans.forEach(bean -> {
-                String userId = bean.get("userId").toString();
-                Map<String, Object> tenantUser = tenantUserMap.get(userId);
-                if (CollectionUtil.isNotEmpty(tenantUser)) {
-                    bean.put("jobNumber", tenantUser.get("jobNumber"));
-                    bean.put("companyId", tenantUser.get("companyId"));
-                    bean.put("departmentId", tenantUser.get("departmentId"));
-                    bean.put("jobId", tenantUser.get("jobId"));
-                }
-            });
-        }
         iCompanyService.setNameForMap(beans, "companyId", "companyName");
         iDepmentService.setNameForMap(beans, "departmentId", "departmentName");
         iCompanyJobService.setNameForMap(beans, "jobId", "jobName");
-        setShouldTime(beans, timeWorkDay);
+        String filterTimeId = map.get("timeId") != null ? map.get("timeId").toString() : StrUtil.EMPTY;
+        setShouldTime(beans, timeWorkDay, filterTimeId);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
 
-    private void setShouldTime(List<Map<String, Object>> beans, Map<String, Integer> timeWorkDay) {
+    private void setShouldTime(List<Map<String, Object>> beans, Map<String, Integer> timeWorkDay, String filterTimeId) {
         for (Map<String, Object> bean : beans) {
-            String[] timsIds = bean.getOrDefault("timsIds", StrUtil.EMPTY).toString().split(CommonCharConstants.COMMA_MARK);
+            String timsIdsStr = bean.getOrDefault("timsIds", StrUtil.EMPTY).toString();
+            String[] timsIds = StrUtil.isBlank(timsIdsStr) ? new String[0] : timsIdsStr.split(CommonCharConstants.COMMA_MARK);
             // 该员工在指定日期范围内应该上班的天数
             Integer shouldTime = 0;
             for (String timeId : timsIds) {
                 if (!ToolUtil.isBlank(timeId)) {
+                    if (StrUtil.isNotBlank(filterTimeId) && !filterTimeId.equals(timeId)) {
+                        continue;
+                    }
                     shouldTime += timeWorkDay.get(timeId) == null ? 0 : timeWorkDay.get(timeId);
                 }
             }
