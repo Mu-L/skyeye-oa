@@ -898,24 +898,25 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
     }
 
     /**
-     * 获取考勤图标数据
+     * 获取考勤图表数据
      *
      * @param inputObject  入参以及用户信息等获取对象
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void queryCheckWorkEcharts(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String arr = map.get("arr").toString();
-        String[] dayarr = arr.split(",");
-        List<Map<String, Object>> beans = new ArrayList<>();
+        List<String> days = Arrays.stream(arr.split(CommonCharConstants.COMMA_MARK))
+            .filter(StrUtil::isNotBlank)
+            .collect(Collectors.toList());
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         map.put("tenantId", tenantId);
-        for (int i = 0, l = dayarr.length; i < l; i++) {
-            map.put("day", dayarr[i]);
-            Map<String, Object> bean = checkWorkDao.queryCheckWorkEcharts(map);
-            beans.add(bean);
-        }
+        map.put("days", days);
+        List<Map<String, Object>> beans = CollectionUtil.isEmpty(days)
+            ? new ArrayList<>()
+            : checkWorkDao.queryCheckWorkEchartsBatch(map);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
     }
@@ -927,6 +928,7 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
      * @param outputObject 出参以及提示信息的返回值对象
      */
     @Override
+    @IgnoreTenant
     public void queryReportDetail(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
