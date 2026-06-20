@@ -61,4 +61,14 @@ public interface IShopMaterialNormsRest {
      */
     @GetMapping("/queryAllShopMaterialListForChoose")
     String queryAllShopMaterialListForChoose();
+
+    /**
+     * 执行门店产品库存调拨
+     */
+    @PostMapping("/executeStoreProductTransfer")
+    String executeStoreProductTransfer(@RequestParam("materialId") String materialId,
+                                       @RequestParam("normsId") String normsId,
+                                       @RequestParam("operNumber") String operNumber,
+                                       @RequestParam("fromStoreId") String fromStoreId,
+                                       @RequestParam("toStoreId") String toStoreId);
 }

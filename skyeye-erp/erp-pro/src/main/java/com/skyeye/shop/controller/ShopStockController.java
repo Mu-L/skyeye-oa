@@ -5,6 +5,7 @@
 package com.skyeye.shop.controller;
 
 import com.skyeye.annotation.api.Api;
+import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
@@ -35,6 +36,18 @@ public class ShopStockController {
     @RequestMapping("/post/ShopStockController/queryShopStockList")
     public void queryShopStockList(InputObject inputObject, OutputObject outputObject) {
         shopStockService.queryShopStockList(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "executeStoreProductTransfer", value = "执行门店产品库存调拨", method = "POST", allUse = "0")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "materialId", name = "materialId", value = "产品ID", required = "required"),
+        @ApiImplicitParam(id = "normsId", name = "normsId", value = "规格ID", required = "required"),
+        @ApiImplicitParam(id = "operNumber", name = "operNumber", value = "调拨数量", required = "required"),
+        @ApiImplicitParam(id = "fromStoreId", name = "fromStoreId", value = "原门店ID", required = "required"),
+        @ApiImplicitParam(id = "toStoreId", name = "toStoreId", value = "目标门店ID", required = "required")})
+    @RequestMapping("/post/ShopStockController/executeStoreProductTransfer")
+    public void executeStoreProductTransfer(InputObject inputObject, OutputObject outputObject) {
+        shopStockService.executeStoreProductTransfer(inputObject, outputObject);
     }
 
 }

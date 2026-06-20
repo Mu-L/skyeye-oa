@@ -4,6 +4,7 @@
 
 package com.skyeye.shop.service.impl;
 
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -35,8 +36,10 @@ import com.skyeye.shop.entity.ShopStock;
 import com.skyeye.shop.service.ShopStockService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.RoundingMode;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -164,6 +167,41 @@ public class ShopStockServiceImpl extends SkyeyeBusinessServiceImpl<ShopStockDao
             }
         });
         return stockMap;
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void executeStoreProductTransfer(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String materialId = MapUtil.getStr(params, "materialId");
+        String normsId = MapUtil.getStr(params, "normsId");
+        String operNumber = MapUtil.getStr(params, "operNumber");
+        String fromStoreId = MapUtil.getStr(params, "fromStoreId");
+        String toStoreId = MapUtil.getStr(params, "toStoreId");
+        if (StrUtil.isEmpty(materialId) || StrUtil.isEmpty(normsId) || StrUtil.isEmpty(operNumber)) {
+            throw new CustomException("产品、规格、调拨数量不能为空");
+        }
+        if (StrUtil.equals(fromStoreId, toStoreId)) {
+            throw new CustomException("原门店和目标门店相同，无需调拨");
+        }
+        if (CalculationUtil.compareTo(operNumber, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) <= 0) {
+            throw new CustomException("调拨数量必须大于0");
+        }
+        Map<String, String> fromStoreStockMap = queryNormsShopStock(fromStoreId, Arrays.asList(normsId));
+        String fromStoreStock = fromStoreStockMap.get(normsId);
+        if (StrUtil.isEmpty(fromStoreStock)) {
+            fromStoreStock = CommonNumConstants.NUM_ZERO.toString();
+        }
+        String remainStock = CalculationUtil.subtract(fromStoreStock, operNumber, ErpConstants.NUM_AFTER_DOT);
+        if (CalculationUtil.compareTo(remainStock, CommonNumConstants.NUM_ZERO.toString(), ErpConstants.NUM_AFTER_DOT, RoundingMode.UP) < 0) {
+            throw new CustomException("原门店库存不足，无法调拨");
+        }
+        ShopStock fromShopStock = queryShopStock(fromStoreId, normsId);
+        if (ObjectUtil.isEmpty(fromShopStock) || !StrUtil.equals(fromShopStock.getMaterialId(), materialId)) {
+            throw new CustomException("原门店不存在该规格库存，无法调拨");
+        }
+        updateShopStock(fromStoreId, materialId, normsId, operNumber, DepotPutOutType.OUT.getKey());
+        updateShopStock(toStoreId, materialId, normsId, operNumber, DepotPutOutType.PUT.getKey());
     }
 
 }

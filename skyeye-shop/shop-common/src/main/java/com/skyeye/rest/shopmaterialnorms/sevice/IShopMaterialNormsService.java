@@ -29,4 +29,9 @@ public interface IShopMaterialNormsService {
     List<Map<String, Object>> queryShopMaterialByIds(List<String> ids);
 
     List<Map<String, Object>> queryAllShopMaterialListForChoose();
+
+    /**
+     * 执行门店产品库存调拨（审批通过后调用）
+     */
+    void executeStoreProductTransfer(String materialId, String normsId, String operNumber, String fromStoreId, String toStoreId);
 }
