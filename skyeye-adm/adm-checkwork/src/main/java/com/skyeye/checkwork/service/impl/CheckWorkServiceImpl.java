@@ -797,17 +797,16 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         Map<String, Object> map = inputObject.getParams();
         // 1.获取所有的考勤班次在指定日期内需要上班多少天
         Map<String, Integer> timeWorkDay = getAllCheckWorkTime(map.get("startTime").toString(), map.get("endTime").toString());
-        // 2.分页获取员工考勤信息
-        Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
-
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
         map.put("tenantId", tenantId);
+        Page pages = PageHelper.startPage(Integer.parseInt(map.get("page").toString()), Integer.parseInt(map.get("limit").toString()));
         List<Map<String, Object>> beans = checkWorkDao.queryCheckWorkReport(map);
         iCompanyService.setNameForMap(beans, "companyId", "companyName");
         iDepmentService.setNameForMap(beans, "departmentId", "departmentName");
         iCompanyJobService.setNameForMap(beans, "jobId", "jobName");
         String filterTimeId = map.get("timeId") != null ? map.get("timeId").toString() : StrUtil.EMPTY;
         setShouldTime(beans, timeWorkDay, filterTimeId);
+        setTimeNames(beans);
         outputObject.setBeans(beans);
         outputObject.settotal(pages.getTotal());
     }
@@ -828,6 +827,53 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
             }
             bean.put("shouldTime", shouldTime);
         }
+    }
+
+    /**
+     * 批量填充员工绑定班次名称
+     */
+    private void setTimeNames(List<Map<String, Object>> beans) {
+        if (CollectionUtil.isEmpty(beans)) {
+            return;
+        }
+        Set<String> timeIdSet = new LinkedHashSet<>();
+        for (Map<String, Object> bean : beans) {
+            String timsIdsStr = bean.getOrDefault("timsIds", StrUtil.EMPTY).toString();
+            if (StrUtil.isBlank(timsIdsStr)) {
+                bean.put("timeNames", StrUtil.EMPTY);
+                continue;
+            }
+            for (String timeId : timsIdsStr.split(CommonCharConstants.COMMA_MARK)) {
+                if (StrUtil.isNotBlank(timeId)) {
+                    timeIdSet.add(timeId.trim());
+                }
+            }
+        }
+        if (CollectionUtil.isEmpty(timeIdSet)) {
+            return;
+        }
+        List<CheckWorkTime> checkWorkTimes = checkWorkTimeService.selectByIds(timeIdSet.toArray(new String[0]));
+        Map<String, String> timeNameMap = checkWorkTimes.stream()
+            .collect(Collectors.toMap(CheckWorkTime::getId, this::buildCheckWorkTimeLabel, (a, b) -> a));
+        for (Map<String, Object> bean : beans) {
+            String timsIdsStr = bean.getOrDefault("timsIds", StrUtil.EMPTY).toString();
+            if (StrUtil.isBlank(timsIdsStr)) {
+                continue;
+            }
+            String timeNames = Arrays.stream(timsIdsStr.split(CommonCharConstants.COMMA_MARK))
+                .map(String::trim)
+                .filter(StrUtil::isNotBlank)
+                .map(timeId -> timeNameMap.getOrDefault(timeId, timeId))
+                .collect(Collectors.joining("、"));
+            bean.put("timeNames", timeNames);
+        }
+    }
+
+    private String buildCheckWorkTimeLabel(CheckWorkTime checkWorkTime) {
+        return String.format("%s [%s ~ %s]",
+            StrUtil.blankToDefault(checkWorkTime.getName(), StrUtil.EMPTY),
+            StrUtil.blankToDefault(checkWorkTime.getStartTime(), StrUtil.EMPTY),
+            StrUtil.blankToDefault(checkWorkTime.getEndTime(), StrUtil.EMPTY));
     }
 
     /**
