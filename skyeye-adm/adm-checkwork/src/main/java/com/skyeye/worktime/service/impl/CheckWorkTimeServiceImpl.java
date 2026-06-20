@@ -5,7 +5,7 @@
 package com.skyeye.worktime.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
-import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
@@ -13,7 +13,6 @@ import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
 import com.skyeye.common.enumeration.DeleteFlagEnum;
 import com.skyeye.common.enumeration.EnableEnum;
-import com.skyeye.common.enumeration.WeekTypeEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
@@ -22,7 +21,6 @@ import com.skyeye.eve.centerrest.user.SysEveUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.pro.rest.ISysEveUserStaffTimeRest;
 import com.skyeye.worktime.classenum.CheckWorkTimeType;
-import com.skyeye.worktime.classenum.CheckWorkTimeWeekType;
 import com.skyeye.worktime.dao.CheckWorkTimeDao;
 import com.skyeye.worktime.entity.CheckWorkTime;
 import com.skyeye.worktime.entity.CheckWorkTimePoint;
@@ -30,6 +28,7 @@ import com.skyeye.worktime.entity.CheckWorkTimeWeek;
 import com.skyeye.worktime.service.CheckWorkTimePointService;
 import com.skyeye.worktime.service.CheckWorkTimeService;
 import com.skyeye.worktime.service.CheckWorkTimeWeekService;
+import com.skyeye.worktime.util.CheckWorkTimeWeekUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -61,6 +60,31 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
 
     @Autowired
     private ISysEveUserStaffTimeRest iSysEveUserStaffTimeRest;
+
+    @Override
+    protected void validatorEntity(CheckWorkTime entity) {
+        super.validatorEntity(entity);
+        if (!DateUtil.compareTimeHMS(entity.getStartTime() + ":00", entity.getEndTime() + ":00")) {
+            throw new CustomException("工作开始时间必须早于结束时间。");
+        }
+        boolean hasRestStart = StrUtil.isNotBlank(entity.getRestStartTime());
+        boolean hasRestEnd = StrUtil.isNotBlank(entity.getRestEndTime());
+        if (hasRestStart != hasRestEnd) {
+            throw new CustomException("作息开始时间和结束时间需同时填写或同时为空。");
+        }
+        if (hasRestStart) {
+            if (!DateUtil.compareTimeHMS(entity.getRestStartTime() + ":00", entity.getRestEndTime() + ":00")) {
+                throw new CustomException("作息开始时间必须早于结束时间。");
+            }
+            if (!DateUtil.compareTimeHMS(entity.getStartTime() + ":00", entity.getRestStartTime() + ":00")
+                || !DateUtil.compareTimeHMS(entity.getRestEndTime() + ":00", entity.getEndTime() + ":00")) {
+                throw new CustomException("作息时间必须在工作时间范围内。");
+            }
+        }
+        if (CollectionUtil.isEmpty(entity.getCheckWorkTimeWeekList())) {
+            throw new CustomException("请配置工作日。");
+        }
+    }
 
     @Override
     protected void writePostpose(CheckWorkTime entity, String userId) {
@@ -135,6 +159,9 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
         List<String> timeIds = workTime.stream().map(bean -> bean.get("timeId").toString()).collect(Collectors.toList());
 
         List<CheckWorkTime> checkWorkTimes = selectByIds(timeIds.toArray(new String[]{}));
+        checkWorkTimes = checkWorkTimes.stream()
+            .filter(item -> EnableEnum.ENABLE_USING.getKey().equals(item.getEnabled()))
+            .collect(Collectors.toList());
         outputObject.setBeans(checkWorkTimes);
         outputObject.settotal(checkWorkTimes.size());
     }
@@ -155,27 +182,14 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
      */
     @Override
     public List<CheckWorkTime> getAllCheckWorkTime(String pointMonthDate) {
-        List<CheckWorkTime> checkWorkTimes = queryAllData();
-        // 获取上个月的所有日期
+        List<CheckWorkTime> checkWorkTimes = queryAllData().stream()
+            .filter(item -> EnableEnum.ENABLE_USING.getKey().equals(item.getEnabled()))
+            .collect(Collectors.toList());
         List<String> lastMonthDays = DateUtil.getMonthFullDay(Integer.parseInt(pointMonthDate.split("-")[0]), Integer.parseInt(pointMonthDate.split("-")[1]));
         for (CheckWorkTime bean : checkWorkTimes) {
-            List<CheckWorkTimeWeek> days = bean.getCheckWorkTimeWeekList();
             List<String> workDays = new ArrayList<>();
             for (String day : lastMonthDays) {
-                // 周几
-                int weekDay = DateUtil.getWeek(day);
-                int weekType = DateUtil.getWeekType(day);
-                CheckWorkTimeWeek simpleDay = days.stream()
-                    .filter(item -> item.getWeekNumber() == weekDay && !item.getType().equals(CheckWorkTimeWeekType.DOUBLE.getKey()))
-                    .findFirst().orElse(null);
-                if (ObjectUtil.isEmpty(simpleDay)) {
-                    continue;
-                }
-                // 如果今天是需要考勤的日期
-                if (weekType == WeekTypeEnum.BIWEEKLY.getKey() && simpleDay.getType().equals(CheckWorkTimeWeekType.DAY.getKey())) {
-                    // 如果获取到的日期是双周，但考勤班次里面是单周，则不做任何操作
-                } else {
-                    // 单周或者非每周的当天都上班
+                if (CheckWorkTimeWeekUtil.isWorkDay(day, bean.getCheckWorkTimeWeekList())) {
                     workDays.add(day);
                 }
             }
@@ -190,6 +204,10 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
         String timeId = params.get("id").toString();
         String userId = inputObject.getLogParams().get("id").toString();
         List<CheckWorkTimePoint> pointList = JSONUtil.toList(params.get("checkWorkTimePointList").toString(), CheckWorkTimePoint.class);
+        CheckWorkTime checkWorkTime = selectById(timeId);
+        if (EnableEnum.ENABLE_USING.getKey().equals(checkWorkTime.getOnlineClockEnabled()) && CollectionUtil.isEmpty(pointList)) {
+            throw new CustomException("该班次已开启线上打卡，请至少配置一个打卡点位。");
+        }
         checkWorkTimePointService.saveCheckWorkTimePointList(timeId, pointList, userId);
         refreshCache(timeId);
     }

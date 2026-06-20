@@ -49,6 +49,7 @@ import com.skyeye.worktime.entity.CheckWorkTime;
 import com.skyeye.worktime.entity.CheckWorkTimePoint;
 import com.skyeye.worktime.entity.CheckWorkTimeWeek;
 import com.skyeye.worktime.service.CheckWorkTimeService;
+import com.skyeye.worktime.util.CheckWorkTimeWeekUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -190,6 +191,9 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
                 throw new CustomException("You do not have the attendance authority for this shift.");
             }
             CheckWorkTime checkWorkTime = checkWorkTimeService.selectById(timeId);
+            if (!EnableEnum.ENABLE_USING.getKey().equals(checkWorkTime.getEnabled())) {
+                throw new CustomException("该考勤班次已停用。");
+            }
             bean.put("clockIn", checkWorkTime.getStartTime() + ":00");
             bean.put("clockOut", checkWorkTime.getEndTime() + ":00");
             bean.put("checkWorkTimeWeekList", checkWorkTime.getCheckWorkTimeWeekList());
@@ -250,11 +254,15 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         if (!ClockSource.ONLINE_SOURCE.equals(clockSource)) {
             return;
         }
+        Integer onlineClockEnabled = workTime.containsKey("onlineClockEnabled") && workTime.get("onlineClockEnabled") != null
+            ? Integer.parseInt(workTime.get("onlineClockEnabled").toString()) : EnableEnum.ENABLE_USING.getKey();
         Object pointObj = workTime.get("checkWorkTimePointList");
-        if (ObjectUtil.isEmpty(pointObj)) {
-            return;
+        List<CheckWorkTimePoint> pointList = ObjectUtil.isEmpty(pointObj)
+            ? new ArrayList<>()
+            : JSONUtil.toList(JSONUtil.toJsonStr(pointObj), CheckWorkTimePoint.class);
+        if (EnableEnum.ENABLE_USING.getKey().equals(onlineClockEnabled) && CollectionUtil.isEmpty(pointList)) {
+            throw new CustomException("该班次已开启线上打卡，请先配置打卡点位。");
         }
-        List<CheckWorkTimePoint> pointList = JSONUtil.toList(JSONUtil.toJsonStr(pointObj), CheckWorkTimePoint.class);
         if (CollectionUtil.isEmpty(pointList)) {
             return;
         }
@@ -561,33 +569,10 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
     private boolean isWorkDayInCheckWorkTimeWeek(Map<String, Object> workTime, String today) {
         Object listObj = workTime.get("checkWorkTimeWeekList");
         if (!(listObj instanceof List)) {
-            // 未配置时间段时，保持老逻辑：认为是工作日
-            return true;
+            return false;
         }
         List<CheckWorkTimeWeek> weekList = (List<CheckWorkTimeWeek>) listObj;
-        if (CollectionUtil.isEmpty(weekList)) {
-            return true;
-        }
-        int weekDay = DateUtil.getWeek(today);
-        int weekType = DateUtil.getWeekType(today);
-        CheckWorkTimeWeek simpleDay = weekList.stream()
-            .filter(item -> item.getWeekNumber() == weekDay && !item.getType().equals(CheckWorkTimeWeekType.DOUBLE.getKey()))
-            .findFirst().orElse(null);
-        if (ObjectUtil.isEmpty(simpleDay)) {
-            // 没有为该星期几配置工作日，视为休息
-            return false;
-        }
-        // 在该班次中找到了指定日期的配置，根据周类型判断是否工作
-        if (weekType == WeekTypeEnum.ODD_WEEKS.getKey() && simpleDay.getType().equals(CheckWorkTimeWeekType.SINGLE_DAY.getKey())) {
-            // 单周并且班次配置为单周上班
-            return true;
-        } else if (weekType == WeekTypeEnum.BIWEEKLY.getKey() && simpleDay.getType().equals(CheckWorkTimeWeekType.SINGLE_DAY.getKey())) {
-            // 双周且班次配置为单周上班 → 本周休
-            return false;
-        } else {
-            // 其它情况（每周都上班等）
-            return true;
-        }
+        return CheckWorkTimeWeekUtil.isWorkDay(today, weekList);
     }
 
     /**
@@ -740,26 +725,10 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         CheckWorkTime checkWorkTime = checkWorkTimeService.selectById(timeId);
         LOGGER.info("获取指定班次中的工作日信息，{}", checkWorkTime.getCheckWorkTimeWeekList());
         for (String day : monthDays) {
-            // 判断该日期在节假日类型中是否包含
             if (!inHolidayScheduleDay(day, beans)) {
-                // 如果该天不是节假日
-                int weekDay = DateUtil.getWeek(day);
-                int weekType = DateUtil.getWeekType(day);
-                CheckWorkTimeWeek simpleDay = checkWorkTime.getCheckWorkTimeWeekList()
-                    .stream().filter(item -> item.getWeekNumber() == weekDay && !item.getType().equals(CheckWorkTimeWeekType.DOUBLE.getKey()))
-                    .findFirst().orElse(null);
-                if (ObjectUtil.isEmpty(simpleDay)) {
-                    continue;
-                }
-                // 如果今天是需要考勤的日期
-                if (weekType == WeekTypeEnum.BIWEEKLY.getKey() && simpleDay.getType().equals(CheckWorkTimeWeekType.SINGLE_DAY.getKey())) {
-                    // 如果获取到的日期是双周，但考勤班次里面是单周，则不做任何操作
-                } else {
-                    // 单周或者每周的当天都上班
+                if (CheckWorkTimeWeekUtil.isWorkDay(day, checkWorkTime.getCheckWorkTimeWeekList())) {
                     beans.add(CheckWorkConstants.structureWorkMation(day));
-                    continue;
                 }
-                beans.add(CheckWorkConstants.structureRestMation(day, StrUtil.EMPTY));
             }
         }
     }
@@ -887,6 +856,9 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         List<CheckWorkTime> workTime = checkWorkTimeService.queryAllData();
         Map<String, Integer> timeWorkDay = new HashMap<>();
         for (CheckWorkTime bean : workTime) {
+            if (!EnableEnum.ENABLE_USING.getKey().equals(bean.getEnabled())) {
+                continue;
+            }
             timeWorkDay.put(bean.getId(), 0);
         }
         // 1.获取范围内的所有日期
@@ -921,26 +893,10 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
      */
     private boolean getTimeWhetherWork(String timeId, int weekDay, int weekType, List<CheckWorkTime> workTime) {
         CheckWorkTime timeMation = workTime.stream().filter(item -> item.getId().equals(timeId)).findFirst().orElse(null);
-        if (ObjectUtil.isEmpty(timeMation) || CollectionUtil.isEmpty(timeMation.getCheckWorkTimeWeekList())) {
+        if (ObjectUtil.isEmpty(timeMation) || !EnableEnum.ENABLE_USING.getKey().equals(timeMation.getEnabled())) {
             return false;
         }
-        CheckWorkTimeWeek simpleDay = timeMation.getCheckWorkTimeWeekList().stream()
-            .filter(item -> item.getWeekNumber() == weekDay && !item.getType().equals(CheckWorkTimeWeekType.DOUBLE.getKey()))
-            .findFirst().orElse(null);
-        if (ObjectUtil.isEmpty(simpleDay)) {
-            return false;
-        }
-        // 在该班次中找到了指定日期的上班时间
-        if (weekType == WeekTypeEnum.ODD_WEEKS.getKey() && simpleDay.getType().equals(CheckWorkTimeWeekType.SINGLE_DAY.getKey())) {
-            // 该周天是单周并且该班次是单周上班
-            return true;
-        } else if (weekType == WeekTypeEnum.BIWEEKLY.getKey() && simpleDay.getType().equals(CheckWorkTimeWeekType.SINGLE_DAY.getKey())) {
-            // 该周天是双周并且该班次是单周上班
-            return false;
-        } else {
-            // 该周天是双周或者单周并且该班次是每周上班
-            return true;
-        }
+        return CheckWorkTimeWeekUtil.isWorkDay(weekDay, weekType, timeMation.getCheckWorkTimeWeekList());
     }
 
     /**

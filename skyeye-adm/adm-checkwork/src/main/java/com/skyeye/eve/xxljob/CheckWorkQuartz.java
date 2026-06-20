@@ -8,7 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.checkwork.service.CheckWorkService;
-import com.skyeye.common.enumeration.WeekTypeEnum;
+import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateAfterSpacePointTime;
 import com.skyeye.common.util.DateUtil;
@@ -17,10 +17,9 @@ import com.skyeye.eve.service.IScheduleDayService;
 import com.skyeye.eve.service.ITenantService;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
-import com.skyeye.worktime.classenum.CheckWorkTimeWeekType;
 import com.skyeye.worktime.entity.CheckWorkTime;
-import com.skyeye.worktime.entity.CheckWorkTimeWeek;
 import com.skyeye.worktime.service.CheckWorkTimeService;
+import com.skyeye.worktime.util.CheckWorkTimeWeekUtil;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: CheckWorkQuartz
@@ -85,7 +85,6 @@ public class CheckWorkQuartz {
             } else {
                 calcCheckWork();
             }
-            calcCheckWork();
         } catch (Exception e) {
             log.warn("CheckWorkQuartz error.", e);
         }
@@ -94,7 +93,9 @@ public class CheckWorkQuartz {
 
     private void calcCheckWork() {
         // 1.获取所有的考勤班次信息
-        List<CheckWorkTime> workTime = checkWorkTimeService.queryAllData();
+        List<CheckWorkTime> workTime = checkWorkTimeService.queryAllData().stream()
+            .filter(item -> EnableEnum.ENABLE_USING.getKey().equals(item.getEnabled()))
+            .collect(Collectors.toList());
         // 得到昨天的时间
         String yesterdayTime = DateAfterSpacePointTime.getSpecifiedTime(
             DateAfterSpacePointTime.ONE_DAY.getType(), DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD, DateAfterSpacePointTime.AroundType.BEFORE);
@@ -135,17 +136,8 @@ public class CheckWorkQuartz {
     private List<CheckWorkTime> getShouldCheckTime(int weekDay, int weekType, List<CheckWorkTime> workTime) {
         List<CheckWorkTime> shouldCheckTime = new ArrayList<>();
         for (CheckWorkTime bean : workTime) {
-            // 该班次中上班的天数
-            List<CheckWorkTimeWeek> days = bean.getCheckWorkTimeWeekList();
-            CheckWorkTimeWeek simpleDay = days.stream().filter(item -> item.getWeekNumber() == weekDay).findFirst().orElse(null);
-            if (ObjectUtil.isNotEmpty(simpleDay)) {
-                // 在该班次中找到了指定日期的上班时间
-                if (weekType == WeekTypeEnum.ODD_WEEKS.getKey() && simpleDay.getType() == CheckWorkTimeWeekType.SINGLE_DAY.getKey()) {
-                    // 单周
-                    shouldCheckTime.add(bean);
-                } else if (simpleDay.getType() == CheckWorkTimeWeekType.DAY.getKey()) {
-                    shouldCheckTime.add(bean);
-                }
+            if (CheckWorkTimeWeekUtil.isWorkDay(weekDay, weekType, bean.getCheckWorkTimeWeekList())) {
+                shouldCheckTime.add(bean);
             }
         }
         log.info("shouldCheckTime is {}", JSONUtil.toJsonStr(shouldCheckTime));

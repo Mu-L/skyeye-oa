@@ -31,9 +31,8 @@ import com.skyeye.leave.entity.Leave;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
 import com.skyeye.leave.service.LeaveTimeSlotService;
-import com.skyeye.worktime.classenum.CheckWorkTimeWeekType;
 import com.skyeye.worktime.entity.CheckWorkTime;
-import com.skyeye.worktime.entity.CheckWorkTimeWeek;
+import com.skyeye.worktime.util.CheckWorkTimeWeekUtil;
 import com.skyeye.worktime.service.CheckWorkTimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -295,24 +294,7 @@ public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave>
      * 判断某日在该班次是否为上班日（参考 CheckWorkServiceImpl.getTimeWhetherWork）
      */
     private boolean isWorkDay(LocalDate date, CheckWorkTime workTime) {
-        if (CollectionUtil.isEmpty(workTime.getCheckWorkTimeWeekList())) {
-            return true;
-        }
-        int weekDay = DateUtil.getWeek(date.format(DateTimeFormatter.ISO_LOCAL_DATE));
-        int weekType = DateUtil.getWeekType(date.format(DateTimeFormatter.ISO_LOCAL_DATE));
-        CheckWorkTimeWeek simpleDay = workTime.getCheckWorkTimeWeekList().stream()
-            .filter(item -> item.getWeekNumber() == weekDay && !CheckWorkTimeWeekType.DOUBLE.getKey().equals(item.getType()))
-            .findFirst().orElse(null);
-        if (simpleDay == null) {
-            return false;
-        }
-        if (weekType == WeekTypeEnum.ODD_WEEKS.getKey() && CheckWorkTimeWeekType.SINGLE_DAY.getKey().equals(simpleDay.getType())) {
-            return true;
-        }
-        if (weekType == WeekTypeEnum.BIWEEKLY.getKey() && CheckWorkTimeWeekType.SINGLE_DAY.getKey().equals(simpleDay.getType())) {
-            return false;
-        }
-        return CheckWorkTimeWeekType.DAY.getKey().equals(simpleDay.getType());
+        return CheckWorkTimeWeekUtil.isWorkDay(date.format(DateTimeFormatter.ISO_LOCAL_DATE), workTime.getCheckWorkTimeWeekList());
     }
 
     /**
