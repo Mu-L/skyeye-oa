@@ -27,4 +27,12 @@ public interface ISysEveUserStaffTimeRest {
      */
     @PostMapping("/querySysEveUserStaffTimeListByTimeId")
     String querySysEveUserStaffTimeListByTimeId(@RequestParam("timeId") String timeId);
+
+    /**
+     * 批量统计各班次绑定员工数
+     *
+     * @param timeIds 班次id，多个逗号隔开
+     */
+    @PostMapping("/countSysEveUserStaffTimeByTimeIds")
+    String countSysEveUserStaffTimeByTimeIds(@RequestParam("timeIds") String timeIds);
 }

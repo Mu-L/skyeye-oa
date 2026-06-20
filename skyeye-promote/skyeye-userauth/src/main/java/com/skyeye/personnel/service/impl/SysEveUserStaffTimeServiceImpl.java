@@ -25,10 +25,7 @@ import com.skyeye.rest.checkwork.service.ICheckWorkTimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -54,6 +51,24 @@ public class SysEveUserStaffTimeServiceImpl extends SkyeyeBusinessServiceImpl<Sy
         List<SysEveUserStaffTime> beans = list(queryWrapper);
         outputObject.setBeans(beans);
         outputObject.settotal(beans.size());
+    }
+
+    @Override
+    public void countSysEveUserStaffTimeByTimeIds(InputObject inputObject, OutputObject outputObject) {
+        String timeIds = inputObject.getParams().get("timeIds").toString();
+        List<String> timeIdList = Arrays.stream(timeIds.split(",")).map(String::trim)
+            .filter(StrUtil::isNotBlank).collect(Collectors.toList());
+
+        if (CollectionUtil.isEmpty(timeIdList)) {
+            return;
+        }
+        QueryWrapper<SysEveUserStaffTime> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("check_work_time_id timeId", "COUNT(1) staffCount");
+        queryWrapper.in(MybatisPlusUtil.toColumns(SysEveUserStaffTime::getCheckWorkTimeId), timeIds);
+        queryWrapper.groupBy(MybatisPlusUtil.toColumns(SysEveUserStaffTime::getCheckWorkTimeId));
+        List<Map<String, Object>> result = listMaps(queryWrapper);
+        outputObject.setBeans(result);
+        outputObject.settotal(result.size());
     }
 
     @Override

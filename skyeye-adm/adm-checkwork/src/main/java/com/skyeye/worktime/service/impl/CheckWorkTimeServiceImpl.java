@@ -11,6 +11,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.client.ExecuteFeignClient;
+import com.skyeye.common.constans.CommonCharConstants;
 import com.skyeye.common.enumeration.DeleteFlagEnum;
 import com.skyeye.common.enumeration.EnableEnum;
 import com.skyeye.common.object.InputObject;
@@ -33,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -60,6 +62,13 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
 
     @Autowired
     private ISysEveUserStaffTimeRest iSysEveUserStaffTimeRest;
+
+    @Override
+    public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
+        List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
+        setStaffCountForList(beans);
+        return beans;
+    }
 
     @Override
     protected void validatorEntity(CheckWorkTime entity) {
@@ -206,6 +215,40 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
         List<CheckWorkTimePoint> pointList = JSONUtil.toList(params.get("checkWorkTimePointList").toString(), CheckWorkTimePoint.class);
         checkWorkTimePointService.saveCheckWorkTimePointList(timeId, pointList, userId);
         refreshCache(timeId);
+    }
+
+    /**
+     * 批量填充班次使用人数
+     */
+    private void setStaffCountForList(List<Map<String, Object>> beans) {
+        if (CollectionUtil.isEmpty(beans)) {
+            return;
+        }
+        List<String> timeIds = beans.stream().map(bean -> bean.get("id").toString()).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(timeIds)) {
+            return;
+        }
+        Map<String, Integer> staffCountMap = queryStaffCountMap(timeIds);
+        for (Map<String, Object> bean : beans) {
+            bean.put("staffCount", staffCountMap.getOrDefault(bean.get("id").toString(), 0));
+        }
+    }
+
+    private Map<String, Integer> queryStaffCountMap(List<String> timeIds) {
+        List<Map<String, Object>> countRows = ExecuteFeignClient.get(() ->
+            iSysEveUserStaffTimeRest.countSysEveUserStaffTimeByTimeIds(String.join(CommonCharConstants.COMMA_MARK, timeIds))).getRows();
+        if (CollectionUtil.isEmpty(countRows)) {
+            return new HashMap<>();
+        }
+        Map<String, Integer> staffCountMap = new HashMap<>();
+        for (Map<String, Object> row : countRows) {
+            if (row.get("timeId") == null) {
+                continue;
+            }
+            Object staffCount = row.get("staffCount");
+            staffCountMap.put(row.get("timeId").toString(), staffCount == null ? 0 : Integer.parseInt(staffCount.toString()));
+        }
+        return staffCountMap;
     }
 
 }
