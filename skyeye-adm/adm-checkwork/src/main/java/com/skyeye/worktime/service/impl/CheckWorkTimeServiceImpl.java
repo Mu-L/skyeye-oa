@@ -204,10 +204,6 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
         String timeId = params.get("id").toString();
         String userId = inputObject.getLogParams().get("id").toString();
         List<CheckWorkTimePoint> pointList = JSONUtil.toList(params.get("checkWorkTimePointList").toString(), CheckWorkTimePoint.class);
-        CheckWorkTime checkWorkTime = selectById(timeId);
-        if (EnableEnum.ENABLE_USING.getKey().equals(checkWorkTime.getOnlineClockEnabled()) && CollectionUtil.isEmpty(pointList)) {
-            throw new CustomException("该班次已开启线上打卡，请至少配置一个打卡点位。");
-        }
         checkWorkTimePointService.saveCheckWorkTimePointList(timeId, pointList, userId);
         refreshCache(timeId);
     }

@@ -247,6 +247,10 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
 
     /**
      * 校验线上打卡定位是否在任一点位范围内
+     * 未配置打卡点位时不限制打卡位置；配置多个点位后，员工在任一点位范围内均可打卡。
+     *
+     * @param workTime 班次信息
+     * @param map      入参
      */
     private void validateOnlineClockLocation(Map<String, Object> workTime, Map<String, Object> map) {
         ClockSource clockSource = ClockSource.getByKey(map.containsKey("clockSource") && map.get("clockSource") != null
@@ -254,15 +258,11 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         if (!ClockSource.ONLINE_SOURCE.equals(clockSource)) {
             return;
         }
-        Integer onlineClockEnabled = workTime.containsKey("onlineClockEnabled") && workTime.get("onlineClockEnabled") != null
-            ? Integer.parseInt(workTime.get("onlineClockEnabled").toString()) : EnableEnum.ENABLE_USING.getKey();
         Object pointObj = workTime.get("checkWorkTimePointList");
-        List<CheckWorkTimePoint> pointList = ObjectUtil.isEmpty(pointObj)
-            ? new ArrayList<>()
-            : JSONUtil.toList(JSONUtil.toJsonStr(pointObj), CheckWorkTimePoint.class);
-        if (EnableEnum.ENABLE_USING.getKey().equals(onlineClockEnabled) && CollectionUtil.isEmpty(pointList)) {
-            throw new CustomException("该班次已开启线上打卡，请先配置打卡点位。");
+        if (ObjectUtil.isEmpty(pointObj)) {
+            return;
         }
+        List<CheckWorkTimePoint> pointList = JSONUtil.toList(JSONUtil.toJsonStr(pointObj), CheckWorkTimePoint.class);
         if (CollectionUtil.isEmpty(pointList)) {
             return;
         }
