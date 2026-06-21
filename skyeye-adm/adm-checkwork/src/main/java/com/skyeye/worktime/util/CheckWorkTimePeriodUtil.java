@@ -184,13 +184,6 @@ public class CheckWorkTimePeriodUtil {
         return !DateUtil.compareTimeHMS(DateUtil.getHmsTimeAndToString(), normalizeToHms(shiftEndTime));
     }
 
-    private static LocalTime parseLocalTime(String time) {
-        String hms = normalizeToHms(time);
-        String[] parts = hms.split(":");
-        int second = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
-        return LocalTime.of(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), second);
-    }
-
     private static int toShiftOffsetMinutes(String time, String shiftStart, boolean crossDay) {
         int minute = toMinutesOfDay(time);
         int startMinute = toMinutesOfDay(shiftStart);
@@ -201,6 +194,21 @@ public class CheckWorkTimePeriodUtil {
             return minute - startMinute;
         }
         return (MINUTES_PER_DAY - startMinute) + minute;
+    }
+
+    /**
+     * 班次内时刻相对上班时刻的偏移分钟数（供工时计算等模块复用）
+     */
+    public static int toShiftOffsetMinutesPublic(String time, String shiftStart, boolean crossDay) {
+        return toShiftOffsetMinutes(time, shiftStart, crossDay);
+    }
+
+    /** 将 HH:mm(:ss) 解析为 LocalTime */
+    private static LocalTime parseLocalTime(String time) {
+        String hms = normalizeToHms(time);
+        String[] parts = hms.split(":");
+        int second = parts.length > 2 ? Integer.parseInt(parts[2]) : 0;
+        return LocalTime.of(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), second);
     }
 
     private static int toMinutesOfDay(String time) {

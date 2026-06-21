@@ -32,17 +32,12 @@ import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
 import com.skyeye.leave.service.LeaveTimeSlotService;
 import com.skyeye.worktime.entity.CheckWorkTime;
-import com.skyeye.worktime.util.CheckWorkTimePeriodUtil;
-import com.skyeye.worktime.util.CheckWorkTimeWeekUtil;
+import com.skyeye.worktime.util.CheckWorkHourCalcUtil;
 import com.skyeye.worktime.service.CheckWorkTimeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -87,6 +82,7 @@ public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave>
 
     @Override
     public void writePostpose(Leave entity, String userId) {
+        // 保存前按服务端口径重算 leaveHour，防止前端篡改或旧客户端提交错误值
         List<String> timeIds = entity.getLeaveTimeSlotList().stream().map(LeaveTimeSlot::getTimeId).distinct().collect(Collectors.toList());
         Map<String, CheckWorkTime> checkWorkTimeMap = CollectionUtil.isEmpty(timeIds) ? new HashMap<>() : checkWorkTimeService.selectMapByIds(timeIds);
         for (LeaveTimeSlot slot : entity.getLeaveTimeSlotList()) {
@@ -95,7 +91,7 @@ public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave>
                 LocalDateTime start = DateUtil.parseLeaveDateTime(slot.getLeaveStartTime());
                 LocalDateTime end = DateUtil.parseLeaveDateTime(slot.getLeaveEndTime());
                 if (start != null && end != null) {
-                    long mins = calcLeaveMinutesInRange(start, end, wt);
+                    long mins = CheckWorkHourCalcUtil.calcLeaveMinutesInRange(start, end, wt);
                     slot.setLeaveHour(CalculationUtil.divide(String.valueOf(mins), "60", CommonNumConstants.NUM_TWO));
                 }
             }
@@ -284,74 +280,10 @@ public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave>
             if (start == null || end == null) {
                 return StrUtil.isNotEmpty(slot.getLeaveHour()) ? slot.getLeaveHour() : "0";
             }
-            long totalMinutes = calcLeaveMinutesInRange(start, end, workTime);
-            return CalculationUtil.divide(String.valueOf(totalMinutes), "60", CommonNumConstants.NUM_TWO);
+            return CheckWorkHourCalcUtil.calcLeaveHour(start, end, workTime);
         } catch (Exception e) {
             return StrUtil.isNotEmpty(slot.getLeaveHour()) ? slot.getLeaveHour() : "0";
         }
-    }
-
-    /**
-     * 判断某日在该班次是否为上班日（参考 CheckWorkServiceImpl.getTimeWhetherWork）
-     */
-    private boolean isWorkDay(LocalDate date, CheckWorkTime workTime) {
-        return CheckWorkTimeWeekUtil.isWorkDay(date.format(DateTimeFormatter.ISO_LOCAL_DATE), workTime.getCheckWorkTimeWeekList());
-    }
-
-    /**
-     * 计算请假时间段与工作时间的交集分钟数（支持跨天、午休扣除、按 checkWorkTimeWeekList 仅计算工作日）
-     */
-    private long calcLeaveMinutesInRange(LocalDateTime leaveStart, LocalDateTime leaveEnd, CheckWorkTime workTime) {
-        boolean crossDay = CheckWorkTimePeriodUtil.isCrossDay(workTime.getStartTime(), workTime.getEndTime());
-        LocalTime workStart = parseTime(workTime.getStartTime());
-        LocalTime workEnd = parseTime(workTime.getEndTime());
-        LocalTime restStart = StrUtil.isNotEmpty(workTime.getRestStartTime()) ? parseTime(workTime.getRestStartTime()) : null;
-        LocalTime restEnd = StrUtil.isNotEmpty(workTime.getRestEndTime()) ? parseTime(workTime.getRestEndTime()) : null;
-        long total = 0;
-        LocalDate loopStart = crossDay ? leaveStart.toLocalDate().minusDays(1) : leaveStart.toLocalDate();
-        LocalDate loopEnd = leaveEnd.toLocalDate();
-        for (LocalDate d = loopStart; !d.isAfter(loopEnd); d = d.plusDays(1)) {
-            if (!isWorkDay(d, workTime)) {
-                continue;
-            }
-            String shiftDate = d.format(DateTimeFormatter.ISO_LOCAL_DATE);
-            LocalDateTime dayWorkStart = d.atTime(workStart);
-            LocalDateTime dayWorkEnd = crossDay
-                ? CheckWorkTimePeriodUtil.resolveShiftDateTime(shiftDate, workTime.getEndTime(), workTime.getStartTime(), true)
-                : d.atTime(workEnd);
-            LocalDateTime overlapStart = leaveStart.isAfter(dayWorkStart) ? leaveStart : dayWorkStart;
-            LocalDateTime overlapEnd = leaveEnd.isBefore(dayWorkEnd) ? leaveEnd : dayWorkEnd;
-            if (!overlapStart.isBefore(overlapEnd)) {
-                continue;
-            }
-            long mins = ChronoUnit.MINUTES.between(overlapStart, overlapEnd);
-            if (restStart != null && restEnd != null) {
-                LocalDateTime dayRestStart = crossDay
-                    ? CheckWorkTimePeriodUtil.resolveShiftDateTime(shiftDate, workTime.getRestStartTime(), workTime.getStartTime(), true)
-                    : d.atTime(restStart);
-                LocalDateTime dayRestEnd = crossDay
-                    ? CheckWorkTimePeriodUtil.resolveShiftDateTime(shiftDate, workTime.getRestEndTime(), workTime.getStartTime(), true)
-                    : d.atTime(restEnd);
-                LocalDateTime restOverlapStart = overlapStart.isAfter(dayRestStart) ? overlapStart : dayRestStart;
-                LocalDateTime restOverlapEnd = overlapEnd.isBefore(dayRestEnd) ? overlapEnd : dayRestEnd;
-                if (restOverlapStart.isBefore(restOverlapEnd)) {
-                    mins -= ChronoUnit.MINUTES.between(restOverlapStart, restOverlapEnd);
-                }
-            }
-            total += Math.max(0, mins);
-        }
-        return total;
-    }
-
-    private LocalTime parseTime(String t) {
-        if (StrUtil.isEmpty(t)) {
-            return LocalTime.MIN;
-        }
-        String s = t.trim();
-        if (s.length() == 5) {
-            s = s + ":00";
-        }
-        return LocalTime.parse(s);
     }
 
     /**
@@ -442,6 +374,16 @@ public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave>
         }
         LeaveTimeSlot slot = list.get(0);
         return slot;
+    }
+
+    /**
+     * 指定自然日是否存在审核通过的请假（不限班次）
+     */
+    @Override
+    public boolean hasApprovedLeaveOnDay(String createId, String day) {
+        // 排班定时任务用：不限 timeId，只要当日有审核通过的请假即视为免打卡
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        return CollectionUtil.isNotEmpty(leaveTimeSlotService.queryApprovedLeaveSlotByUserAndDay(createId, day, tenantId));
     }
 
     /**

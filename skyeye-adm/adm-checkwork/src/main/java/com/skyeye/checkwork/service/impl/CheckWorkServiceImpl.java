@@ -1009,6 +1009,22 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
     }
 
     /**
+     * 排班缺晚卡：指定排班时间段、考勤日只打上班卡未打下班卡的记录
+     */
+    @Override
+    public List<Map<String, Object>> queryScheduleNotCheckEndWorkId(String schedulingTimeId, String checkDate) {
+        // timeId=schedulingTimeId，不依赖 sys_eve_user_staff_time 固定班次绑定
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        return checkWorkDao.queryScheduleNotCheckEndWorkId(schedulingTimeId, checkDate, tenantId);
+    }
+
+    @Override
+    public CheckWork queryAlreadyCheck(String checkDate, String userId, String timeId) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        return checkWorkDao.queryisAlreadyCheck(checkDate, userId, timeId, tenantId);
+    }
+
+    /**
      * 填充下班卡信息
      *
      * @param map

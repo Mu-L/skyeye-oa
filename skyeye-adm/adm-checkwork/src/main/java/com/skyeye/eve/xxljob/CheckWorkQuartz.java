@@ -13,10 +13,13 @@ import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateAfterSpacePointTime;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.ToolUtil;
+import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.checkwork.entity.CheckWork;
 import com.skyeye.eve.service.IScheduleDayService;
 import com.skyeye.eve.service.ITenantService;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
+import com.skyeye.scheduling.service.SchedulingService;
 import com.skyeye.worktime.entity.CheckWorkTime;
 import com.skyeye.worktime.service.CheckWorkTimeService;
 import com.skyeye.worktime.util.CheckWorkTimePeriodUtil;
@@ -62,6 +65,9 @@ public class CheckWorkQuartz {
     @Autowired
     private ITenantService iTenantService;
 
+    @Autowired
+    private SchedulingService schedulingService;
+
     @Value("${skyeye.tenant.enable}")
     private boolean tenantEnable;
 
@@ -97,10 +103,6 @@ public class CheckWorkQuartz {
         List<CheckWorkTime> workTime = checkWorkTimeService.queryAllData().stream()
             .filter(item -> EnableEnum.ENABLE_USING.getKey().equals(item.getEnabled()))
             .collect(Collectors.toList());
-        if (CollectionUtil.isEmpty(workTime)) {
-            handleNotCheckWorkEndMember(getYesterdayTime(), "-");
-            return;
-        }
 
         String yesterdayTime = getYesterdayTime();
         String dayBeforeYesterdayTime = DateAfterSpacePointTime.getSpecifiedTime(
@@ -110,13 +112,21 @@ public class CheckWorkQuartz {
         // 2.同日班次：结算昨天
         if (!iScheduleDayService.judgeISHoliday(yesterdayTime)) {
             log.info("Fill in same-day shift clocking information, checkDate={}", yesterdayTime);
-            settleShiftsForDate(yesterdayTime, workTime, false);
+            if (CollectionUtil.isNotEmpty(workTime)) {
+                settleShiftsForDate(yesterdayTime, workTime, false);
+            }
+            // 排班员工：timeId 为 schedulingTimeId，与固定班次并行结算
+            settleSchedulingForDate(yesterdayTime, false);
         }
 
         // 3.跨天班次：结算前天（班次在前天开始、昨天凌晨结束，需等结束后再处理）
         if (!iScheduleDayService.judgeISHoliday(dayBeforeYesterdayTime)) {
             log.info("Fill in cross-day shift clocking information, checkDate={}", dayBeforeYesterdayTime);
-            settleShiftsForDate(dayBeforeYesterdayTime, workTime, true);
+            if (CollectionUtil.isNotEmpty(workTime)) {
+                settleShiftsForDate(dayBeforeYesterdayTime, workTime, true);
+            }
+            // 跨天排班：checkDate 为班次归属日（开始日），须等次日凌晨下班后再结算
+            settleSchedulingForDate(dayBeforeYesterdayTime, true);
         }
 
         // 4.处理所有昨天加班只打早卡没有打晚卡的记录id
@@ -159,6 +169,76 @@ public class CheckWorkQuartz {
                 log.info("Handling abnormal attendance information, message is {}.", e);
             }
         }
+    }
+
+    /**
+     * 排班考勤日结算缺卡/旷工（与固定班次 {@link #settleShiftsForDate} 分两路：同日 / 跨天）
+     * <p>
+     * timeId 使用 schedulingTimeId，与排班打卡写入一致；请假判断不限班次。
+     *
+     * @param checkDate    考勤归属日 yyyy-MM-dd
+     * @param crossDayOnly true 仅跨天排班；false 仅同日排班
+     */
+    private void settleSchedulingForDate(String checkDate, boolean crossDayOnly) {
+        List<Map<String, Object>> targets = schedulingService.queryScheduleCheckTargetsForDate(checkDate);
+        if (CollectionUtil.isEmpty(targets)) {
+            return;
+        }
+        for (Map<String, Object> target : targets) {
+            String schedulingTimeId = target.get("schedulingTimeId").toString();
+            String userId = target.get("userId").toString();
+            String startTime = target.get("startTime").toString();
+            String endTime = target.get("endTime").toString();
+            // isNextDay 或 start>end 均视为跨天排班
+            boolean crossDay = WhetherEnum.ENABLE_USING.getKey().equals(target.get("isNextDay"))
+                || CheckWorkTimePeriodUtil.isCrossDay(startTime, endTime);
+            if (crossDayOnly != crossDay) {
+                continue;
+            }
+            if (crossDay && !CheckWorkTimePeriodUtil.isCrossDaySettleReady(checkDate, endTime)) {
+                log.info("Cross-day schedule {} on {} is not ready for settlement, skip.", schedulingTimeId, checkDate);
+                continue;
+            }
+            try {
+                handleScheduleNotCheckEndMember(checkDate, schedulingTimeId);
+                handleScheduleNotCheckMember(checkDate, schedulingTimeId, userId);
+            } catch (Exception e) {
+                log.info("Handling schedule abnormal attendance, message is {}.", e);
+            }
+        }
+    }
+
+    /** 排班：补录「只打上班卡、未打下班卡」为缺晚卡 state=5 */
+    private void handleScheduleNotCheckEndMember(String checkDate, String schedulingTimeId) {
+        List<Map<String, Object>> beans = checkWorkService.queryScheduleNotCheckEndWorkId(schedulingTimeId, checkDate);
+        if (CollectionUtil.isEmpty(beans)) {
+            return;
+        }
+        for (Map<String, Object> b : beans) {
+            Map<String, Object> checkWorkMation = new HashMap<>();
+            checkWorkMation.put("id", b.get("id").toString());
+            checkWorkMation.put("state", "5");
+            checkWorkMation.put("clockOutState", "3");
+            checkWorkMation.put("workHours", "0:0:0");
+            checkWorkService.editCheckWorkBySystem(checkWorkMation);
+        }
+    }
+
+    /**
+     * 排班：全天无打卡记录且当日无请假 → 系统写入旷工 state=2
+     * timeId 使用 schedulingTimeId，与移动端/网站排班打卡一致
+     */
+    private void handleScheduleNotCheckMember(String checkDate, String schedulingTimeId, String userId) {
+        CheckWork existing = checkWorkService.queryAlreadyCheck(checkDate, userId, schedulingTimeId);
+        if (ObjectUtil.isNotEmpty(existing)) {
+            return;
+        }
+        if (checkWorkLeaveService.hasApprovedLeaveOnDay(userId, checkDate)) {
+            return;
+        }
+        List<Map<String, Object>> listBeans = new ArrayList<>();
+        listBeans.add(getNoCheckWorkObject(schedulingTimeId, userId, checkDate));
+        checkWorkService.insertCheckWorkBySystem(listBeans);
     }
 
     /**
