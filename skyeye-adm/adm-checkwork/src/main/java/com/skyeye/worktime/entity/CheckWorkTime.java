@@ -99,6 +99,10 @@ public class CheckWorkTime extends OperatorUserInfo implements EnclosureFace {
     @Property(value = "每个月工作的日期")
     private List<String> workDays;
 
+    @TableField(exist = false)
+    @Property(value = "绑定员工数")
+    private Integer staffCount;
+
     @TableField(value = "delete_flag")
     private Integer deleteFlag;
 

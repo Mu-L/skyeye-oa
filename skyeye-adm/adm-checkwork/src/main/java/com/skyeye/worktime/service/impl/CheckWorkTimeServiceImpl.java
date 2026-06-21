@@ -103,11 +103,7 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
 
     @Override
     protected void deletePreExecution(String id) {
-        // 获取这个考勤班次与员工的绑定关系
-        List<Map<String, Object>> beans = ExecuteFeignClient.get(() ->
-            iSysEveUserStaffTimeRest.querySysEveUserStaffTimeListByTimeId(id)).getRows();
-
-        if (CollectionUtil.isNotEmpty(beans)) {
+        if (getStaffCountByTimeId(id) > 0) {
             throw new CustomException("该考勤班次已被员工使用，无法删除。");
         }
         checkWorkTimePointService.deleteByTimeId(id);
@@ -125,6 +121,7 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
     public CheckWorkTime selectById(String id) {
         CheckWorkTime checkWorkTime = super.selectById(id);
         checkWorkTime.setTypeName(CheckWorkTimeType.getShowName(checkWorkTime.getType()));
+        checkWorkTime.setStaffCount(getStaffCountByTimeId(id));
         return checkWorkTime;
     }
 
@@ -217,6 +214,39 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
         refreshCache(timeId);
     }
 
+    @Override
+    public void copyCheckWorkTime(InputObject inputObject, OutputObject outputObject) {
+        String sourceId = inputObject.getParams().get("id").toString();
+        String userId = inputObject.getLogParams().get("id").toString();
+        CheckWorkTime source = selectById(sourceId);
+
+        CheckWorkTime copy = new CheckWorkTime();
+        copy.setName(buildCopyName(source.getName()));
+        copy.setRemark(source.getRemark());
+        copy.setStartTime(source.getStartTime());
+        copy.setEndTime(source.getEndTime());
+        copy.setRestStartTime(source.getRestStartTime());
+        copy.setRestEndTime(source.getRestEndTime());
+        copy.setType(source.getType());
+        copy.setEnabled(source.getEnabled());
+        copy.setOnlineClockEnabled(source.getOnlineClockEnabled());
+        copy.setWebClockEnabled(source.getWebClockEnabled());
+        copy.setCheckWorkTimeWeekList(cloneWeekList(source.getCheckWorkTimeWeekList()));
+        createEntity(copy, userId);
+
+        if (CollectionUtil.isNotEmpty(source.getCheckWorkTimePointList())) {
+            List<CheckWorkTimePoint> pointList = source.getCheckWorkTimePointList().stream()
+                .map(this::clonePoint)
+                .collect(Collectors.toList());
+            checkWorkTimePointService.saveCheckWorkTimePointList(copy.getId(), pointList, userId);
+            refreshCache(copy.getId());
+        }
+        copy.setStaffCount(0);
+        outputObject.setBean(copy);
+    }
+
+    private static final String COPY_NAME_SUFFIX = "-副本";
+
     /**
      * 批量填充班次使用人数
      */
@@ -224,14 +254,20 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
         if (CollectionUtil.isEmpty(beans)) {
             return;
         }
-        List<String> timeIds = beans.stream().map(bean -> bean.get("id").toString()).collect(Collectors.toList());
+        List<String> timeIds = beans.stream()
+            .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
         if (CollectionUtil.isEmpty(timeIds)) {
+            beans.forEach(bean -> bean.put("staffCount", 0));
             return;
         }
         Map<String, Integer> staffCountMap = queryStaffCountMap(timeIds);
         for (Map<String, Object> bean : beans) {
             bean.put("staffCount", staffCountMap.getOrDefault(bean.get("id").toString(), 0));
         }
+    }
+
+    private int getStaffCountByTimeId(String timeId) {
+        return queryStaffCountMap(java.util.Collections.singletonList(timeId)).getOrDefault(timeId, 0);
     }
 
     private Map<String, Integer> queryStaffCountMap(List<String> timeIds) {
@@ -246,9 +282,53 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
                 continue;
             }
             Object staffCount = row.get("staffCount");
-            staffCountMap.put(row.get("timeId").toString(), staffCount == null ? 0 : Integer.parseInt(staffCount.toString()));
+            int count = 0;
+            if (staffCount instanceof Number) {
+                count = ((Number) staffCount).intValue();
+            } else if (staffCount != null) {
+                count = Integer.parseInt(staffCount.toString());
+            }
+            staffCountMap.put(row.get("timeId").toString(), count);
         }
         return staffCountMap;
+    }
+
+    private String buildCopyName(String name) {
+        String sourceName = StrUtil.blankToDefault(name, "班次");
+        if (sourceName.endsWith(COPY_NAME_SUFFIX)) {
+            return sourceName.length() > 100 ? sourceName.substring(0, 100) : sourceName;
+        }
+        if (sourceName.length() + COPY_NAME_SUFFIX.length() > 100) {
+            return sourceName.substring(0, 100 - COPY_NAME_SUFFIX.length()) + COPY_NAME_SUFFIX;
+        }
+        return sourceName + COPY_NAME_SUFFIX;
+    }
+
+    private List<CheckWorkTimeWeek> cloneWeekList(List<CheckWorkTimeWeek> weekList) {
+        if (CollectionUtil.isEmpty(weekList)) {
+            return new ArrayList<>();
+        }
+        return weekList.stream().map(week -> {
+            CheckWorkTimeWeek item = new CheckWorkTimeWeek();
+            item.setWeekNumber(week.getWeekNumber());
+            item.setType(week.getType());
+            return item;
+        }).collect(Collectors.toList());
+    }
+
+    private CheckWorkTimePoint clonePoint(CheckWorkTimePoint source) {
+        CheckWorkTimePoint point = new CheckWorkTimePoint();
+        point.setName(source.getName());
+        point.setLongitude(source.getLongitude());
+        point.setLatitude(source.getLatitude());
+        point.setAbsoluteAddress(source.getAbsoluteAddress());
+        point.setProvinceId(source.getProvinceId());
+        point.setCityId(source.getCityId());
+        point.setAreaId(source.getAreaId());
+        point.setTownshipId(source.getTownshipId());
+        point.setRadius(source.getRadius());
+        point.setOrderBy(source.getOrderBy());
+        return point;
     }
 
 }

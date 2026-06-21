@@ -62,13 +62,17 @@ public class SysEveUserStaffTimeServiceImpl extends SkyeyeBusinessServiceImpl<Sy
         if (CollectionUtil.isEmpty(timeIdList)) {
             return;
         }
-        QueryWrapper<SysEveUserStaffTime> queryWrapper = new QueryWrapper<>();
-        queryWrapper.select("check_work_time_id timeId", "COUNT(1) staffCount");
-        queryWrapper.in(MybatisPlusUtil.toColumns(SysEveUserStaffTime::getCheckWorkTimeId), timeIds);
-        queryWrapper.groupBy(MybatisPlusUtil.toColumns(SysEveUserStaffTime::getCheckWorkTimeId));
-        List<Map<String, Object>> result = listMaps(queryWrapper);
+        List<Map<String, Object>> result = countStaffByTimeIds(timeIdList);
         outputObject.setBeans(result);
         outputObject.settotal(result.size());
+    }
+
+    private List<Map<String, Object>> countStaffByTimeIds(List<String> timeIdList) {
+        QueryWrapper<SysEveUserStaffTime> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("check_work_time_id timeId", "COUNT(1) staffCount");
+        queryWrapper.in(MybatisPlusUtil.toColumns(SysEveUserStaffTime::getCheckWorkTimeId), timeIdList);
+        queryWrapper.groupBy(MybatisPlusUtil.toColumns(SysEveUserStaffTime::getCheckWorkTimeId));
+        return listMaps(queryWrapper);
     }
 
     @Override
