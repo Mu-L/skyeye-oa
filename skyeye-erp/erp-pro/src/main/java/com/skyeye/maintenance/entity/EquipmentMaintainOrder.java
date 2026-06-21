@@ -22,6 +22,7 @@ import java.util.Map;
 
 /**
  * @Description: 设备保养单
+ * TODO: 保养单明细（EquipmentMaintainOrderItem）待实现：独立实体与表，保存/查询及计划下发时复制明细
  */
 @Data
 @RedisCacheField(name = "erp:equipment:maintainOrder", cacheTime = RedisConstants.THIRTY_DAY_SECONDS)
@@ -76,10 +77,6 @@ public class EquipmentMaintainOrder extends SkyeyeFlowable {
     @TableField(value = "remark")
     @ApiModelProperty(value = "备注")
     private String remark;
-
-    @TableField(exist = false)
-    @ApiModelProperty(value = "保养明细", required = "required,json")
-    private List<MaintenancePlanItem> maintainOrderItemList;
 
     @TableField(exist = false)
     @Property(value = "备件信息")
