@@ -17,15 +17,15 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum EquipmentRepairOrderState implements SkyeyeEnumClass {
 
-    BE_DISPATCHED("beDispatched", "待派工", true, true),
-    PENDING_ORDERS("pendingOrders", "待接单", true, false),
-    BE_SIGNED("beSigned", "待签到", true, false),
-    BE_COMPLETED("beCompleted", "待完工", true, false),
-    BE_EVALUATED("beEvaluated", "待评价", true, false),
-    AUDIT("audit", "待审核", true, false),
-    COMPLATE("complate", "已完工", true, false);
+    BE_DISPATCHED(1, "待派工", true, true),
+    PENDING_ORDERS(2, "待接单", true, false),
+    BE_SIGNED(3, "待签到", true, false),
+    BE_COMPLETED(4, "待完工", true, false),
+    BE_EVALUATED(5, "待评价", true, false),
+    AUDIT(6, "待审核", true, false),
+    COMPLATE(7, "已完工", true, false);
 
-    private String key;
+    private Integer key;
 
     private String value;
 
