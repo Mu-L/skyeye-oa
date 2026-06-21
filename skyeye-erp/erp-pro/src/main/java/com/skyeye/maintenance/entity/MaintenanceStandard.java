@@ -27,10 +27,10 @@ public class MaintenanceStandard extends OperatorUserInfo {
     private String id;
 
     @TableField(value = "maintenance_level")
-    @ApiModelProperty(value = "保养等级", enumClass = MaintenanceLevelEnum.class, required = "required")
+    @ApiModelProperty(value = "保养等级", enumClass = MaintenanceLevelEnum.class, required = "required,num")
     private Integer maintenanceLevel;
 
     @TableField(value = "maintenance_frequency")
-    @ApiModelProperty(value = "保养频次", enumClass = MaintenanceFrequencyEnum.class, required = "required")
+    @ApiModelProperty(value = "保养频次", enumClass = MaintenanceFrequencyEnum.class, required = "required,num")
     private Integer maintenanceFrequency;
 }

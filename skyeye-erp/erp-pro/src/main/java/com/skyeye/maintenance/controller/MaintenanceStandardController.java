@@ -17,6 +17,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 /**
  * @Description: 保养标准控制层
  */
@@ -27,7 +29,7 @@ public class MaintenanceStandardController {
     @Autowired
     private MaintenanceStandardService maintenanceStandardService;
 
-    @ApiOperation(id = "queryMaintenanceStandardList", value = "分页查询保养标准", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryMaintenanceStandardList", value = "分页查询保养标准", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/MaintenanceStandardController/queryMaintenanceStandardList")
     public void queryMaintenanceStandardList(InputObject inputObject, OutputObject outputObject) {
@@ -52,7 +54,9 @@ public class MaintenanceStandardController {
     @ApiOperation(id = "queryAllMaintenanceStandardList", value = "查询全部保养标准", method = "GET", allUse = "2")
     @RequestMapping("/post/MaintenanceStandardController/queryAllMaintenanceStandardList")
     public void queryAllMaintenanceStandardList(InputObject inputObject, OutputObject outputObject) {
-        maintenanceStandardService.queryAllData(inputObject, outputObject);
+        List<MaintenanceStandard> list = maintenanceStandardService.queryAllData();
+        outputObject.setBeans(list);
+        outputObject.settotal(list.size());
     }
 
 }

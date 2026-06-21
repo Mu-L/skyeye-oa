@@ -4,17 +4,12 @@
 
 package com.skyeye.maintenance.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.maintenance.entity.MaintenanceStandard;
 import com.skyeye.maintenance.service.MaintenanceStandardService;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
 import com.skyeye.maintenance.dao.MaintenanceStandardDao;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 /**
  * @Description: 保养标准服务层
@@ -23,13 +18,5 @@ import java.util.List;
 @SkyeyeService(name = "保养标准", groupName = "设备保养")
 public class MaintenanceStandardServiceImpl extends SkyeyeBusinessServiceImpl<MaintenanceStandardDao, MaintenanceStandard>
     implements MaintenanceStandardService {
-
-    @Override
-    public void queryAllData(InputObject inputObject, OutputObject outputObject) {
-        QueryWrapper<MaintenanceStandard> queryWrapper = new QueryWrapper<>();
-        List<MaintenanceStandard> list = list(queryWrapper);
-        outputObject.setBeans(list);
-        outputObject.settotal(list.size());
-    }
 
 }
