@@ -17,13 +17,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum MaintenanceFrequencyEnum implements SkyeyeEnumClass {
 
-    ONCE_DAILY("onceDaily", "每天一次", "green", true, false),
-    ONCE_MONTHLY("onceMonthly", "每月一次", "orange", true, false),
-    ONCE_QUARTERLY("onceQuarterly", "每季度一次", "red", true, false),
-    ONCE_HALF_YEARLY("onceHalfYearly", "每半年一次", "purple", true, false),
-    ONCE_YEARLY("onceYearly", "每年一次", "blue", true, true);
+    ONCE_DAILY(1, "每天一次", "green", true, false),
+    ONCE_MONTHLY(2, "每月一次", "orange", true, false),
+    ONCE_QUARTERLY(3, "每季度一次", "red", true, false),
+    ONCE_HALF_YEARLY(4, "每半年一次", "purple", true, false),
+    ONCE_YEARLY(5, "每年一次", "blue", true, true);
 
-    private String key;
+    private Integer key;
 
     private String value;
 

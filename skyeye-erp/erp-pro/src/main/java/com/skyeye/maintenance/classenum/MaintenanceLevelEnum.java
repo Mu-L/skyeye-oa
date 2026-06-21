@@ -17,12 +17,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public enum MaintenanceLevelEnum implements SkyeyeEnumClass {
 
-    DAILY("daily", "日常保养", "green", true, true),
-    LEVEL_TWO("levelTwo", "二级保养", "orange", true, false),
-    LEVEL_THREE("levelThree", "三级保养", "red", true, false),
-    ANNUAL("annual", "年度保养", "purple", true, false);
+    DAILY(1, "日常保养", "green", true, true),
+    LEVEL_TWO(2, "二级保养", "orange", true, false),
+    LEVEL_THREE(3, "三级保养", "red", true, false),
+    ANNUAL(4, "年度保养", "purple", true, false);
 
-    private String key;
+    private Integer key;
 
     private String value;
 
