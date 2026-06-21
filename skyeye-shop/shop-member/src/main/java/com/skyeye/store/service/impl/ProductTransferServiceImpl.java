@@ -70,9 +70,6 @@ public class ProductTransferServiceImpl extends SkyeyeBusinessServiceImpl<Produc
         if (CollectionUtil.isEmpty(entity.getApplyLinkList())) {
             throw new CustomException("请至少填写一条调拨明细");
         }
-        if (StrUtil.isEmpty(entity.getFromStoreId()) || StrUtil.isEmpty(entity.getToStoreId())) {
-            throw new CustomException("原门店和目标门店不能为空");
-        }
         if (StrUtil.equals(entity.getFromStoreId(), entity.getToStoreId())) {
             throw new CustomException("原门店和目标门店相同，无需调拨");
         }
