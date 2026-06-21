@@ -34,14 +34,14 @@ public class MaintenanceStandardController {
         maintenanceStandardService.queryPageList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "writeMaintenanceStandard", value = "新增/编辑保养标准", method = "POST", allUse = "2")
+    @ApiOperation(id = "writeMaintenanceStandard", value = "新增/编辑保养标准", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = MaintenanceStandard.class)
     @RequestMapping("/post/MaintenanceStandardController/writeMaintenanceStandard")
     public void writeMaintenanceStandard(InputObject inputObject, OutputObject outputObject) {
         maintenanceStandardService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteMaintenanceStandardById", value = "删除保养标准", method = "DELETE", allUse = "2")
+    @ApiOperation(id = "deleteMaintenanceStandardById", value = "删除保养标准", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/MaintenanceStandardController/deleteMaintenanceStandardById")
