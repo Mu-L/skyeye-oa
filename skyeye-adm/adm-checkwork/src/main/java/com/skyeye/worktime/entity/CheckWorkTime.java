@@ -40,7 +40,7 @@ public class CheckWorkTime extends OperatorUserInfo implements EnclosureFace {
     private String id;
 
     @TableField(value = "`name`")
-    @ApiModelProperty(value = "名称", required = "required")
+    @ApiModelProperty(value = "名称", required = "required", fuzzyLike = true)
     private String name;
 
     @TableField(value = "remark")

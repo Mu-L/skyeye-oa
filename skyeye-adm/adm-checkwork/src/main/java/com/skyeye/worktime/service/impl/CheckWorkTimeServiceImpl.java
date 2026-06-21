@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Service
-@SkyeyeService(name = "考勤班次", groupName = "考勤班次")
+@SkyeyeService(name = "考勤班次", groupName = "考勤班次", allowDynamicAttrKey = false)
 public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkTimeDao, CheckWorkTime> implements CheckWorkTimeService {
 
     @Autowired
@@ -271,8 +271,10 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
     }
 
     private Map<String, Integer> queryStaffCountMap(List<String> timeIds) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("timeIds", String.join(CommonCharConstants.COMMA_MARK, timeIds));
         List<Map<String, Object>> countRows = ExecuteFeignClient.get(() ->
-            iSysEveUserStaffTimeRest.countSysEveUserStaffTimeByTimeIds(String.join(CommonCharConstants.COMMA_MARK, timeIds))).getRows();
+            iSysEveUserStaffTimeRest.countSysEveUserStaffTimeByTimeIds(params)).getRows();
         if (CollectionUtil.isEmpty(countRows)) {
             return new HashMap<>();
         }
