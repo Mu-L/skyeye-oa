@@ -107,4 +107,12 @@ public class CheckWorkTimeController {
         checkWorkTimeService.copyCheckWorkTime(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryCheckWorkTimeStaffListByTimeId", value = "根据班次id查询绑定员工列表", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "班次主键id", required = "required")})
+    @RequestMapping("/post/CheckWorkTimeController/queryCheckWorkTimeStaffListByTimeId")
+    public void queryCheckWorkTimeStaffListByTimeId(InputObject inputObject, OutputObject outputObject) {
+        checkWorkTimeService.queryCheckWorkTimeStaffListByTimeId(inputObject, outputObject);
+    }
+
 }

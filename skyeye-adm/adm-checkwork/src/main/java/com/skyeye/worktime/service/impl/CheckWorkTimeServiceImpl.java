@@ -22,6 +22,7 @@ import com.skyeye.eve.centerrest.user.SysEveUserService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.rest.pro.rest.ISysEveUserStaffTimeRest;
 import com.skyeye.worktime.classenum.CheckWorkTimeType;
+import com.skyeye.worktime.classenum.CheckWorkTimeWeekType;
 import com.skyeye.worktime.dao.CheckWorkTimeDao;
 import com.skyeye.worktime.entity.CheckWorkTime;
 import com.skyeye.worktime.entity.CheckWorkTimePoint;
@@ -33,10 +34,7 @@ import com.skyeye.worktime.util.CheckWorkTimeWeekUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -93,6 +91,12 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
         if (CollectionUtil.isEmpty(entity.getCheckWorkTimeWeekList())) {
             throw new CustomException("请配置工作日。");
         }
+        boolean hasWorkDay = entity.getCheckWorkTimeWeekList().stream()
+            .anyMatch(week -> week.getType() != null
+                && !CheckWorkTimeWeekType.DOUBLE.getKey().equals(week.getType()));
+        if (!hasWorkDay) {
+            throw new CustomException("至少保留一个工作日。");
+        }
     }
 
     @Override
@@ -106,6 +110,7 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
         if (getStaffCountByTimeId(id) > 0) {
             throw new CustomException("该考勤班次已被员工使用，无法删除。");
         }
+        checkWorkTimeWeekService.deleteByTimeId(id);
         checkWorkTimePointService.deleteByTimeId(id);
     }
 
@@ -245,6 +250,31 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
         outputObject.setBean(copy);
     }
 
+    @Override
+    public void queryCheckWorkTimeStaffListByTimeId(InputObject inputObject, OutputObject outputObject) {
+        String timeId = inputObject.getParams().get("id").toString();
+        List<Map<String, Object>> bindings = ExecuteFeignClient.get(() ->
+            iSysEveUserStaffTimeRest.querySysEveUserStaffTimeListByTimeId(timeId)).getRows();
+        if (CollectionUtil.isEmpty(bindings)) {
+            return;
+        }
+        List<String> staffIds = bindings.stream()
+            .filter(bean -> bean.get("staffId") != null && StrUtil.isNotBlank(bean.get("staffId").toString()))
+            .map(bean -> bean.get("staffId").toString())
+            .distinct()
+            .collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(staffIds)) {
+            return;
+        }
+        Map<String, Map<String, Object>> staffMap = iAuthUserService.queryUserMationListByStaffIds(staffIds);
+        List<Map<String, Object>> staffList = staffIds.stream()
+            .map(staffMap::get)
+            .filter(CollectionUtil::isNotEmpty)
+            .collect(Collectors.toList());
+        outputObject.setBeans(staffList);
+        outputObject.settotal(staffList.size());
+    }
+
     private static final String COPY_NAME_SUFFIX = "-副本";
 
     /**
@@ -255,14 +285,21 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
             return;
         }
         List<String> timeIds = beans.stream()
-            .map(bean -> bean.get("id").toString()).collect(Collectors.toList());
+            .filter(bean -> bean.get("id") != null && StrUtil.isNotBlank(bean.get("id").toString()))
+            .map(bean -> bean.get("id").toString())
+            .collect(Collectors.toList());
         if (CollectionUtil.isEmpty(timeIds)) {
             beans.forEach(bean -> bean.put("staffCount", 0));
             return;
         }
         Map<String, Integer> staffCountMap = queryStaffCountMap(timeIds);
         for (Map<String, Object> bean : beans) {
-            bean.put("staffCount", staffCountMap.getOrDefault(bean.get("id").toString(), 0));
+            Object idObj = bean.get("id");
+            if (idObj == null || StrUtil.isBlank(idObj.toString())) {
+                bean.put("staffCount", 0);
+                continue;
+            }
+            bean.put("staffCount", staffCountMap.getOrDefault(idObj.toString(), 0));
         }
     }
 
@@ -296,14 +333,52 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
     }
 
     private String buildCopyName(String name) {
-        String sourceName = StrUtil.blankToDefault(name, "班次");
-        if (sourceName.endsWith(COPY_NAME_SUFFIX)) {
-            return sourceName.length() > 100 ? sourceName.substring(0, 100) : sourceName;
+        String baseName = StrUtil.blankToDefault(name, "班次");
+        String prefix = baseName.endsWith(COPY_NAME_SUFFIX) ? baseName : baseName + COPY_NAME_SUFFIX;
+        Set<Integer> usedIndexes = findUsedCopyNameIndexes(prefix);
+        int nextIndex = 1;
+        while (usedIndexes.contains(nextIndex)) {
+            nextIndex++;
         }
-        if (sourceName.length() + COPY_NAME_SUFFIX.length() > 100) {
-            return sourceName.substring(0, 100 - COPY_NAME_SUFFIX.length()) + COPY_NAME_SUFFIX;
+        String candidate = nextIndex <= 1 ? prefix : prefix + nextIndex;
+        return truncateCopyName(candidate);
+    }
+
+    /**
+     * 一次查询收集副本名称已占用的序号：prefix 本身为 1，prefix2 为 2，以此类推
+     */
+    private Set<Integer> findUsedCopyNameIndexes(String prefix) {
+        QueryWrapper<CheckWorkTime> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select(MybatisPlusUtil.toColumns(CheckWorkTime::getName));
+        queryWrapper.eq(MybatisPlusUtil.toColumns(CheckWorkTime::getDeleteFlag), DeleteFlagEnum.NOT_DELETE.getKey());
+        queryWrapper.likeRight(MybatisPlusUtil.toColumns(CheckWorkTime::getName), prefix);
+        List<CheckWorkTime> existList = list(queryWrapper);
+        Set<Integer> usedIndexes = new HashSet<>();
+        if (CollectionUtil.isEmpty(existList)) {
+            return usedIndexes;
         }
-        return sourceName + COPY_NAME_SUFFIX;
+        for (CheckWorkTime item : existList) {
+            String existName = item.getName();
+            if (prefix.equals(existName)) {
+                usedIndexes.add(1);
+                continue;
+            }
+            if (!existName.startsWith(prefix)) {
+                continue;
+            }
+            String suffix = existName.substring(prefix.length());
+            if (StrUtil.isNumeric(suffix)) {
+                usedIndexes.add(Integer.parseInt(suffix));
+            }
+        }
+        return usedIndexes;
+    }
+
+    private String truncateCopyName(String name) {
+        if (name.length() <= 100) {
+            return name;
+        }
+        return name.substring(0, 100);
     }
 
     private List<CheckWorkTimeWeek> cloneWeekList(List<CheckWorkTimeWeek> weekList) {

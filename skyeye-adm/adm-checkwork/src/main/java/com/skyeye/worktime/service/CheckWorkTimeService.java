@@ -38,4 +38,6 @@ public interface CheckWorkTimeService extends SkyeyeBusinessService<CheckWorkTim
     void setOnlineCheckWorkTime(InputObject inputObject, OutputObject outputObject);
 
     void copyCheckWorkTime(InputObject inputObject, OutputObject outputObject);
+
+    void queryCheckWorkTimeStaffListByTimeId(InputObject inputObject, OutputObject outputObject);
 }
