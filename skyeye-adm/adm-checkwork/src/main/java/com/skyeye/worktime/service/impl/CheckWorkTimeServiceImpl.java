@@ -30,6 +30,7 @@ import com.skyeye.worktime.entity.CheckWorkTimeWeek;
 import com.skyeye.worktime.service.CheckWorkTimePointService;
 import com.skyeye.worktime.service.CheckWorkTimeService;
 import com.skyeye.worktime.service.CheckWorkTimeWeekService;
+import com.skyeye.worktime.util.CheckWorkTimePeriodUtil;
 import com.skyeye.worktime.util.CheckWorkTimeWeekUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -71,8 +72,16 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
     @Override
     protected void validatorEntity(CheckWorkTime entity) {
         super.validatorEntity(entity);
-        if (!DateUtil.compareTimeHMS(entity.getStartTime() + ":00", entity.getEndTime() + ":00")) {
-            throw new CustomException("工作开始时间必须早于结束时间。");
+        if (StrUtil.isBlank(entity.getStartTime()) || StrUtil.isBlank(entity.getEndTime())) {
+            throw new CustomException("请填写工作开始时间和结束时间。");
+        }
+        boolean crossDay = CheckWorkTimePeriodUtil.isCrossDay(entity.getStartTime(), entity.getEndTime());
+        if (!crossDay) {
+            if (!DateUtil.compareTimeHMS(entity.getStartTime() + ":00", entity.getEndTime() + ":00")) {
+                throw new CustomException("工作开始时间必须早于结束时间。");
+            }
+        } else if (entity.getStartTime().equals(entity.getEndTime())) {
+            throw new CustomException("跨天班次开始时间与结束时间不能相同。");
         }
         boolean hasRestStart = StrUtil.isNotBlank(entity.getRestStartTime());
         boolean hasRestEnd = StrUtil.isNotBlank(entity.getRestEndTime());
@@ -80,13 +89,8 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
             throw new CustomException("作息开始时间和结束时间需同时填写或同时为空。");
         }
         if (hasRestStart) {
-            if (!DateUtil.compareTimeHMS(entity.getRestStartTime() + ":00", entity.getRestEndTime() + ":00")) {
-                throw new CustomException("作息开始时间必须早于结束时间。");
-            }
-            if (!DateUtil.compareTimeHMS(entity.getStartTime() + ":00", entity.getRestStartTime() + ":00")
-                || !DateUtil.compareTimeHMS(entity.getRestEndTime() + ":00", entity.getEndTime() + ":00")) {
-                throw new CustomException("作息时间必须在工作时间范围内。");
-            }
+            CheckWorkTimePeriodUtil.validateRestInWorkRange(entity.getStartTime(), entity.getEndTime(),
+                entity.getRestStartTime(), entity.getRestEndTime());
         }
         if (CollectionUtil.isEmpty(entity.getCheckWorkTimeWeekList())) {
             throw new CustomException("请配置工作日。");
@@ -244,8 +248,8 @@ public class CheckWorkTimeServiceImpl extends SkyeyeBusinessServiceImpl<CheckWor
                 .map(this::clonePoint)
                 .collect(Collectors.toList());
             checkWorkTimePointService.saveCheckWorkTimePointList(copy.getId(), pointList, userId);
-            refreshCache(copy.getId());
         }
+        refreshCache(copy.getId());
         copy.setStaffCount(0);
         outputObject.setBean(copy);
     }

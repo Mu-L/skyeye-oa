@@ -11,6 +11,7 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
+import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.base.handler.enclosure.bean.Enclosure;
 import com.skyeye.common.base.handler.enclosure.bean.EnclosureFace;
 import com.skyeye.common.constans.CacheConstants;
@@ -30,6 +31,7 @@ import java.util.List;
  * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
  */
 @Data
+@UniqueField
 @RedisCacheField(name = CacheConstants.CHECK_WORK_TIME_CACHE_KEY)
 @TableName(value = "check_work_time", autoResultMap = true)
 @ApiModel("考勤班次实体类")

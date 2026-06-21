@@ -19,6 +19,7 @@ import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
 import com.skyeye.worktime.entity.CheckWorkTime;
 import com.skyeye.worktime.service.CheckWorkTimeService;
+import com.skyeye.worktime.util.CheckWorkTimePeriodUtil;
 import com.skyeye.worktime.util.CheckWorkTimeWeekUtil;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
@@ -96,33 +97,68 @@ public class CheckWorkQuartz {
         List<CheckWorkTime> workTime = checkWorkTimeService.queryAllData().stream()
             .filter(item -> EnableEnum.ENABLE_USING.getKey().equals(item.getEnabled()))
             .collect(Collectors.toList());
-        // 得到昨天的时间
-        String yesterdayTime = DateAfterSpacePointTime.getSpecifiedTime(
-            DateAfterSpacePointTime.ONE_DAY.getType(), DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD, DateAfterSpacePointTime.AroundType.BEFORE);
-        if (workTime != null && !workTime.isEmpty() && !iScheduleDayService.judgeISHoliday(yesterdayTime)) {
-            // 班次信息不为空，并且昨天不是节假日
-            log.info("Fill in the clocking information for timing task execution time is {}", yesterdayTime);
-            // 判断昨天的日期是周几
-            int weekDay = DateUtil.getWeek(yesterdayTime);
-            // 判断昨天的日期是单周还是双周
-            int weekType = DateUtil.getWeekType(yesterdayTime);
-            // 2.获取昨天应该打卡的班次信息
-            List<CheckWorkTime> shouldCheckTime = getShouldCheckTime(weekDay, weekType, workTime);
-            if (!shouldCheckTime.isEmpty()) {
-                shouldCheckTime.forEach(bean -> {
-                    try {
-                        // 3.1 处理所有昨天只打早卡没有打晚卡的记录id
-                        handleNotCheckWorkEndMember(yesterdayTime, bean.getId());
-                        // 3.2 处理所有昨天没有打卡的用户
-                        handleNotCheckWorkMember(yesterdayTime, bean.getId());
-                    } catch (Exception e) {
-                        log.info("Handling abnormal attendance information, message is {}.", e);
-                    }
-                });
+        if (CollectionUtil.isEmpty(workTime)) {
+            handleNotCheckWorkEndMember(getYesterdayTime(), "-");
+            return;
+        }
+
+        String yesterdayTime = getYesterdayTime();
+        String dayBeforeYesterdayTime = DateAfterSpacePointTime.getSpecifiedTime(
+            DateAfterSpacePointTime.ONE_DAY.getType(), yesterdayTime, DateUtil.YYYY_MM_DD,
+            DateAfterSpacePointTime.AroundType.BEFORE);
+
+        // 2.同日班次：结算昨天
+        if (!iScheduleDayService.judgeISHoliday(yesterdayTime)) {
+            log.info("Fill in same-day shift clocking information, checkDate={}", yesterdayTime);
+            settleShiftsForDate(yesterdayTime, workTime, false);
+        }
+
+        // 3.跨天班次：结算前天（班次在前天开始、昨天凌晨结束，需等结束后再处理）
+        if (!iScheduleDayService.judgeISHoliday(dayBeforeYesterdayTime)) {
+            log.info("Fill in cross-day shift clocking information, checkDate={}", dayBeforeYesterdayTime);
+            settleShiftsForDate(dayBeforeYesterdayTime, workTime, true);
+        }
+
+        // 4.处理所有昨天加班只打早卡没有打晚卡的记录id
+        handleNotCheckWorkEndMember(yesterdayTime, "-");
+    }
+
+    private String getYesterdayTime() {
+        return DateAfterSpacePointTime.getSpecifiedTime(
+            DateAfterSpacePointTime.ONE_DAY.getType(), DateUtil.getTimeAndToString(), DateUtil.YYYY_MM_DD,
+            DateAfterSpacePointTime.AroundType.BEFORE);
+    }
+
+    /**
+     * 按考勤日结算缺卡/旷工
+     *
+     * @param checkDate  考勤归属日 yyyy-MM-dd
+     * @param workTime   启用中的班次
+     * @param crossDayOnly true 仅跨天班次；false 仅同日班次
+     */
+    private void settleShiftsForDate(String checkDate, List<CheckWorkTime> workTime, boolean crossDayOnly) {
+        int weekDay = DateUtil.getWeek(checkDate);
+        int weekType = DateUtil.getWeekType(checkDate);
+        List<CheckWorkTime> shouldCheckTime = getShouldCheckTime(weekDay, weekType, workTime);
+        if (CollectionUtil.isEmpty(shouldCheckTime)) {
+            return;
+        }
+        for (CheckWorkTime bean : shouldCheckTime) {
+            boolean crossDay = CheckWorkTimePeriodUtil.isCrossDay(bean.getStartTime(), bean.getEndTime());
+            if (crossDayOnly != crossDay) {
+                continue;
+            }
+            if (crossDay && !CheckWorkTimePeriodUtil.isCrossDaySettleReady(checkDate, bean.getEndTime())) {
+                log.info("Cross-day shift {} on {} is not ready for settlement, skip.", bean.getId(), checkDate);
+                continue;
+            }
+            try {
+                handleNotCheckWorkEndMember(checkDate, bean.getId());
+                handleNotCheckWorkMember(checkDate, bean.getId());
+            } catch (Exception e) {
+                log.info("Handling abnormal attendance information, message is {}.", e);
             }
         }
-        // 4 处理所有昨天加班只打早卡没有打晚卡的记录id
-        handleNotCheckWorkEndMember(yesterdayTime, "-");
     }
 
     /**

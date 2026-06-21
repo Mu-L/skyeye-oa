@@ -32,6 +32,7 @@ import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
 import com.skyeye.leave.service.LeaveTimeSlotService;
 import com.skyeye.worktime.entity.CheckWorkTime;
+import com.skyeye.worktime.util.CheckWorkTimePeriodUtil;
 import com.skyeye.worktime.util.CheckWorkTimeWeekUtil;
 import com.skyeye.worktime.service.CheckWorkTimeService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -301,17 +302,23 @@ public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave>
      * 计算请假时间段与工作时间的交集分钟数（支持跨天、午休扣除、按 checkWorkTimeWeekList 仅计算工作日）
      */
     private long calcLeaveMinutesInRange(LocalDateTime leaveStart, LocalDateTime leaveEnd, CheckWorkTime workTime) {
+        boolean crossDay = CheckWorkTimePeriodUtil.isCrossDay(workTime.getStartTime(), workTime.getEndTime());
         LocalTime workStart = parseTime(workTime.getStartTime());
         LocalTime workEnd = parseTime(workTime.getEndTime());
         LocalTime restStart = StrUtil.isNotEmpty(workTime.getRestStartTime()) ? parseTime(workTime.getRestStartTime()) : null;
         LocalTime restEnd = StrUtil.isNotEmpty(workTime.getRestEndTime()) ? parseTime(workTime.getRestEndTime()) : null;
         long total = 0;
-        for (LocalDate d = leaveStart.toLocalDate(); !d.isAfter(leaveEnd.toLocalDate()); d = d.plusDays(1)) {
+        LocalDate loopStart = crossDay ? leaveStart.toLocalDate().minusDays(1) : leaveStart.toLocalDate();
+        LocalDate loopEnd = leaveEnd.toLocalDate();
+        for (LocalDate d = loopStart; !d.isAfter(loopEnd); d = d.plusDays(1)) {
             if (!isWorkDay(d, workTime)) {
                 continue;
             }
+            String shiftDate = d.format(DateTimeFormatter.ISO_LOCAL_DATE);
             LocalDateTime dayWorkStart = d.atTime(workStart);
-            LocalDateTime dayWorkEnd = d.atTime(workEnd);
+            LocalDateTime dayWorkEnd = crossDay
+                ? CheckWorkTimePeriodUtil.resolveShiftDateTime(shiftDate, workTime.getEndTime(), workTime.getStartTime(), true)
+                : d.atTime(workEnd);
             LocalDateTime overlapStart = leaveStart.isAfter(dayWorkStart) ? leaveStart : dayWorkStart;
             LocalDateTime overlapEnd = leaveEnd.isBefore(dayWorkEnd) ? leaveEnd : dayWorkEnd;
             if (!overlapStart.isBefore(overlapEnd)) {
@@ -319,8 +326,12 @@ public class LeaveServiceImpl extends SkyeyeBusinessServiceImpl<LeaveDao, Leave>
             }
             long mins = ChronoUnit.MINUTES.between(overlapStart, overlapEnd);
             if (restStart != null && restEnd != null) {
-                LocalDateTime dayRestStart = d.atTime(restStart);
-                LocalDateTime dayRestEnd = d.atTime(restEnd);
+                LocalDateTime dayRestStart = crossDay
+                    ? CheckWorkTimePeriodUtil.resolveShiftDateTime(shiftDate, workTime.getRestStartTime(), workTime.getStartTime(), true)
+                    : d.atTime(restStart);
+                LocalDateTime dayRestEnd = crossDay
+                    ? CheckWorkTimePeriodUtil.resolveShiftDateTime(shiftDate, workTime.getRestEndTime(), workTime.getStartTime(), true)
+                    : d.atTime(restEnd);
                 LocalDateTime restOverlapStart = overlapStart.isAfter(dayRestStart) ? overlapStart : dayRestStart;
                 LocalDateTime restOverlapEnd = overlapEnd.isBefore(dayRestEnd) ? overlapEnd : dayRestEnd;
                 if (restOverlapStart.isBefore(restOverlapEnd)) {
