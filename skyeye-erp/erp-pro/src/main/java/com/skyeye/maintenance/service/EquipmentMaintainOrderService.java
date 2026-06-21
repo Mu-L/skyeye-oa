@@ -4,16 +4,12 @@
 
 package com.skyeye.maintenance.service;
 
-import com.skyeye.maintenance.entity.MaintenanceStandard;
+import com.skyeye.maintenance.entity.EquipmentMaintainOrder;
 import com.skyeye.base.business.service.SkyeyeBusinessService;
-import com.skyeye.common.object.InputObject;
-import com.skyeye.common.object.OutputObject;
 
 /**
- * @Description: 保养标准服务接口
+ * @Description: 设备保养单服务接口
  */
-public interface MaintenanceStandardService extends SkyeyeBusinessService<MaintenanceStandard> {
-
-    void queryAllMaintenanceStandardList(InputObject inputObject, OutputObject outputObject);
+public interface EquipmentMaintainOrderService extends SkyeyeBusinessService<EquipmentMaintainOrder> {
 
 }
