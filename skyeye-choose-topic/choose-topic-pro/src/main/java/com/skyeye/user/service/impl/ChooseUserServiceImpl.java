@@ -217,8 +217,11 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
     public void editLoginUser(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String userId = InputObject.getLogParamsStatic().get("id").toString();
+        ChooseUser existingUser = selectById(userId);
+        if (ObjectUtil.isEmpty(existingUser)) {
+            throw new CustomException("用户不存在");
+        }
         String jobTitle = map.get("jobTitle").toString();
-        String guideCapacity = map.get("guideCapacity").toString();
         String qq = map.get("qq").toString();
         String phone = map.get("phone").toString();
         String topicRequirement = map.get("topicRequirement").toString();
@@ -228,7 +231,6 @@ public class ChooseUserServiceImpl extends SkyeyeBusinessServiceImpl<ChooseUserD
         UpdateWrapper<ChooseUser> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, userId);
         updateWrapper.set(MybatisPlusUtil.toColumns(ChooseUser::getJobTitle), jobTitle);
-        updateWrapper.set(MybatisPlusUtil.toColumns(ChooseUser::getGuideCapacity), guideCapacity);
         updateWrapper.set(MybatisPlusUtil.toColumns(ChooseUser::getQq), qq);
         updateWrapper.set(MybatisPlusUtil.toColumns(ChooseUser::getPhone), phone);
         updateWrapper.set(MybatisPlusUtil.toColumns(ChooseUser::getTopicRequirement), topicRequirement);
