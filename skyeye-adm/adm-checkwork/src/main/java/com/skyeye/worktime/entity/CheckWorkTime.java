@@ -105,6 +105,10 @@ public class CheckWorkTime extends OperatorUserInfo implements EnclosureFace {
     @Property(value = "绑定员工数")
     private Integer staffCount;
 
+    @TableField(exist = false)
+    @Property(value = "排班是否跨天（isNextDay，非持久化扩展字段）")
+    private Integer isNextDay;
+
     @TableField(value = "delete_flag")
     private Integer deleteFlag;
 

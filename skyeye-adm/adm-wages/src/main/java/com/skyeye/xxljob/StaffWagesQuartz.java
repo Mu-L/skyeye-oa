@@ -45,6 +45,7 @@ import com.skyeye.reward.entity.RewardPunish;
 import com.skyeye.reward.service.RewardPunishService;
 import com.skyeye.worktime.entity.CheckWorkTime;
 import com.skyeye.worktime.util.CheckWorkHourCalcUtil;
+import com.skyeye.worktime.util.CheckWorkTimePeriodUtil;
 import com.skyeye.worktime.service.CheckWorkTimeService;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
@@ -640,14 +641,45 @@ public class StaffWagesQuartz {
         // 销假要退还给员工的钱
         String cancleLeaveMoney = "0";
         for (Map<String, Object> bean : cancleLeaveTime) {
-            // 销假的时长（分钟）
-            String cancelMinute = DateUtil.getDistanceMinuteByHMS(bean.get("cancelStartTime").toString(), bean.get("cancelEndTime").toString());
-            String cancelHourTime = CalculationUtil.divide(cancelMinute, "60", CommonNumConstants.NUM_TWO);
+            // 优先使用审批通过的 cancelHour（含跨午夜销假）；无则回退时刻差
+            String cancelHourTime;
+            Object cancelHourObj = bean.get("cancelHour");
+            if (cancelHourObj != null && StrUtil.isNotBlank(cancelHourObj.toString())) {
+                cancelHourTime = cancelHourObj.toString();
+            } else if (bean.get("cancelStartTime") != null && bean.get("cancelEndTime") != null) {
+                cancelHourTime = resolveCancelHourTime(bean);
+            } else {
+                cancelHourTime = "0";
+            }
             cancleLeaveMoney = CalculationUtil.add(
                 cancleLeaveMoney,
                 CalculationUtil.multiply(cancelHourTime, hourWages, CommonNumConstants.NUM_FOUR), CommonNumConstants.NUM_FOUR);
         }
         return cancleLeaveMoney;
+    }
+
+    /**
+     * 销假时长（小时）：优先 cancelHour；否则按班次与 cancelDay 重算（支持跨午夜）；最后回退时刻差
+     */
+    private String resolveCancelHourTime(Map<String, Object> bean) {
+        Object timeIdObj = bean.get("timeId");
+        Object cancelDayObj = bean.get("cancelDay");
+        if (timeIdObj != null && cancelDayObj != null && StrUtil.isNotBlank(timeIdObj.toString())) {
+            CheckWorkTime workTime = checkWorkTimeService.selectById(timeIdObj.toString());
+            if (workTime != null) {
+                String cancelDay = cancelDayObj.toString();
+                if (cancelDay.length() >= 10) {
+                    cancelDay = cancelDay.substring(0, 10);
+                }
+                return CheckWorkHourCalcUtil.calcCancelHour(cancelDay,
+                    bean.get("cancelStartTime").toString(),
+                    bean.get("cancelEndTime").toString(),
+                    workTime);
+            }
+        }
+        String cancelMinute = DateUtil.getDistanceMinuteByHMS(
+            bean.get("cancelStartTime").toString(), bean.get("cancelEndTime").toString());
+        return CalculationUtil.divide(cancelMinute, "60", CommonNumConstants.NUM_TWO);
     }
 
     /**
@@ -882,24 +914,29 @@ public class StaffWagesQuartz {
             CheckWorkTime workTime = workTimes.get(0);
             String startTime = DateUtil.formatDate(workTime.getStartTime());
             String endTime = DateUtil.formatDate(workTime.getEndTime());
+            boolean crossDay = CheckWorkTimePeriodUtil.resolveShiftCrossDay(
+                startTime, endTime, workTime.getIsNextDay());
             // 全勤以及工时不足的都算为实际出勤
             if ("1".equals(state) || "3".equals(state)) {
                 lastMonthRealNum++;
-                String time = DateUtil.getDistanceMinuteByHMS(bean.get("clockIn").toString(), bean.get("clockOut").toString());
+                String time = String.valueOf(CheckWorkTimePeriodUtil.getPunchDurationMinutes(
+                    bean.get("clockIn").toString(), bean.get("clockOut").toString()));
                 lastMonthRealHour = CalculationUtil.add(lastMonthRealHour, time, CommonNumConstants.NUM_TWO);
 
                 lastMonthBeRealHour = CalculationUtil.add(lastMonthBeRealHour,
-                    DateUtil.getDistanceMinuteByHMS(startTime, endTime), CommonNumConstants.NUM_TWO);
+                    String.valueOf(CheckWorkHourCalcUtil.calcStandardWorkMinutes(workTime)), CommonNumConstants.NUM_TWO);
             }
             // 迟到
             if ("2".equals(bean.get("clockInState").toString())) {
                 lastMonthLateNum++;
-                lateMinute.add(DateUtil.getDistanceMinuteByHMS(bean.get("clockIn").toString(), startTime));
+                lateMinute.add(String.valueOf(CheckWorkTimePeriodUtil.getLateMinutes(
+                    bean.get("clockIn").toString(), startTime, crossDay)));
             }
             // 早退
             if ("2".equals(bean.get("clockOutState").toString())) {
                 lastMonthEarlyNum++;
-                earlyMinute.add(DateUtil.getDistanceMinuteByHMS(bean.get("clockOut").toString(), endTime));
+                earlyMinute.add(String.valueOf(CheckWorkTimePeriodUtil.getEarlyLeaveMinutes(
+                    bean.get("clockOut").toString(), startTime, endTime, crossDay)));
             }
         }
         staffModelFieldMap.put(WagesConstant.DEFAULT_WAGES_FIELD_TYPE.LAST_MONTH_REAL_NUM.getKey(), String.valueOf(lastMonthRealNum));

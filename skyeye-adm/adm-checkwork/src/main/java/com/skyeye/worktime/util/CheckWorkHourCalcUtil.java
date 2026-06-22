@@ -39,7 +39,8 @@ public class CheckWorkHourCalcUtil {
         if (workTime == null || StrUtil.isBlank(workTime.getStartTime()) || StrUtil.isBlank(workTime.getEndTime())) {
             return 0L;
         }
-        boolean crossDay = CheckWorkTimePeriodUtil.isCrossDay(workTime.getStartTime(), workTime.getEndTime());
+        boolean crossDay = CheckWorkTimePeriodUtil.resolveShiftCrossDay(
+            workTime.getStartTime(), workTime.getEndTime(), workTime.getIsNextDay());
         long workMinutes = CheckWorkTimePeriodUtil.getWorkMinutes(workTime.getStartTime(), workTime.getEndTime());
         if (StrUtil.isNotEmpty(workTime.getRestStartTime()) && StrUtil.isNotEmpty(workTime.getRestEndTime())) {
             if (crossDay) {
@@ -80,7 +81,8 @@ public class CheckWorkHourCalcUtil {
         if (leaveStart == null || leaveEnd == null || workTime == null || !leaveStart.isBefore(leaveEnd)) {
             return 0L;
         }
-        boolean crossDay = CheckWorkTimePeriodUtil.isCrossDay(workTime.getStartTime(), workTime.getEndTime());
+        boolean crossDay = CheckWorkTimePeriodUtil.resolveShiftCrossDay(
+            workTime.getStartTime(), workTime.getEndTime(), workTime.getIsNextDay());
         LocalTime workStart = parseLocalTime(workTime.getStartTime());
         LocalTime workEnd = parseLocalTime(workTime.getEndTime());
         LocalTime restStart = StrUtil.isNotEmpty(workTime.getRestStartTime()) ? parseLocalTime(workTime.getRestStartTime()) : null;

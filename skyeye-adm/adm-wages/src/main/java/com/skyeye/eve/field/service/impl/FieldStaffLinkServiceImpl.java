@@ -33,6 +33,7 @@ import com.skyeye.exception.CustomException;
 import com.skyeye.rest.pro.service.ISysEveUserStaffService;
 import com.skyeye.worktime.entity.CheckWorkTime;
 import com.skyeye.worktime.entity.CheckWorkTimeWeek;
+import com.skyeye.worktime.util.CheckWorkHourCalcUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -180,12 +181,10 @@ public class FieldStaffLinkServiceImpl extends SkyeyeBusinessServiceImpl<FieldSt
                         // 单周或者每周的当天都上班
                         lastMonthBeNum++;
                         try {
-                            String startTime = DateUtil.formatDate(bean.getStartTime());
-                            String endTime = DateUtil.formatDate(bean.getEndTime());
-                            String time = DateUtil.getDistanceMinuteByHMS(startTime, endTime);
+                            String time = String.valueOf(CheckWorkHourCalcUtil.calcStandardWorkMinutes(bean));
                             lastMonthBeHour = CalculationUtil.add(lastMonthBeHour, time, 2);
                         } catch (Exception e) {
-                            log.warn("get differ time failed, startTime is: {}, endTime is: {}", bean.getStartTime(),
+                            log.warn("calc standard work minutes failed, startTime is: {}, endTime is: {}", bean.getStartTime(),
                                 bean.getEndTime(), e);
                         }
                     }

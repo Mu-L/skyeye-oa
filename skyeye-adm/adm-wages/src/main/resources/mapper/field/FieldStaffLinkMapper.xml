@@ -107,7 +107,8 @@
             b.cancel_day cancelDay,
             b.cancel_start_time cancelStartTime,
             b.cancel_end_time cancelEndTime,
-            b.cancel_hour cancelHour
+            b.cancel_hour cancelHour,
+            b.time_id timeId
         FROM
             check_work_cancel_leave a,
             check_work_cancel_leave_time_slot b,

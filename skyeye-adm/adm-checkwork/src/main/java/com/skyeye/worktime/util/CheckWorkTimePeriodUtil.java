@@ -5,6 +5,7 @@
 package com.skyeye.worktime.util;
 
 import cn.hutool.core.util.StrUtil;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.util.DateAfterSpacePointTime;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.exception.CustomException;
@@ -39,6 +40,16 @@ public class CheckWorkTimePeriodUtil {
     }
 
     /**
+     * 统一跨天判定：排班 isNextDay=1 或 startTime&gt;endTime
+     */
+    public static boolean resolveShiftCrossDay(String startTime, String endTime, Integer isNextDay) {
+        if (isNextDay != null && WhetherEnum.ENABLE_USING.getKey().equals(isNextDay)) {
+            return true;
+        }
+        return isCrossDay(startTime, endTime);
+    }
+
+    /**
      * 班次工作时长（分钟）
      */
     public static int getWorkMinutes(String startTime, String endTime) {
@@ -60,7 +71,7 @@ public class CheckWorkTimePeriodUtil {
     /**
      * 跨天班次延后下班段：规定下班时间之后、当日晚间上班之前
      */
-    public static boolean isInCrossDayGraceClockOutSegment(String nowHms, String shiftStart, String shiftEnd) {
+    public static boolean isInCrossDayExtendedClockOutSegment(String nowHms, String shiftStart, String shiftEnd) {
         if (isInCrossDayMorningSegment(nowHms, shiftEnd)) {
             return false;
         }
@@ -68,6 +79,14 @@ public class CheckWorkTimePeriodUtil {
             return false;
         }
         return true;
+    }
+
+    /**
+     * @deprecated 请使用 {@link #isInCrossDayExtendedClockOutSegment}
+     */
+    @Deprecated
+    public static boolean isInCrossDayGraceClockOutSegment(String nowHms, String shiftStart, String shiftEnd) {
+        return isInCrossDayExtendedClockOutSegment(nowHms, shiftStart, shiftEnd);
     }
 
     /**
@@ -90,7 +109,7 @@ public class CheckWorkTimePeriodUtil {
             return calendarDate;
         }
         if (isInCrossDayMorningSegment(nowHms, shiftEnd)
-            || isInCrossDayGraceClockOutSegment(nowHms, shiftStart, shiftEnd)) {
+            || isInCrossDayExtendedClockOutSegment(nowHms, shiftStart, shiftEnd)) {
             return DateAfterSpacePointTime.getSpecifiedTime(
                 DateAfterSpacePointTime.ONE_DAY.getType(),
                 calendarDate,
@@ -130,7 +149,7 @@ public class CheckWorkTimePeriodUtil {
             return true;
         }
         return isInCrossDayMorningSegment(nowHms, clockOut)
-            || isInCrossDayGraceClockOutSegment(nowHms, clockIn, clockOut);
+            || isInCrossDayExtendedClockOutSegment(nowHms, clockIn, clockOut);
     }
 
     /**
@@ -219,6 +238,49 @@ public class CheckWorkTimePeriodUtil {
      */
     public static int toShiftOffsetMinutesPublic(String time, String shiftStart, boolean crossDay) {
         return toShiftOffsetMinutes(time, shiftStart, crossDay);
+    }
+
+    /**
+     * 两次打卡之间的工时分钟数（按打卡时刻是否跨天推断，供薪资统计等复用）
+     */
+    public static int getPunchDurationMinutes(String clockIn, String clockOut) {
+        if (StrUtil.isBlank(clockIn) || StrUtil.isBlank(clockOut)) {
+            return 0;
+        }
+        return getWorkMinutes(toHm(clockIn), toHm(clockOut));
+    }
+
+    /**
+     * 迟到分钟数（clockIn 晚于 shiftStart）
+     */
+    public static int getLateMinutes(String clockIn, String shiftStart, boolean crossDay) {
+        if (StrUtil.isBlank(clockIn) || StrUtil.isBlank(shiftStart)) {
+            return 0;
+        }
+        if (!crossDay) {
+            return (int) Double.parseDouble(DateUtil.getDistanceMinuteByHMS(shiftStart, clockIn));
+        }
+        return Math.max(0, toShiftOffsetMinutesPublic(clockIn, shiftStart, true));
+    }
+
+    /**
+     * 早退分钟数（clockOut 早于 shiftEnd）
+     */
+    public static int getEarlyLeaveMinutes(String clockOut, String shiftStart, String shiftEnd, boolean crossDay) {
+        if (StrUtil.isBlank(clockOut) || StrUtil.isBlank(shiftEnd)) {
+            return 0;
+        }
+        if (!crossDay) {
+            return (int) Double.parseDouble(DateUtil.getDistanceMinuteByHMS(clockOut, shiftEnd));
+        }
+        int standard = getWorkMinutes(shiftStart, shiftEnd);
+        int actual = toShiftOffsetMinutesPublic(clockOut, shiftStart, true);
+        return Math.max(0, standard - actual);
+    }
+
+    private static String toHm(String time) {
+        String hms = normalizeToHms(time);
+        return hms.length() >= 5 ? hms.substring(0, 5) : hms;
     }
 
     /** 将 HH:mm(:ss) 解析为 LocalTime */
