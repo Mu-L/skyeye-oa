@@ -1018,6 +1018,15 @@ public class CheckWorkServiceImpl extends SkyeyeBusinessServiceImpl<CheckWorkDao
         return checkWorkDao.queryScheduleNotCheckEndWorkId(schedulingTimeId, checkDate, tenantId);
     }
 
+    /**
+     * 加班缺晚卡：time_id='-' 且已打上班卡、未打下班卡（不依赖固定班次 staff_time 绑定）
+     */
+    @Override
+    public List<Map<String, Object>> queryOvertimeNotCheckEndWorkId(String checkDate) {
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        return checkWorkDao.queryOvertimeNotCheckEndWorkId(checkDate, tenantId);
+    }
+
     @Override
     public CheckWork queryAlreadyCheck(String checkDate, String userId, String timeId) {
         String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;

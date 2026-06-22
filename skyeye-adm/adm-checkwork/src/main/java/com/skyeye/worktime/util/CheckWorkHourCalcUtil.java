@@ -123,19 +123,21 @@ public class CheckWorkHourCalcUtil {
     }
 
     /**
-     * 单日 HH:mm 时段与班次的交集分钟数（销假专用）。
-     * cancelDay + cancelStartTime/cancelEndTime 组合为当日 datetime 后复用请假算法。
-     *
-     * @param day       销假日期 yyyy-MM-dd
-     * @param startTime 销假开始 HH:mm
-     * @param endTime   销假结束 HH:mm（须晚于开始，且在同一自然日内）
+     * 单日 HH:mm 时段与班次的交集分钟数（销假/出差部分时段专用）。
+     * cancelDay/travelDay + 起止 HH:mm；若结束时刻不晚于开始（如 22:00~06:00），结束日顺延至 cancelDay 次日。
      */
     public static long calcDayTimeRangeMinutes(String day, String startTime, String endTime, CheckWorkTime workTime) {
         if (StrUtil.hasBlank(day, startTime, endTime) || workTime == null) {
             return 0L;
         }
+        String dayStr = day.length() >= 10 ? day.substring(0, 10) : day;
+        LocalDate dayDate = LocalDate.parse(dayStr, DATE_FMT);
         LocalDateTime rangeStart = parseDayTime(day, startTime);
         LocalDateTime rangeEnd = parseDayTime(day, endTime);
+        if (rangeStart != null && rangeEnd != null && !rangeStart.isBefore(rangeEnd)) {
+            // 跨午夜销假：cancelDay 22:00 ~ 次日 06:00
+            rangeEnd = parseDayTime(dayDate.plusDays(1).format(DATE_FMT), endTime);
+        }
         if (rangeStart == null || rangeEnd == null || !rangeStart.isBefore(rangeEnd)) {
             return 0L;
         }

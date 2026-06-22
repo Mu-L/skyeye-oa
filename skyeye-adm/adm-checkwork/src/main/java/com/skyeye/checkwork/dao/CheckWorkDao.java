@@ -74,6 +74,13 @@ public interface CheckWorkDao extends SkyeyeBaseMapper<CheckWork> {
                                                              @Param("tenantId") String tenantId);
 
     /**
+     * 加班缺晚卡：time_id='-' 且只打上班卡、未打下班卡（不依赖 sys_eve_user_staff_time）
+     */
+    @IgnoreTenant
+    List<Map<String, Object>> queryOvertimeNotCheckEndWorkId(@Param("checkDate") String checkDate,
+                                                             @Param("tenantId") String tenantId);
+
+    /**
      *
      * @param item
      * @return

@@ -6,9 +6,11 @@ package com.skyeye.eve.xxljob;
 
 import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.skyeye.checkwork.service.CheckWorkService;
 import com.skyeye.common.enumeration.EnableEnum;
+import com.skyeye.common.enumeration.FlowableChildStateEnum;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateAfterSpacePointTime;
 import com.skyeye.common.util.DateUtil;
@@ -19,6 +21,7 @@ import com.skyeye.eve.service.IScheduleDayService;
 import com.skyeye.eve.service.ITenantService;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
+import com.skyeye.overtime.dao.OvertimeDao;
 import com.skyeye.scheduling.service.SchedulingService;
 import com.skyeye.worktime.entity.CheckWorkTime;
 import com.skyeye.worktime.service.CheckWorkTimeService;
@@ -67,6 +70,9 @@ public class CheckWorkQuartz {
 
     @Autowired
     private SchedulingService schedulingService;
+
+    @Autowired
+    private OvertimeDao checkWorkOvertimeDao; // 加班缺晚卡结算：查当日审批通过的加班时段
 
     @Value("${skyeye.tenant.enable}")
     private boolean tenantEnable;
@@ -129,8 +135,60 @@ public class CheckWorkQuartz {
             settleSchedulingForDate(dayBeforeYesterdayTime, true);
         }
 
-        // 4.处理所有昨天加班只打早卡没有打晚卡的记录id
-        handleNotCheckWorkEndMember(yesterdayTime, "-");
+        // 4. 加班缺晚卡：同日 / 跨天分两路（timeId 为 '-'）
+        settleOvertimeForDate(yesterdayTime, false);
+        settleOvertimeForDate(dayBeforeYesterdayTime, true);
+    }
+
+    /**
+     * 加班缺晚卡结算（跨天加班须等次日凌晨下班窗口结束后再补 state=5）
+     *
+     * @param checkDate    考勤归属日 yyyy-MM-dd
+     * @param crossDayOnly true 仅跨天加班；false 仅同日加班
+     */
+    private void settleOvertimeForDate(String checkDate, boolean crossDayOnly) {
+        List<Map<String, Object>> beans = checkWorkService.queryOvertimeNotCheckEndWorkId(checkDate);
+        if (CollectionUtil.isEmpty(beans)) {
+            return;
+        }
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        for (Map<String, Object> b : beans) {
+            String createId = b.get("createId").toString();
+            List<Map<String, Object>> overTimeList = checkWorkOvertimeDao.queryPassThisDayAndCreateId(
+                createId, checkDate, FlowableChildStateEnum.ADEQUATE.getKey(), tenantId);
+            if (CollectionUtil.isEmpty(overTimeList)) {
+                continue;
+            }
+            String clockIn = overTimeList.get(0).get("clockIn").toString();
+            String clockOut = overTimeList.get(0).get("clockOut").toString();
+            boolean crossDay = CheckWorkTimePeriodUtil.isCrossDay(
+                normalizeShiftHm(clockIn), normalizeShiftHm(clockOut));
+            if (crossDayOnly != crossDay) {
+                continue;
+            }
+            if (crossDay && !CheckWorkTimePeriodUtil.isCrossDaySettleReady(checkDate, normalizeShiftHm(clockOut))) {
+                log.info("Cross-day overtime on {} is not ready for settlement, skip user {}.", checkDate, createId);
+                continue;
+            }
+            Map<String, Object> checkWorkMation = new HashMap<>();
+            checkWorkMation.put("id", b.get("id").toString());
+            checkWorkMation.put("state", "5");
+            checkWorkMation.put("clockOutState", "3");
+            checkWorkMation.put("workHours", "0:0:0");
+            checkWorkService.editCheckWorkBySystem(checkWorkMation);
+        }
+    }
+
+    /** 加班/班次时间归一化为 HH:mm，供跨天判定与结算就绪判断 */
+    private String normalizeShiftHm(String time) {
+        if (StrUtil.isEmpty(time)) {
+            return time;
+        }
+        String t = time.trim();
+        if (t.length() >= 8) {
+            return t.substring(0, 5);
+        }
+        return t.length() == 5 ? t : t;
     }
 
     private String getYesterdayTime() {

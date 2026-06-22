@@ -74,6 +74,11 @@ public interface CheckWorkService extends SkyeyeBusinessService<CheckWork> {
     List<Map<String, Object>> queryScheduleNotCheckEndWorkId(String schedulingTimeId, String checkDate);
 
     /**
+     * 加班缺晚卡：time_id='-' 且只打了上班卡、未打下班卡（供 CheckWorkQuartz 定时补 state=5）
+     */
+    List<Map<String, Object>> queryOvertimeNotCheckEndWorkId(String checkDate);
+
+    /**
      * 查询指定用户、班次、考勤日是否已有打卡记录（含系统补卡）
      */
     CheckWork queryAlreadyCheck(String checkDate, String userId, String timeId);
