@@ -46,9 +46,7 @@ public class EquipmentMaintainOrder extends SkyeyeFlowable {
     @ApiModelProperty(value = "保养计划id", required = "required")
     private String maintenancePlanId;
 
-    @TableField(exist = false)
-    @Property(value = "保养计划信息")
-    private Map<String, Object> maintenancePlanMation;
+    //TODO: 保养计划信息
 
     @TableField(value = "charge_id")
     @ApiModelProperty(value = "保养负责人id")
@@ -82,4 +80,6 @@ public class EquipmentMaintainOrder extends SkyeyeFlowable {
     @Property(value = "备件信息")
     @ApiModelProperty(value = "备件领用单列表", required = "json")
     private List<EquipmentSparePartRequisition> sparePartRequisitionList;
+
+    //TODO: 保养单明细
 }
