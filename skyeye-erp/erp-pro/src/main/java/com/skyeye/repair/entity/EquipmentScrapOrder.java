@@ -9,7 +9,6 @@ import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
-import com.skyeye.repair.classenum.EquipmentRepairEquipmentStatus;
 import lombok.Data;
 
 import java.util.Map;
@@ -46,10 +45,6 @@ public class EquipmentScrapOrder extends SkyeyeFlowable {
     @TableField(exist = false)
     @Property(value = "设备信息")
     private Map<String, Object> equipmentMation;
-
-    @TableField(value = "equipment_status")
-    @ApiModelProperty(value = "设备状态", enumClass = EquipmentRepairEquipmentStatus.class)
-    private Integer equipmentStatus;
 
     @TableField(value = "staff_id")
     @ApiModelProperty(value = "设备负责人员工ID")

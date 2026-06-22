@@ -65,16 +65,16 @@ public class EquipmentRepairStatisticsServiceImpl implements EquipmentRepairStat
         List<String> monthList = DateUtil.getMonth(startMonth, endMonth);
 
         QueryWrapper<EquipmentRepairOrder> queryWrapper = new QueryWrapper<>();
-        queryWrapper.ge(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getDispatchTime), startTime)
-            .le(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getDispatchTime), endTime);
+        queryWrapper.ge(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getServiceTime), startTime)
+            .le(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getServiceTime), endTime);
 
         List<EquipmentRepairOrder> orderList = equipmentRepairOrderDao.selectList(queryWrapper);
         long total = orderList.size();
 
         Map<String, Long> monthCountMap = orderList.stream()
-            .filter(order -> StrUtil.isNotEmpty(order.getDispatchTime()))
+            .filter(order -> StrUtil.isNotEmpty(order.getServiceTime()))
             .collect(Collectors.groupingBy(order -> {
-                Date pointTime = DateUtil.getPointTime(order.getDispatchTime(), DateUtil.YYYY_MM_DD);
+                Date pointTime = DateUtil.getPointTime(order.getServiceTime(), DateUtil.YYYY_MM_DD);
                 return DateUtil.formatDate2Str(pointTime, DateUtil.YYYY_MM);
             }, Collectors.counting()));
 

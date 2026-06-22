@@ -35,6 +35,10 @@ public interface ServiceUserStockService extends SkyeyeBusinessService<ServiceUs
 
     void queryMyPartsNumByNormsId(InputObject inputObject, OutputObject outputObject);
 
+    void queryUserStockByNormsIds(InputObject inputObject, OutputObject outputObject);
+
+    void editMaterialNormsUserStockForFeign(InputObject inputObject, OutputObject outputObject);
+
     ServiceUserStock queryUserStock(String userId, String normsId);
 
     Map<String, ServiceUserStock> queryUserStock(String userId, List<String> normsIds);

@@ -10,14 +10,27 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.repair.entity.EquipmentRepairOrder;
 
 /**
- * @ClassName: EquipmentRepairOrderService
- * @Description: 设备维修单服务接口层
- * @author: skyeye云系列--卫志强
- * @date: 2026/01/19
- * @Copyright: 2026 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
- * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ * 设备维修单服务接口层
  */
 public interface EquipmentRepairOrderService extends SkyeyeBusinessService<EquipmentRepairOrder> {
 
     void queryAllEquipmentRepairOrderList(InputObject inputObject, OutputObject outputObject);
+
+    void insertEquipmentRepairOrder(InputObject inputObject, OutputObject outputObject);
+
+    void editEquipmentRepairFaultReport(InputObject inputObject, OutputObject outputObject);
+
+    void editEquipmentRepairAuditDispatch(InputObject inputObject, OutputObject outputObject);
+
+    void editEquipmentRepairWaitToWorkMation(InputObject inputObject, OutputObject outputObject);
+
+    void editEquipmentRepairResult(InputObject inputObject, OutputObject outputObject);
+
+    void editEquipmentRepairEvaluate(InputObject inputObject, OutputObject outputObject);
+
+    void editEquipmentRepairAcceptance(InputObject inputObject, OutputObject outputObject);
+
+    void receivingEquipmentRepairOrderById(InputObject inputObject, OutputObject outputObject);
+
+    void updateStateById(String id, Integer state);
 }

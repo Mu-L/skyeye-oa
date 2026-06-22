@@ -8,6 +8,7 @@ import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.accessory.classenum.UserStockPutOutType;
@@ -32,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -147,6 +149,27 @@ public class ServiceUserStockServiceImpl extends SkyeyeBusinessServiceImpl<Servi
         ServiceUserStock serviceUserStock = queryUserStock(userId, normsId);
         outputObject.setBean(serviceUserStock);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    @Override
+    public void queryUserStockByNormsIds(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String userId = map.get("userId").toString();
+        List<String> normsIds = JSONUtil.toList(map.get("normsIds").toString(), null);
+        Map<String, ServiceUserStock> stockMap = queryUserStock(userId, normsIds);
+        outputObject.setBeans(new ArrayList<>(stockMap.values()));
+        outputObject.settotal(stockMap.size());
+    }
+
+    @Override
+    public void editMaterialNormsUserStockForFeign(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        editMaterialNormsUserStock(
+            map.get("userId").toString(),
+            map.get("materialId").toString(),
+            map.get("normsId").toString(),
+            map.get("operNumber").toString(),
+            Integer.parseInt(map.get("type").toString()));
     }
 
     @Override

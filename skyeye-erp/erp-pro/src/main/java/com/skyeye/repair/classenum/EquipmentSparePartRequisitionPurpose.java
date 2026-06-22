@@ -10,20 +10,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * @ClassName: EquipmentRepairAuditOpinion
- * @Description: 设备维修审核意见（审核派工：立即维修 / 转委外）
- * @author: skyeye云系列--卫志强
- * @date: 2026/03/31
- * @Copyright: 2026 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
- * 注意：本内容仅限购买后使用.禁止私自外泄以及用于其他的商业目的
+ * 维修工单备件领用目的
  */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public enum EquipmentRepairAuditOpinion implements SkyeyeEnumClass {
+public enum EquipmentSparePartRequisitionPurpose implements SkyeyeEnumClass {
 
-    REPAIR_NOW(1, "立即维修", true, true),
-    OUTSOURCE(2, "转委外", true, false);
+    EQUIPMENT_REPAIR(1, "设备维修", true, true);
 
     private Integer key;
 

@@ -12,6 +12,7 @@ import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.equipment.classenum.EquipmentState;
 import com.skyeye.equipment.entity.Equipment;
 import com.skyeye.equipment.service.EquipmentService;
 import com.skyeye.exception.CustomException;
@@ -20,6 +21,7 @@ import com.skyeye.repair.entity.EquipmentScrapOrder;
 import com.skyeye.repair.service.EquipmentScrapOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
@@ -69,9 +71,33 @@ public class EquipmentScrapOrderServiceImpl extends SkyeyeBusinessServiceImpl<Eq
     @Override
     public void validatorEntity(EquipmentScrapOrder entity) {
         super.validatorEntity(entity);
-        Equipment equipment = equipmentService.selectById(entity.getEquipmentId());
+        validateEquipmentForScrap(entity.getEquipmentId());
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void approvalEndIsSuccess(EquipmentScrapOrder entity) {
+        EquipmentScrapOrder scrapOrder = selectById(entity.getId());
+        if (scrapOrder == null || StrUtil.isEmpty(scrapOrder.getEquipmentId())) {
+            throw new CustomException("报废单设备信息不存在");
+        }
+        validateEquipmentForScrap(scrapOrder.getEquipmentId());
+        equipmentService.editEquipmentStateById(scrapOrder.getEquipmentId(), EquipmentState.SCRAPPED.getKey());
+    }
+
+    /**
+     * 校验设备是否存在且未报废（设备状态以 erp_equipment 表为准）
+     */
+    private void validateEquipmentForScrap(String equipmentId) {
+        if (StrUtil.isEmpty(equipmentId)) {
+            throw new CustomException("设备不能为空");
+        }
+        Equipment equipment = equipmentService.selectById(equipmentId);
         if (equipment == null || StrUtil.isEmpty(equipment.getId())) {
-            throw new CustomException("设备不存在: " + entity.getEquipmentId());
+            throw new CustomException("设备不存在: " + equipmentId);
+        }
+        if (EquipmentState.SCRAPPED.getKey().equals(equipment.getEquipmentState())) {
+            throw new CustomException("设备已报废，无法重复申请");
         }
     }
 
