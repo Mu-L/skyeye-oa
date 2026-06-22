@@ -58,6 +58,19 @@ public class CheckWorkTimePeriodUtil {
     }
 
     /**
+     * 跨天班次延后下班段：规定下班时间之后、当日晚间上班之前
+     */
+    public static boolean isInCrossDayGraceClockOutSegment(String nowHms, String shiftStart, String shiftEnd) {
+        if (isInCrossDayMorningSegment(nowHms, shiftEnd)) {
+            return false;
+        }
+        if (isInCrossDayEveningSegment(nowHms, shiftStart)) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * 跨天班次晚间段：当前时间 &gt;= 上班时间（含 startTime 临界值）
      */
     public static boolean isInCrossDayEveningSegment(String nowHms, String shiftStart) {
@@ -67,13 +80,17 @@ public class CheckWorkTimePeriodUtil {
     /**
      * 解析考勤归属日（calendarDate 为当前自然日 yyyy-MM-dd）
      * <p>
-     * 跨天班次凌晨段归属前一自然日；其余时段归属当日。
+     * 跨天班次：凌晨段与延后下班段归属前一自然日；晚间段归属当日。
      */
     public static String resolveCheckDate(String calendarDate, String nowHms, String shiftStart, String shiftEnd, boolean crossDay) {
         if (!crossDay || StrUtil.isBlank(calendarDate)) {
             return calendarDate;
         }
-        if (isInCrossDayMorningSegment(nowHms, shiftEnd)) {
+        if (isInCrossDayEveningSegment(nowHms, shiftStart)) {
+            return calendarDate;
+        }
+        if (isInCrossDayMorningSegment(nowHms, shiftEnd)
+            || isInCrossDayGraceClockOutSegment(nowHms, shiftStart, shiftEnd)) {
             return DateAfterSpacePointTime.getSpecifiedTime(
                 DateAfterSpacePointTime.ONE_DAY.getType(),
                 calendarDate,
@@ -106,13 +123,14 @@ public class CheckWorkTimePeriodUtil {
     }
 
     /**
-     * 当前是否可打下班卡（跨天：仅凌晨段至 endTime；同日不限）
+     * 当前是否可打下班卡（跨天：次日凌晨至晚间上班前；同日不限）
      */
     public static boolean canClockOutNow(String nowHms, String clockIn, String clockOut, boolean crossDay) {
         if (!crossDay) {
             return true;
         }
-        return isInCrossDayMorningSegment(nowHms, clockOut);
+        return isInCrossDayMorningSegment(nowHms, clockOut)
+            || isInCrossDayGraceClockOutSegment(nowHms, clockIn, clockOut);
     }
 
     /**

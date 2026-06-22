@@ -44,6 +44,7 @@ import com.skyeye.leave.service.LeaveTimeSlotService;
 import com.skyeye.reward.entity.RewardPunish;
 import com.skyeye.reward.service.RewardPunishService;
 import com.skyeye.worktime.entity.CheckWorkTime;
+import com.skyeye.worktime.util.CheckWorkHourCalcUtil;
 import com.skyeye.worktime.service.CheckWorkTimeService;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import org.slf4j.Logger;
@@ -799,7 +800,8 @@ public class StaffWagesQuartz {
             String leaveType = entry.getKey();
             List<Map<String, Object>> holidays = holidaysTypeJson.stream().filter(bean -> leaveType.equals(bean.get("holidayNo").toString())).collect(Collectors.toList());
             for (LeaveTimeSlot bean : entry.getValue()) {
-                CheckWorkTime workTime = checkWorkTimeService.getById(bean.getTimeId());
+                // selectById 含 checkWorkTimeWeekList，供跨天请假逐日工作日过滤
+                CheckWorkTime workTime = checkWorkTimeService.selectById(bean.getTimeId());
                 if (workTime == null) {
                     continue;
                 }
@@ -827,7 +829,7 @@ public class StaffWagesQuartz {
     }
 
     /**
-     * 计算请假时间段在指定月份内与工作时间的交集分钟数（支持跨天如今天下午到明天上午）
+     * 计算请假时间段在指定月份内与工作时间的交集分钟数（复用考勤 CheckWorkHourCalcUtil，支持跨天班次）
      */
     private long calcLeaveMinutesInMonth(LeaveTimeSlot slot, String lastMonthDate, CheckWorkTime workTime) {
         try {
@@ -844,46 +846,11 @@ public class StaffWagesQuartz {
             if (!rangeStart.isBefore(rangeEnd)) {
                 return 0;
             }
-            LocalTime workStart = parseLeaveTime(workTime.getStartTime());
-            LocalTime workEnd = parseLeaveTime(workTime.getEndTime());
-            LocalTime restStart = StrUtil.isNotEmpty(workTime.getRestStartTime()) ? parseLeaveTime(workTime.getRestStartTime()) : null;
-            LocalTime restEnd = StrUtil.isNotEmpty(workTime.getRestEndTime()) ? parseLeaveTime(workTime.getRestEndTime()) : null;
-            long total = 0;
-            for (LocalDate d = rangeStart.toLocalDate(); !d.isAfter(rangeEnd.toLocalDate()); d = d.plusDays(1)) {
-                LocalDateTime dayWorkStart = d.atTime(workStart);
-                LocalDateTime dayWorkEnd = d.atTime(workEnd);
-                LocalDateTime overlapStart = rangeStart.isAfter(dayWorkStart) ? rangeStart : dayWorkStart;
-                LocalDateTime overlapEnd = rangeEnd.isBefore(dayWorkEnd) ? rangeEnd : dayWorkEnd;
-                if (!overlapStart.isBefore(overlapEnd)) {
-                    continue;
-                }
-                long mins = ChronoUnit.MINUTES.between(overlapStart, overlapEnd);
-                if (restStart != null && restEnd != null) {
-                    LocalDateTime dayRestStart = d.atTime(restStart);
-                    LocalDateTime dayRestEnd = d.atTime(restEnd);
-                    LocalDateTime restOverlapStart = overlapStart.isAfter(dayRestStart) ? overlapStart : dayRestStart;
-                    LocalDateTime restOverlapEnd = overlapEnd.isBefore(dayRestEnd) ? overlapEnd : dayRestEnd;
-                    if (restOverlapStart.isBefore(restOverlapEnd)) {
-                        mins -= ChronoUnit.MINUTES.between(restOverlapStart, restOverlapEnd);
-                    }
-                }
-                total += Math.max(0, mins);
-            }
-            return total;
+            // 与 adm-checkwork 请假工时同一算法，跨天班次按逐日交集 + 午休扣除
+            return CheckWorkHourCalcUtil.calcLeaveMinutesInRange(rangeStart, rangeEnd, workTime);
         } catch (Exception e) {
             return 0;
         }
-    }
-
-    private LocalTime parseLeaveTime(String t) {
-        if (StrUtil.isEmpty(t)) {
-            return LocalTime.MIN;
-        }
-        String s = t.trim();
-        if (s.length() == 5) {
-            s = s + ":00";
-        }
-        return LocalTime.parse(s);
     }
 
     /**

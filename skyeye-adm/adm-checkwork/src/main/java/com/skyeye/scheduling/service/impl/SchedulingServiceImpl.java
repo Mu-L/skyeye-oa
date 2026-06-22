@@ -21,7 +21,9 @@ import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.service.IAuthUserService;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.exception.CustomException;
+import com.skyeye.worktime.util.CheckWorkTimePeriodUtil;
 import com.skyeye.leave.entity.Leave;
 import com.skyeye.leave.entity.LeaveTimeSlot;
 import com.skyeye.leave.service.LeaveService;
@@ -105,9 +107,12 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
         Map<String, Set<String>> timeSlotToEmployeeSet = new HashMap<>();
         // key: employeeId, value: 该员工在本次排班下所有时分秒时间段id
         Map<String, Set<String>> employeeToTimeSlotSet = new HashMap<>();
+        // timeKey -> isNextDay，供跨天时段冲突检测
+        Map<String, Integer> timeKeyToIsNextDay = new HashMap<>();
 
         for (SchedulingTime schedulingTime : timeList) {
             String timeKey = schedulingTime.getStartTime() + "-" + schedulingTime.getEndTime();
+            timeKeyToIsNextDay.put(timeKey, schedulingTime.getIsNextDay());
             List<SchedulingTimeWork> timeWorkList = schedulingTime.getSchedulingTimeWorkMation();
             if (CollectionUtil.isEmpty(timeWorkList)) {
                 continue;
@@ -164,7 +169,10 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
                         String newEnd = arr[1];
                         String existStart = schedulingTime.getStartTime();
                         String existEnd = schedulingTime.getEndTime();
-                        boolean timeOverlap = isTimeOverlap(newStart, newEnd, existStart, existEnd);
+                        Integer newIsNextDay = timeKeyToIsNextDay.get(timeKey);
+                        // 与库内已有排班比较时段重叠（含 isNextDay 跨天）
+                        boolean timeOverlap = isTimeOverlap(newStart, newEnd, newIsNextDay, existStart, existEnd,
+                            schedulingTime.getIsNextDay());
                         if (timeOverlap) {
                             throw new CustomException("员工 " + stringMapMap.get(employeeId).get("userName") + " 在排班日期[" + scheduling.getStartTime() + "," + scheduling.getEndTime() + "]的时间段[" + existStart + "-" + existEnd + "]已被排班，请勿重复安排！");
                         }
@@ -758,7 +766,7 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     }
 
     /**
-     * 获取指定时间段可用的正式员工
+     * 获取指定时间段可用的正式员工（过滤与请假/出差时段冲突者，含跨天排班）
      */
     private List<Map<String, Object>> getAvailableFormalStaffForTimeSlot(
         List<Map<String, Object>> staffList,
@@ -783,7 +791,8 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
                         }
                         for (LocalDate d : dateRange) {
                             if (!d.isBefore(leaveStart.toLocalDate()) && !d.isAfter(leaveEnd.toLocalDate())) {
-                                if (isDateTimeOverlap(shiftStartTime, shiftEndTime, d, leaveStart, leaveEnd)) {
+                                if (isDateTimeOverlap(shiftStartTime, shiftEndTime, shiftTime.getIsNextDay(), d,
+                                    leaveStart, leaveEnd)) {
                                     return false;
                                 }
                             }
@@ -798,7 +807,8 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
                             // 检查时间段是否冲突
                             String tripStartTime = trip.getStartTime();
                             String tripEndTime = trip.getEndTime();
-                            if (isTimeOverlap(shiftStartTime, shiftEndTime, tripStartTime, tripEndTime)) {
+                            if (isTimeOverlap(shiftStartTime, shiftEndTime, shiftTime.getIsNextDay(),
+                                tripStartTime, tripEndTime, null)) {
                                 return false;
                             }
                         }
@@ -810,45 +820,83 @@ public class SchedulingServiceImpl extends SkyeyeBusinessServiceImpl<SchedulingD
     }
 
     /**
-     * 检查两个时间段是否重叠
+     * 检查两个时间段是否重叠（支持排班 isNextDay / start>end 跨天）
      */
-    private boolean isTimeOverlap(String start1, String end1, String start2, String end2) {
-        // 处理时间格式，确保小时是两位数
-        start1 = start1.length() == 7 ? "0" + start1 : start1;
-        end1 = end1.length() == 7 ? "0" + end1 : end1;
-        start2 = start2.length() == 7 ? "0" + start2 : start2;
-        end2 = end2.length() == 7 ? "0" + end2 : end2;
-
-        // 如果时间包含秒，则使用 HH:mm:ss 格式，否则使用 HH:mm 格式
-        DateTimeFormatter formatter = start1.length() > 5 ?
-            DateTimeFormatter.ofPattern("HH:mm:ss") :
-            DateTimeFormatter.ofPattern("HH:mm");
-
-        LocalTime s1 = LocalTime.parse(start1, formatter);
-        LocalTime e1 = LocalTime.parse(end1, formatter);
-        LocalTime s2 = LocalTime.parse(start2, formatter);
-        LocalTime e2 = LocalTime.parse(end2, formatter);
-
-        // 检查时间段是否重叠
-        return !(e1.isBefore(s2) || s1.isAfter(e2));
+    private boolean isTimeOverlap(String start1, String end1, Integer isNextDay1,
+                                  String start2, String end2, Integer isNextDay2) {
+        long[] interval1 = toShiftMinuteInterval(start1, end1, isNextDay1);
+        long[] interval2 = toShiftMinuteInterval(start2, end2, isNextDay2);
+        return interval1[0] < interval2[1] && interval2[0] < interval1[1];
     }
 
     /**
-     * 检查排班时间段与请假时间段（支持跨天）是否重叠
+     * 将 HH:mm 时段转为「当日 0 点起算分钟区间」；跨天则 end 顺延 24h
      */
-    private boolean isDateTimeOverlap(String shiftStartStr, String shiftEndStr, LocalDate day,
+    private long[] toShiftMinuteInterval(String start, String end, Integer isNextDay) {
+        String s1 = normalizeShiftHmForOverlap(start);
+        String e1 = normalizeShiftHmForOverlap(end);
+        DateTimeFormatter formatter = s1.length() > 5 ? DateTimeFormatter.ofPattern("HH:mm:ss") : DateTimeFormatter.ofPattern("HH:mm");
+        long startMin = LocalTime.parse(s1, formatter).toSecondOfDay() / 60L;
+        long endMin = LocalTime.parse(e1, formatter).toSecondOfDay() / 60L;
+        if (isSchedulingCrossDay(start, end, isNextDay)) {
+            endMin += 24 * 60L;
+        }
+        return new long[]{startMin, endMin};
+    }
+
+    /**
+     * 排班是否跨天：isNextDay=1 或 startTime>endTime（与打卡模块 crossDay 判定一致）
+     */
+    private boolean isSchedulingCrossDay(String start, String end, Integer isNextDay) {
+        if (isNextDay != null && WhetherEnum.ENABLE_USING.getKey().equals(isNextDay)) {
+            return true;
+        }
+        return CheckWorkTimePeriodUtil.isCrossDay(start, end);
+    }
+
+    /** 排班/请假冲突检测用：HH:mm 补零、去空格 */
+    private String normalizeShiftHmForOverlap(String time) {
+        if (StrUtil.isEmpty(time)) {
+            return "00:00";
+        }
+        String t = time.trim();
+        if (t.length() == 7) {
+            return "0" + t;
+        }
+        return t;
+    }
+
+    /**
+     * 检查排班时间段与请假 datetime 区间是否重叠（跨天排班按归属日 day 起算）
+     */
+    private boolean isDateTimeOverlap(String shiftStartStr, String shiftEndStr, Integer isNextDay, LocalDate day,
                                       LocalDateTime leaveStart, LocalDateTime leaveEnd) {
         if (StrUtil.isEmpty(shiftStartStr) || StrUtil.isEmpty(shiftEndStr)) {
             return false;
         }
-        String s1 = shiftStartStr.length() == 7 ? "0" + shiftStartStr : shiftStartStr;
-        String e1 = shiftEndStr.length() == 7 ? "0" + shiftEndStr : shiftEndStr;
+        String s1 = normalizeShiftHmForOverlap(shiftStartStr);
+        String e1 = normalizeShiftHmForOverlap(shiftEndStr);
         DateTimeFormatter formatter = s1.length() > 5 ? DateTimeFormatter.ofPattern("HH:mm:ss") : DateTimeFormatter.ofPattern("HH:mm");
         LocalDateTime shiftStart = day.atTime(LocalTime.parse(s1, formatter));
-        LocalDateTime shiftEnd = day.atTime(LocalTime.parse(e1, formatter));
-        LocalDateTime leaveOnDayStart = leaveStart.toLocalDate().equals(day) ? leaveStart : day.atStartOfDay();
-        LocalDateTime leaveOnDayEnd = leaveEnd.toLocalDate().equals(day) ? leaveEnd : day.atTime(23, 59, 59);
-        return !shiftEnd.isBefore(leaveOnDayStart) && !shiftStart.isAfter(leaveOnDayEnd);
+        LocalDateTime shiftEnd = isSchedulingCrossDay(shiftStartStr, shiftEndStr, isNextDay)
+            ? day.plusDays(1).atTime(LocalTime.parse(e1, formatter))
+            : day.atTime(LocalTime.parse(e1, formatter));
+        return shiftStart.isBefore(leaveEnd) && leaveStart.isBefore(shiftEnd);
+    }
+
+    /**
+     * @deprecated 保留兼容，请使用带 isNextDay 的重载
+     */
+    private boolean isTimeOverlap(String start1, String end1, String start2, String end2) {
+        return isTimeOverlap(start1, end1, null, start2, end2, null);
+    }
+
+    /**
+     * @deprecated 已由 {@link #isDateTimeOverlap(String, String, Integer, LocalDate, LocalDateTime, LocalDateTime)} 替代
+     */
+    private boolean isDateTimeOverlap(String shiftStartStr, String shiftEndStr, LocalDate day,
+                                      LocalDateTime leaveStart, LocalDateTime leaveEnd) {
+        return isDateTimeOverlap(shiftStartStr, shiftEndStr, null, day, leaveStart, leaveEnd);
     }
 
     /**

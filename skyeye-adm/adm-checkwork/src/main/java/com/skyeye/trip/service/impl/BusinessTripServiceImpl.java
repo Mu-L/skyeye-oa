@@ -138,8 +138,16 @@ public class BusinessTripServiceImpl extends SkyeyeBusinessServiceImpl<BusinessT
         businessTripTimeSlotService.editStateByPId(entity.getId(), FlowableChildStateEnum.DRAFT.getKey());
     }
 
+    /**
+     * 审批通过：重算 travelHour 并落库，再更新子表状态（与销假审批重算口径一致）
+     */
     @Override
     protected void approvalEndIsSuccess(BusinessTrip entity) {
+        List<BusinessTripTimeSlot> tripTimeSlotList = businessTripTimeSlotService.selectByPId(entity.getId());
+        recalcTripTimeSlotHours(tripTimeSlotList);
+        if (CollectionUtil.isNotEmpty(tripTimeSlotList)) {
+            businessTripTimeSlotService.updateEntity(tripTimeSlotList, StrUtil.EMPTY);
+        }
         businessTripTimeSlotService.editStateByPId(entity.getId(), FlowableChildStateEnum.ADEQUATE.getKey());
     }
 
