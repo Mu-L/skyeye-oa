@@ -60,4 +60,14 @@ public class SysEnclosureController {
         sysEnclosureService.queryEnclosureTree(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "moveEnclosureToCatalog", value = "移动附件到指定分类", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "ids", name = "ids", value = "附件id(多个用逗号隔开)", required = "required"),
+        @ApiImplicitParam(id = "catalogId", name = "catalogId", value = "目标分类id，0表示根目录", required = "required")
+    })
+    @RequestMapping("/post/SysEnclosureController/moveEnclosureToCatalog")
+    public void moveEnclosureToCatalog(InputObject inputObject, OutputObject outputObject) {
+        sysEnclosureService.moveEnclosureToCatalog(inputObject, outputObject);
+    }
+
 }

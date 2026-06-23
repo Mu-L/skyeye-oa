@@ -9,6 +9,7 @@
 			b.type,
 			b.size,
 			b.path,
+			b.catalog catalogId,
 			DATE_FORMAT(b.create_time, '%Y-%m-%d %H:%i') createTime
 		FROM
 			sys_enclosure b
