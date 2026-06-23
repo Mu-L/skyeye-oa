@@ -5,8 +5,8 @@
 package com.skyeye.repair.dao;
 
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
-import com.skyeye.repair.entity.EquipmentSparePartRequisitionDetail;
+import com.skyeye.repair.entity.EquipmentSparePartUsageDetail;
 
-public interface EquipmentSparePartRequisitionDetailDao extends SkyeyeBaseMapper<EquipmentSparePartRequisitionDetail> {
+public interface EquipmentSparePartUsageDetailDao extends SkyeyeBaseMapper<EquipmentSparePartUsageDetail> {
 
 }

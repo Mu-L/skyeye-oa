@@ -27,7 +27,7 @@ import java.util.Map;
 
 /**
  * @ClassName: EquipmentRepairOrder
- * @Description: 设备维修主表实体类
+ * @Description: 设备维修单实体类
  * @author: skyeye云系列--卫志强
  * @date: 2026/01/19
  * @Copyright: 2026 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -35,11 +35,11 @@ import java.util.Map;
  */
 @Data
 @TableName(value = "erp_equipment_repair_order", autoResultMap = true)
-@ApiModel("设备维修主表实体类")
+@ApiModel("设备维修单实体类")
 public class EquipmentRepairOrder extends OperatorUserInfo {
 
     @TableId("id")
-    @ApiModelProperty(value = "主键id")
+    @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
     private String id;
 
     @TableField("odd_number")
@@ -51,11 +51,11 @@ public class EquipmentRepairOrder extends OperatorUserInfo {
     private Integer state;
 
     @TableField(value = "urgency_level")
-    @ApiModelProperty(value = "紧急程度", enumClass = EquipmentRepairUrgency.class, required = "num")
+    @ApiModelProperty(value = "紧急程度", enumClass = EquipmentRepairUrgency.class, required = "required,num")
     private Integer urgencyLevel;
 
     @TableField(value = "equipment_id")
-    @ApiModelProperty(value = "设备id")
+    @ApiModelProperty(value = "设备id", required = "required")
     private String equipmentId;
 
     @TableField(exist = false)
@@ -63,7 +63,7 @@ public class EquipmentRepairOrder extends OperatorUserInfo {
     private Map<String, Object> equipmentMation;
 
     @TableField(value = "fault_brief")
-    @ApiModelProperty(value = "故障描述", fuzzyLike = true)
+    @ApiModelProperty(value = "故障描述", required = "required")
     private String faultBrief;
 
     @TableField(value = "fault_photo")
@@ -75,11 +75,11 @@ public class EquipmentRepairOrder extends OperatorUserInfo {
     private String faultVideo;
 
     @TableField(value = "report_time")
-    @ApiModelProperty(value = "报修时间（新建默认当前时间）")
+    @Property(value = "报修时间")
     private String reportTime;
 
     @TableField(value = "user_id")
-    @ApiModelProperty(value = "报修人用户ID（新建默认当前登录用户）")
+    @Property(value = "报修人")
     private String userId;
 
     @TableField(exist = false)
@@ -87,7 +87,7 @@ public class EquipmentRepairOrder extends OperatorUserInfo {
     private Map<String, Object> userMation;
 
     @TableField(value = "service_user_id")
-    @ApiModelProperty(value = "维修负责人用户ID")
+    @ApiModelProperty(value = "维修负责人")
     private String serviceUserId;
 
     @TableField(exist = false)
@@ -95,7 +95,7 @@ public class EquipmentRepairOrder extends OperatorUserInfo {
     private Map<String, Object> serviceUserMation;
 
     @TableField(value = "fault_type")
-    @ApiModelProperty(value = "故障类别", enumClass = EquipmentFaultCategory.class, required = "num")
+    @ApiModelProperty(value = "故障类别", enumClass = EquipmentFaultCategory.class, required = "required,num")
     private Integer faultType;
 
     @TableField(value = "repair_team")
@@ -111,7 +111,7 @@ public class EquipmentRepairOrder extends OperatorUserInfo {
     private Double responseHours;
 
     @TableField(value = "audit_opinion")
-    @ApiModelProperty(value = "审核意见", enumClass = EquipmentRepairAuditOpinion.class, required = "num")
+    @ApiModelProperty(value = "审核意见", enumClass = EquipmentRepairAuditOpinion.class, required = "required,num")
     private Integer auditOpinion;
 
     @TableField(value = "is_repaired")
@@ -127,7 +127,7 @@ public class EquipmentRepairOrder extends OperatorUserInfo {
     private Integer isReplaceSpare;
 
     @TableField(value = "supplier_id")
-    @ApiModelProperty(value = "供应商ID（审核意见=转委外且已进行维修时必填）")
+    @ApiModelProperty(value = "供应商")
     private String supplierId;
 
     @TableField(exist = false)
@@ -151,7 +151,7 @@ public class EquipmentRepairOrder extends OperatorUserInfo {
     private String repairFinishTime;
 
     @TableField(value = "evaluate_type_id")
-    @ApiModelProperty(value = "评价类型，参考数据字典（与工单评价一致）")
+    @ApiModelProperty(value = "评价类型")
     private String evaluateTypeId;
 
     @TableField(value = "evaluate_content")
@@ -159,11 +159,11 @@ public class EquipmentRepairOrder extends OperatorUserInfo {
     private String evaluateContent;
 
     @TableField(value = "is_fixed")
-    @ApiModelProperty(value = "是否修复（结果验收）", enumClass = WhetherEnum.class)
+    @ApiModelProperty(value = "是否修复", enumClass = WhetherEnum.class, required = "num")
     private Integer isFixed;
 
     @TableField(exist = false)
-    @ApiModelProperty(value = "备件领用单列表")
-    private List<EquipmentSparePartRequisition> sparePartRequisitionList;
+    @ApiModelProperty(value = "备件使用明细列表", required = "json")
+    private List<EquipmentSparePartUsageDetail> sparePartUsageList;
 
 }
