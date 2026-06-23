@@ -14,4 +14,6 @@ public interface SysEnclosureService extends SkyeyeBusinessService<Enclosure> {
     void queryEnclosureInfo(InputObject inputObject, OutputObject outputObject);
 
     void queryEnclosureTree(InputObject inputObject, OutputObject outputObject);
+
+    void moveEnclosureToCatalog(InputObject inputObject, OutputObject outputObject);
 }
