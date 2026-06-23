@@ -39,7 +39,7 @@ public class EquipmentSparePartUsageDetail extends SkyeyeLinkData {
     @Property(value = "规格信息")
     private Map<String, Object> normsMation;
 
-    @TableField(value = "usage_qty")
+    @TableField(value = "oper_number")
     @ApiModelProperty(value = "使用数量", required = "required,num")
     private Integer operNumber;
 
