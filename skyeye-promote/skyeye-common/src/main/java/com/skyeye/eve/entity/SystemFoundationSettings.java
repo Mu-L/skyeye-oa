@@ -80,4 +80,16 @@ public class SystemFoundationSettings extends CommonInfo {
     @ApiModelProperty(value = "系统单据是否需要审核的设置--暂时没用", required = "json")
     private List<Map<String, Object>> sysOrderBasicDesign;
 
+    @TableField("diary_day_revoke_minute")
+    @ApiModelProperty(value = "日报可撤销时间（分钟）", required = "num")
+    private Integer diaryDayRevokeMinute;
+
+    @TableField("diary_week_revoke_minute")
+    @ApiModelProperty(value = "周报可撤销时间（分钟）", required = "num")
+    private Integer diaryWeekRevokeMinute;
+
+    @TableField("diary_month_revoke_minute")
+    @ApiModelProperty(value = "月报可撤销时间（分钟）", required = "num")
+    private Integer diaryMonthRevokeMinute;
+
 }

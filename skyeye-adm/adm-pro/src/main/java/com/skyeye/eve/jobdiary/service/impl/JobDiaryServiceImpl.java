@@ -27,7 +27,9 @@ import com.skyeye.eve.jobdiary.dao.JobDiaryDao;
 import com.skyeye.eve.jobdiary.entity.JobDiary;
 import com.skyeye.eve.jobdiary.service.JobDiaryReceivedService;
 import com.skyeye.eve.jobdiary.service.JobDiaryService;
+import com.skyeye.eve.service.ISystemFoundationSettingsService;
 import com.skyeye.exception.CustomException;
+import cn.hutool.core.util.StrUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,8 +49,13 @@ import java.util.Map;
 @SkyeyeService(name = "工作日志", groupName = "工作日志")
 public class JobDiaryServiceImpl extends SkyeyeBusinessServiceImpl<JobDiaryDao, JobDiary> implements JobDiaryService {
 
+    private static final int DEFAULT_REVOKE_MINUTE = 120;
+
     @Autowired
     private JobDiaryReceivedService jobDiaryReceivedService;
+
+    @Autowired
+    private ISystemFoundationSettingsService iSystemFoundationSettingsService;
 
     @Override
     @IgnoreTenant
@@ -140,10 +147,36 @@ public class JobDiaryServiceImpl extends SkyeyeBusinessServiceImpl<JobDiaryDao, 
 
     private void checkTime(String id) {
         JobDiary jobDiary = selectById(id);
-        // 计算当前时间和创建时间的时间差，返回分钟
-        long twoHour = DateUtil.getDistanceMinute(DateUtil.getTimeAndToString(), jobDiary.getCreateTime());
-        if (twoHour > 120) {
-            throw new CustomException("已超出可操作时间，撤销失败！");
+        long elapsedMinute = DateUtil.getDistanceMinute(DateUtil.getTimeAndToString(), jobDiary.getCreateTime());
+        int revokeLimitMinute = getRevokeLimitMinute(jobDiary.getType());
+        if (elapsedMinute > revokeLimitMinute) {
+            throw new CustomException(String.format("已超出可操作时间（%s分钟），撤销失败！", revokeLimitMinute));
+        }
+    }
+
+    private int getRevokeLimitMinute(Integer type) {
+        Map<String, Object> settings = iSystemFoundationSettingsService.querySystemFoundationSettingsList();
+        if (JobDiaryType.DIARY_DAY.getKey().equals(type)) {
+            return parseRevokeMinute(settings.get("diaryDayRevokeMinute"));
+        }
+        if (JobDiaryType.DIARY_WEEK.getKey().equals(type)) {
+            return parseRevokeMinute(settings.get("diaryWeekRevokeMinute"));
+        }
+        if (JobDiaryType.DIARY_MONTH.getKey().equals(type)) {
+            return parseRevokeMinute(settings.get("diaryMonthRevokeMinute"));
+        }
+        return DEFAULT_REVOKE_MINUTE;
+    }
+
+    private int parseRevokeMinute(Object value) {
+        if (value == null || StrUtil.isBlank(value.toString())) {
+            return DEFAULT_REVOKE_MINUTE;
+        }
+        try {
+            int minute = Integer.parseInt(value.toString());
+            return minute >= 0 ? minute : DEFAULT_REVOKE_MINUTE;
+        } catch (NumberFormatException e) {
+            return DEFAULT_REVOKE_MINUTE;
         }
     }
 
