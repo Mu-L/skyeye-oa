@@ -9,10 +9,14 @@ import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.entity.search.CommonPageInfo;
+import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.equipment.classenum.EquipmentState;
-import com.skyeye.repair.entity.EquipmentRepairOrder;
+import com.skyeye.repair.classenum.EquipmentFaultCategory;
+import com.skyeye.repair.classenum.EquipmentRepairAuditOpinion;
+import com.skyeye.repair.classenum.EquipmentRepairFaultReason;
+import com.skyeye.repair.classenum.EquipmentRepairTeam;
 import com.skyeye.repair.service.EquipmentRepairOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,7 +37,7 @@ public class EquipmentRepairOrderController {
     @Autowired
     private EquipmentRepairOrderService equipmentRepairOrderService;
 
-    @ApiOperation(id = "queryEquipmentRepairOrderList", value = "获取设备维修单列表", method = "POST", allUse = "2")
+    @ApiOperation(id = "queryEquipmentRepairOrderList", value = "获取设备维修单列表", method = "POST", allUse = "1")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/EquipmentRepairOrderController/queryEquipmentRepairOrderList")
     public void queryEquipmentRepairOrderList(InputObject inputObject, OutputObject outputObject) {
@@ -46,30 +50,50 @@ public class EquipmentRepairOrderController {
         equipmentRepairOrderService.queryAllEquipmentRepairOrderList(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "writeEquipmentRepairOrder", value = "新增/编辑故障报修", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = EquipmentRepairOrder.class)
+    @ApiOperation(id = "writeEquipmentRepairOrder", value = "新增/添加故障报修", method = "POST", allUse = "1")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id，添加时必填"),
+        @ApiImplicitParam(id = "equipmentId", name = "equipmentId", value = "设备id", required = "required"),
+        @ApiImplicitParam(id = "faultBrief", name = "faultBrief", value = "故障描述", required = "required"),
+        @ApiImplicitParam(id = "urgencyId", name = "urgencyId", value = "紧急程度，参考数据字典", required = "required"),
+        @ApiImplicitParam(id = "auditOpinion", name = "auditOpinion", value = "审核意见", enumClass = EquipmentRepairAuditOpinion.class, required = "required,num"),
+        @ApiImplicitParam(id = "faultType", name = "faultType", value = "故障类别", enumClass = EquipmentFaultCategory.class, required = "required,num"),
+        @ApiImplicitParam(id = "repairTeam", name = "repairTeam", value = "维修班组", enumClass = EquipmentRepairTeam.class, required = "num"),
+        @ApiImplicitParam(id = "responseHours", name = "responseHours", value = "故障响应时长", required = "double"),
+        @ApiImplicitParam(id = "serviceUserId", name = "serviceUserId", value = "维修负责人"),
+        @ApiImplicitParam(id = "faultPhoto", name = "faultPhoto", value = "故障情况拍照"),
+        @ApiImplicitParam(id = "faultVideo", name = "faultVideo", value = "故障情况视频")})
     @RequestMapping("/post/EquipmentRepairOrderController/writeEquipmentRepairOrder")
     public void writeEquipmentRepairOrder(InputObject inputObject, OutputObject outputObject) {
         equipmentRepairOrderService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "editEquipmentRepairWaitToWorkMation", value = "派工", method = "POST", allUse = "2")
+    @ApiOperation(id = "insertEquipmentRepairWaitToWorkMation", value = "派工", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
         @ApiImplicitParam(id = "serviceUserId", name = "serviceUserId", value = "接收人", required = "required")})
-    @RequestMapping("/post/EquipmentRepairOrderController/editEquipmentRepairWaitToWorkMation")
-    public void editEquipmentRepairWaitToWorkMation(InputObject inputObject, OutputObject outputObject) {
-        equipmentRepairOrderService.editEquipmentRepairWaitToWorkMation(inputObject, outputObject);
+    @RequestMapping("/post/EquipmentRepairOrderController/insertEquipmentRepairWaitToWorkMation")
+    public void insertEquipmentRepairWaitToWorkMation(InputObject inputObject, OutputObject outputObject) {
+        equipmentRepairOrderService.insertEquipmentRepairWaitToWorkMation(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "editEquipmentRepairResult", value = "编辑维修结果", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = EquipmentRepairOrder.class)
-    @RequestMapping("/post/EquipmentRepairOrderController/editEquipmentRepairResult")
-    public void editEquipmentRepairResult(InputObject inputObject, OutputObject outputObject) {
-        equipmentRepairOrderService.editEquipmentRepairResult(inputObject, outputObject);
+    @ApiOperation(id = "insertEquipmentRepairResult", value = "添加维修结果", method = "POST", allUse = "1")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "isRepaired", name = "isRepaired", value = "是否已进行维修", enumClass = WhetherEnum.class, required = "required,num"),
+        @ApiImplicitParam(id = "isReplaceSpare", name = "isReplaceSpare", value = "是否已更换配件", enumClass = WhetherEnum.class, required = "num"),
+        @ApiImplicitParam(id = "faultReason", name = "faultReason", value = "故障原因", enumClass = EquipmentRepairFaultReason.class, required = "num"),
+        @ApiImplicitParam(id = "cancelReason", name = "cancelReason", value = "作废原因"),
+        @ApiImplicitParam(id = "supplierId", name = "supplierId", value = "供应商"),
+        @ApiImplicitParam(id = "repairDesc", name = "repairDesc", value = "维修情况说明"),
+        @ApiImplicitParam(id = "repairFinishPhoto", name = "repairFinishPhoto", value = "维修完成拍照"),
+        @ApiImplicitParam(id = "repairFinishTime", name = "repairFinishTime", value = "维修完成时间")})
+    @RequestMapping("/post/EquipmentRepairOrderController/insertEquipmentRepairResult")
+    public void insertEquipmentRepairResult(InputObject inputObject, OutputObject outputObject) {
+        equipmentRepairOrderService.insertEquipmentRepairResult(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "completeEquipmentRepairOrderById", value = "完工操作", method = "POST", allUse = "2")
+    @ApiOperation(id = "completeEquipmentRepairOrderById", value = "完工操作", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/EquipmentRepairOrderController/completeEquipmentRepairOrderById")
@@ -77,37 +101,36 @@ public class EquipmentRepairOrderController {
         equipmentRepairOrderService.completeEquipmentRepairOrderById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "editEquipmentRepairEvaluate", value = "编辑评价", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = EquipmentRepairOrder.class)
-    @RequestMapping("/post/EquipmentRepairOrderController/editEquipmentRepairEvaluate")
-    public void editEquipmentRepairEvaluate(InputObject inputObject, OutputObject outputObject) {
-        equipmentRepairOrderService.editEquipmentRepairEvaluate(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "editEquipmentRepairAcceptance", value = "结果确认", method = "POST", allUse = "2")
+    @ApiOperation(id = "insertEquipmentRepairEvaluate", value = "添加评价", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
-        @ApiImplicitParam(id = "isFixed", name = "isFixed", value = "是否修复", required = "required,num"),
+        @ApiImplicitParam(id = "evaluateTypeId", name = "evaluateTypeId", value = "评价类型，参考数据字典", required = "required"),
+        @ApiImplicitParam(id = "evaluateContent", name = "evaluateContent", value = "评价内容")})
+    @RequestMapping("/post/EquipmentRepairOrderController/insertEquipmentRepairEvaluate")
+    public void insertEquipmentRepairEvaluate(InputObject inputObject, OutputObject outputObject) {
+        equipmentRepairOrderService.insertEquipmentRepairEvaluate(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "insertEquipmentRepairAcceptance", value = "添加结果确认", method = "POST", allUse = "1")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "isFixed", name = "isFixed", value = "是否修复", enumClass = WhetherEnum.class, required = "required,num"),
         @ApiImplicitParam(id = "equipmentStatus", name = "equipmentStatus", value = "设备状态", enumClass = EquipmentState.class, required = "num")})
-    @RequestMapping("/post/EquipmentRepairOrderController/editEquipmentRepairAcceptance")
-    public void editEquipmentRepairAcceptance(InputObject inputObject, OutputObject outputObject) {
-        equipmentRepairOrderService.editEquipmentRepairAcceptance(inputObject, outputObject);
+    @RequestMapping("/post/EquipmentRepairOrderController/insertEquipmentRepairAcceptance")
+    public void insertEquipmentRepairAcceptance(InputObject inputObject, OutputObject outputObject) {
+        equipmentRepairOrderService.insertEquipmentRepairAcceptance(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "writeEquipmentRepairSparePartUsage", value = "保存维修单备件使用明细", method = "POST", allUse = "2")
-    @ApiImplicitParams(classBean = EquipmentRepairOrder.class)
-    @RequestMapping("/post/EquipmentRepairOrderController/writeEquipmentRepairSparePartUsage")
-    public void writeEquipmentRepairSparePartUsage(InputObject inputObject, OutputObject outputObject) {
-        equipmentRepairOrderService.writeEquipmentRepairSparePartUsage(inputObject, outputObject);
+    @ApiOperation(id = "insertEquipmentRepairSparePartUsage", value = "添加备件使用明细", method = "POST", allUse = "1")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required"),
+        @ApiImplicitParam(id = "sparePartUsageList", name = "sparePartUsageList", value = "备件使用明细列表", required = "required,json")})
+    @RequestMapping("/post/EquipmentRepairOrderController/insertEquipmentRepairSparePartUsage")
+    public void insertEquipmentRepairSparePartUsage(InputObject inputObject, OutputObject outputObject) {
+        equipmentRepairOrderService.insertEquipmentRepairSparePartUsage(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "queryEquipmentRepairMyBeCompleted", value = "查询我负责的待完工状态的维修单", method = "GET", allUse = "2")
-    @RequestMapping("/post/EquipmentRepairOrderController/queryEquipmentRepairMyBeCompleted")
-    public void queryEquipmentRepairMyBeCompleted(InputObject inputObject, OutputObject outputObject) {
-        equipmentRepairOrderService.queryEquipmentRepairMyBeCompleted(inputObject, outputObject);
-    }
-
-    @ApiOperation(id = "receivingEquipmentRepairOrderById", value = "接单", method = "POST", allUse = "2")
+    @ApiOperation(id = "receivingEquipmentRepairOrderById", value = "接单", method = "POST", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/EquipmentRepairOrderController/receivingEquipmentRepairOrderById")
@@ -123,7 +146,7 @@ public class EquipmentRepairOrderController {
         equipmentRepairOrderService.selectById(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "deleteEquipmentRepairOrderById", value = "删除设备维修单", method = "DELETE", allUse = "2")
+    @ApiOperation(id = "deleteEquipmentRepairOrderById", value = "删除设备维修单", method = "DELETE", allUse = "1")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
     @RequestMapping("/post/EquipmentRepairOrderController/deleteEquipmentRepairOrderById")

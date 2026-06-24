@@ -23,8 +23,11 @@ import com.skyeye.equipment.service.EquipmentService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
+import com.skyeye.repair.classenum.EquipmentFaultCategory;
 import com.skyeye.repair.classenum.EquipmentRepairAuditOpinion;
+import com.skyeye.repair.classenum.EquipmentRepairFaultReason;
 import com.skyeye.repair.classenum.EquipmentRepairOrderState;
+import com.skyeye.repair.classenum.EquipmentRepairTeam;
 import com.skyeye.repair.dao.EquipmentRepairOrderDao;
 import com.skyeye.repair.entity.EquipmentRepairOrder;
 import com.skyeye.repair.entity.EquipmentSparePartUsageDetail;
@@ -116,6 +119,13 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
         iAuthUserService.setDataMation(order, EquipmentRepairOrder::getUserId);
         iAuthUserService.setDataMation(order, EquipmentRepairOrder::getServiceUserId);
         supplierService.setDataMation(order, EquipmentRepairOrder::getSupplierId);
+        iSysDictDataService.setDataMation(order, EquipmentRepairOrder::getUrgencyId);
+        iSysDictDataService.setDataMation(order, EquipmentRepairOrder::getEvaluateTypeId);
+        order.setStateMation(EquipmentRepairOrderState.getMation(order.getState()));
+        order.setFaultTypeMation(EquipmentFaultCategory.getMation(order.getFaultType()));
+        order.setRepairTeamMation(EquipmentRepairTeam.getMation(order.getRepairTeam()));
+        order.setAuditOpinionMation(EquipmentRepairAuditOpinion.getMation(order.getAuditOpinion()));
+        order.setFaultReasonMation(EquipmentRepairFaultReason.getMation(order.getFaultReason()));
         if (CollectionUtil.isEmpty(order.getSparePartUsageList())) {
             return order;
         }
@@ -168,18 +178,20 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
 
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
-    public void editEquipmentRepairResult(InputObject inputObject, OutputObject outputObject) {
+    public void insertEquipmentRepairResult(InputObject inputObject, OutputObject outputObject) {
         EquipmentRepairOrder params = inputObject.getParams(EquipmentRepairOrder.class);
         EquipmentRepairOrder dbOrder = selectById(params.getId());
         if (ObjectUtil.equal(dbOrder.getState(), EquipmentRepairOrderState.BE_COMPLETED.getKey())) {
-            validateRepairResultStage(params, dbOrder);
-
-            String supplierId = params.getSupplierId();
-            if (StrUtil.isEmpty(supplierId)) {
-                supplierId = dbOrder.getSupplierId();
+            if (WhetherEnum.DISABLE_USING.getKey().equals(params.getIsRepaired())
+                && StrUtil.isBlank(params.getCancelReason())) {
+                throw new CustomException("未进行维修时请填写作废原因");
             }
-            if (EquipmentRepairAuditOpinion.REPAIR_NOW.getKey().equals(dbOrder.getAuditOpinion())) {
-                supplierId = null;
+            String supplierId = null;
+            if (EquipmentRepairAuditOpinion.OUTSOURCE.getKey().equals(dbOrder.getAuditOpinion())) {
+                if (StrUtil.isEmpty(params.getSupplierId())) {
+                    throw new CustomException("转委外时请填写供应商");
+                }
+                supplierId = params.getSupplierId();
             }
 
             UpdateWrapper<EquipmentRepairOrder> updateWrapper = new UpdateWrapper<>();
@@ -209,7 +221,6 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
         Map<String, Object> map = inputObject.getParams();
         EquipmentRepairOrder dbOrder = selectById(map.get("id").toString());
         if (ObjectUtil.equal(dbOrder.getState(), EquipmentRepairOrderState.BE_COMPLETED.getKey())) {
-            validateRepairResultBeforeComplete(dbOrder);
             updateStateById(dbOrder.getId(), EquipmentRepairOrderState.BE_EVALUATED.getKey());
             outputObject.setBean(selectById(dbOrder.getId()));
         } else {
@@ -219,20 +230,19 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
 
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
-    public void editEquipmentRepairEvaluate(InputObject inputObject, OutputObject outputObject) {
-        EquipmentRepairOrder params = inputObject.getParams(EquipmentRepairOrder.class);
-        EquipmentRepairOrder dbOrder = selectById(params.getId());
+    public void insertEquipmentRepairEvaluate(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String id = map.get("id").toString();
+        EquipmentRepairOrder dbOrder = selectById(id);
         if (ObjectUtil.equal(dbOrder.getState(), EquipmentRepairOrderState.BE_EVALUATED.getKey())) {
-            validateEvaluateStage(params);
-
             UpdateWrapper<EquipmentRepairOrder> updateWrapper = new UpdateWrapper<>();
-            updateWrapper.eq(CommonConstants.ID, params.getId());
-            updateWrapper.set(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEvaluateTypeId), params.getEvaluateTypeId());
-            updateWrapper.set(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEvaluateContent), params.getEvaluateContent());
+            updateWrapper.eq(CommonConstants.ID, id);
+            updateWrapper.set(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEvaluateTypeId), map.get("evaluateTypeId").toString());
+            updateWrapper.set(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getEvaluateContent), map.get("evaluateContent").toString());
             updateWrapper.set(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getState), EquipmentRepairOrderState.AUDIT.getKey());
             update(updateWrapper);
-            refreshCache(params.getId());
-            outputObject.setBean(selectById(params.getId()));
+            refreshCache(id);
+            outputObject.setBean(selectById(id));
         } else {
             throw new CustomException("该数据状态已改变，请刷新页面！");
         }
@@ -240,77 +250,31 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
 
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
-    public void editEquipmentRepairAcceptance(InputObject inputObject, OutputObject outputObject) {
-        EquipmentRepairOrder params = inputObject.getParams(EquipmentRepairOrder.class);
+    public void insertEquipmentRepairAcceptance(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
-        Integer equipmentStatus = map.get("equipmentStatus") != null
-            ? Integer.valueOf(map.get("equipmentStatus").toString()) : null;
-        EquipmentRepairOrder dbOrder = selectById(params.getId());
+        String id = map.get("id").toString();
+        Integer isFixed = Integer.valueOf(map.get("isFixed").toString());
+        EquipmentRepairOrder dbOrder = selectById(id);
         if (ObjectUtil.equal(dbOrder.getState(), EquipmentRepairOrderState.AUDIT.getKey())) {
-            if (!StrUtil.equals(dbOrder.getUserId(), InputObject.getLogParamsStatic().get("id").toString())) {
-                throw new CustomException("仅报修人可进行结果确认操作");
-            }
-            validateAcceptanceStage(params.getIsFixed(), equipmentStatus);
 
             UpdateWrapper<EquipmentRepairOrder> updateWrapper = new UpdateWrapper<>();
-            updateWrapper.eq(CommonConstants.ID, params.getId());
-            updateWrapper.set(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getIsFixed), params.getIsFixed());
-            if (WhetherEnum.DISABLE_USING.getKey().equals(params.getIsFixed())) {
+            updateWrapper.eq(CommonConstants.ID, id);
+            updateWrapper.set(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getIsFixed), isFixed);
+            if (WhetherEnum.DISABLE_USING.getKey().equals(isFixed)) {
                 equipmentSparePartUsageDetailService.revertAndDeleteByRepairOrderId(dbOrder.getId(), dbOrder.getServiceUserId());
                 updateWrapper.set(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getState), EquipmentRepairOrderState.PENDING_ORDERS.getKey());
             } else {
                 updateWrapper.set(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getState), EquipmentRepairOrderState.COMPLATE.getKey());
             }
             update(updateWrapper);
-            refreshCache(params.getId());
-            if (WhetherEnum.ENABLE_USING.getKey().equals(params.getIsFixed())) {
-                equipmentService.editEquipmentStateById(dbOrder.getEquipmentId(), equipmentStatus);
+            refreshCache(id);
+            if (WhetherEnum.ENABLE_USING.getKey().equals(isFixed)) {
+                equipmentService.editEquipmentStateById(dbOrder.getEquipmentId(),
+                    Integer.valueOf(map.get("equipmentStatus").toString()));
             }
-            outputObject.setBean(selectById(params.getId()));
+            outputObject.setBean(selectById(id));
         } else {
             throw new CustomException("该数据状态已改变，请刷新页面！");
-        }
-    }
-
-    private void validateRepairResultBeforeComplete(EquipmentRepairOrder order) {
-        if (order.getIsRepaired() == null) {
-            throw new CustomException("请先填写维修结果");
-        }
-        validateRepairResultStage(order, order);
-    }
-
-    private void validateRepairResultStage(EquipmentRepairOrder params, EquipmentRepairOrder dbOrder) {
-        if (WhetherEnum.DISABLE_USING.getKey().equals(params.getIsRepaired())) {
-            if (params.getCancelReason() == null) {
-                throw new CustomException("请选择作废原因");
-            }
-            return;
-        }
-        if (EquipmentRepairAuditOpinion.OUTSOURCE.getKey().equals(dbOrder.getAuditOpinion())
-            && StrUtil.isEmpty(params.getSupplierId())
-            && StrUtil.isEmpty(dbOrder.getSupplierId())) {
-            throw new CustomException("请选择供应商");
-        }
-        if (WhetherEnum.ENABLE_USING.getKey().equals(params.getIsReplaceSpare())) {
-            List<EquipmentSparePartUsageDetail> dbList = equipmentSparePartUsageDetailService.selectByPId(params.getId());
-            if (CollectionUtil.isEmpty(dbList)) {
-                throw new CustomException("已选择更换备件，请至少添加一条备件使用明细");
-            }
-        }
-    }
-
-    private void validateEvaluateStage(EquipmentRepairOrder params) {
-        if (StrUtil.isEmpty(params.getEvaluateTypeId())) {
-            throw new CustomException("请选择评价类型");
-        }
-    }
-
-    private void validateAcceptanceStage(Integer isFixed, Integer equipmentStatus) {
-        if (isFixed == null) {
-            throw new CustomException("请选择是否修复");
-        }
-        if (WhetherEnum.ENABLE_USING.getKey().equals(isFixed) && equipmentStatus == null) {
-            throw new CustomException("请选择设备状态");
         }
     }
 
@@ -333,13 +297,12 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
         equipmentService.setMationForMap(beans, "equipmentId", "equipmentMation");
         iAuthUserService.setMationForMap(beans, "userId", "userMation");
         iAuthUserService.setMationForMap(beans, "serviceUserId", "serviceUserMation");
-        supplierService.setMationForMap(beans, "supplierId", "supplierMation");
         return beans;
     }
 
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
-    public void editEquipmentRepairWaitToWorkMation(InputObject inputObject, OutputObject outputObject) {
+    public void insertEquipmentRepairWaitToWorkMation(InputObject inputObject, OutputObject outputObject) {
         Map<String, Object> map = inputObject.getParams();
         String id = map.get("id").toString();
         String serviceUserId = map.get("serviceUserId").toString();
@@ -371,17 +334,6 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
     }
 
     @Override
-    public void queryEquipmentRepairMyBeCompleted(InputObject inputObject, OutputObject outputObject) {
-        QueryWrapper<EquipmentRepairOrder> queryWrapper = new QueryWrapper<>();
-        queryWrapper.eq(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getServiceUserId),
-            InputObject.getLogParamsStatic().get("id").toString());
-        queryWrapper.eq(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getState), EquipmentRepairOrderState.BE_COMPLETED.getKey());
-        List<EquipmentRepairOrder> orderList = list(queryWrapper);
-        outputObject.setBeans(orderList);
-        outputObject.settotal(orderList.size());
-    }
-
-    @Override
     public void updateStateById(String id, Integer state) {
         UpdateWrapper<EquipmentRepairOrder> updateWrapper = new UpdateWrapper<>();
         updateWrapper.eq(CommonConstants.ID, id);
@@ -392,10 +344,12 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
 
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
-    public void writeEquipmentRepairSparePartUsage(InputObject inputObject, OutputObject outputObject) {
+    public void insertEquipmentRepairSparePartUsage(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> map = inputObject.getParams();
+        String id = map.get("id").toString();
         EquipmentRepairOrder params = inputObject.getParams(EquipmentRepairOrder.class);
-        equipmentSparePartUsageDetailService.saveByRepairOrderId(params.getId(), params.getSparePartUsageList());
-        outputObject.setBean(selectById(params.getId()));
+        equipmentSparePartUsageDetailService.saveByRepairOrderId(id, params.getSparePartUsageList());
+        outputObject.setBean(selectById(id));
     }
 
     @Override

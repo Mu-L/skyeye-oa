@@ -12,10 +12,6 @@ import java.util.Map;
  */
 public interface IServiceUserStockService {
 
-    int USER_STOCK_PUT = 1;
-
-    int USER_STOCK_OUT = 2;
-
     Map<String, Map<String, Object>> queryUserStock(String userId, List<String> normsIds);
 
     void editMaterialNormsUserStock(String userId, String materialId, String normsId, String operNumber, int type);

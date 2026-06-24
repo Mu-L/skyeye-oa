@@ -9,6 +9,7 @@ import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeLinkDataServiceImpl;
+import com.skyeye.depot.classenum.DepotPutOutType;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.util.CalculationUtil;
@@ -26,7 +27,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
@@ -52,15 +52,12 @@ public class EquipmentSparePartUsageDetailServiceImpl extends SkyeyeLinkDataServ
     @Override
     @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
     public void saveByRepairOrderId(String repairOrderId, List<EquipmentSparePartUsageDetail> detailList) {
-        if (detailList == null) {
-            throw new CustomException("请传递备件使用明细");
-        }
         EquipmentRepairOrder repairOrder = equipmentRepairOrderService.selectById(repairOrderId);
         checkRepairOrder(repairOrder);
         String stockUserId = repairOrder.getServiceUserId();
 
         List<EquipmentSparePartUsageDetail> oldList = selectByPId(repairOrderId);
-        changeUserStock(stockUserId, oldList, IServiceUserStockService.USER_STOCK_PUT);
+        changeUserStock(stockUserId, oldList, DepotPutOutType.PUT.getKey());
 
         if (CollectionUtil.isEmpty(detailList)) {
             deleteByPId(repairOrderId);
@@ -71,7 +68,7 @@ public class EquipmentSparePartUsageDetailServiceImpl extends SkyeyeLinkDataServ
         calcDetailPrice(detailList);
         validateUserStock(stockUserId, detailList);
         saveLinkList(repairOrderId, detailList);
-        changeUserStock(stockUserId, detailList, IServiceUserStockService.USER_STOCK_OUT);
+        changeUserStock(stockUserId, detailList, DepotPutOutType.OUT.getKey());
         equipmentRepairOrderService.refreshCache(repairOrderId);
     }
 
@@ -82,7 +79,7 @@ public class EquipmentSparePartUsageDetailServiceImpl extends SkyeyeLinkDataServ
         if (CollectionUtil.isEmpty(oldList)) {
             return;
         }
-        changeUserStock(stockUserId, oldList, IServiceUserStockService.USER_STOCK_PUT);
+        changeUserStock(stockUserId, oldList, DepotPutOutType.PUT.getKey());
         deleteByPId(repairOrderId);
         equipmentRepairOrderService.refreshCache(repairOrderId);
     }
@@ -109,9 +106,9 @@ public class EquipmentSparePartUsageDetailServiceImpl extends SkyeyeLinkDataServ
                 throw new CustomException("备件规格未维护零售价.");
             }
             String unitPrice = matchedNorms.getRetailPrice();
-            String rowAllPrice = CalculationUtil.multiply(CommonNumConstants.NUM_TWO, String.valueOf(detail.getOperNumber()), unitPrice);
-            detail.setUnitPrice(new BigDecimal(unitPrice));
-            detail.setAllPrice(new BigDecimal(rowAllPrice));
+            String rowAllPrice = CalculationUtil.multiply(CommonNumConstants.NUM_TWO, detail.getOperNumber(), unitPrice);
+            detail.setUnitPrice(unitPrice);
+            detail.setAllPrice(rowAllPrice);
         }
     }
 
@@ -134,7 +131,8 @@ public class EquipmentSparePartUsageDetailServiceImpl extends SkyeyeLinkDataServ
         if (normsIds.size() != beans.size()) {
             throw new CustomException("备件使用明细中存在未选择规格的行，或存在重复规格.");
         }
-        boolean missingOperNumber = beans.stream().anyMatch(bean -> bean == null || bean.getOperNumber() == null || bean.getOperNumber() <= 0);
+        boolean missingOperNumber = beans.stream().anyMatch(bean -> bean == null || StrUtil.isBlank(bean.getOperNumber())
+            || CalculationUtil.compareTo(bean.getOperNumber(), "0", CommonNumConstants.NUM_TWO, RoundingMode.UP) <= 0);
         if (missingOperNumber) {
             throw new CustomException("请为每条明细填写有效的使用数量");
         }
@@ -154,7 +152,7 @@ public class EquipmentSparePartUsageDetailServiceImpl extends SkyeyeLinkDataServ
                 throw new CustomException("部分配件库存不足，请重新选择配件！");
             }
             String stockStr = stockMation.get("stock").toString();
-            if (CalculationUtil.compareTo(String.valueOf(detail.getOperNumber()), stockStr, CommonNumConstants.NUM_TWO, RoundingMode.UP) > 0) {
+            if (CalculationUtil.compareTo(detail.getOperNumber(), stockStr, CommonNumConstants.NUM_TWO, RoundingMode.UP) > 0) {
                 throw new CustomException("部分配件库存不足，请重新选择配件！");
             }
         }
@@ -184,7 +182,7 @@ public class EquipmentSparePartUsageDetailServiceImpl extends SkyeyeLinkDataServ
             stockUserId,
             detail.getMaterialId(),
             detail.getNormsId(),
-            String.valueOf(detail.getOperNumber()),
+            detail.getOperNumber(),
             type));
     }
 

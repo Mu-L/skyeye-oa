@@ -21,21 +21,19 @@ public interface EquipmentRepairOrderService extends SkyeyeBusinessService<Equip
 
     void queryAllEquipmentRepairOrderList(InputObject inputObject, OutputObject outputObject);
 
-    void editEquipmentRepairWaitToWorkMation(InputObject inputObject, OutputObject outputObject);
+    void insertEquipmentRepairWaitToWorkMation(InputObject inputObject, OutputObject outputObject);
 
-    void editEquipmentRepairResult(InputObject inputObject, OutputObject outputObject);
+    void insertEquipmentRepairResult(InputObject inputObject, OutputObject outputObject);
 
     void completeEquipmentRepairOrderById(InputObject inputObject, OutputObject outputObject);
 
-    void editEquipmentRepairEvaluate(InputObject inputObject, OutputObject outputObject);
+    void insertEquipmentRepairEvaluate(InputObject inputObject, OutputObject outputObject);
 
-    void editEquipmentRepairAcceptance(InputObject inputObject, OutputObject outputObject);
+    void insertEquipmentRepairAcceptance(InputObject inputObject, OutputObject outputObject);
 
     void receivingEquipmentRepairOrderById(InputObject inputObject, OutputObject outputObject);
 
-    void queryEquipmentRepairMyBeCompleted(InputObject inputObject, OutputObject outputObject);
-
-    void writeEquipmentRepairSparePartUsage(InputObject inputObject, OutputObject outputObject);
+    void insertEquipmentRepairSparePartUsage(InputObject inputObject, OutputObject outputObject);
 
     void updateStateById(String id, Integer state);
 }

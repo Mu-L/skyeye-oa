@@ -4,10 +4,14 @@
 
 package com.skyeye.repair.classenum;
 
+import cn.hutool.core.map.MapUtil;
 import com.skyeye.common.base.classenum.SkyeyeEnumClass;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @ClassName: EquipmentRepairOrderState
@@ -36,5 +40,20 @@ public enum EquipmentRepairOrderState implements SkyeyeEnumClass {
     private Boolean show;
 
     private Boolean isDefault;
+
+    public static Map<String, Object> getMation(Integer type) {
+        if (type == null) {
+            return MapUtil.newHashMap();
+        }
+        for (EquipmentRepairOrderState bean : EquipmentRepairOrderState.values()) {
+            if (type.equals(bean.getKey())) {
+                Map<String, Object> result = new HashMap<>();
+                result.put("id", bean.getKey());
+                result.put("name", bean.getValue());
+                return result;
+            }
+        }
+        return MapUtil.newHashMap();
+    }
 
 }

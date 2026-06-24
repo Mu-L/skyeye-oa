@@ -12,7 +12,6 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.common.entity.features.SkyeyeLinkData;
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.util.Map;
 
 /**
@@ -41,18 +40,18 @@ public class EquipmentSparePartUsageDetail extends SkyeyeLinkData {
 
     @TableField(value = "oper_number")
     @ApiModelProperty(value = "使用数量", required = "required,num")
-    private Integer operNumber;
+    private String operNumber;
 
     @TableField(value = "usage_reason")
     @ApiModelProperty(value = "使用原因")
     private String usageReason;
 
     @TableField(value = "unit_price")
-    @ApiModelProperty(value = "出库单价")
-    private BigDecimal unitPrice;
+    @ApiModelProperty(value = "出库单价", required = "double", defaultValue = "0")
+    private String unitPrice;
 
     @TableField(value = "amount")
-    @ApiModelProperty(value = "总金额(元)")
-    private BigDecimal allPrice;
+    @ApiModelProperty(value = "总金额(元)", defaultValue = "0")
+    private String allPrice;
 
 }
