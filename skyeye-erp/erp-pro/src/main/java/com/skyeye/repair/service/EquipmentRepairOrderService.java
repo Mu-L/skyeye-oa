@@ -20,4 +20,20 @@ import com.skyeye.repair.entity.EquipmentRepairOrder;
 public interface EquipmentRepairOrderService extends SkyeyeBusinessService<EquipmentRepairOrder> {
 
     void queryAllEquipmentRepairOrderList(InputObject inputObject, OutputObject outputObject);
+
+    void insertEquipmentRepairWaitToWorkMation(InputObject inputObject, OutputObject outputObject);
+
+    void insertEquipmentRepairResult(InputObject inputObject, OutputObject outputObject);
+
+    void completeEquipmentRepairOrderById(InputObject inputObject, OutputObject outputObject);
+
+    void insertEquipmentRepairEvaluate(InputObject inputObject, OutputObject outputObject);
+
+    void insertEquipmentRepairAcceptance(InputObject inputObject, OutputObject outputObject);
+
+    void receivingEquipmentRepairOrderById(InputObject inputObject, OutputObject outputObject);
+
+    void insertEquipmentRepairSparePartUsage(InputObject inputObject, OutputObject outputObject);
+
+    void updateStateById(String id, Integer state);
 }

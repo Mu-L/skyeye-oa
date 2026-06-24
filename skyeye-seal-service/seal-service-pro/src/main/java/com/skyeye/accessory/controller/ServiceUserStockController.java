@@ -46,4 +46,16 @@ public class ServiceUserStockController {
         serviceUserStockService.queryMyPartsNumByNormsId(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryUserStockByNormsIds", value = "批量查询用户规格库存（服务间调用）", method = "POST", allUse = "0")
+    @RequestMapping("/post/ServiceUserStockController/queryUserStockByNormsIds")
+    public void queryUserStockByNormsIds(InputObject inputObject, OutputObject outputObject) {
+        serviceUserStockService.queryUserStockByNormsIds(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "editMaterialNormsUserStock", value = "增减我的配件库存（服务间调用）", method = "POST", allUse = "0")
+    @RequestMapping("/post/ServiceUserStockController/editMaterialNormsUserStock")
+    public void editMaterialNormsUserStock(InputObject inputObject, OutputObject outputObject) {
+        serviceUserStockService.editMaterialNormsUserStockForFeign(inputObject, outputObject);
+    }
+
 }

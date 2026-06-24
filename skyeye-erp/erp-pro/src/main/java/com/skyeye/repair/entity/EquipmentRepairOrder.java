@@ -5,20 +5,18 @@
 package com.skyeye.repair.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
 import com.skyeye.annotation.api.Property;
-import com.skyeye.common.entity.features.SkyeyeFlowable;
+import com.skyeye.common.entity.features.OperatorUserInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.repair.classenum.EquipmentFaultCategory;
 import com.skyeye.repair.classenum.EquipmentRepairAuditOpinion;
-import com.skyeye.repair.classenum.EquipmentRepairCancelReason;
-import com.skyeye.repair.classenum.EquipmentRepairEquipmentStatus;
 import com.skyeye.repair.classenum.EquipmentRepairFaultReason;
+import com.skyeye.repair.classenum.EquipmentRepairOrderState;
 import com.skyeye.repair.classenum.EquipmentRepairTeam;
-import com.skyeye.repair.classenum.EquipmentRepairUrgency;
-import com.skyeye.sparepart.entity.EquipmentSparePartRequisition;
 import com.skyeye.supplier.entity.Supplier;
 import lombok.Data;
 
@@ -27,7 +25,7 @@ import java.util.Map;
 
 /**
  * @ClassName: EquipmentRepairOrder
- * @Description: 设备维修主表实体类
+ * @Description: 设备维修单实体类
  * @author: skyeye云系列--卫志强
  * @date: 2026/01/19
  * @Copyright: 2026 https://gitee.com/doc_wei01/skyeye Inc. All rights reserved.
@@ -35,12 +33,32 @@ import java.util.Map;
  */
 @Data
 @TableName(value = "erp_equipment_repair_order", autoResultMap = true)
-@ApiModel("设备维修主表实体类")
-public class EquipmentRepairOrder extends SkyeyeFlowable {
+@ApiModel("设备维修单实体类")
+public class EquipmentRepairOrder extends OperatorUserInfo {
 
-    @TableField(value = "urgency_level")
-    @ApiModelProperty(value = "紧急程度", enumClass = EquipmentRepairUrgency.class, required = "required,num")
-    private Integer urgencyLevel;
+    @TableId("id")
+    @ApiModelProperty(value = "主键id。为空时新增，不为空时编辑")
+    private String id;
+
+    @TableField("odd_number")
+    @Property(value = "单据编号", fuzzyLike = true)
+    private String oddNumber;
+
+    @TableField(value = "state")
+    @ApiModelProperty(value = "状态", enumClass = EquipmentRepairOrderState.class, required = "num")
+    private Integer state;
+
+    @TableField(exist = false)
+    @Property(value = "状态信息")
+    private Map<String, Object> stateMation;
+
+    @TableField(value = "urgency_id")
+    @ApiModelProperty(value = "紧急程度，参考数据字典", required = "required")
+    private String urgencyId;
+
+    @TableField(exist = false)
+    @Property(value = "紧急程度字典信息")
+    private Map<String, Object> urgencyMation;
 
     @TableField(value = "equipment_id")
     @ApiModelProperty(value = "设备id", required = "required")
@@ -50,8 +68,8 @@ public class EquipmentRepairOrder extends SkyeyeFlowable {
     @Property(value = "设备信息")
     private Map<String, Object> equipmentMation;
 
-    @TableField(value = "fault_desc")
-    @ApiModelProperty(value = "故障描述", fuzzyLike = true)
+    @TableField(value = "fault_brief")
+    @ApiModelProperty(value = "故障描述", required = "required")
     private String faultBrief;
 
     @TableField(value = "fault_photo")
@@ -63,44 +81,56 @@ public class EquipmentRepairOrder extends SkyeyeFlowable {
     private String faultVideo;
 
     @TableField(value = "report_time")
-    @ApiModelProperty(value = "报修时间")
+    @Property(value = "报修时间")
     private String reportTime;
 
     @TableField(value = "user_id")
-    @ApiModelProperty(value = "报修人用户ID")
+    @Property(value = "报修人")
     private String userId;
 
     @TableField(exist = false)
     @Property(value = "报修人信息")
     private Map<String, Object> userMation;
 
-    @TableField(value = "reject_reason")
-    @ApiModelProperty(value = "驳回原因")
-    private String rejectReason;
-
-    @TableField(value = "staff_id")
-    @ApiModelProperty(value = "维修负责人员工ID")
-    private String staffId;
+    @TableField(value = "service_user_id")
+    @ApiModelProperty(value = "维修负责人")
+    private String serviceUserId;
 
     @TableField(exist = false)
     @Property(value = "维修负责人信息")
-    private Map<String, Object> staffMation;
+    private Map<String, Object> serviceUserMation;
 
     @TableField(value = "fault_type")
-    @ApiModelProperty(value = "故障类别", enumClass = EquipmentFaultCategory.class, required = "num")
-    private Integer faultCategory;
+    @ApiModelProperty(value = "故障类别", enumClass = EquipmentFaultCategory.class, required = "required,num")
+    private Integer faultType;
 
-    @TableField(value = "repairTeam")
+    @TableField(exist = false)
+    @Property(value = "故障类别信息")
+    private Map<String, Object> faultTypeMation;
+
+    @TableField(value = "repair_team")
     @ApiModelProperty(value = "维修班组", enumClass = EquipmentRepairTeam.class, required = "num")
     private Integer repairTeam;
 
-    @TableField(value = "dispatch_time")
+    @TableField(exist = false)
+    @Property(value = "维修班组信息")
+    private Map<String, Object> repairTeamMation;
+
+    @TableField(value = "service_time")
     @ApiModelProperty(value = "派工时间")
-    private String dispatchTime;
+    private String serviceTime;
 
     @TableField(value = "response_hours")
-    @ApiModelProperty(value = "故障响应时长(小时)")
-    private Double responseHours;
+    @ApiModelProperty(value = "故障响应时长(小时)", required = "double")
+    private String responseHours;
+
+    @TableField(value = "audit_opinion")
+    @ApiModelProperty(value = "审核意见", enumClass = EquipmentRepairAuditOpinion.class, required = "required,num")
+    private Integer auditOpinion;
+
+    @TableField(exist = false)
+    @Property(value = "审核意见信息")
+    private Map<String, Object> auditOpinionMation;
 
     @TableField(value = "is_repaired")
     @ApiModelProperty(value = "是否已进行维修", enumClass = WhetherEnum.class, required = "num")
@@ -108,31 +138,27 @@ public class EquipmentRepairOrder extends SkyeyeFlowable {
 
     @TableField(value = "fault_reason")
     @ApiModelProperty(value = "故障原因", enumClass = EquipmentRepairFaultReason.class, required = "num")
-    private Integer faultReasonType;
+    private Integer faultReason;
+
+    @TableField(exist = false)
+    @Property(value = "故障原因信息")
+    private Map<String, Object> faultReasonMation;
 
     @TableField(value = "is_replace_spare")
     @ApiModelProperty(value = "是否已更换配件", enumClass = WhetherEnum.class, required = "num")
     private Integer isReplaceSpare;
 
-    @TableField(value = "audit_opinion")
-    @ApiModelProperty(value = "审核意见", enumClass = EquipmentRepairAuditOpinion.class, required = "num")
-    private Integer auditOpinion;
-
-    
-    
     @TableField(value = "supplier_id")
-    @ApiModelProperty(value = "供应商ID")
+    @ApiModelProperty(value = "供应商")
     private String supplierId;
-
 
     @TableField(exist = false)
     @Property(value = "供应商信息")
     private Supplier supplierMation;
-     
 
     @TableField(value = "cancel_reason")
-    @ApiModelProperty(value = "作废原因", enumClass = EquipmentRepairCancelReason.class, required = "num")
-    private Integer cancelReasonType;
+    @ApiModelProperty(value = "作废原因")
+    private String cancelReason;
 
     @TableField(value = "repair_desc")
     @ApiModelProperty(value = "维修情况说明")
@@ -146,24 +172,24 @@ public class EquipmentRepairOrder extends SkyeyeFlowable {
     @ApiModelProperty(value = "维修完成时间")
     private String repairFinishTime;
 
-    @TableField(value = "repair_hours")
-    @ApiModelProperty(value = "维修时长(小时)")
-    private Double repairHours;
+    @TableField(value = "evaluate_type_id")
+    @ApiModelProperty(value = "评价类型，参考数据字典")
+    private String evaluateTypeId;
+
+    @TableField(exist = false)
+    @Property(value = "评价类型字典信息")
+    private Map<String, Object> evaluateTypeMation;
+
+    @TableField(value = "evaluate_content")
+    @ApiModelProperty(value = "评价内容")
+    private String evaluateContent;
 
     @TableField(value = "is_fixed")
     @ApiModelProperty(value = "是否修复", enumClass = WhetherEnum.class, required = "num")
     private Integer isFixed;
 
-    @TableField(value = "repair_score")
-    @ApiModelProperty(value = "维修评分1-10分")
-    private Integer repairScore;
-
-    @TableField(value = "repair_comment")
-    @ApiModelProperty(value = "维修评价")
-    private String repairComment;
-
     @TableField(exist = false)
-    @Property(value = "备件信息")
-    @ApiModelProperty(value = "备件领用单列表", required = "json")
-    private List<EquipmentSparePartRequisition> sparePartRequisitionList;
+    @ApiModelProperty(value = "备件使用明细列表", required = "json")
+    private List<EquipmentSparePartUsageDetail> sparePartUsageList;
+
 }

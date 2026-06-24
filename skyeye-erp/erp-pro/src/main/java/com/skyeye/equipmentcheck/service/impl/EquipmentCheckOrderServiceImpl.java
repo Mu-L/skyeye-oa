@@ -21,7 +21,6 @@ import com.skyeye.equipmentcheck.entity.EquipmentCheckOrderItem;
 import com.skyeye.equipmentcheck.service.EquipmentCheckOrderItemService;
 import com.skyeye.equipmentcheck.service.EquipmentCheckOrderService;
 import com.skyeye.exception.CustomException;
-import com.skyeye.repair.classenum.EquipmentRepairUrgency;
 import com.skyeye.repair.entity.EquipmentRepairOrder;
 import com.skyeye.repair.service.EquipmentRepairOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -143,7 +142,6 @@ public class EquipmentCheckOrderServiceImpl extends SkyeyeBusinessServiceImpl<Eq
         repairOrder.setReportTime(checkOrder.getCheckTime());
         repairOrder.setFaultBrief(buildFaultDesc(checkOrder));
         repairOrder.setFaultPhoto(checkOrder.getImages());
-        repairOrder.setUrgencyLevel(EquipmentRepairUrgency.NORMAL.getKey());
         String operatorId = StrUtil.isNotEmpty(checkOrder.getCheckerId()) ? checkOrder.getCheckerId() : checkOrder.getCreateId();
         equipmentRepairOrderService.createEntity(repairOrder, operatorId);
     }
