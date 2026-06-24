@@ -84,4 +84,20 @@ public class TenantController {
         tenantService.queryAllTenantListByKeyword(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "queryCurrentTenantInfo", value = "查询当前租户信息（租户自管）", method = "GET", allUse = "2")
+    @RequestMapping("/post/TenantController/queryCurrentTenantInfo")
+    public void queryCurrentTenantInfo(InputObject inputObject, OutputObject outputObject) {
+        tenantService.queryCurrentTenantInfo(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "updateCurrentTenantInfo", value = "更新当前租户信息（租户自管）", method = "POST", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "name", name = "name", value = "租户名称", required = "required"),
+        @ApiImplicitParam(id = "logo", name = "logo", value = "租户Logo"),
+        @ApiImplicitParam(id = "remark", name = "remark", value = "租户描述")})
+    @RequestMapping("/post/TenantController/updateCurrentTenantInfo")
+    public void updateCurrentTenantInfo(InputObject inputObject, OutputObject outputObject) {
+        tenantService.updateCurrentTenantInfo(inputObject, outputObject);
+    }
+
 }

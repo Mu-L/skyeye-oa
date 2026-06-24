@@ -44,4 +44,14 @@ public interface TenantService extends SkyeyeBusinessService<Tenant> {
     void checkTenantAccountNum(String tenantId);
 
     void queryAllTenantListByKeyword(InputObject inputObject, OutputObject outputObject);
+
+    /**
+     * 查询当前租户信息（租户管理员可获取完整信息，非管理员仅返回 isAdmin=0）
+     */
+    void queryCurrentTenantInfo(InputObject inputObject, OutputObject outputObject);
+
+    /**
+     * 租户管理员更新当前租户基本信息（名称、Logo、描述）
+     */
+    void updateCurrentTenantInfo(InputObject inputObject, OutputObject outputObject);
 }

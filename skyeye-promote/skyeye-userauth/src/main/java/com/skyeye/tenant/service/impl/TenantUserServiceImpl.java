@@ -256,6 +256,8 @@ public class TenantUserServiceImpl extends SkyeyeBusinessServiceImpl<TenantUserD
         }
         List<String> tenantIds = list.stream().map(bean -> bean.getTenantId()).distinct().collect(Collectors.toList());
         List<Tenant> tenantList = tenantService.selectByIds(tenantIds.toArray(new String[tenantIds.size()]));
+        Map<String, Integer> adminMap = list.stream().collect(Collectors.toMap(TenantUser::getTenantId, TenantUser::getIsAdmin, (a, b) -> a));
+        tenantList.forEach(tenant -> tenant.setIsAdmin(adminMap.get(tenant.getId())));
         outputObject.setBeans(tenantList);
         outputObject.settotal(tenantList.size());
     }

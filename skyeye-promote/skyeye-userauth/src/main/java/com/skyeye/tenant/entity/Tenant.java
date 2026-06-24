@@ -54,4 +54,8 @@ public class Tenant extends BaseGeneralInfo {
     @ApiModelProperty("应用信息")
     private List<TenantAppLink> tenantAppLinkList;
 
+    @TableField(exist = false)
+    @ApiModelProperty(value = "当前用户在该租户是否是管理员", enumClass = WhetherEnum.class)
+    private Integer isAdmin;
+
 }

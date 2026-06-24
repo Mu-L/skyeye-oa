@@ -11,6 +11,7 @@ import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
+import com.skyeye.annotation.tenant.TenantIsolation;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
@@ -19,6 +20,7 @@ import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.tenant.TenantTypeEnum;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.PropertiesUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
@@ -29,11 +31,13 @@ import com.skyeye.tenant.dao.TenantDao;
 import com.skyeye.tenant.entity.Tenant;
 import com.skyeye.tenant.entity.TenantApp;
 import com.skyeye.tenant.entity.TenantAppLink;
+import com.skyeye.tenant.entity.TenantUser;
 import com.skyeye.tenant.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.List;
@@ -235,6 +239,68 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
         long count = tenantUserService.getTenantUserCountByTenantId(tenantId);
         if (count >= tenant.getAccountNum()) {
             throw new CustomException("租户账号数量已达上限");
+        }
+    }
+
+    @Override
+    @TenantIsolation(TenantEnum.STRONG_ISOLATION)
+    public void queryCurrentTenantInfo(InputObject inputObject, OutputObject outputObject) {
+        String tenantId = TenantContext.getTenantId();
+        Map<String, Object> result = new HashMap<>();
+        result.put("isAdmin", CommonNumConstants.NUM_ZERO);
+        if (StrUtil.isBlank(tenantId)) {
+            outputObject.setBean(result);
+            return;
+        }
+        String staffId = inputObject.getLogParams().get("staffId").toString();
+        TenantUser tenantUser = tenantUserService.queryTenantUserByStaffId(staffId, tenantId);
+        if (tenantUser == null || !WhetherEnum.ENABLE_USING.getKey().equals(tenantUser.getIsAdmin())) {
+            // 非租户管理员，返回空
+            outputObject.setBean(result);
+            return;
+        }
+        Tenant tenant = selectById(tenantId);
+        if (ObjectUtil.isEmpty(tenant)) {
+            // 租户不存在，返回空
+            outputObject.setBean(result);
+            return;
+        }
+        result.put("isAdmin", CommonNumConstants.NUM_ONE);
+        result.put("id", tenant.getId());
+        result.put("name", tenant.getName());
+        result.put("logo", tenant.getLogo());
+        result.put("remark", tenant.getRemark());
+        result.put("accountNum", tenant.getAccountNum());
+        result.put("userCount", tenantUserService.getTenantUserCountByTenantId(tenantId));
+        outputObject.setBean(result);
+    }
+
+    @Override
+    @TenantIsolation(TenantEnum.STRONG_ISOLATION)
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void updateCurrentTenantInfo(InputObject inputObject, OutputObject outputObject) {
+        String tenantId = TenantContext.getTenantId();
+        validateCurrentTenantAdmin(tenantId, inputObject);
+        Map<String, Object> params = inputObject.getParams();
+        Tenant tenant = selectById(tenantId);
+        if (ObjectUtil.isEmpty(tenant)) {
+            throw new CustomException("租户不存在.");
+        }
+        tenant.setName(params.get("name").toString().trim());
+        tenant.setLogo(params.get("logo").toString());
+        tenant.setRemark(params.get("remark").toString());
+        String userId = InputObject.getLogParamsStatic().get("id").toString();
+        updateEntity(tenant, userId);
+    }
+
+    private void validateCurrentTenantAdmin(String tenantId, InputObject inputObject) {
+        if (StrUtil.isBlank(tenantId)) {
+            throw new CustomException("请先选择租户.");
+        }
+        String staffId = inputObject.getLogParams().get("staffId").toString();
+        TenantUser tenantUser = tenantUserService.queryTenantUserByStaffId(staffId, tenantId);
+        if (tenantUser == null || !WhetherEnum.ENABLE_USING.getKey().equals(tenantUser.getIsAdmin())) {
+            throw new CustomException("仅租户管理员可操作.");
         }
     }
 
