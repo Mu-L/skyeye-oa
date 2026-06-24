@@ -13,13 +13,17 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
+import com.skyeye.common.constans.MqConstants;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.common.enumeration.WhetherEnum;
+import cn.hutool.json.JSONUtil;
 import com.skyeye.equipment.service.EquipmentService;
+import com.skyeye.eve.rest.mq.JobMateMation;
+import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.exception.CustomException;
 import com.skyeye.material.service.MaterialNormsService;
 import com.skyeye.material.service.MaterialService;
@@ -38,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -68,6 +73,9 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
 
     @Autowired
     private SupplierService supplierService;
+
+    @Autowired
+    private IJobMateMationService iJobMateMationService;
 
     @Override
     public QueryWrapper<EquipmentRepairOrder> getQueryWrapper(CommonPageInfo commonPageInfo) {
@@ -161,6 +169,22 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
                 entity.setServiceTime(DateUtil.getTimeAndToString());
             }
         }
+    }
+
+    @Override
+    protected void writePostpose(EquipmentRepairOrder entity, String userId) {
+        super.writePostpose(entity, userId);
+        sendDispatchWork(entity.getId(), userId);
+    }
+
+    private void sendDispatchWork(String id, String userId) {
+        Map<String, Object> notice = new HashMap<>();
+        notice.put("serviceId", id);
+        notice.put("type", MqConstants.JobMateMationJobType.EQUIPMENT_REPAIR_DISPATCH.getJobType());
+        JobMateMation jobMateMation = new JobMateMation();
+        jobMateMation.setJsonStr(JSONUtil.toJsonStr(notice));
+        jobMateMation.setUserId(userId);
+        iJobMateMationService.sendMQProducer(jobMateMation);
     }
 
     @Override
@@ -314,6 +338,7 @@ public class EquipmentRepairOrderServiceImpl extends SkyeyeBusinessServiceImpl<E
             updateWrapper.set(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getServiceUserId), serviceUserId);
             updateWrapper.set(MybatisPlusUtil.toColumns(EquipmentRepairOrder::getServiceTime), DateUtil.getTimeAndToString());
             update(updateWrapper);
+            sendDispatchWork(id, repairOrder.getUserId());
             refreshCache(id);
         } else {
             outputObject.setreturnMessage("该数据状态已改变，请刷新页面！");

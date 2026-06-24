@@ -13,10 +13,8 @@ import com.skyeye.common.enumeration.WhetherEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.equipment.classenum.EquipmentState;
-import com.skyeye.repair.classenum.EquipmentFaultCategory;
-import com.skyeye.repair.classenum.EquipmentRepairAuditOpinion;
 import com.skyeye.repair.classenum.EquipmentRepairFaultReason;
-import com.skyeye.repair.classenum.EquipmentRepairTeam;
+import com.skyeye.repair.entity.EquipmentRepairOrder;
 import com.skyeye.repair.service.EquipmentRepairOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -51,18 +49,7 @@ public class EquipmentRepairOrderController {
     }
 
     @ApiOperation(id = "writeEquipmentRepairOrder", value = "新增/添加故障报修", method = "POST", allUse = "1")
-    @ApiImplicitParams({
-        @ApiImplicitParam(id = "id", name = "id", value = "主键id，添加时必填"),
-        @ApiImplicitParam(id = "equipmentId", name = "equipmentId", value = "设备id", required = "required"),
-        @ApiImplicitParam(id = "faultBrief", name = "faultBrief", value = "故障描述", required = "required"),
-        @ApiImplicitParam(id = "urgencyId", name = "urgencyId", value = "紧急程度，参考数据字典", required = "required"),
-        @ApiImplicitParam(id = "auditOpinion", name = "auditOpinion", value = "审核意见", enumClass = EquipmentRepairAuditOpinion.class, required = "required,num"),
-        @ApiImplicitParam(id = "faultType", name = "faultType", value = "故障类别", enumClass = EquipmentFaultCategory.class, required = "required,num"),
-        @ApiImplicitParam(id = "repairTeam", name = "repairTeam", value = "维修班组", enumClass = EquipmentRepairTeam.class, required = "num"),
-        @ApiImplicitParam(id = "responseHours", name = "responseHours", value = "故障响应时长", required = "double"),
-        @ApiImplicitParam(id = "serviceUserId", name = "serviceUserId", value = "维修负责人"),
-        @ApiImplicitParam(id = "faultPhoto", name = "faultPhoto", value = "故障情况拍照"),
-        @ApiImplicitParam(id = "faultVideo", name = "faultVideo", value = "故障情况视频")})
+    @ApiImplicitParams(classBean = EquipmentRepairOrder.class)
     @RequestMapping("/post/EquipmentRepairOrderController/writeEquipmentRepairOrder")
     public void writeEquipmentRepairOrder(InputObject inputObject, OutputObject outputObject) {
         equipmentRepairOrderService.saveOrUpdateEntity(inputObject, outputObject);
