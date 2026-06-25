@@ -90,11 +90,19 @@ public class TenantController {
         tenantService.queryCurrentTenantInfo(inputObject, outputObject);
     }
 
-    @ApiOperation(id = "updateCurrentTenantInfo", value = "更新当前租户信息（租户自管）", method = "POST", allUse = "2")
+    @ApiOperation(id = "updateCurrentTenantInfo", value = "更新当前组织信息（组织自管）", method = "POST", allUse = "2")
     @ApiImplicitParams({
-        @ApiImplicitParam(id = "name", name = "name", value = "租户名称", required = "required"),
-        @ApiImplicitParam(id = "logo", name = "logo", value = "租户Logo"),
-        @ApiImplicitParam(id = "remark", name = "remark", value = "租户描述")})
+        @ApiImplicitParam(id = "name", name = "name", value = "组织名称"),
+        @ApiImplicitParam(id = "logo", name = "logo", value = "组织Logo"),
+        @ApiImplicitParam(id = "remark", name = "remark", value = "组织简介"),
+        @ApiImplicitParam(id = "contactName", name = "contactName", value = "联系人/负责人"),
+        @ApiImplicitParam(id = "contactPhone", name = "contactPhone", value = "联系电话"),
+        @ApiImplicitParam(id = "contactEmail", name = "contactEmail", value = "联系邮箱"),
+        @ApiImplicitParam(id = "address", name = "address", value = "地址"),
+        @ApiImplicitParam(id = "website", name = "website", value = "官网"),
+        @ApiImplicitParam(id = "industry", name = "industry", value = "所属行业"),
+        @ApiImplicitParam(id = "creditCode", name = "creditCode", value = "统一社会信用代码"),
+        @ApiImplicitParam(id = "legalPerson", name = "legalPerson", value = "法定代表人")})
     @RequestMapping("/post/TenantController/updateCurrentTenantInfo")
     public void updateCurrentTenantInfo(InputObject inputObject, OutputObject outputObject) {
         tenantService.updateCurrentTenantInfo(inputObject, outputObject);

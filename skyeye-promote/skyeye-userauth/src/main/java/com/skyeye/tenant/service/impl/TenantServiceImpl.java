@@ -27,6 +27,7 @@ import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.eve.rest.mq.JobMateMation;
 import com.skyeye.eve.service.IJobMateMationService;
 import com.skyeye.exception.CustomException;
+import com.skyeye.tenant.classenum.TenantOrgType;
 import com.skyeye.tenant.dao.TenantDao;
 import com.skyeye.tenant.entity.Tenant;
 import com.skyeye.tenant.entity.TenantApp;
@@ -81,6 +82,9 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
         entity.setAccountNum(CommonNumConstants.NUM_ZERO);
         if (entity.getWhetherHasPassedBuyOrder() == null) {
             entity.setWhetherHasPassedBuyOrder(WhetherEnum.DISABLE_USING.getKey());
+        }
+        if (entity.getOrgType() == null) {
+            entity.setOrgType(TenantOrgType.ENTERPRISE.getKey());
         }
     }
 
@@ -266,13 +270,26 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
             return;
         }
         result.put("isAdmin", CommonNumConstants.NUM_ONE);
+        fillCurrentOrgInfo(result, tenant);
+        result.put("userCount", tenantUserService.getTenantUserCountByTenantId(tenantId));
+        outputObject.setBean(result);
+    }
+
+    private void fillCurrentOrgInfo(Map<String, Object> result, Tenant tenant) {
         result.put("id", tenant.getId());
         result.put("name", tenant.getName());
         result.put("logo", tenant.getLogo());
         result.put("remark", tenant.getRemark());
         result.put("accountNum", tenant.getAccountNum());
-        result.put("userCount", tenantUserService.getTenantUserCountByTenantId(tenantId));
-        outputObject.setBean(result);
+        result.put("orgType", tenant.getOrgType() != null ? tenant.getOrgType() : TenantOrgType.ENTERPRISE.getKey());
+        result.put("contactName", tenant.getContactName());
+        result.put("contactPhone", tenant.getContactPhone());
+        result.put("contactEmail", tenant.getContactEmail());
+        result.put("address", tenant.getAddress());
+        result.put("website", tenant.getWebsite());
+        result.put("industry", tenant.getIndustry());
+        result.put("creditCode", tenant.getCreditCode());
+        result.put("legalPerson", tenant.getLegalPerson());
     }
 
     @Override
@@ -284,23 +301,52 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
         Map<String, Object> params = inputObject.getParams();
         Tenant tenant = selectById(tenantId);
         if (ObjectUtil.isEmpty(tenant)) {
-            throw new CustomException("租户不存在.");
+            throw new CustomException("组织不存在.");
         }
-        tenant.setName(params.get("name").toString().trim());
-        tenant.setLogo(params.get("logo").toString());
-        tenant.setRemark(params.get("remark").toString());
+        applyCurrentOrgFields(tenant, params);
         String userId = InputObject.getLogParamsStatic().get("id").toString();
         updateEntity(tenant, userId);
     }
 
+    private void applyCurrentOrgFields(Tenant tenant, Map<String, Object> params) {
+        tenant.setName(params.get("name").toString().trim());
+        tenant.setLogo(params.get("logo").toString());
+        tenant.setRemark(params.get("remark").toString());
+        tenant.setContactName(getOptionalString(params, "contactName"));
+        tenant.setContactPhone(getOptionalString(params, "contactPhone"));
+        tenant.setContactEmail(getOptionalString(params, "contactEmail"));
+        if (TenantOrgType.PERSONAL.getKey().equals(tenant.getOrgType())) {
+            // 如果是个人组织，则清空企业相关字段
+            tenant.setCreditCode(null);
+            tenant.setLegalPerson(null);
+            tenant.setAddress(null);
+            tenant.setWebsite(null);
+            tenant.setIndustry(null);
+            return;
+        }
+        // 如果是企业组织，则更新企业相关字段
+        tenant.setCreditCode(getOptionalString(params, "creditCode"));
+        tenant.setLegalPerson(getOptionalString(params, "legalPerson"));
+        tenant.setAddress(getOptionalString(params, "address"));
+        tenant.setWebsite(getOptionalString(params, "website"));
+        tenant.setIndustry(getOptionalString(params, "industry"));
+    }
+
+    private String getOptionalString(Map<String, Object> params, String key) {
+        if (!params.containsKey(key) || params.get(key) == null) {
+            return null;
+        }
+        return StrUtil.trim(params.get(key).toString());
+    }
+
     private void validateCurrentTenantAdmin(String tenantId, InputObject inputObject) {
         if (StrUtil.isBlank(tenantId)) {
-            throw new CustomException("请先选择租户.");
+            throw new CustomException("请先选择组织.");
         }
         String staffId = inputObject.getLogParams().get("staffId").toString();
         TenantUser tenantUser = tenantUserService.queryTenantUserByStaffId(staffId, tenantId);
         if (tenantUser == null || !WhetherEnum.ENABLE_USING.getKey().equals(tenantUser.getIsAdmin())) {
-            throw new CustomException("仅租户管理员可操作.");
+            throw new CustomException("仅组织管理员可操作.");
         }
     }
 

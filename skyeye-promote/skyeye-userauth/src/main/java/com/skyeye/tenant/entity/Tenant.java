@@ -15,6 +15,7 @@ import com.skyeye.common.constans.CacheConstants;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.BaseGeneralInfo;
 import com.skyeye.common.enumeration.WhetherEnum;
+import com.skyeye.tenant.classenum.TenantOrgType;
 import lombok.Data;
 
 import java.util.List;
@@ -39,8 +40,44 @@ public class Tenant extends BaseGeneralInfo {
     private Integer accountNum;
 
     @TableField(value = "`logo`")
-    @ApiModelProperty(value = "租户logo")
+    @ApiModelProperty(value = "组织Logo")
     private String logo;
+
+    @TableField("org_type")
+    @ApiModelProperty(value = "组织类型", enumClass = TenantOrgType.class, required = "required,num")
+    private Integer orgType;
+
+    @TableField("contact_name")
+    @ApiModelProperty(value = "联系人/负责人姓名")
+    private String contactName;
+
+    @TableField("contact_phone")
+    @ApiModelProperty(value = "联系电话")
+    private String contactPhone;
+
+    @TableField("contact_email")
+    @ApiModelProperty(value = "联系邮箱")
+    private String contactEmail;
+
+    @TableField("address")
+    @ApiModelProperty(value = "地址")
+    private String address;
+
+    @TableField("website")
+    @ApiModelProperty(value = "官网")
+    private String website;
+
+    @TableField("industry")
+    @ApiModelProperty(value = "所属行业")
+    private String industry;
+
+    @TableField("credit_code")
+    @ApiModelProperty(value = "统一社会信用代码")
+    private String creditCode;
+
+    @TableField("legal_person")
+    @ApiModelProperty(value = "法定代表人")
+    private String legalPerson;
 
     /**
      * 是否曾有过「审核通过」的应用购买订单；订单终审通过时由系统置为是。需在表 tenant 增加列 whether_has_passed_buy_order（int，默认 0）。
