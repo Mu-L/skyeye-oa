@@ -4,6 +4,7 @@
 
 package com.skyeye.module.dao;
 
+import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.module.entity.AutoModule;
@@ -22,6 +23,7 @@ import java.util.Map;
  */
 public interface AutoModuleDao extends SkyeyeBaseMapper<AutoModule> {
 
+    @IgnoreTenant
     List<Map<String, Object>> queryAutoModuleList(CommonPageInfo commonPageInfo);
 
     /**
@@ -31,6 +33,7 @@ public interface AutoModuleDao extends SkyeyeBaseMapper<AutoModule> {
      * @param tenantId 租户id
      * @return
      */
+    @IgnoreTenant
     List<String> queryAllChildIdsByParentId(@Param("ids") List<String> ids, @Param("tenantId") String tenantId);
 
 }
