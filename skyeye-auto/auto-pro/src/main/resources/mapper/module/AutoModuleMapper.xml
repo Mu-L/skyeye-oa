@@ -2,15 +2,9 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.skyeye.module.dao.AutoModuleDao">
 
-    <select id="queryAutoModuleList" parameterType="java.util.Map"  resultType="java.util.Map">
+    <select id="queryAutoModuleList" resultType="java.util.Map">
         SELECT
-            a.id,
-            a.`name`,
-            a.parent_id parentId,
-            a.create_id createId,
-            CONVERT(a.create_time, char) createTime,
-            a.last_update_id lastUpdateId,
-            CONVERT(a.last_update_time, char) lastUpdateTime
+            a.id
         FROM
             auto_module a
         <where>
@@ -26,11 +20,55 @@
             <if test="sqlExtract != '' and sqlExtract != null">
                 ${sqlExtract}
             </if>
-            <if test="keyword != null and keyword != ''">
-                AND a.`name` like '%${keyword}%'
-            </if>
+            <choose>
+                <when test="keyword != null and keyword != ''">
+                    AND a.`name` LIKE '%${keyword}%'
+                </when>
+                <otherwise>
+                    AND a.parent_id = '0'
+                </otherwise>
+            </choose>
         </where>
         ORDER BY a.create_time DESC
+    </select>
+
+    <select id="queryAllChildIdsByParentId" resultType="java.lang.String">
+        <foreach collection="ids" item="id" index="idx" separator="UNION">
+            SELECT
+                d.id
+            FROM
+                (
+                    SELECT
+                        @ids${idx} AS _ids,
+                        (
+                            SELECT
+                                @ids${idx} := GROUP_CONCAT(id)
+                            FROM
+                                auto_module
+                            WHERE FIND_IN_SET(parent_id, @ids${idx})
+                            <if test="tenantId != '' and tenantId != null">
+                                AND tenant_id = #{tenantId}
+                            </if>
+                        ) AS cids,
+                        @l${idx} := @l${idx} + 1 AS level
+                    FROM
+                        auto_module,
+                        (
+                            SELECT
+                                @ids${idx} := #{id},
+                                @l${idx} := 0
+                        ) b
+                    WHERE @ids${idx} IS NOT NULL
+                    <if test="tenantId != '' and tenantId != null">
+                        AND tenant_id = #{tenantId}
+                    </if>
+                ) i,
+                auto_module d
+            WHERE FIND_IN_SET(d.id, i._ids)
+            <if test="tenantId != '' and tenantId != null">
+                AND d.tenant_id = #{tenantId}
+            </if>
+        </foreach>
     </select>
 
 </mapper>

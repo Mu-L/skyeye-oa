@@ -32,12 +32,6 @@ public class AutoModuleController {
     @Autowired
     private AutoModuleService autoModuleService;
 
-    /**
-     * 获取模块信息列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAutoModuleList", value = "获取模块信息列表", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = CommonPageInfo.class)
     @RequestMapping("/post/AutoModuleController/queryAutoModuleList")
@@ -45,12 +39,6 @@ public class AutoModuleController {
         autoModuleService.queryPageList(inputObject, outputObject);
     }
 
-    /**
-     * 一次性获取所有的模块为树结构
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryAutoModuleForTree", value = "一次性获取所有的模块为树结构", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "所属第三方业务数据id", required = "required"),
@@ -60,12 +48,6 @@ public class AutoModuleController {
         autoModuleService.queryAutoModuleForTree(inputObject, outputObject);
     }
 
-    /**
-     * 新增/编辑项目模块
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "writeAutoModule", value = "新增/编辑项目模块", method = "POST", allUse = "2")
     @ApiImplicitParams(classBean = AutoModule.class)
     @RequestMapping("/post/AutoModuleController/writeAutoModule")
@@ -73,12 +55,6 @@ public class AutoModuleController {
         autoModuleService.saveOrUpdateEntity(inputObject, outputObject);
     }
 
-    /**
-     * 删除项目模块信息
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "deleteAutoModuleById", value = "删除项目模块信息", method = "DELETE", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "id", name = "id", value = "主键id", required = "required")})
@@ -87,12 +63,6 @@ public class AutoModuleController {
         autoModuleService.deleteById(inputObject, outputObject);
     }
 
-    /**
-     * 获取模块一级列表
-     *
-     * @param inputObject  入参以及用户信息等获取对象
-     * @param outputObject 出参以及提示信息的返回值对象
-     */
     @ApiOperation(id = "queryFirstAutoModuleList", value = "获取模块一级列表", method = "POST", allUse = "2")
     @ApiImplicitParams({
         @ApiImplicitParam(id = "objectId", name = "objectId", value = "所属第三方业务数据id"),

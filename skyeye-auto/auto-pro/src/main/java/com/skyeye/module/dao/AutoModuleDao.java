@@ -7,6 +7,7 @@ package com.skyeye.module.dao;
 import com.skyeye.common.entity.search.CommonPageInfo;
 import com.skyeye.eve.dao.SkyeyeBaseMapper;
 import com.skyeye.module.entity.AutoModule;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 import java.util.Map;
@@ -22,5 +23,14 @@ import java.util.Map;
 public interface AutoModuleDao extends SkyeyeBaseMapper<AutoModule> {
 
     List<Map<String, Object>> queryAutoModuleList(CommonPageInfo commonPageInfo);
+
+    /**
+     * 根据父id查询所有的子节点信息(包含父id)
+     *
+     * @param ids      父id
+     * @param tenantId 租户id
+     * @return
+     */
+    List<String> queryAllChildIdsByParentId(@Param("ids") List<String> ids, @Param("tenantId") String tenantId);
 
 }

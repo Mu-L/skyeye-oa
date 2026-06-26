@@ -4,6 +4,8 @@
 
 package com.skyeye.module.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollectionUtil;
 import cn.hutool.core.lang.tree.Tree;
 import cn.hutool.core.lang.tree.TreeNodeConfig;
 import cn.hutool.core.lang.tree.TreeUtil;
@@ -24,8 +26,10 @@ import com.skyeye.module.service.AutoModuleService;
 import org.springframework.stereotype.Service;
 
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName: AutoModuleServiceImpl
@@ -56,7 +60,20 @@ public class AutoModuleServiceImpl extends SkyeyeTeamAuthServiceImpl<AutoModuleD
             commonPageInfo.setTenantId(TenantContext.getTenantId());
         }
         List<Map<String, Object>> beans = skyeyeBaseMapper.queryAutoModuleList(commonPageInfo);
-        setMationForMap(beans, "parentId", "parentMation");
+        List<String> ids = beans.stream().map(bean -> bean.get("id").toString()).collect(Collectors.toList());
+        if (CollectionUtil.isEmpty(ids)) {
+            return beans;
+        }
+        String tenantId = tenantEnable ? TenantContext.getTenantId() : StrUtil.EMPTY;
+        // 查询子节点信息(包含当前节点)
+        List<String> childIds = skyeyeBaseMapper.queryAllChildIdsByParentId(ids, tenantId);
+        beans = selectMapByIds(childIds).values().stream().map(bean -> BeanUtil.beanToMap(bean)).collect(Collectors.toList());
+        beans = beans.stream()
+            .sorted(Comparator.comparing((Map<String, Object> bean) -> bean.get("createTime").toString()).reversed())
+            .collect(Collectors.toList());
+        beans.forEach(bean -> {
+            bean.put("lay_is_open", true);
+        });
         return beans;
     }
 
