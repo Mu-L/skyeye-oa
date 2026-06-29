@@ -28,4 +28,14 @@ public interface TenantAppBuyOrderService extends SkyeyeBusinessService<TenantAp
      * @return 订单条数
      */
     long countActiveBuyOrdersByBuyTenantId(String buyTenantId);
+
+    /**
+     * 审批通过的订单执行支付（支付成功后交付席位/应用权益）
+     */
+    void payTenantAppBuyOrder(InputObject inputObject, OutputObject outputObject);
+
+    /**
+     * 审批通过且待支付的订单取消支付
+     */
+    void cancelPayTenantAppBuyOrder(InputObject inputObject, OutputObject outputObject);
 }

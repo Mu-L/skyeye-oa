@@ -120,4 +120,12 @@ public class DsFormPage extends OperatorUserInfo {
     @ApiModelProperty(value = "布局的自定义内容")
     private String content;
 
+    @TableField("modal_width_vh")
+    @ApiModelProperty(value = "弹窗宽度(vh)，为空时使用前端默认宽度，仅PC端生效")
+    private Integer modalWidthVh;
+
+    @TableField("modal_height_vh")
+    @ApiModelProperty(value = "弹窗高度(vh)，为空时使用前端默认高度，仅PC端生效")
+    private Integer modalHeightVh;
+
 }

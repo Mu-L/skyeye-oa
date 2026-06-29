@@ -78,4 +78,22 @@ public class TenantAppBuyOrderController {
         tenantAppBuyOrderService.queryTenantOrderStatistics(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "payTenantAppBuyOrder", value = "租户订单支付", method = "POST", allUse = "1")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "订单主键id", required = "required"),
+        @ApiImplicitParam(id = "payRemark", name = "payRemark", value = "支付备注")})
+    @RequestMapping("/post/TenantAppBuyOrderController/payTenantAppBuyOrder")
+    public void payTenantAppBuyOrder(InputObject inputObject, OutputObject outputObject) {
+        tenantAppBuyOrderService.payTenantAppBuyOrder(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "cancelPayTenantAppBuyOrder", value = "租户订单取消支付", method = "PUT", allUse = "1")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "id", name = "id", value = "订单主键id", required = "required"),
+        @ApiImplicitParam(id = "payRemark", name = "payRemark", value = "取消支付备注")})
+    @RequestMapping("/post/TenantAppBuyOrderController/cancelPayTenantAppBuyOrder")
+    public void cancelPayTenantAppBuyOrder(InputObject inputObject, OutputObject outputObject) {
+        tenantAppBuyOrderService.cancelPayTenantAppBuyOrder(inputObject, outputObject);
+    }
+
 }

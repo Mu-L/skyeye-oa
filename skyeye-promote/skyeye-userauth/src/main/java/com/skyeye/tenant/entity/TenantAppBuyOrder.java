@@ -12,6 +12,7 @@ import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.common.constans.RedisConstants;
 import com.skyeye.common.entity.features.SkyeyeFlowable;
+import com.skyeye.tenant.classenum.TenantAppBuyOrderPayState;
 import lombok.Data;
 
 import java.util.List;
@@ -53,6 +54,20 @@ public class TenantAppBuyOrder extends SkyeyeFlowable {
     @TableField(value = "all_price")
     @Property(value = "总价")
     private String allPrice;
+
+    @TableField(value = "pay_state")
+    @ApiModelProperty(value = "支付状态", enumClass = TenantAppBuyOrderPayState.class)
+    @Property(value = "支付状态")
+    private Integer payState;
+
+    @TableField(value = "pay_time")
+    @ApiModelProperty(value = "支付时间")
+    @Property(value = "支付时间")
+    private String payTime;
+
+    @TableField(value = "pay_remark")
+    @ApiModelProperty(value = "支付/取消支付备注")
+    private String payRemark;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "租户数量信息", required = "json")

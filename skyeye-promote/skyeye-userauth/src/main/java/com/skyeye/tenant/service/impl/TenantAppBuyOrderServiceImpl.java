@@ -5,24 +5,30 @@
 package com.skyeye.tenant.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.skyeye.annotation.service.SkyeyeService;
 import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
-import cn.hutool.core.util.StrUtil;
+import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
 import com.skyeye.common.util.CalculationUtil;
+import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
 import com.skyeye.exception.CustomException;
+import com.skyeye.tenant.classenum.TenantAppBuyOrderPayState;
 import com.skyeye.tenant.dao.TenantAppBuyOrderDao;
 import com.skyeye.tenant.entity.*;
 import com.skyeye.tenant.service.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -85,6 +91,8 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
             }
         }
         entity.setAllPrice(totalPrice);
+        // 默认待支付
+        entity.setPayState(TenantAppBuyOrderPayState.UNPAID.getKey());
     }
 
     @Override
@@ -119,12 +127,66 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
     @Override
     public void approvalEndIsSuccess(TenantAppBuyOrder entity) {
         TenantAppBuyOrder tenantAppBuyOrder = selectById(entity.getId());
+        if (ObjectUtil.isEmpty(tenantAppBuyOrder) || StrUtil.isEmpty(tenantAppBuyOrder.getId())) {
+            throw new CustomException("订单不存在");
+        }
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void payTenantAppBuyOrder(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        String payRemark = params.get("payRemark").toString();
+        TenantAppBuyOrder tenantAppBuyOrder = selectById(id);
+        assertApprovedAndUnpaid(tenantAppBuyOrder);
+        deliverOrderBenefits(tenantAppBuyOrder);
+        UpdateWrapper<TenantAppBuyOrder> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getPayState), TenantAppBuyOrderPayState.PAID.getKey());
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getPayTime), DateUtil.getTimeAndToString());
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getPayRemark), payRemark);
+        update(updateWrapper);
+        refreshCache(id);
+    }
+
+    @Override
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void cancelPayTenantAppBuyOrder(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        String id = params.get("id").toString();
+        String payRemark = params.get("payRemark").toString();
+        TenantAppBuyOrder tenantAppBuyOrder = selectById(id);
+        assertApprovedAndUnpaid(tenantAppBuyOrder);
+        UpdateWrapper<TenantAppBuyOrder> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getPayState), TenantAppBuyOrderPayState.PAY_CANCELLED.getKey());
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getPayRemark), payRemark);
+        update(updateWrapper);
+        refreshCache(id);
+    }
+
+    private void assertApprovedAndUnpaid(TenantAppBuyOrder tenantAppBuyOrder) {
+        if (ObjectUtil.isEmpty(tenantAppBuyOrder) || StrUtil.isEmpty(tenantAppBuyOrder.getId())) {
+            throw new CustomException("订单不存在");
+        }
+        if (!FlowableStateEnum.PASS.getKey().equals(tenantAppBuyOrder.getState())) {
+            throw new CustomException("仅审批通过的订单可执行该操作");
+        }
+        if (tenantAppBuyOrder.getPayState() == null) {
+            throw new CustomException("该订单支付状态异常，请联系管理员处理");
+        }
+        if (!TenantAppBuyOrderPayState.UNPAID.getKey().equals(tenantAppBuyOrder.getPayState())) {
+            throw new CustomException("当前订单不是待支付状态");
+        }
+    }
+
+    private void deliverOrderBenefits(TenantAppBuyOrder tenantAppBuyOrder) {
         if (CollectionUtil.isNotEmpty(tenantAppBuyOrder.getTenantAppBuyOrderNumList())) {
             tenantAppBuyOrder.getTenantAppBuyOrderNumList().forEach(tenantAppBuyOrderNum -> {
                 tenantService.editTenantAccountNumber(tenantAppBuyOrder.getBuyTenantId(), tenantAppBuyOrderNum.getAccountNum());
             });
         }
-
         if (CollectionUtil.isNotEmpty(tenantAppBuyOrder.getTenantAppBuyOrderYearList())) {
             tenantAppBuyOrder.getTenantAppBuyOrderYearList().forEach(tenantAppBuyOrderYear -> {
                 tenantAppLinkService.saveTenantAppLink(tenantAppBuyOrder.getBuyTenantId(), tenantAppBuyOrderYear.getAppId(), tenantAppBuyOrderYear.getAccountYear());
