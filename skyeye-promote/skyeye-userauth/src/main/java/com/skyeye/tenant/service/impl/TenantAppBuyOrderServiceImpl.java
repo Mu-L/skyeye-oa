@@ -170,9 +170,6 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
         if (ObjectUtil.isEmpty(tenantAppBuyOrder) || StrUtil.isEmpty(tenantAppBuyOrder.getId())) {
             throw new CustomException("订单不存在");
         }
-        if (!FlowableStateEnum.PASS.getKey().equals(tenantAppBuyOrder.getState())) {
-            throw new CustomException("仅审批通过的订单可执行该操作");
-        }
         if (tenantAppBuyOrder.getPayState() == null) {
             throw new CustomException("该订单支付状态异常，请联系管理员处理");
         }
