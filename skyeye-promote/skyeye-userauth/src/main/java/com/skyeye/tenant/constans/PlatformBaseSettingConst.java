@@ -20,4 +20,20 @@ public class PlatformBaseSettingConst {
      */
     public static final String KEY_ACCOUNT_UNIT_PRICE = "accountUnitPrice";
 
+    /**
+     * 按组织类型区分的席位规则，结构：{组织类型key: {initAccountNum, minBuyAccountNum}}
+     * 组织类型 key 见 {@link com.skyeye.tenant.classenum.TenantOrgType}
+     */
+    public static final String KEY_ORG_TYPE_CONFIG = "orgTypeConfig";
+
+    /**
+     * 组织类型配置 - 初始化席位数（新建租户时赋予）
+     */
+    public static final String KEY_INIT_ACCOUNT_NUM = "initAccountNum";
+
+    /**
+     * 组织类型配置 - 每次购买席位的最低数量
+     */
+    public static final String KEY_MIN_BUY_ACCOUNT_NUM = "minBuyAccountNum";
+
 }

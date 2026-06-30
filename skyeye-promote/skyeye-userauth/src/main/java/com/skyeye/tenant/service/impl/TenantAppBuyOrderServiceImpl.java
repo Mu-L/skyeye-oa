@@ -62,6 +62,9 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
     @Autowired
     private TenantAppLinkService tenantAppLinkService;
 
+    @Autowired
+    private PlatformBaseSettingService platformBaseSettingService;
+
     @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
@@ -74,6 +77,7 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
         if (CollectionUtil.isEmpty(entity.getTenantAppBuyOrderNumList()) && CollectionUtil.isEmpty(entity.getTenantAppBuyOrderYearList())) {
             throw new CustomException("订单信息不能为空.");
         }
+        validateBuyOrderSeatNum(entity);
         String totalPrice = "0";
         if (CollectionUtil.isNotEmpty(entity.getTenantAppBuyOrderNumList())) {
             for (TenantAppBuyOrderNum tenantAppBuyOrderNum : entity.getTenantAppBuyOrderNumList()) {
@@ -92,6 +96,29 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
         entity.setAllPrice(totalPrice);
         // 默认待支付
         entity.setPayState(TenantAppBuyOrderPayState.UNPAID.getKey());
+    }
+
+    /**
+     * 校验购买席位数是否满足组织类型对应的最低购买数量
+     */
+    private void validateBuyOrderSeatNum(TenantAppBuyOrder entity) {
+        if (CollectionUtil.isEmpty(entity.getTenantAppBuyOrderNumList())) {
+            return;
+        }
+        Tenant buyTenant = tenantService.selectById(entity.getBuyTenantId());
+        if (ObjectUtil.isEmpty(buyTenant) || buyTenant.getOrgType() == null) {
+            throw new CustomException("购买租户信息不完整，无法校验席位购买数量");
+        }
+        Integer minBuyAccountNum = platformBaseSettingService.getMinBuyAccountNum(buyTenant.getOrgType());
+        String platformUnitPrice = platformBaseSettingService.getAccountUnitPrice();
+        for (TenantAppBuyOrderNum tenantAppBuyOrderNum : entity.getTenantAppBuyOrderNumList()) {
+            if (tenantAppBuyOrderNum.getAccountNum() == null || tenantAppBuyOrderNum.getAccountNum() < minBuyAccountNum) {
+                throw new CustomException("购买席位数不能低于" + minBuyAccountNum + "个");
+            }
+            if (StrUtil.isBlank(tenantAppBuyOrderNum.getUnitPrice())) {
+                tenantAppBuyOrderNum.setUnitPrice(platformUnitPrice);
+            }
+        }
     }
 
     @Override

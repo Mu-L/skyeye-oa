@@ -73,18 +73,21 @@ public class TenantServiceImpl extends SkyeyeBusinessServiceImpl<TenantDao, Tena
     @Autowired
     private IJobMateMationService iJobMateMationService;
 
+    @Autowired
+    private PlatformBaseSettingService platformBaseSettingService;
+
     @Lazy
     @Autowired
     private TenantAppBuyOrderService tenantAppBuyOrderService;
 
     @Override
     public void createPrepose(Tenant entity) {
-        entity.setAccountNum(CommonNumConstants.NUM_ZERO);
-        if (entity.getWhetherHasPassedBuyOrder() == null) {
-            entity.setWhetherHasPassedBuyOrder(WhetherEnum.DISABLE_USING.getKey());
-        }
         if (entity.getOrgType() == null) {
             entity.setOrgType(TenantOrgType.ENTERPRISE.getKey());
+        }
+        entity.setAccountNum(platformBaseSettingService.getInitAccountNum(entity.getOrgType()));
+        if (entity.getWhetherHasPassedBuyOrder() == null) {
+            entity.setWhetherHasPassedBuyOrder(WhetherEnum.DISABLE_USING.getKey());
         }
     }
 

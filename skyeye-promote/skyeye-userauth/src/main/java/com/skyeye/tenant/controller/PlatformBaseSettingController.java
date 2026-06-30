@@ -5,6 +5,7 @@
 package com.skyeye.tenant.controller;
 
 import com.skyeye.annotation.api.Api;
+import com.skyeye.annotation.api.ApiImplicitParam;
 import com.skyeye.annotation.api.ApiImplicitParams;
 import com.skyeye.annotation.api.ApiOperation;
 import com.skyeye.common.object.InputObject;
@@ -43,6 +44,14 @@ public class PlatformBaseSettingController {
     @RequestMapping("/post/PlatformBaseSettingController/queryPlatformAccountUnitPrice")
     public void queryPlatformAccountUnitPrice(InputObject inputObject, OutputObject outputObject) {
         platformBaseSettingService.queryPlatformAccountUnitPrice(inputObject, outputObject);
+    }
+
+    @ApiOperation(id = "queryPlatformTenantOrgSeatConfig", value = "按组织类型获取席位计费规则", method = "GET", allUse = "2")
+    @ApiImplicitParams({
+        @ApiImplicitParam(id = "orgType", name = "orgType", value = "组织类型，见 TenantOrgType", required = "required,num")})
+    @RequestMapping("/post/PlatformBaseSettingController/queryPlatformTenantOrgSeatConfig")
+    public void queryPlatformTenantOrgSeatConfig(InputObject inputObject, OutputObject outputObject) {
+        platformBaseSettingService.queryPlatformTenantOrgSeatConfig(inputObject, outputObject);
     }
 
 }

@@ -31,8 +31,23 @@ public interface PlatformBaseSettingService extends SkyeyeBusinessService<Platfo
     void queryPlatformAccountUnitPrice(InputObject inputObject, OutputObject outputObject);
 
     /**
+     * 按组织类型查询席位计费规则（单价、初始化席位数、最低购买席位数）
+     */
+    void queryPlatformTenantOrgSeatConfig(InputObject inputObject, OutputObject outputObject);
+
+    /**
      * 获取平台配置的租户成员席位单价（元/席位），供内部业务调用
      */
     String getAccountUnitPrice();
+
+    /**
+     * 获取指定组织类型的初始化席位数
+     */
+    Integer getInitAccountNum(Integer orgType);
+
+    /**
+     * 获取指定组织类型的每次最低购买席位数
+     */
+    Integer getMinBuyAccountNum(Integer orgType);
 
 }

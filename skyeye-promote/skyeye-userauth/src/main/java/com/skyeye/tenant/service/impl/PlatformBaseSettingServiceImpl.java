@@ -20,6 +20,7 @@ import com.skyeye.common.tenant.TenantTypeEnum;
 import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.exception.CustomException;
 import com.skyeye.tenant.classenum.PlatformBaseSettingGroup;
+import com.skyeye.tenant.classenum.TenantOrgType;
 import com.skyeye.tenant.constans.PlatformBaseSettingConst;
 import com.skyeye.tenant.dao.PlatformBaseSettingDao;
 import com.skyeye.tenant.entity.PlatformBaseSetting;
@@ -49,6 +50,26 @@ public class PlatformBaseSettingServiceImpl extends SkyeyeBusinessServiceImpl<Pl
     private static final String DEFAULT_ACCOUNT_UNIT_PRICE = "0.00";
 
     /**
+     * 个人组织默认初始化席位数
+     */
+    private static final int DEFAULT_PERSONAL_INIT_ACCOUNT_NUM = 1;
+
+    /**
+     * 个人组织默认最低购买席位数
+     */
+    private static final int DEFAULT_PERSONAL_MIN_BUY_ACCOUNT_NUM = 1;
+
+    /**
+     * 企业组织默认初始化席位数
+     */
+    private static final int DEFAULT_ENTERPRISE_INIT_ACCOUNT_NUM = 10;
+
+    /**
+     * 企业组织默认最低购买席位数
+     */
+    private static final int DEFAULT_ENTERPRISE_MIN_BUY_ACCOUNT_NUM = 5;
+
+    /**
      * 查询平台基础信息（管理端使用，需平台租户身份）
      */
     @Override
@@ -72,11 +93,9 @@ public class PlatformBaseSettingServiceImpl extends SkyeyeBusinessServiceImpl<Pl
         String userId = inputObject.getLogParams().get("id").toString();
         String settingId;
         if (ObjectUtil.isEmpty(existing)) {
-            // 首次保存：以默认值打底，再覆盖本次提交内容
             entity.setSettingData(mergeSettingData(buildDefaultSettingData(), entity.getSettingData()));
             settingId = createEntity(entity, userId);
         } else {
-            // 已有记录：在现有数据上增量合并，避免丢失未提交的分组
             entity.setId(existing.getId());
             entity.setSettingData(mergeSettingData(existing.getSettingData(), entity.getSettingData()));
             settingId = updateEntity(entity, userId);
@@ -98,21 +117,38 @@ public class PlatformBaseSettingServiceImpl extends SkyeyeBusinessServiceImpl<Pl
     }
 
     /**
+     * 按组织类型查询席位计费规则
+     */
+    @Override
+    @IgnoreTenant
+    public void queryPlatformTenantOrgSeatConfig(InputObject inputObject, OutputObject outputObject) {
+        Map<String, Object> params = inputObject.getParams();
+        Integer orgType = Integer.parseInt(params.get("orgType").toString());
+        outputObject.setBean(buildOrgSeatConfigBean(orgType));
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    /**
      * 获取平台配置的租户成员席位单价，供内部业务调用（如创建购买订单时默认带出单价）
      */
     @Override
     @IgnoreTenant
     public String getAccountUnitPrice() {
-        PlatformBaseSetting setting = getOne(new QueryWrapper<>(), false);
-        if (ObjectUtil.isEmpty(setting) || MapUtil.isEmpty(setting.getSettingData())) {
-            return DEFAULT_ACCOUNT_UNIT_PRICE;
-        }
-        Map<String, Object> tenantGroup = setting.getSettingData().get(PlatformBaseSettingGroup.TENANT.getKey());
-        if (MapUtil.isEmpty(tenantGroup)) {
-            return DEFAULT_ACCOUNT_UNIT_PRICE;
-        }
+        Map<String, Object> tenantGroup = getTenantGroupSetting();
         Object price = tenantGroup.get(PlatformBaseSettingConst.KEY_ACCOUNT_UNIT_PRICE);
         return ObjectUtil.isEmpty(price) ? DEFAULT_ACCOUNT_UNIT_PRICE : price.toString();
+    }
+
+    @Override
+    @IgnoreTenant
+    public Integer getInitAccountNum(Integer orgType) {
+        return getOrgTypeConfigInt(orgType, PlatformBaseSettingConst.KEY_INIT_ACCOUNT_NUM, getDefaultInitAccountNum(orgType));
+    }
+
+    @Override
+    @IgnoreTenant
+    public Integer getMinBuyAccountNum(Integer orgType) {
+        return getOrgTypeConfigInt(orgType, PlatformBaseSettingConst.KEY_MIN_BUY_ACCOUNT_NUM, getDefaultMinBuyAccountNum(orgType));
     }
 
     @Override
@@ -145,13 +181,89 @@ public class PlatformBaseSettingServiceImpl extends SkyeyeBusinessServiceImpl<Pl
         Map<String, Map<String, Object>> settingData = new HashMap<>();
         Map<String, Object> tenantGroup = new HashMap<>();
         tenantGroup.put(PlatformBaseSettingConst.KEY_ACCOUNT_UNIT_PRICE, DEFAULT_ACCOUNT_UNIT_PRICE);
+        tenantGroup.put(PlatformBaseSettingConst.KEY_ORG_TYPE_CONFIG, buildDefaultOrgTypeConfig());
         settingData.put(PlatformBaseSettingGroup.TENANT.getKey(), tenantGroup);
         return settingData;
+    }
+
+    private Map<String, Map<String, Object>> buildDefaultOrgTypeConfig() {
+        Map<String, Map<String, Object>> orgTypeConfig = new HashMap<>();
+        orgTypeConfig.put(String.valueOf(TenantOrgType.PERSONAL.getKey()), buildOrgTypeItem(
+            DEFAULT_PERSONAL_INIT_ACCOUNT_NUM, DEFAULT_PERSONAL_MIN_BUY_ACCOUNT_NUM));
+        orgTypeConfig.put(String.valueOf(TenantOrgType.ENTERPRISE.getKey()), buildOrgTypeItem(
+            DEFAULT_ENTERPRISE_INIT_ACCOUNT_NUM, DEFAULT_ENTERPRISE_MIN_BUY_ACCOUNT_NUM));
+        return orgTypeConfig;
+    }
+
+    private Map<String, Object> buildOrgTypeItem(int initAccountNum, int minBuyAccountNum) {
+        Map<String, Object> item = new HashMap<>();
+        item.put(PlatformBaseSettingConst.KEY_INIT_ACCOUNT_NUM, initAccountNum);
+        item.put(PlatformBaseSettingConst.KEY_MIN_BUY_ACCOUNT_NUM, minBuyAccountNum);
+        return item;
+    }
+
+    private Map<String, Object> buildOrgSeatConfigBean(Integer orgType) {
+        Map<String, Object> data = new HashMap<>();
+        data.put("orgType", orgType);
+        data.put(PlatformBaseSettingConst.KEY_ACCOUNT_UNIT_PRICE, getAccountUnitPrice());
+        data.put(PlatformBaseSettingConst.KEY_INIT_ACCOUNT_NUM, getInitAccountNum(orgType));
+        data.put(PlatformBaseSettingConst.KEY_MIN_BUY_ACCOUNT_NUM, getMinBuyAccountNum(orgType));
+        return data;
+    }
+
+    private Map<String, Object> getTenantGroupSetting() {
+        PlatformBaseSetting setting = getOne(new QueryWrapper<>(), false);
+        if (ObjectUtil.isEmpty(setting) || MapUtil.isEmpty(setting.getSettingData())) {
+            return buildDefaultSettingData().get(PlatformBaseSettingGroup.TENANT.getKey());
+        }
+        Map<String, Object> tenantGroup = setting.getSettingData().get(PlatformBaseSettingGroup.TENANT.getKey());
+        if (MapUtil.isEmpty(tenantGroup)) {
+            return buildDefaultSettingData().get(PlatformBaseSettingGroup.TENANT.getKey());
+        }
+        Map<String, Map<String, Object>> merged = mergeSettingData(buildDefaultSettingData(), setting.getSettingData());
+        return merged.get(PlatformBaseSettingGroup.TENANT.getKey());
+    }
+
+    @SuppressWarnings("unchecked")
+    private Map<String, Map<String, Object>> getOrgTypeConfigMap(Map<String, Object> tenantGroup) {
+        Object orgTypeConfigObj = tenantGroup.get(PlatformBaseSettingConst.KEY_ORG_TYPE_CONFIG);
+        if (!(orgTypeConfigObj instanceof Map)) {
+            return buildDefaultOrgTypeConfig();
+        }
+        return (Map<String, Map<String, Object>>) orgTypeConfigObj;
+    }
+
+    private Integer getOrgTypeConfigInt(Integer orgType, String configKey, int defaultValue) {
+        if (orgType == null) {
+            return defaultValue;
+        }
+        Map<String, Object> tenantGroup = getTenantGroupSetting();
+        Map<String, Map<String, Object>> orgTypeConfig = getOrgTypeConfigMap(tenantGroup);
+        Map<String, Object> orgConfig = orgTypeConfig.get(String.valueOf(orgType));
+        if (MapUtil.isEmpty(orgConfig) || ObjectUtil.isEmpty(orgConfig.get(configKey))) {
+            return defaultValue;
+        }
+        return NumberUtil.parseInt(orgConfig.get(configKey).toString());
+    }
+
+    private int getDefaultInitAccountNum(Integer orgType) {
+        if (TenantOrgType.PERSONAL.getKey().equals(orgType)) {
+            return DEFAULT_PERSONAL_INIT_ACCOUNT_NUM;
+        }
+        return DEFAULT_ENTERPRISE_INIT_ACCOUNT_NUM;
+    }
+
+    private int getDefaultMinBuyAccountNum(Integer orgType) {
+        if (TenantOrgType.PERSONAL.getKey().equals(orgType)) {
+            return DEFAULT_PERSONAL_MIN_BUY_ACCOUNT_NUM;
+        }
+        return DEFAULT_ENTERPRISE_MIN_BUY_ACCOUNT_NUM;
     }
 
     /**
      * 增量合并设置数据：incoming 中的分组/字段覆盖 base 对应项，未提交的分组保持不变
      */
+    @SuppressWarnings("unchecked")
     private Map<String, Map<String, Object>> mergeSettingData(Map<String, Map<String, Object>> base,
                                                               Map<String, Map<String, Object>> incoming) {
         Map<String, Map<String, Object>> merged = new HashMap<>();
@@ -165,7 +277,20 @@ public class PlatformBaseSettingServiceImpl extends SkyeyeBusinessServiceImpl<Pl
             if (MapUtil.isEmpty(groupValue)) {
                 return;
             }
-            merged.computeIfAbsent(groupKey, key -> new HashMap<>()).putAll(groupValue);
+            Map<String, Object> targetGroup = merged.computeIfAbsent(groupKey, key -> new HashMap<>());
+            groupValue.forEach((itemKey, itemValue) -> {
+                if (PlatformBaseSettingConst.KEY_ORG_TYPE_CONFIG.equals(itemKey) && itemValue instanceof Map) {
+                    Map<String, Object> targetOrgConfig = (Map<String, Object>) targetGroup.computeIfAbsent(itemKey, k -> new HashMap<>());
+                    ((Map<String, Object>) itemValue).forEach((orgTypeKey, orgConfig) -> {
+                        if (orgConfig instanceof Map) {
+                            Map<String, Object> targetOrg = (Map<String, Object>) targetOrgConfig.computeIfAbsent(orgTypeKey, k -> new HashMap<>());
+                            targetOrg.putAll((Map<String, Object>) orgConfig);
+                        }
+                    });
+                } else {
+                    targetGroup.put(itemKey, itemValue);
+                }
+            });
         });
         return merged;
     }
@@ -173,6 +298,7 @@ public class PlatformBaseSettingServiceImpl extends SkyeyeBusinessServiceImpl<Pl
     /**
      * 按分组校验设置项；新增分组时在此扩展校验规则
      */
+    @SuppressWarnings("unchecked")
     private void validateSettingData(Map<String, Map<String, Object>> settingData) {
         if (MapUtil.isEmpty(settingData)) {
             return;
@@ -181,11 +307,33 @@ public class PlatformBaseSettingServiceImpl extends SkyeyeBusinessServiceImpl<Pl
         if (MapUtil.isEmpty(tenantGroup)) {
             return;
         }
-        Object accountUnitPrice = tenantGroup.get(PlatformBaseSettingConst.KEY_ACCOUNT_UNIT_PRICE);
-        if (ObjectUtil.isEmpty(accountUnitPrice) || StrUtil.isBlank(accountUnitPrice.toString())) {
-            throw new CustomException("成员席位单价不能为空");
+        if (tenantGroup.containsKey(PlatformBaseSettingConst.KEY_ACCOUNT_UNIT_PRICE)) {
+            Object accountUnitPrice = tenantGroup.get(PlatformBaseSettingConst.KEY_ACCOUNT_UNIT_PRICE);
+            if (ObjectUtil.isEmpty(accountUnitPrice) || StrUtil.isBlank(accountUnitPrice.toString())) {
+                throw new CustomException("成员席位单价不能为空");
+            }
+            validatePrice(accountUnitPrice.toString(), "成员席位单价");
         }
-        validatePrice(accountUnitPrice.toString(), "成员席位单价");
+        Object orgTypeConfigObj = tenantGroup.get(PlatformBaseSettingConst.KEY_ORG_TYPE_CONFIG);
+        if (ObjectUtil.isEmpty(orgTypeConfigObj) || !(orgTypeConfigObj instanceof Map)) {
+            return;
+        }
+        Map<String, Object> orgTypeConfig = (Map<String, Object>) orgTypeConfigObj;
+        for (TenantOrgType tenantOrgType : TenantOrgType.values()) {
+            if (!Boolean.TRUE.equals(tenantOrgType.getShow())) {
+                continue;
+            }
+            String orgTypeKey = String.valueOf(tenantOrgType.getKey());
+            Object orgConfigObj = orgTypeConfig.get(orgTypeKey);
+            if (ObjectUtil.isEmpty(orgConfigObj) || !(orgConfigObj instanceof Map)) {
+                throw new CustomException(tenantOrgType.getValue() + "席位规则不能为空");
+            }
+            Map<String, Object> orgConfig = (Map<String, Object>) orgConfigObj;
+            validatePositiveInteger(orgConfig.get(PlatformBaseSettingConst.KEY_INIT_ACCOUNT_NUM),
+                tenantOrgType.getValue() + "初始化席位数");
+            validatePositiveInteger(orgConfig.get(PlatformBaseSettingConst.KEY_MIN_BUY_ACCOUNT_NUM),
+                tenantOrgType.getValue() + "最低购买席位数");
+        }
     }
 
     /**
@@ -198,6 +346,21 @@ public class PlatformBaseSettingServiceImpl extends SkyeyeBusinessServiceImpl<Pl
         BigDecimal amount = NumberUtil.toBigDecimal(price);
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
             throw new CustomException(label + "不能小于0");
+        }
+    }
+
+    /**
+     * 校验正整数（>= 1）
+     */
+    private void validatePositiveInteger(Object value, String label) {
+        if (ObjectUtil.isEmpty(value) || StrUtil.isBlank(value.toString())) {
+            throw new CustomException(label + "不能为空");
+        }
+        if (!value.toString().matches("^\\d+$")) {
+            throw new CustomException(label + "必须为正整数");
+        }
+        if (NumberUtil.parseInt(value.toString()) < CommonNumConstants.NUM_ONE) {
+            throw new CustomException(label + "不能小于1");
         }
     }
 

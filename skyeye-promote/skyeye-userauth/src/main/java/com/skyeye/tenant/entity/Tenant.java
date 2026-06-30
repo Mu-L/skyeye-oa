@@ -36,7 +36,7 @@ import java.util.List;
 public class Tenant extends BaseGeneralInfo {
 
     @TableField("account_num")
-    @Property(value = "允许的账号数量")
+    @Property(value = "允许的账号数量(席位数量)")
     private Integer accountNum;
 
     @TableField(value = "`logo`")
