@@ -8,7 +8,6 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.skyeye.annotation.api.ApiModel;
 import com.skyeye.annotation.api.ApiModelProperty;
-import com.skyeye.annotation.api.Property;
 import com.skyeye.annotation.cache.RedisCacheField;
 import com.skyeye.annotation.unique.UniqueField;
 import com.skyeye.common.constans.RedisConstants;
@@ -31,6 +30,10 @@ import java.util.List;
 @TableName(value = "tenant_app")
 @ApiModel("租户应用管理实体类")
 public class TenantApp extends BaseGeneralInfo {
+
+    @TableField(value = "year_unit_price")
+    @ApiModelProperty(value = "应用年费单价(元/年)", required = "required")
+    private String yearUnitPrice;
 
     @TableField(exist = false)
     @ApiModelProperty(value = "PC端菜单权限")
