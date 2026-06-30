@@ -14,7 +14,6 @@ import com.skyeye.annotation.tenant.IgnoreTenant;
 import com.skyeye.base.business.service.impl.SkyeyeBusinessServiceImpl;
 import com.skyeye.common.constans.CommonConstants;
 import com.skyeye.common.constans.CommonNumConstants;
-import com.skyeye.common.enumeration.FlowableStateEnum;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
@@ -130,6 +129,9 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
         if (ObjectUtil.isEmpty(tenantAppBuyOrder) || StrUtil.isEmpty(tenantAppBuyOrder.getId())) {
             throw new CustomException("订单不存在");
         }
+        if (StrUtil.isNotEmpty(tenantAppBuyOrder.getBuyTenantId())) {
+            tenantService.markHasPassedAppBuyOrder(tenantAppBuyOrder.getBuyTenantId());
+        }
     }
 
     @Override
@@ -170,6 +172,9 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
         if (ObjectUtil.isEmpty(tenantAppBuyOrder) || StrUtil.isEmpty(tenantAppBuyOrder.getId())) {
             throw new CustomException("订单不存在");
         }
+        if (!isApprovedFlowableEntity(tenantAppBuyOrder)) {
+            throw new CustomException("当前订单未审批通过，无法操作");
+        }
         if (tenantAppBuyOrder.getPayState() == null) {
             throw new CustomException("该订单支付状态异常，请联系管理员处理");
         }
@@ -199,10 +204,7 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
     public long countActiveBuyOrdersByBuyTenantId(String buyTenantId) {
         QueryWrapper<TenantAppBuyOrder> orderQw = new QueryWrapper<>();
         orderQw.eq(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getBuyTenantId), buyTenantId);
-        orderQw.notIn(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getState),
-            FlowableStateEnum.DRAFT.getKey(),
-            FlowableStateEnum.INVALID.getKey());
-        return count(orderQw);
+        return list(orderQw).stream().filter(order -> !isInactiveFlowableEntity(order)).count();
     }
 
     @Override
@@ -213,25 +215,44 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
         QueryWrapper<TenantAppBuyOrder> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getBuyTenantId), tenantId);
         List<TenantAppBuyOrder> tenantAppBuyOrderList = list(queryWrapper);
-        // 2. 查询租户的总订单金额--包括审核通过的
+        // 2. 查询租户的总订单金额--审核通过的订单
         BigDecimal totalPrice = tenantAppBuyOrderList.stream()
-            .filter(tenantAppBuyOrder -> tenantAppBuyOrder.getState().equals(FlowableStateEnum.PASS.getKey()))
+            .filter(this::isApprovedFlowableEntity)
             .map(bean -> new BigDecimal(bean.getAllPrice()))
             .reduce(BigDecimal.ZERO, BigDecimal::add);
-        // 3. 查询租户的总订单数量--包括审核通过的
+        // 3. 查询租户的总订单数量--审核通过的订单
         long totalCount = tenantAppBuyOrderList.stream()
-            .filter(tenantAppBuyOrder -> tenantAppBuyOrder.getState().equals(FlowableStateEnum.PASS.getKey()))
+            .filter(this::isApprovedFlowableEntity)
             .count();
-        // 4. 查询租户购买的应用数量
+        // 4. 已支付订单金额与数量
+        BigDecimal paidTotalPrice = tenantAppBuyOrderList.stream()
+            .filter(this::isPaidBuyOrder)
+            .map(bean -> new BigDecimal(bean.getAllPrice()))
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        long paidCount = tenantAppBuyOrderList.stream()
+            .filter(this::isPaidBuyOrder)
+            .count();
+        // 5. 查询租户购买的应用数量
         List<TenantAppLink> tenantAppLinks = tenantAppLinkService.selectByTenantId(tenantId);
         int appCount = tenantAppLinks.size();
-        // 5. 封装数据
+        // 6. 封装数据
         Map<String, Object> data = new HashMap<>();
         data.put("totalPrice", totalPrice);
         data.put("totalCount", totalCount);
+        data.put("paidTotalPrice", paidTotalPrice);
+        data.put("paidCount", paidCount);
         data.put("appCount", appCount);
         outputObject.setBean(data);
         outputObject.setBeans(tenantAppBuyOrderList);
         outputObject.settotal(CommonNumConstants.NUM_ONE);
     }
+
+    /**
+     * 是否已支付
+     */
+    private boolean isPaidBuyOrder(TenantAppBuyOrder order) {
+        return order != null
+            && TenantAppBuyOrderPayState.PAID.getKey().equals(order.getPayState());
+    }
+
 }
