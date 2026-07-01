@@ -17,11 +17,15 @@ import com.skyeye.common.constans.CommonNumConstants;
 import com.skyeye.common.enumeration.TenantEnum;
 import com.skyeye.common.object.InputObject;
 import com.skyeye.common.object.OutputObject;
+import com.skyeye.common.tenant.TenantTypeEnum;
+import com.skyeye.common.tenant.context.TenantContext;
 import com.skyeye.common.util.CalculationUtil;
 import com.skyeye.common.util.DateUtil;
 import com.skyeye.common.util.mybatisplus.MybatisPlusUtil;
+import com.skyeye.eve.flowable.classenum.FormSubType;
 import com.skyeye.exception.CustomException;
 import com.skyeye.tenant.classenum.TenantAppBuyOrderPayState;
+import com.skyeye.tenant.classenum.TenantAppBuyOrderSource;
 import com.skyeye.tenant.dao.TenantAppBuyOrderDao;
 import com.skyeye.tenant.entity.*;
 import com.skyeye.tenant.service.*;
@@ -66,6 +70,13 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
     private PlatformBaseSettingService platformBaseSettingService;
 
     @Override
+    protected void createPrepose(TenantAppBuyOrder entity) {
+        if (entity.getOrderSource() == null) {
+            entity.setOrderSource(TenantAppBuyOrderSource.PLATFORM.getKey());
+        }
+    }
+
+    @Override
     public List<Map<String, Object>> queryPageDataList(InputObject inputObject) {
         List<Map<String, Object>> beans = super.queryPageDataList(inputObject);
         tenantService.setMationForMap(beans, "buyTenantId", "buyTenantMation");
@@ -78,6 +89,7 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
             throw new CustomException("订单信息不能为空.");
         }
         validateBuyOrderSeatNum(entity);
+        validateBuyOrderAppYear(entity);
         String totalPrice = "0";
         if (CollectionUtil.isNotEmpty(entity.getTenantAppBuyOrderNumList())) {
             for (TenantAppBuyOrderNum tenantAppBuyOrderNum : entity.getTenantAppBuyOrderNumList()) {
@@ -119,6 +131,55 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
                 tenantAppBuyOrderNum.setUnitPrice(platformUnitPrice);
             }
         }
+    }
+
+    /**
+     * 校验应用购买行并补全单价
+     */
+    private void validateBuyOrderAppYear(TenantAppBuyOrder entity) {
+        if (CollectionUtil.isEmpty(entity.getTenantAppBuyOrderYearList())) {
+            return;
+        }
+        List<String> appIds = entity.getTenantAppBuyOrderYearList().stream()
+            .map(TenantAppBuyOrderYear::getAppId).collect(Collectors.toList());
+        Map<String, TenantApp> tenantAppMap = tenantAppService.queryTenantAppByAppId(appIds.toArray(new String[]{}));
+        for (TenantAppBuyOrderYear tenantAppBuyOrderYear : entity.getTenantAppBuyOrderYearList()) {
+            if (tenantAppBuyOrderYear.getAccountYear() < CommonNumConstants.NUM_ONE) {
+                throw new CustomException("购买应用年限不能小于1年");
+            }
+            TenantApp tenantApp = tenantAppMap.get(tenantAppBuyOrderYear.getAppId());
+            if (ObjectUtil.isEmpty(tenantApp)) {
+                throw new CustomException("购买的应用不存在");
+            }
+        }
+    }
+
+    @Override
+    @IgnoreTenant
+    @Transactional(value = TRANSACTION_MANAGER_VALUE, rollbackFor = Exception.class)
+    public void submitTenantSelfPurchaseOrder(InputObject inputObject, OutputObject outputObject) {
+        TenantAppBuyOrder entity = inputObject.getParams(TenantAppBuyOrder.class);
+        entity.setBuyTenantId(TenantContext.getTenantId());
+        entity.setOrderSource(TenantAppBuyOrderSource.TENANT.getKey());
+        entity.setFormSubType(FormSubType.DRAFT.getKey());
+        String userId = inputObject.getLogParams().get("id").toString();
+        TenantContext.setTenantId(TenantTypeEnum.PLATFORM.getCode());
+        String orderId = createEntity(entity, userId);
+        autoApprovalPass(orderId);
+        outputObject.setBean(selectById(orderId));
+        outputObject.settotal(CommonNumConstants.NUM_ONE);
+    }
+
+    private void updatePayState(String id, Integer payState, String payRemark) {
+        UpdateWrapper<TenantAppBuyOrder> updateWrapper = new UpdateWrapper<>();
+        updateWrapper.eq(CommonConstants.ID, id);
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getPayState), payState);
+        if (TenantAppBuyOrderPayState.PAID.getKey().equals(payState)) {
+            updateWrapper.set(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getPayTime), DateUtil.getTimeAndToString());
+        }
+        updateWrapper.set(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getPayRemark), payRemark);
+        update(updateWrapper);
+        refreshCache(id);
     }
 
     @Override
@@ -170,13 +231,7 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
         TenantAppBuyOrder tenantAppBuyOrder = selectById(id);
         assertApprovedAndUnpaid(tenantAppBuyOrder);
         deliverOrderBenefits(tenantAppBuyOrder);
-        UpdateWrapper<TenantAppBuyOrder> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, id);
-        updateWrapper.set(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getPayState), TenantAppBuyOrderPayState.PAID.getKey());
-        updateWrapper.set(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getPayTime), DateUtil.getTimeAndToString());
-        updateWrapper.set(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getPayRemark), payRemark);
-        update(updateWrapper);
-        refreshCache(id);
+        updatePayState(id, TenantAppBuyOrderPayState.PAID.getKey(), payRemark);
     }
 
     @Override
@@ -187,12 +242,7 @@ public class TenantAppBuyOrderServiceImpl extends SkyeyeBusinessServiceImpl<Tena
         String payRemark = params.get("payRemark").toString();
         TenantAppBuyOrder tenantAppBuyOrder = selectById(id);
         assertApprovedAndUnpaid(tenantAppBuyOrder);
-        UpdateWrapper<TenantAppBuyOrder> updateWrapper = new UpdateWrapper<>();
-        updateWrapper.eq(CommonConstants.ID, id);
-        updateWrapper.set(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getPayState), TenantAppBuyOrderPayState.PAY_CANCELLED.getKey());
-        updateWrapper.set(MybatisPlusUtil.toColumns(TenantAppBuyOrder::getPayRemark), payRemark);
-        update(updateWrapper);
-        refreshCache(id);
+        updatePayState(id, TenantAppBuyOrderPayState.PAY_CANCELLED.getKey(), payRemark);
     }
 
     private void assertApprovedAndUnpaid(TenantAppBuyOrder tenantAppBuyOrder) {

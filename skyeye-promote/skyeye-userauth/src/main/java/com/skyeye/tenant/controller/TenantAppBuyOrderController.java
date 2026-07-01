@@ -96,4 +96,11 @@ public class TenantAppBuyOrderController {
         tenantAppBuyOrderService.cancelPayTenantAppBuyOrder(inputObject, outputObject);
     }
 
+    @ApiOperation(id = "submitTenantSelfPurchaseOrder", value = "租户自购提交订单", method = "POST", allUse = "2")
+    @ApiImplicitParams(classBean = TenantAppBuyOrder.class)
+    @RequestMapping("/post/TenantAppBuyOrderController/submitTenantSelfPurchaseOrder")
+    public void submitTenantSelfPurchaseOrder(InputObject inputObject, OutputObject outputObject) {
+        tenantAppBuyOrderService.submitTenantSelfPurchaseOrder(inputObject, outputObject);
+    }
+
 }

@@ -38,4 +38,10 @@ public interface TenantAppBuyOrderService extends SkyeyeBusinessService<TenantAp
      * 审批通过且待支付的订单取消支付
      */
     void cancelPayTenantAppBuyOrder(InputObject inputObject, OutputObject outputObject);
+
+    /**
+     * 租户自购：提交购物车并生成已审核通过的待支付订单
+     */
+    void submitTenantSelfPurchaseOrder(InputObject inputObject, OutputObject outputObject);
+
 }
